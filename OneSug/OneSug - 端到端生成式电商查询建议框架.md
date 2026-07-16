@@ -1,5 +1,3 @@
-# OneSug - 端到端生成式电商查询建议框架
-
 这篇名为《OneSug: The Unified End-to-End Generative Framework for E-commerce Query Suggestion》的论文，是由快手（Kuaishou）搜索团队联合多位学者提出的一项重磅工业级研究，并被人工智能顶级会议 AAAI 收录。
 
 它的核心突破在于：**打破了过去搜索系统里繁琐的“召回->粗排->精排”的多阶段漏斗，直接用端到端（End-to-End）的生成式框架来做电商查询建议**（Query Suggestion，即我们平时在搜索框打字时弹出的下拉提示词）。

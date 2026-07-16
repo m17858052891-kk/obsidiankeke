@@ -1,5 +1,3 @@
-# 深度解析 CFR：反事实回归 (Counterfactual Regression)
-
 # 目录
 
 - [[#1. 核心痛点：为什么不能直接用神经网络预测？]]

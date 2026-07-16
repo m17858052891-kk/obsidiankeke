@@ -1,6 +1,12 @@
-# 生成式搜推 Int 系列论文拆解
+# 目录
 
-## 目录
+- [Causal mask：控制时间方向](#causal-mask控制时间方向)
+- [Session-wise mask：控制 session/action 边界](#session-wise-mask控制-sessionaction-边界)
+- [Invalid-Q mask：控制无效 Q placeholder](#invalid-q-mask控制无效-q-placeholder)
+- [三类 mask 的最终规则](#三类-mask-的最终规则)
+- [一个极简例子](#一个极简例子)
+
+# 目录
 
 - [Query-driven Decoder / QDB](#query-driven-decoder-qdb)
 - [Customized mask](#customized-mask)
@@ -201,7 +207,7 @@ S/Q/I/F sequence
 
 ```
 
-## Query-driven Decoder / QDB
+# Query-driven Decoder / QDB
 
 当搜索和推荐行为被聚合到同一条用户行为序列后，训练复杂度会增加。尤其是 ranking 场景，一个 query placeholder 往往对应多个候选 item，如果直接对每个候选都重跑完整序列，成本很高。
 
@@ -299,7 +305,7 @@ query/candidate 侧计算: 只做轻量 query-driven attention
 
 因此，QDB 本质上是把 IntSR 的统一生成框架改造成更适合工业多候选排序的计算形态。
 
-## Customized mask
+# Customized mask
 
 IntSR 的 mask 不只是普通 causal mask，还包括：
 
@@ -334,7 +340,7 @@ customized mask 解决 Q 在什么范围内合法读历史
 
 ```
 
-## Customized mask 的实现展开
+# Customized mask 的实现展开
 
 从实现角度看，customized mask 本质上是在 attention logits 上构造一个 `L x L` 的 allow/block 矩阵。假设输入序列长度是 `L`，attention score 为：
 
@@ -382,7 +388,7 @@ final_mask = causal_mask & session_mask & invalid_q_mask
 
 ```
 
-### Causal mask：控制时间方向
+# Causal mask：控制时间方向
 
 Causal mask 保证 token 只能看自己和过去，不能看未来。
 
@@ -416,7 +422,7 @@ causal_mask = torch.tril(torch.ones(L, L, dtype=torch.bool))
 
 没有 causal mask，模型训练时可能偷看未来行为，例如用后面的点击/购买信息预测前面的 query 或 item。这会让离线效果虚高，线上无法复现。
 
-### Session-wise mask：控制 session/action 边界
+# Session-wise mask：控制 session/action 边界
 
 Session-wise mask 是 IntSR 里很关键的一类 mask。单纯 causal mask 只能保证“不看未来”，但不能保证同一个 session 内不会出现训练/线上不一致。
 
@@ -481,7 +487,7 @@ session-wise mask 防止同一个 session 内的 action group 互相泄漏。
 
 论文消融里，session-wise mask 是很重要的设计，因为它避免模型过度依赖同 session 内的即时前序行为，让模型更多学习可在线获得的长期兴趣和历史模式。
 
-### Invalid-Q mask：控制无效 Q placeholder
+# Invalid-Q mask：控制无效 Q placeholder
 
 IntSR 中有很多 Q placeholder，但不是所有 Q 都应该作为上下文被其他 token 读取。
 
@@ -518,7 +524,7 @@ for j in range(L):
 
 注意，这里屏蔽的是 invalid Q 作为 key/value 被读取；它自己作为 query 是否参与计算，要看具体任务样本是否需要。
 
-### 三类 mask 的最终规则
+# 三类 mask 的最终规则
 
 可以把最终规则写成：
 
@@ -551,7 +557,7 @@ attn = softmax(logits)
 
 mask 决定“能不能看”，bias 决定“看见后按位置/时间距离怎么调权重”。
 
-### 一个极简例子
+# 一个极简例子
 
 假设序列是：
 
@@ -610,11 +616,11 @@ Q3 可以看 S1、前一 session 的有效历史、S2、自己
 
 这个例子体现了 IntSR customized mask 的目标：既利用历史，又避免同 session 内的即时行为造成训练/线上信息不一致。
 
-## DSFNet
+# DSFNet
 
 DSFNet 用于多场景建模。Amap 里存在 POI、数字资产、出行方式等多个场景，不同场景的数据分布和目标不同。DSFNet 的作用是让同一个统一框架能适配不同场景，而不是为每个场景单独维护一套模型。
 
-## Temporal candidate alignment
+# Temporal candidate alignment
 
 这是 IntSR 很工业的一点。
 
@@ -755,7 +761,7 @@ TSF: 在输出 MLP 参数上做 task-aware + scenario-aware factorization
 
 ```
 
-## TIP: Task-Guided Information Persistence
+# TIP: Task-Guided Information Persistence
 
 TIP 的作用是让任务相关信息在 decoder 中尽可能保留下来。
 
@@ -830,7 +836,7 @@ for layer in decoder_layers:
 
 论文里说 TIP 是 multi-task 版本的 Hyper Connection，重点就在这里：它不是为所有任务只传一条 residual，而是让任务相关信息在多层 decoder 中拥有更稳定的持久化通路。
 
-## TSG: Task-Specific Selective Gating
+# TSG: Task-Specific Selective Gating
 
 TSG 的作用是让每个任务从 decoder 输出中选择自己真正需要的信息。
 
@@ -911,7 +917,7 @@ for task in ["when", "how", "where", "via"]:
 
 所以 TSG 的关键不是“加一个任务头”，而是“每个任务自己决定用哪些层的信息”。
 
-## TSF: Task-Aware Scenario Factorization
+# TSF: Task-Aware Scenario Factorization
 
 TSF 的作用是让输出层参数具备任务和场景自适应能力。
 
@@ -987,7 +993,7 @@ for task in tasks:
 
 这里的重点是：TSF 不只是给每个任务一个独立 head，而是让 head 参数根据任务和场景动态组合。这样既能共享跨任务的通用规律，又能保留任务/场景特异性。
 
-## TIP、TSG、TSF 的关系
+# TIP、TSG、TSF 的关系
 
 三个模块可以放在一条信息链上理解：
 
@@ -1103,7 +1109,7 @@ Stage 2:
 
 IntRR 指出这里有两个关键问题。
 
-## 问题一：目标错位
+# 问题一：目标错位
 
 SID 的构建目标通常发生在 Stage 1，例如根据语义、内容、聚类或 codebook 学到 item 表示。但真正的推荐目标发生在 Stage 2，也就是根据用户交互行为预测用户会喜欢什么。
 
@@ -1116,7 +1122,7 @@ SID indexing objective != recommendation objective
 
 如果 SID 本身不贴合推荐目标，生成模型再强，也是在生成一个不够适合推荐任务的 token 表示。
 
-## 问题二：序列过长
+# 问题二：序列过长
 
 许多 SID 是层级结构，例如：
 

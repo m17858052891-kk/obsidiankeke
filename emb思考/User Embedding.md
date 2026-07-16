@@ -1,5 +1,3 @@
-# User Embedding
-
 # 目录
 
 - [# 范式一：基于序列预测的自回归预训练 (Autoregressive Pre-training)](#范式一基于序列预测的自回归预训练-autoregressive-pre-training)

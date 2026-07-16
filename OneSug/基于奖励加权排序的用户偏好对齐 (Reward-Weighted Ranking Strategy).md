@@ -1,5 +1,3 @@
-# 基于奖励加权排序的用户偏好对齐 (Reward-Weighted Ranking Strategy)
-
 # 目录
 
 - [[#1. 痛点：传统生成模型为什么“不会排序”？]]

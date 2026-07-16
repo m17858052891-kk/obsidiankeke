@@ -1,5 +1,3 @@
-# rankloss
-
 1. ipw给当前treatment组和control组的信息（2y-1）
 
 call的情况下，T分为正，C分为负

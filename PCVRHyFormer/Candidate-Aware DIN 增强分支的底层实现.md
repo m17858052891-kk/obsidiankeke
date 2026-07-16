@@ -1,5 +1,3 @@
-# Candidate-Aware DIN 增强分支的底层实现
-
 # 目录
 
 - [[#第一步：构建 Cross-Attention 竞技场 (靶向检索)]]

@@ -1,5 +1,3 @@
-# 改动1：同 fid 的离散语义与统计语义对齐
-
 # 目录
 
 - [# 一、 胜利者：加法融合 (Additive Fusion)](#一-胜利者加法融合-additive-fusion)

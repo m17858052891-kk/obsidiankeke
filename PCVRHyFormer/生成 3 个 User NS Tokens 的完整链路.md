@@ -1,5 +1,3 @@
-# 生成 3 个 User NS Tokens 的完整链路
-
 # 目录
 
 - [[#第一步：离散特征 Embedding (化繁为简)]]

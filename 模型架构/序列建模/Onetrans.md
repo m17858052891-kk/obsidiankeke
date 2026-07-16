@@ -1,6 +1,4 @@
-# Onetrans
-
-## 目录
+# 目录
 
 - [timestamp-aware fusion](#timestamp-aware-fusion)
 - [timestamp-agnostic fusion](#timestamp-agnostic-fusion)
@@ -166,7 +164,7 @@ OneTrans 的核心思路是：
 
 论文讨论了两种多行为融合方式。
 
-## timestamp-aware fusion
+# timestamp-aware fusion
 
 如果有可靠时间戳，则按照真实发生时间对不同类型行为排序：
 
@@ -179,7 +177,7 @@ purchase item C at t3
 
 这种方式保留了用户行为的真实时间演化，更适合时间戳完整的业务场景。
 
-## timestamp-agnostic fusion
+# timestamp-agnostic fusion
 
 如果没有可靠时间戳，则按照行为意图强度组织序列，例如：
 
@@ -203,7 +201,7 @@ purchase -> add-to-cart -> click
 
 OneTrans 提供了两种 tokenizer。
 
-## Group-wise Tokenizer
+# Group-wise Tokenizer
 
 人工按照语义把特征分组，每组特征通过一个 MLP 得到一个 token。例如：
 
@@ -217,7 +215,7 @@ OneTrans 提供了两种 tokenizer。
 
 优点是可解释性强，符合传统推荐系统的特征组织方式。缺点是依赖人工分组，且多个小 MLP 可能带来更多 kernel launch 开销。
 
-## Auto-Split Tokenizer
+# Auto-Split Tokenizer
 
 把所有非序列特征拼接后通过一个 MLP，再 split 成多个 NS-token：
 
@@ -253,7 +251,7 @@ NS-tokens: token-specific 参数
 - attention 里的 Q/K/V projection 参数。
 - FFN 里的前馈网络参数。
 
-## 5.1.1 S-token 为什么共享参数
+# 5.1.1 S-token 为什么共享参数
 
 S-token 表示用户历史行为序列。每个 S-token 都对应一个行为事件，例如一次点击、一次加购、一次购买。虽然具体 item 不同、行为类型不同，但这些 token 在模型里的角色是相似的：它们都是用户历史序列中的一个时间步。
 
@@ -281,7 +279,7 @@ FFN_s = shared_ffn(X_s)
 
 ```
 
-## 5.1.2 NS-token 为什么使用 token-specific 参数
+# 5.1.2 NS-token 为什么使用 token-specific 参数
 
 NS-token 表示非序列特征字段，例如：
 
@@ -323,7 +321,7 @@ FFN_ns_i = ffn_ns_i(X_ns_i)
 
 ```
 
-## 5.1.3 Q/K/V 参数策略怎么理解
+# 5.1.3 Q/K/V 参数策略怎么理解
 
 在 attention 中：
 
@@ -347,7 +345,7 @@ user token: 汇总用户长期兴趣和画像信号
 
 这就是为什么 OneTrans 不把所有 token 的 Q/K/V 都简单共享。
 
-## 5.1.4 FFN 参数策略怎么理解
+# 5.1.4 FFN 参数策略怎么理解
 
 Attention 负责 token 之间的信息交换，FFN 负责每个 token 内部的信息加工。
 
@@ -363,7 +361,7 @@ NS-token-specific FFN: 不同字段用不同方式消化交互结果
 
 ```
 
-## 5.1.5 这个策略的取舍
+# 5.1.5 这个策略的取舍
 
 OneTrans 的参数策略其实是在表达力和效率之间做折中。
 如果所有 token 都共享参数：
@@ -590,7 +588,7 @@ KV cache                 -> 推理时复用历史 K/V，避免重复计算长序
 
 ```
 
-## 6.3.1 FlashAttention-2
+# 6.3.1 FlashAttention-2
 
 普通 attention 的核心计算是：
 
@@ -614,7 +612,7 @@ FlashAttention-2 可以让长序列 attention 更省显存、更快
 
 简单说，FlashAttention-2 让 OneTrans 更高效地处理长用户行为序列。
 
-## 6.3.2 BF16/FP16 混合精度
+# 6.3.2 BF16/FP16 混合精度
 
 传统训练常用 FP32，也就是 32 位浮点数。FP32 精度高，但显存占用大，矩阵计算吞吐相对低。
 混合精度训练会把大部分矩阵计算换成 16 位浮点：
@@ -654,7 +652,7 @@ BF16/FP16 是用更低数值精度换更高训练/推理吞吐。
 
 ```
 
-## 6.3.3 Activation Re-computation
+# 6.3.3 Activation Re-computation
 
 训练 Transformer 时，前向传播会保存很多 activation，因为反向传播需要用这些中间结果计算梯度。
 
@@ -693,7 +691,7 @@ activation recomputation 是用多算一点，换显存省很多。
 
 ```
 
-## 6.3.4 KV Cache
+# 6.3.4 KV Cache
 
 KV cache 主要用于推理阶段，尤其适合 causal attention。
 
@@ -747,7 +745,7 @@ candidate item 3
 
 KV cache 是 OneTrans 在线推理效率的关键，因为它避免了对同一用户历史的重复计算，也是 OneTransL 在线 p99 latency 能下降的重要原因之一。
 
-## 6.3.5 四个优化放在一起看
+# 6.3.5 四个优化放在一起看
 
 训练阶段主要依赖：
 
@@ -784,7 +782,7 @@ KV cache: 复用用户历史，减少重复计算
 
 论文里的离线对比表把模型分成四类：base model、feature-interaction、sequence-modeling 和 unified framework。这个分组很重要，因为它不是简单罗列 baseline，而是在说明 OneTrans 相比传统“序列模块 + 特征交互模块”的增益来自哪里。
 
-## 7.2.1 Base model: DCNv2 + DIN
+# 7.2.1 Base model: DCNv2 + DIN
 
 基础模型是：
 
@@ -807,7 +805,7 @@ DCNv2 负责非序列特征交互。它通过 cross network 显式建模用户�
 
 所以 DCNv2 + DIN 代表的是典型的 encode-then-interaction 范式：先把序列编码成兴趣向量，再和其他特征做交互。
 
-## 7.2.2 Feature-interaction: 只替换特征交互模块
+# 7.2.2 Feature-interaction: 只替换特征交互模块
 
 这一组模型保持序列建模模块还是 DIN，只替换特征交互部分：
 
@@ -834,7 +832,7 @@ Wukong、HiFormer、RankMixer 都属于更强的 feature interaction backbone，
 
 但这一组仍然是分离式结构：DIN 先压缩历史行为，后续特征交互模块只能拿到压缩后的兴趣表示，不能直接和完整行为序列逐 token 交互。
 
-## 7.2.3 Sequence-modeling: 只替换序列建模模块
+# 7.2.3 Sequence-modeling: 只替换序列建模模块
 
 这一组保持特征交互模块使用 RankMixer，只替换用户行为序列建模部分：
 
@@ -865,7 +863,7 @@ Transformer 则用 self-attention 建模用户行为之间的依赖关系，相�
 
 表格中 RankMixer + Transformer 是这组最强 baseline，说明在分离式架构里，“强特征交互模块 + Transformer 序列建模”已经是一个很强的组合。
 
-## 7.2.4 Unified framework: OneTrans
+# 7.2.4 Unified framework: OneTrans
 
 最后一组是：
 
@@ -890,7 +888,7 @@ OneTransS 和 OneTransL 主要区别是模型规模不同，OneTransL 是更大�
 
 从架构角度看，OneTrans 的优势不只是“序列模块更强”或“特征交互模块更强”，而是取消了两者之间的硬边界。候选 item、user、context 等 NS-token 可以直接 attend 到完整用户历史 S-token，而不是只接收一个已经压缩过的用户兴趣向量。
 
-## 7.2.5 这张表应该怎么读
+# 7.2.5 这张表应该怎么读
 
 这张表的逻辑可以概括为：
 

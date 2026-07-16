@@ -1,6 +1,4 @@
-# PCVRHyFormer 模型反汇编报告
-
-## 目录
+# 目录
 
 - [结论](#结论)
 - [计算过程](#计算过程)
@@ -278,11 +276,11 @@ $$
 
 # 3.1 静态特征：RankMixer NS Tokenizer
 
-## 结论
+# 结论
 
 原始得分脚本使用 RankMixer tokenizer，把大量 user/item 离散字段先分别 Embedding，再拼成超长向量，均匀切成固定数量的 chunk，最后将每个 chunk 投影为 64 维 Token。它的目标不是保持“一字段一 Token”，而是以固定 Token 预算承载全部静态特征。
 
-## 计算过程
+# 计算过程
 
 对第 $f$ 个字段：
 
@@ -314,7 +312,7 @@ $$
 
 实际代码的算子顺序是 `Linear → LayerNorm → SiLU`。
 
-## 原始 Token 配置
+# 原始 Token 配置
 
 - User NS Tokens：5
 - Item NS Tokens：2
@@ -323,7 +321,7 @@ $$
 - `emb_dim=64`
 - `d_model=64`
 
-## 高基数特征硬过滤
+# 高基数特征硬过滤
 
 启动脚本设置 `emb_skip_threshold=1,000,000`。若某字段 vocab 大于 100 万，不创建 Embedding，前向时直接用零向量代替：
 
@@ -376,7 +374,7 @@ $$
 
 # 3.4 Query Generator：从长序列构造固定兴趣槽位
 
-## 结论
+# 结论
 
 0.8255 主干使用的是 **mean-pool 条件 Query Generator**，不是后续的 DIN target-aware attention。
 
@@ -477,7 +475,7 @@ $M$ 是 padding mask。该步骤把 Query Generator 的粗粒度 mean-pool 初�
 
 # 3.7 RankMixer：跨域与静态特征融合的核心
 
-## 输入
+# 输入
 
 将 4 个域的 8 个解码后 Query 与约 8 个 NS Tokens 拼接：
 
@@ -487,7 +485,7 @@ X=[Q'_a;Q'_b;Q'_c;Q'_d;N]\in\mathbb R^{B\times16\times64}
 
 $$
 
-## 无参数 Token Mixing
+# 无参数 Token Mixing
 
 由于 `T=16` 且 `D=64`，每个 Token 的通道被拆成 16 个 4 维子空间：
 
@@ -508,7 +506,7 @@ $$
 
 再 reshape 回 `(B,16,64)`。这一步不增加参数，却使每个输出 Token 的不同通道片段来自不同输入 Token，实现结构化的信息重排。
 
-## 共享 FFN 与残差
+# 共享 FFN 与残差
 
 $$
 
@@ -531,7 +529,7 @@ $$
 
 其中 `64 → 256 → 64` 的 FFN 对所有 16 个 Token 共享参数。
 
-## 为什么 `D % T == 0` 是硬约束
+# 为什么 `D % T == 0` 是硬约束
 
 full RankMixer 不是普通 Attention，而是依赖精确 reshape 的通道重排，因此必须满足：
 
@@ -605,7 +603,7 @@ $$
 
 # 5.1 损失函数（Loss）
 
-## 实际主损失：Binary Cross Entropy with Logits
+# 实际主损失：Binary Cross Entropy with Logits
 
 0.8255 基线的活动配置是 `loss_type=bce`。对 batch 中 $N$ 个样本：
 
@@ -618,11 +616,11 @@ $$
 
 PyTorch 实际使用稳定形式 `binary_cross_entropy_with_logits`，避免先 sigmoid 后取对数造成溢出。
 
-## 是否多任务
+# 是否多任务
 
 否。`action_num=1`，只有一个 PCVR logit；不存在任务权重、uncertainty weighting、GradNorm 或 CTR/CVR 多塔损失。
 
-## Focal Loss
+# Focal Loss
 
 代码提供可选 Focal Loss，但原始启动脚本没有开启，因此不能归因于 0.8255：
 
@@ -648,7 +646,7 @@ $$
 
 # 5.2 优化器（Optimizer）
 
-## 双优化器设计
+# 双优化器设计
 
 | 参数组 | 优化器 | 学习率 | Betas | Weight Decay | 备注 |
 |---|---|---:|---|---:|---|
@@ -657,7 +655,7 @@ $$
 
 `*` AdamW 的 `weight_decay` 没有在构造函数中显式传入，因此采用 PyTorch 默认值 0.01。需要注意，它会作用于传入的全部 dense params；代码没有为 bias 和 LayerNorm 单独建立 no-decay 参数组。
 
-## Adagrad 更新
+# Adagrad 更新
 
 $$
 
@@ -674,7 +672,7 @@ $$
 
 稀疏 ID 在不同 batch 中出现频率差别很大，Adagrad 能为高频维度自动降低有效步长。
 
-## AdamW 更新
+# AdamW 更新
 
 $$
 
