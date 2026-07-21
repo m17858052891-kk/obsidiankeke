@@ -1,13 +1,4 @@
-# 目录
 
-- [1. 均方误差 (MSE / L2 Loss)](#1-均方误差-mse-l2-loss)
-- [2. 平均绝对误差 (MAE / L1 Loss)](#2-平均绝对误差-mae-l1-loss)
-- [3. Huber Loss (Smooth L1 Loss) - 成年人全都要](#3-huber-loss-smooth-l1-loss---成年人全都要)
-- [1. 交叉熵损失 (Cross-Entropy Loss)](#1-交叉熵损失-cross-entropy-loss)
-- [2. Focal Loss (焦点损失)](#2-focal-loss-焦点损失)
-- [3. Hinge Loss (折页损失)](#3-hinge-loss-折页损失)
-- [1. Triplet Loss (三元组损失)](#1-triplet-loss-三元组损失)
-- [2. InfoNCE Loss (对比损失)](#2-infonce-loss-对比损失)
 
 # 目录
 
