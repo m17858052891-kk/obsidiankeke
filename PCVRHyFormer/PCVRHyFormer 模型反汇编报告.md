@@ -1,94 +1,4 @@
-# 目录
 
-- [结论](#结论)
-- [计算过程](#计算过程)
-- [原始 Token 配置](#原始-token-配置)
-- [高基数特征硬过滤](#高基数特征硬过滤)
-- [结论](#结论-1)
-- [输入](#输入)
-- [无参数 Token Mixing](#无参数-token-mixing)
-- [共享 FFN 与残差](#共享-ffn-与残差)
-- [为什么 `D % T == 0` 是硬约束](#为什么-d-t-0-是硬约束)
-- [实际主损失：Binary Cross Entropy with Logits](#实际主损失binary-cross-entropy-with-logits)
-- [是否多任务](#是否多任务)
-- [Focal Loss](#focal-loss)
-- [双优化器设计](#双优化器设计)
-- [Adagrad 更新](#adagrad-更新)
-- [AdamW 更新](#adamw-更新)
-
-# 目录
-
-- [# 0.1 一句话结论](#01-一句话结论)
-- [# 0.2 核心贡献判断](#02-核心贡献判断)
-- [# 0.3 必须先说明的版本审计结论](#03-必须先说明的版本审计结论)
-- [# 1.1 端到端数据流](#11-端到端数据流)
-- [# 1.2 Pipeline 的模块划分逻辑](#12-pipeline-的模块划分逻辑)
-- [# 1.3 默认张量尺寸（0.8255 主干）](#13-默认张量尺寸08255-主干)
-- [# 2.1 监督目标](#21-监督目标)
-- [# 2.2 数据切分](#22-数据切分)
-- [# 2.3 缺失值、Padding 与越界处理](#23-缺失值padding-与越界处理)
-- [# 2.4 时间间隔特征](#24-时间间隔特征)
-- [# 3.1 静态特征：RankMixer NS Tokenizer](#31-静态特征rankmixer-ns-tokenizer)
-  - [# 结论](#结论)
-  - [# 计算过程](#计算过程)
-  - [# 原始 Token 配置](#原始-token-配置)
-  - [# 高基数特征硬过滤](#高基数特征硬过滤)
-- [# 3.2 稠密特征投影](#32-稠密特征投影)
-- [# 3.3 多域序列 Embedding](#33-多域序列-embedding)
-- [# 3.4 Query Generator：从长序列构造固定兴趣槽位](#34-query-generator从长序列构造固定兴趣槽位)
-  - [# 结论](#结论-1)
-- [# 3.5 域内 Transformer Encoder](#35-域内-transformer-encoder)
-- [# 3.6 Query-to-Sequence Cross-Attention](#36-query-to-sequence-cross-attention)
-- [# 3.7 RankMixer：跨域与静态特征融合的核心](#37-rankmixer跨域与静态特征融合的核心)
-  - [# 输入](#输入)
-  - [# 无参数 Token Mixing](#无参数-token-mixing)
-  - [# 共享 FFN 与残差](#共享-ffn-与残差)
-  - [# 为什么 `D % T == 0` 是硬约束](#为什么-d-t-0-是硬约束)
-- [# 3.8 两层 HyFormer 的信息迭代](#38-两层-hyformer-的信息迭代)
-- [# 3.9 输出层](#39-输出层)
-- [# 5.1 损失函数（Loss）](#51-损失函数loss)
-  - [# 实际主损失：Binary Cross Entropy with Logits](#实际主损失binary-cross-entropy-with-logits)
-  - [# 是否多任务](#是否多任务)
-  - [# Focal Loss](#focal-loss)
-- [# 5.2 优化器（Optimizer）](#52-优化器optimizer)
-  - [# 双优化器设计](#双优化器设计)
-  - [# Adagrad 更新](#adagrad-更新)
-  - [# AdamW 更新](#adamw-更新)
-- [# 5.3 学习率调度](#53-学习率调度)
-- [# 5.4 梯度控制](#54-梯度控制)
-- [# 5.5 Epoch、Early Stopping 与模型选择](#55-epochearly-stopping-与模型选择)
-- [# 6.1 激活函数](#61-激活函数)
-- [# 6.2 Dropout](#62-dropout)
-- [# 6.3 显式/隐式正则化汇总](#63-显式隐式正则化汇总)
-- [# 6.4 参数初始化](#64-参数初始化)
-- [# 6.5 训练加速](#65-训练加速)
-- [# UE、request-time、coupled tokenizer 的特殊说明](#uerequest-timecoupled-tokenizer-的特殊说明)
-- [# 9.1 与任务结构匹配的归纳偏置](#91-与任务结构匹配的归纳偏置)
-- [# 9.2 容量控制较合理](#92-容量控制较合理)
-- [# 9.3 优化器与参数类型匹配](#93-优化器与参数类型匹配)
-- [# 10.1 本地验证偏乐观](#101-本地验证偏乐观)
-- [# 10.2 Query 语义未约束](#102-query-语义未约束)
-- [# 10.3 mean-pool Query 初始化较粗](#103-mean-pool-query-初始化较粗)
-- [# 10.4 full RankMixer 约束强](#104-full-rankmixer-约束强)
-- [# 10.5 Dense AdamW 未做 no-decay 分组](#105-dense-adamw-未做-no-decay-分组)
-- [# 10.6 序列截断方向需要数据语义确认](#106-序列截断方向需要数据语义确认)
-- [# 当前仍缺失的复现证据](#当前仍缺失的复现证据)
-
-# 目录
-
-- [[#0. 执行摘要]]
-- [[#1. 整体架构（Pipeline）]]
-- [[#2. 输入层与数据基建]]
-- [[#3. 核心组件逐层剖析]]
-- [[#4. 特征交叉与融合方式总表]]
-- [[#5. 训练策略基建]]
-- [[#6. 其他微操与正则化]]
-- [[#7. 0.8255 有效超参数画像]]
-- [[#8. 哪些模块不属于原始 0.8255]]
-- [[#9. 为什么这套模型能到 0.8255]]
-- [[#10. 模型局限与风险]]
-- [[#11. 最终模型卡（适合直接复述）]]
-- [[#12. 证据索引]]
 
 # 0. 执行摘要
 
@@ -978,7 +888,7 @@ Regularization:
 | 训练入口 | `baseline - 副本-0.8255/train.py` | 默认超参数、数据切分、模型构造、loss 选择 |
 | Trainer | `baseline - 副本-0.8255/trainer.py` | Adagrad + AdamW、BCE、grad clip、early stopping |
 | 数据管道 | `baseline - 副本-0.8255/dataset.py` | label 映射、Row Group split、时间桶、padding/OOV |
-| 变更与回退 | `baseline - 516改/CHANGES.md` | 0.8255/0.868 对照、D=64/T=16、常数 LR、失败实验、版本链 |
+| 变更与回退 | `baseline - 516改/CHANGES.md` | 0.8255/0.868 对照、D=64/T=16、常数 LR、回退实验、版本链 |
 | 后加模块声明 | `baseline - 副本-0.8255 - 副本/run.sh` | DIN、R-Drop、EMA、label smoothing、LAIN 等均为 post-0.8255 |
 
 # 当前仍缺失的复现证据

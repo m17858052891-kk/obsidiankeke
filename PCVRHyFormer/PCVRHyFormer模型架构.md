@@ -792,7 +792,7 @@ warmup + cosine decay。
 
 如果写论文或答辩，建议这样表述：
 
-> 我们以 PCVRHyFormer 0.8255 版本作为稳定主干。后续尝试过 DIN、R-Drop、EMA、LAIN 等增强模块，但这些属于进一步实验，并非 0.8255 最佳 baseline 的必要组成。
+> 最新复盘口径中，516 前置 target-aware pooling 是更优主线。它不是输出端额外 DIN 分支，而是 Query Generator 内部的候选感知池化路径。
 
 # 14. 后续增强模块为什么没有进入最终 0.8255 主模型
 
@@ -840,7 +840,7 @@ query → CrossAttention(seq)
 
 **结论：**
 
-DIN 是合理探索，但当前主干已经包含 query-based interest extraction。额外 DIN 分支没有提供足够新信息，反而增加过拟合风险，因此不纳入 0.8255 最佳模型。
+后置 DIN residual 是合理探索，但当前最优应采用 516 前置 target-aware pooling。候选感知应在 Query 生成阶段进入主干，而不是在输出端作为额外补丁加入。
 
 # 14.2 Cross-domain pool
 
@@ -1104,7 +1104,7 @@ match feature (item_id<->domain_c.47) regressed AUC 0.826 -> 0.820
 后续实验版不是单独加一个模块，而是叠加了：
 
 ```text
-DIN + cross-domain pool + time-decay pool + R-Drop + EMA
+516 target-aware pooling + coupled fusion + request/event time features
 + label smoothing + LAIN + optional match features
 
 ```
@@ -1185,4 +1185,4 @@ d_model = 64
 
 因此，这个模型可以被定位为：
 
-**一个为广告 CVR 场景定制的多序列兴趣提取模型，其核心贡献是把静态上下文、行为序列和兴趣 query 统一到 token 视角下，并用 RankMixer 做轻量融合。**
+**一个为广告 CVR 场景定制的多序列兴趣提取模型，其核心贡献是把静态上下文、行为序列和候选物品统一到 token 视角下，并在 Query Generator 阶段用 516 前置 target-aware pooling 生成候选感知兴趣 Query。**

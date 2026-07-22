@@ -1,57 +1,64 @@
 # 目录
 
-- [[#第一步：构建 Cross-Attention 竞技场 (靶向检索)]]
-- [[#第二步：降维与信息收敛 (Mean Pooling)]]
-- [[#第三步：零初始残差融合 (Zero-Init Residual)]]
-- [[#宏观总结]]
+- [[#1. 模块定位：516 前置候选感知池化]]
+- [[#2. 底层计算流程]]
+- [[#3. 为什么比后置 DIN residual 更好]]
+- [[#4. 宏观总结]]
 
-在两层 HyFormer 处理完毕后，模型其实已经得到了一个极其强大的用户表示 $h_{\text{HyFormer}}$。但这还不够，因为推荐系统最本质的逻辑是“千物千面”——同一个用户，在面对“苹果手机”和“纸巾”时，被唤醒的历史记忆应该是完全不同的。
+# 1. 模块定位：516 前置候选感知池化
 
-这个 **Candidate-Aware DIN 增强分支**，就是为了在最后关头，用“当前候选商品”作为探照灯，去用户的历史记忆里再做一次精准的“靶向打捞”。
+这篇文档的口径需要从“后置 DIN 增强分支”修正为 **516 前置 Candidate-Aware Pooling**。
 
-整个实现可以拆解为三大精细的底层微操：
+当前最优版本不是在两层 HyFormer 之后再额外接一个 DIN residual，而是在 Query Generator 阶段就让候选 item 参与四路历史行为的池化。换句话说，候选感知不是输出端补丁，而是 Query 生成的输入条件。
 
-# 第一步：构建 Cross-Attention 竞技场 (靶向检索)
+# 2. 底层计算流程
 
-**1. 准备弹药 (定义 Q, K, V)：**
+首先，item 侧离散特征会被压成 2 个 Item NS Tokens。516 用它们的平均值作为候选商品表示：
 
-- **Query (探照灯)：** $N_{\text{item}}$。这是当前候选商品（Candidate Item）经过特征提取后的 NS Token。它代表了我们要预测的目标商品（比如：一件碎花连衣裙）。
-- **Key & Value (历史长河)：** $H_{\text{all}}$。这是 4 路行为序列（点击、加购等）经过 HyFormer 复杂自注意力交互后，拼接在一起的极其成熟的深层历史特征矩阵。
+$$
+e_{target}=\operatorname{MeanPool}(N_{item})
+$$
 
-**2. 底层怎么算？** 执行标准的缩放点积交叉注意力（Scaled Dot-Product Cross-Attention）：
+对于第 $s$ 个行为域，序列已经经过 `_embed_seq_domain` 得到行为 token：
 
-$$H_{\text{DIN}} = \operatorname{softmax}\left( \frac{N_{\text{item}} \cdot (H_{\text{all}})^T}{\sqrt{d}} \right) \cdot H_{\text{all}}$$
+$$
+H_s=[h_{s,1},h_{s,2},\dots,h_{s,L}]
+$$
 
-**3. 这一步的物理意义：** 中间的 $\operatorname{softmax}(\cdot)$ 算出了一个注意力权重分布。 探照灯 $N_{\text{item}}$（连衣裙）扫过 $H_{\text{all}}$ 中的每一个历史行为。如果历史行为中有“高跟鞋”、“口红”，点积相似度就会极高，权重趋近于 1；如果是“显卡”、“纯净水”，相似度极低，权重趋近于 0。 最终得到的 $H_{\text{DIN}}$ 矩阵，就是一个“被候选商品彻底过滤、提纯后的用户历史序列”。
+随后执行 Bilinear Target-Aware Pooling：
 
-# 第二步：降维与信息收敛 (Mean Pooling)
+$$
+a_{s,j}=\operatorname{softmax}\left(rac{(W_s h_{s,j})^T e_{target}}{\sqrt D}
+ight)
+$$
 
-**1. 处理动作：** 经过 Cross-Attention 之后得到的 $H_{\text{DIN}}$ 依然是一个序列特征（比如形状是 $L \times 64$）。我们需要把它压缩成一个单一的向量。
+$$
+h^{target}_s=\sum_j a_{s,j}h_{s,j}
+$$
 
-$$h_{\text{target\_interest}} = \operatorname{MeanPool}(H_{\text{DIN}})$$
+其中 padding 行会被 mask 掉；如果整条序列都是 padding，权重会通过 `nan_to_num` 回到 0，避免出现 NaN。
 
-**2. 为什么用 Mean Pool？** 因为在第一步的 Cross-Attention 中，不相关的历史行为已经被赋予了接近 0 的权重，它们对应的特征向量已经变成了近乎全 0 的向量。此时，直接求平均（Mean）或者求和（Sum），就能完美地把那些**被激活的高权重特征**浓缩到一个向量中，代表了用户**针对当前物品的专属兴趣强度**。
+最后，将候选感知兴趣向量和静态 NS 信息拼接后生成 Query：
 
-# 第三步：零初始残差融合 (Zero-Init Residual)
+$$
+G_s=[N_{flat};h^{target}_s]
+$$
 
-**1. 处理动作：** 将刚刚算出的专属兴趣向量 $h_{\text{target\_interest}}$，乘以一个可学习的线性变换矩阵 $W_{\text{DIN}}$，然后以加法残差的形式，拼接到主干网络的输出 $h_{\text{HyFormer}}$ 上。
+$$
+Q_s^{(1)},Q_s^{(2)}=\operatorname{FFN}_s(G_s)
+$$
 
-$$h_{\text{final}} = h_{\text{HyFormer}} + W_{\text{DIN}} \cdot h_{\text{target\_interest}}$$
+# 3. 为什么比后置 DIN residual 更好
 
-**核心微操：在模型初始化时，强制令** $W_{\text{DIN}} = \mathbf{0}$**。**
+后置 DIN residual 的逻辑是“主干先编码所有历史，最后再让候选 item 做一次检索”。它的安全性好，但候选信息进入太晚。
 
-**2. 这一步的物理意义与工程价值：**
+516 的优势是：
 
-- **Day 1 的绝对安全（无损挂载）：** 当模型刚刚开始训练（或微调）的第 1 步时，因为 $W_{\text{DIN}}$ 矩阵里全是 0，所以：
+- **前置过滤**：无关历史在 Query 生成前就被降权；
+- **主干受益**：两层 HyFormer 后续处理的是候选相关 Query，而不是泛化 Query；
+- **表达力强**：双线性矩阵 $W_s$ 可以学习 item token 与行为 token 的跨空间映射；
+- **结构更自然**：CVR 请求中候选 item 已知，把它提前用于兴趣抽取符合业务链路。
 
-    $$h_{\text{final}} = h_{\text{HyFormer}} + 0 = h_{\text{HyFormer}}$$
+# 4. 宏观总结
 
-    这意味着，加入这个庞大的 DIN 增强分支后，**模型在初始状态下的输出，与没有加这个分支前一模一样！**这样就保证了基线成绩（比如 0.8255）绝对不会因为新结构的随机初始化而受到任何破坏。
-
-- **随后的平滑探索（稳步提分）：** 随着训练数据的喂入，反向传播的梯度会流经加法节点，慢慢更新 $W_{\text{DIN}}$。
-    - 如果模型发现 DIN 提取出的这个“专属兴趣”确实对预测目标有帮助，$W_{\text{DIN}}$ 的数值就会慢慢变大，把 DIN 的信息一点点渗透进最终预测中。
-    - 如果发现没帮助，$W_{\text{DIN}}$ 就会老老实实待在 0 附近，绝不拖后腿。
-
-# 宏观总结
-
-这个模块的设计堪称工业级推荐算法的教科书： 用 **Cross-Attention** 解决“语义靶向匹配”问题，保障了特征提取的上限；用 **Zero-Init Residual** 解决“深层网络修改导致基线崩塌”的工程痛点，保障了模型迭代的下限。两者结合，造就了这个极其稳健的提分利器。
+516 的关键价值是把 DIN 思想从“输出端补丁”升级成“Query 生成条件”。因此，当前目录里关于 Candidate-Aware 的最优口径应统一为：**516 前置 target-aware pooling 优于后期 DIN residual 融合。**

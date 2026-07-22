@@ -13,8 +13,8 @@
   - [# 每次行为距离当前请求多久](#每次行为距离当前请求多久)
 - [# 5.2 为什么比单纯位置编码更有价值](#52-为什么比单纯位置编码更有价值)
 - [# 5.3 12 维多频 Fourier 是否值得保留](#53-12-维多频-fourier-是否值得保留)
-- [# 6.1 516 的 bilinear target-aware pooling](#61-516-的-bilinear-target-aware-pooling)
-- [# 6.2 0.826 分支的 DIN residual 更稳健](#62-0826-分支的-din-residual-更稳健)
+- [# 6.1 最新结论：516 前置 target-aware pooling 是当前最优](#61-最新结论516-前置-target-aware-pooling-是当前最优)
+- [# 6.2 为什么 516 优于后置 DIN residual](#62-为什么-516-优于后置-din-residual)
 - [# 6.3 价值判断](#63-价值判断)
 - [# 8.1 值得保留的候选统计](#81-值得保留的候选统计)
 - [# 8.2 `recent_ratio` 实际上接近长度的重复编码](#82-recentratio-实际上接近长度的重复编码)
@@ -279,64 +279,58 @@ CVR 通常对 recency 和活跃节奏高度敏感，因此真实时间差比纯 
 
 # 6. S/A 级改动三：Candidate Item 与历史行为的软语义对齐
 
-# 6.1 516 的 bilinear target-aware pooling
+# 6.1 最新结论：516 前置 target-aware pooling 是当前最优
 
-516 用候选 item 表示作为 target，对每个域的历史做：
+最新复盘需要修正旧判断：516 并不是应被淘汰的早期 pooling，而是当前更优的候选感知路径。它把候选 item 语义放进 Query Generator，让每一路序列先形成 candidate-aware interest，再进入 HyFormer 主干。
 
-$$
+代码口径对应 `features/baseline - 516改`：
 
-a_j=\operatorname{softmax}\left(
-\frac{(W h_j)^T e_{item}}{\sqrt D}
-\right)
+```python
+target_emb = item_ns.mean(dim=1)
+seq_pooled = BilinearTargetAttentionPooling(target_emb, seq_tokens, mask)
+global_info = concat(ns_flat, seq_pooled)
+q_tokens = FFN(global_info)
+```
 
-$$
-
-$$
-
-h_{interest}=\sum_j a_j h_j
-
-$$
-
-再用这个 target-aware pooled vector 替换普通 mean pool，生成初始 Query。
-
-优点：候选相关性在 Query 初始化阶段就进入主干。
-
-问题：item NS 与 sequence token 来自不同 tokenizer/投影路径，早期可能未处于同一语义空间；虽然双线性矩阵 $W$ 可以学习对齐，但短训练下不一定充分收敛。519 因此删除了这一实现。
-
-# 6.2 0.826 分支的 DIN residual 更稳健
-
-后续 DIN 方案让 item NS Tokens 对 **HyFormer 编码后的所有域序列** 做 Cross-Attention，再通过零初始化 Linear 残差加入输出：
+也就是：
 
 $$
-
-h_{DIN}=\operatorname{MHA}(Q=N_{item},K=H_{all},V=H_{all})
-
+a_{s,j}=\operatorname{softmax}\left(rac{(W_s h_{s,j})^T e_{target}}{\sqrt D}
+ight)
 $$
 
 $$
+h^{target}_s=\sum_j a_{s,j}h_{s,j}
+$$
 
+$$
+Q_s=\operatorname{FFN}_s([N_{flat};h^{target}_s])
+$$
+
+# 6.2 为什么 516 优于后置 DIN residual
+
+旧版判断更偏向 0.826 后置 DIN residual，理由是零初始化残差更安全。但从当前结果看，安全性不是唯一目标，候选语义进入位置更关键。
+
+516 的收益来自：
+
+- **候选感知前置**：Query 生成时就知道当前 item，不再先生成泛化兴趣再后补候选关系；
+- **早期降噪**：无关历史在进入 HyFormer 前就被降权，减少噪声在序列编码和 RankMixer 中扩散；
+- **双线性跨空间匹配**：$W_s$ 可以学习 item NS 与 sequence token 的非线性对应，而不局限于普通点积；
+- **主干路径参与更深**：候选感知 Query 会参与两层 HyFormer，而不是只在输出端补一层残差。
+
+# 6.3 对后置 DIN residual 的重新定位
+
+后置 DIN residual 仍然是一个合理、安全的候选方案，但不再应写成当前最优。它更像是在强主干后面增加的保守补丁：
+
+$$
 h_{out}=h_{base}+W_{DIN}\operatorname{mean}(h_{DIN})
-
 $$
 
-且初始时：
+其优势是初始化安全，缺点是候选信息进入太晚。若主干已经混入大量与候选无关的历史噪声，末端 DIN 只能补救，不能阻止噪声进入主干。
 
-$$
+# 6.4 当前价值判断
 
-W_{DIN}=0
-
-$$
-
-这比 516 的替换式 pooling 更稳：
-
-- 基础路径完全保留；
-- 新分支初始为零，不会在训练初期破坏 0.8255 基线；
-- 使用主干编码后的历史，语义空间更成熟；
-- 可以跨 4 个行为域寻找与候选相关的证据。
-
-# 6.3 价值判断
-
-从设计与版本证据共同看，DIN residual 是最可能解释 `0.8255 → 约 0.826` 的单个核心模块之一。虽然 three-piece 没有逐项消融，仍应把它排在最高复验优先级。
+当前应把 516 前置 target-aware pooling 排在最高优先级，作为最优结构口径；后置 DIN residual 作为对照实验或稳定性备选，而不是主线最佳版本。
 
 # 7. A 级改动：跨域聚合上下文
 
@@ -584,7 +578,8 @@ T=16
 coupled int-dense fusion=on
 absolute request→event time bucket=on
 request time 4D Fourier=on
-DIN residual=on
+516 target-aware pooling=on
+DIN residual=off（不再作为最优主线）
 cross-domain pool=on
 time-decay pool=on（但建议修正 alpha 初始化）
 match features=off
@@ -605,7 +600,7 @@ label smoothing=off，直至单独验证
 
 因此最严谨的说法是：
 
-> 工作区能确认的最佳已记录结果约为 0.826；它最可能来自稳定 0.8255 主干叠加 DIN、跨域 pooled context 与时间衰减 pooled view，但缺少当次 `train_config.json`，无法精确恢复每个训练正则参数。
+> 当前复盘口径：516 前置 target-aware pooling 是更优版本。它最可能的收益来源是候选语义在 Query Generator 阶段前置注入，而不是输出端后置 DIN residual。仍需保存完整 `train_config.json`、代码 hash 和提交分数，避免再次无法定位最佳版。
 
 # 14. 最重要的工程建议
 
@@ -622,8 +617,8 @@ label smoothing=off，直至单独验证
 如果只能选三个动作，顺序应是：
 
 ```text
-先重建 0.826 中间态
-→ 单独验证 zero-init DIN residual
+先重建 516 前置 target-aware pooling 主线
+→ 用后置 DIN residual 做对照消融
 → 单独加入修正后的时间/序列统计特征
 
 ```
