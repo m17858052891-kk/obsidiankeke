@@ -32,7 +32,8 @@ e_{target}=\operatorname{MeanPool}(N_{item})
 $$
 
 $$
-h^{target}_s=\sum_j \operatorname{softmax}\left(rac{(W_s h_{s,j})^T e_{target}}{\sqrt D}ight)h_{s,j}
+h^{target}_s=\sum_j \operatorname{softmax}\left(rac{(W_s h_{s,j})^T e_{target}}{\sqrt D}
+ight)h_{s,j}
 $$
 
 $$
