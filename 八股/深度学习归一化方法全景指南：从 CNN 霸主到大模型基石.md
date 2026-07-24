@@ -1,4 +1,4 @@
-在深度神经网络训练中，随着层数加深，数据分布会发生偏移（Internal Covariate Shift），导致梯度消失或爆炸，网络极难训练。归一化的核心目的就是**强行把数据的分布拉回到均值为 0、方差为 1 的标准状态，让优化地貌变得平滑，从而允许使用更大的学习率，加速收敛。**
+在深度神经网络中，归一化主要用于控制中间激活的尺度、改善优化问题的条件数并提高数值稳定性，从而让深层网络更容易训练。“缓解 Internal Covariate Shift”是经典解释，但不应把它当成唯一机制；面试时更稳妥的说法是：**归一化稳定了激活与梯度尺度，使优化地貌更平滑，并降低模型对初始化和学习率的敏感度。**
 
 几乎所有归一化方法的底层通用公式都是一致的：
 
@@ -6,7 +6,7 @@ $$y = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \cdot \gamma + \beta$$
 
 _其中，_$\mu$ _是均值，_$\sigma^2$ _是方差，_$\epsilon$ _是防止分母为 0 的极小数。最关键的是_ $\gamma$_（缩放）和_ $\beta$_（平移），它们是**可学习参数**。网络在强制归一化后，可以通过这两个参数把分布“还原”到它认为最有利的状态，从而保证网络的表达能力不被破坏。_
 
-区别各类归一化方法的唯一核心在于：**我们在哪些维度上计算均值** $\mu$ **和方差** $\sigma^2$**？**
+区别各类归一化方法的核心包括：**在哪些维度上统计、是否做中心化、训练和推理是否使用同一套统计量，以及是否依赖其他样本。**
 
 假设一个输入张量的形状为 $(N, C, H, W)$（CV 场景下的 Batch大小、通道数、高、宽）或 $(N, L, D)$（NLP 场景下的 Batch大小、序列长度、特征维度）。
 
@@ -18,6 +18,9 @@ _其中，_$\mu$ _是均值，_$\sigma^2$ _是方差，_$\epsilon$ _是防止
 - [1.4 Group Normalization (GN) - 内存受限时的 CV 救星](#14-group-normalization-gn---内存受限时的-cv-救星)
 - [2.1 RMSNorm (Root Mean Square Normalization) - LLaMA 家族的标配](#21-rmsnorm-root-mean-square-normalization---llama-家族的标配)
 - [2.2 DeepNorm - 解决超深层网络梯度爆炸](#22-deepnorm---解决超深层网络梯度爆炸)
+- [3. 架构位置之争：Pre-Norm vs Post-Norm](#3-架构位置之争pre-norm-vs-post-norm)
+- [4. 高频面试问答](#4-高频面试问答)
+- [5. 一张表快速记忆](#5-一张表快速记忆)
 
 # 1. 经典的“四大金刚”
 
@@ -32,10 +35,10 @@ _其中，_$\mu$ _是均值，_$\sigma^2$ _是方差，_$\epsilon$ _是防止
 
 ## 1.2 Layer Normalization (LN) - NLP 与 Transformer 的绝佳拍档
 
-- **计算维度：** 跨越所有的通道/特征 ($C$ 或 $D$) 和空间维度，对**每一个样本**计算独立的均值和方差。
-- **通俗理解：** LN 是求“张三自己所有科目的平均分”，然后“李四自己所有科目的平均分”。
+- **计算维度：** 对 Transformer 的输入 $(N,L,D)$，标准 LN 通常对每个 Token 的最后一个隐藏维 $D$ 独立计算均值和方差；不会跨 Batch，也通常不会跨序列长度 $L$。
+- **通俗理解：** LN 是对“张三这一个 Token 的所有隐藏特征”求均值和方差；下一个 Token 单独计算。
 - **优点：** **彻底摆脱了 Batch Size 的限制**，哪怕 Batch Size 为 1 也能完美工作。天然适应 RNN、Transformer 等处理长短不一的序列数据。
-- **缺点：** 在处理图像（CNN）时，把同一张图片的所有通道（比如红、绿、蓝特征）混在一起算均值，破坏了空间和通道特异性，因此在 CV 里效果不如 BN。
+- **缺点：** 在传统 CNN 中，LN 的归一化轴与卷积“每个通道共享统计规律”的归纳偏置不完全匹配，因此经典 CNN 往往更偏好 BN/GN；但这不是说 LN 不能用于视觉模型，ViT 等架构中 LN 很常见。
 
 ## 1.3 Instance Normalization (IN) - 生成对抗网络（GAN）的宠儿
 
@@ -54,11 +57,12 @@ _其中，_$\mu$ _是均值，_$\sigma^2$ _是方差，_$\epsilon$ _是防止
 
 ## 2.1 RMSNorm (Root Mean Square Normalization) - LLaMA 家族的标配
 
-- **核心理念：** 研究者发现，LayerNorm 成功的核心其实在于**方差缩放**（把数据压到同一个尺度），而不在于**均值平移**（减去 $\mu$）。
-- **公式优化：** RMSNorm 直接**砍掉了计算均值和减去均值的步骤**！
+- **核心理念：** RMSNorm 保留重缩放（re-scaling），省去 LayerNorm 的中心化（re-centering）。很多模型中，只控制向量的整体尺度就足以获得稳定训练。
+- **公式优化：** RMSNorm 不计算均值，也不执行减均值：
 
     $$y = \frac{x}{\text{RMS}(x)} \cdot \gamma \quad \text{其中} \quad \text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}$$
-- **优势：** 因为少了算均值这一步，RMSNorm 的计算速度比 LN 快 10%~50%，而在数百亿参数的大模型实验中，它的表现和标准的 LN 几乎一模一样。因此它成为了现代大模型（如 LLaMA、Gemma）的绝对主流。
+- **优势：** 算子更简单，理论计算和归约次数更少，在具体硬件与融合 Kernel 支持良好时通常更快；实际端到端加速比例取决于实现，不能固定背成“快 10%～50%”。RMSNorm 已被 LLaMA、Gemma 等模型采用。
+- **代价：** RMSNorm 不具备对整体平移 $x\mapsto x+c$ 的不变性；如果均值漂移本身是重要问题，LN 的中心化更强。
 
 ## 2.2 DeepNorm - 解决超深层网络梯度爆炸
 
@@ -67,7 +71,133 @@ _其中，_$\mu$ _是均值，_$\sigma^2$ _是方差，_$\epsilon$ _是防止
 
 # 3. 架构位置之争：Pre-Norm vs Post-Norm
 
-在 Transformer 中，归一化放在哪一步也是至关重要的工程细节：
+在 Transformer 中，Pre/Post 描述的是 Norm 相对子层和残差加法的位置。令 $F_l$ 表示第 $l$ 层的 Attention 或 FFN。
 
-- **Post-Norm（后归一化）：** `x = LayerNorm(x + Sublayer(x))`。原始 Transformer 使用。优点是表现上限稍高；缺点是网络加深后非常容易在初期训练崩溃（梯度消失/爆炸），通常需要极其精细的 Warm-up 学习率调度。
-- **Pre-Norm（前归一化）：** `x = x + Sublayer(LayerNorm(x))`。现代大模型（GPT-3, LLaMA）的标准做法。在进入 Attention 或 FFN 之前先做归一化。这使得残差路径是一条不受阻挡的直通车，**极大地提升了训练的稳定性**，即使不加 Warm-up 网络也不会轻易崩溃。
+## 3.1 Post-LN：先做子层和残差加法，再归一化
+
+$$
+x_{l+1}=\operatorname{LN}\bigl(x_l+F_l(x_l)\bigr)
+$$
+
+原始 Transformer 使用 Post-LN。它的每层输出都被重新规范到稳定尺度，但从高层回到底层的梯度，即使沿残差支路传播，也需要连续穿过多个 LN 的 Jacobian。网络很深时，初始化阶段的梯度尺度更敏感，通常更依赖 Warm-up、初始化和残差缩放。
+
+Post-LN 并非“效果一定更好”，更准确的说法是：**它优化更难，但每层都在归一化后的表示上继续变换，不容易出现部分 Pre-LN 模型中的深度利用不足；训练稳定后可能有较好的性能。**
+
+## 3.2 Pre-LN：先归一化，再进入子层
+
+$$
+x_{l+1}=x_l+F_l\bigl(\operatorname{LN}(x_l)\bigr)
+$$
+
+Pre-LN 通常还会在整个 Transformer 堆叠结束后增加一次 Final Norm。它最重要的性质是残差主干中存在一条近似恒等路径：
+
+$$
+\frac{\partial x_{l+1}}{\partial x_l}
+=I+\frac{\partial F_l(\operatorname{LN}(x_l))}{\partial x_l}
+$$
+
+梯度可以通过 $I$ 直接向前传播，不必在纯残差路径上反复穿过 Norm，因此深层网络更容易优化。
+
+## 3.3 为什么现代大模型更常用 Pre-LN？
+
+核心不是“Pre-LN 理论表达能力更强”，而是**它更容易稳定地把模型做深、做大**：
+
+1. 残差路径接近恒等映射，梯度传播更直接；
+2. 对初始化、Warm-up 和学习率更不敏感，超参数更容易迁移到更大规模；
+3. 深层训练及混合精度训练中，激活和梯度爆炸的风险更低；
+4. 大规模预训练失败一次成本很高，工程上通常优先选择稳定性更强的方案；
+5. RMSNorm 与 Pre-Norm 组合简单高效，因此成为很多 Decoder-only LLM 的常见配置。
+
+需要补充一个边界：Pre-LN 的残差流会不断累加，各层对最终表示的相对改变量可能逐层变小，出现“表示趋同”或深度利用效率不足。因此研究中还有 DeepNorm、Sandwich Norm、残差缩放等折中方案。不能回答成“Pre-LN 在所有模型、所有指标上都优于 Post-LN”。
+
+---
+
+# 4. 高频面试问答
+
+## 4.1 Transformer 为什么用 LayerNorm，而不是 BatchNorm？
+
+### 30 秒推荐回答
+
+Transformer 的输入通常是 $(B,L,D)$。LayerNorm 对每个 Token 独立地沿隐藏维 $D$ 做归一化，不依赖 Batch 中其他样本，因此训练和推理行为一致，也不受 Batch Size、变长序列和 Padding 比例影响。BatchNorm 则需要跨 Batch，若用于序列通常还会跨 Token 统计同一特征维，统计量会受到样本组成、长度和 Padding 的影响；训练使用当前 Batch 统计量，推理又依赖滑动均值，和自回归、变长序列的场景不够匹配。所以 Transformer 默认选择 LN。
+
+### 展开回答
+
+对 $X\in\mathbb{R}^{B\times L\times D}$：
+
+- BN 通常固定特征维 $d$，在 Batch/Token 维上统计：
+
+$$
+\mu_d=\frac{1}{BL}\sum_{b,l}X_{bld}
+$$
+
+- LN 固定一个 Token $(b,l)$，在隐藏维上统计：
+
+$$
+\mu_{bl}=\frac{1}{D}\sum_dX_{bld}
+$$
+
+LN 更适合 Transformer，主要有四个原因：
+
+1. **不耦合样本。** 一个样本的输出不会因为同 Batch 换了其他样本而改变。
+2. **适配变长与 Padding。** LN 不跨 $L$ 统计；BN 若处理不当会把 Padding 纳入统计，即使做 Masked BN，实现也更复杂。
+3. **训练推理一致。** LN 每次都使用当前 Token 自身统计量；BN 训练用 Batch 统计量、推理用 Running Statistics，存在模式切换。
+4. **适配自回归。** 推理阶段可能一次只生成一个 Token、Batch Size 甚至为 1，LN 仍稳定；BN 的统计量难以与训练阶段保持一致。
+
+**面试边界：** 不能说 Transformer“数学上不能用 BN”。确实存在使用 BN 的序列模型变体；只是标准 BN 的归纳偏置、统计依赖和工程行为不如 LN 契合。
+
+## 4.2 RMSNorm 和 LayerNorm 有什么区别？
+
+### 30 秒推荐回答
+
+LayerNorm 同时做中心化和尺度归一化，即先减均值，再除以标准差；RMSNorm 只根据均方根缩放，不减均值，通常也只保留可学习缩放参数。RMSNorm 计算更简单，在许多大模型中能达到与 LN 相近的稳定效果；但 LN 对整体平移不敏感，RMSNorm 不具备这一性质。
+
+### 公式与对比
+
+对单个 Token 的隐藏向量 $x\in\mathbb{R}^D$：
+
+$$
+\operatorname{LN}(x)
+=\gamma\odot\frac{x-\mu}{\sqrt{\frac1D\sum_i(x_i-\mu)^2+\epsilon}}+\beta
+$$
+
+$$
+\operatorname{RMSNorm}(x)
+=\gamma\odot\frac{x}{\sqrt{\frac1D\sum_i x_i^2+\epsilon}}
+$$
+
+| 对比项 | LayerNorm | RMSNorm |
+|---|---|---|
+| 是否减均值 | 是 | 否 |
+| 分母 | 标准差 | 均方根 |
+| 常见可学习参数 | $\gamma,\beta$ | 通常只有 $\gamma$ |
+| 对整体平移 | 近似不敏感 | 敏感 |
+| 对整体缩放 | 二者都近似不敏感 | 二者都近似不敏感 |
+| 计算 | 两次统计：均值、方差 | 一次平方均值统计，更简单 |
+| 常见使用 | BERT、原始 Transformer 等 | LLaMA、Gemma 等 |
+
+注意：是否包含 bias 取决于具体实现，但经典 RMSNorm 通常不含 $\beta$。
+
+## 4.3 Pre-LN 和 Post-LN 差在哪里？
+
+### 30 秒推荐回答
+
+Post-LN 是 $\operatorname{LN}(x+F(x))$，Norm 位于残差加法之后；Pre-LN 是 $x+F(\operatorname{LN}(x))$，Norm 位于子层之前。Post-LN 的每层输出尺度受控，但深层梯度需要连续经过 LN，训练更依赖 Warm-up 和初始化；Pre-LN 保留无阻塞的残差恒等路径，梯度更容易传播，因此深层训练更稳定。
+
+## 4.4 为什么现在主流是 Pre-LN？
+
+### 30 秒推荐回答
+
+因为大模型训练更看重可扩展的优化稳定性。Pre-LN 让残差主干形成恒等通路，梯度能够直接穿过很多层，降低深层网络对初始化、Warm-up 和学习率的敏感度，也更适合混合精度和超大规模预训练。它不一定在所有条件下最终效果都更高，但训练失败风险更小，所以工程上更主流；现代 LLM 中常见的实际配置是 **Pre-RMSNorm + Final RMSNorm**。
+
+---
+
+# 5. 一张表快速记忆
+
+| 问题 | 一句话抓手 |
+|---|---|
+| 为什么 LN 不用 BN | LN 按 Token 独立、训练推理一致；BN 跨样本统计，受 Batch、长度和推理模式影响 |
+| RMSNorm vs LN | RMSNorm 只缩放不中心化，更简单；LN 同时减均值、除标准差 |
+| Pre-LN vs Post-LN | Pre：先 Norm 再子层，残差路畅通；Post：先残差相加再 Norm |
+| 为什么 Pre-LN 主流 | 大规模深层训练更稳定、超参数更易扩展，代价是可能存在深度利用不足 |
+
+> **最终口令：** BN 看同伴，LN 管自己；LN 减均值再缩放，RMSNorm 只缩放；Post-LN 输出更规整，Pre-LN 梯度路更直。

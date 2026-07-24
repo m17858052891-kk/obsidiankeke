@@ -56,12 +56,17 @@ $$\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2$$
 
 ## 2.5 残差连接与层归一化（Add & Norm）
 
-每个子层之后都有残差连接和归一化：$\text{Output} = \text{LayerNorm}(x + \text{Sublayer}(x))$。残差连接缓解了网络加深时的梯度消失。
+Transformer Block 通过残差连接保留信息并改善梯度传播，但 Norm 的位置存在两种主流设计：
+
+- 原始 Transformer 的 Post-LN：$\operatorname{LN}(x+F(x))$；
+- 现代大模型常见的 Pre-LN：$x+F(\operatorname{LN}(x))$，通常在整个堆叠末尾再加 Final Norm。
+
+Pre-LN 的残差主干更接近恒等映射，深层训练通常更稳定；Post-LN 的优化难度更高，但不能简单理解成效果一定差。完整公式、梯度解释与面试回答见：[[深度学习归一化方法全景指南：从 CNN 霸主到大模型基石#4. 高频面试问答]]。
 
 **💡 核心抉择：为什么 NLP 霸主是 LayerNorm (LN) 而不是 BatchNorm (BN)？**
 
-- **BatchNorm (跨样本归一化)：** 在一个 Batch 内，对同一个特征维度求均值和方差。它在 CV（计算机视觉）里是王者，因为图片尺寸通常是固定的。但在 NLP 中，句子的长短不一（通常需要 Pad 补零），补零的无意义数据会严重污染 BN 的均值和方差计算；且受限于显存，NLP 的 Batch Size 通常很小，BN 统计量极不稳定。
-- **LayerNorm (跨特征归一化)：** 它是“自己管自己”。对每一个特定的 Token（例如“苹果”这个词），计算它自身所有特征维度的均值和方差进行归一化。它**完全不需要依赖其他样本，也无视序列长短和 Batch Size 的大小**，因此成为了 Transformer 的绝佳拍档。
+- **BatchNorm（跨样本归一化）：** 对同一特征维统计 Batch/Token 维的均值和方差，结果依赖 Batch 组成、序列长度和 Padding 处理；训练使用 Batch 统计量，推理通常使用滑动统计量，也不易适配逐 Token 自回归生成。
+- **LayerNorm（Token 内归一化）：** 对每个 Token 独立沿隐藏维计算均值和方差，不依赖其他样本，Batch Size 为 1、变长输入或逐 Token 推理时行为仍然一致，因此与 Transformer 更匹配。
 
 # 3. 宏观结构与后世流派
 

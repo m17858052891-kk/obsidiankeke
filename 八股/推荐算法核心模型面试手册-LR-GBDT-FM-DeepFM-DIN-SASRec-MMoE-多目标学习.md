@@ -13,7 +13,7 @@ tags:
   - 多目标学习
 created: 2026-07-23
 ---
-
+ 
 # 推荐算法核心模型面试手册：LR、GBDT、FM、DeepFM、DIN、SASRec、MMoE 与多目标学习
 
 ## 1. 先用一两句话说明它们分别是什么
