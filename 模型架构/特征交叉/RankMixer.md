@@ -1,37 +1,58 @@
-仅仅使用最基础的全连接层（MLP），只要交叉的方式对，就能达到甚至超越Transformer对效果，且速度更快
+---
+tags: [模型架构, 特征交叉, RankMixer, MLP-Mixer, PCVRHyFormer, 面试]
+---
 
-把所有用户和物品的特征全部token化之后，会得到一个二维矩阵：
+# RankMixer：用受约束的 MLP 做 Token 与 Channel 交互
 
-行代表了不同的特征（用户年龄token、目标商品token、上下文token）
-列代表每个特征的embedding向量维度
+> RankMixer 的核心不是“MLP 一定比 Transformer 强”，而是在精排中 token 数量固定且不大时，用 MLP-Mixer 风格的交替混合，替代一次昂贵、内容自适应的全局 Self-Attention。它是特征交互模块，不负责替代长行为序列编码。
 
-如果要做self-attention，计算量是O(N^2),但rankmixer采用了两步纯MLP操作完成信息融合
+## 1. 它在 PCVRHyFormer 的什么位置？
 
-Token1 用户
-【0.1，0.8，0.2，0.5】
+```text
+四域历史 → Sequence Evolution / Query Decoding → decoded queries
+静态用户、候选、上下文 → NS tokens
+decoded queries + NS tokens → RankMixer → 强化后的 queries → prediction head
+```
 
-Token2 目标商品
-【0.9，0.1，0.7，0.2】
+因此它的输入已是较短的固定 token 集合：一部分是候选感知的动态兴趣 query，一部分是当前请求的静态 token。长序列中的时间依赖应在前面的 sequence encoder 中处理。
 
-Token3 当前时间
-【0.3，0.9，0.8，0.1】
+## 2. 输入形状与一个 Block 的数据流
 
-**第一步：Token Mixing**  列计算
-把矩阵转置，让全连接层MLP跨越不同的Token【0.1，0.9，0.3】进行计算，产生了新得分，更新了矩阵中的数字。找用户商品时间之间的可能匹配
+令 $X\in\mathbb R^{B\times N\times D}$：$B$ 是 batch，$N$ 是 token 数，$D$ 是隐藏维度。
 
-**第二步：Channel Mixing** 行计算
-矩阵转置回来，让全连接层在每个token自己的embedding维度内部进行深层计算，让用户自己的各项属性在上一步的更新后进行吸收
+### Token Mixing：跨 token 交换信息
 
-**在一个rankmixer block里，token mixing 和channel mixing会被堆叠很多次**
+先对每个 channel 看长度为 $N$ 的 token 向量，再通过 MLP 混合：
 
-# 1. `RankMixerNSTokenizer` (特征预处理)
+$$X'=X+\operatorname{TokenMLP}(\operatorname{Norm}(X)^T)^T.$$
 
-- **它的作用**：推荐系统的原始特征非常杂乱（有离散的 ID，有连续的浮点数，有长有短）。`RankMixerNSTokenizer` 的任务就是像“车间入口”一样，把这些杂乱的非序列特征（NS feats）强行统一打包、投影，变成**长度统一、维度一致的标准 Token 矩阵**，为后面的混合（Mix）做好准备。
+它回答的是：“候选 token、用户 token、上下文 token、兴趣 query 之间应如何固定结构地交换信息？”
 
-# 2. `RankMixerBlock` (高阶特征会师)
+### Channel Mixing：每个 token 内做非线性变换
 
-- **它的位置**：在你的架构图中，它位于 Cross-Attention 之后： `concat(all decoded query tokens, NS tokens) -> RankMixerBlock`
-- **它的作用**：
-    - **输入**：一半是包含了用户历史动态兴趣的 `decoded query tokens`，另一半是代表当前状态的 `NS tokens`。
-    - **执行**：它们被拼接到一起，形成了一个巨大的二维矩阵。RankMixerBlock 开启“横向 + 纵向”的交织模式。
-    - **结果**：用户的“历史动态偏好”和当前的“静态画像及候选商品”在这一步发生了极其剧烈的化学反应，彻底融为一体。
+$$Y=X'+\operatorname{ChannelMLP}(\operatorname{Norm}(X')).$$
+
+它回答的是：“已经融合过上下文的某个 token，哪些表示维度和非线性组合应被保留？”
+
+实际实现可以有门控、dropout、残差、Pre-LN 等变体；阅读代码时要以真实的张量 reshape、Norm 和 projection 为准。
+
+## 3. 它和 Self-Attention 的本质区别
+
+| | Self-Attention | RankMixer / MLP-Mixer 风格 |
+|---|---|---|
+| token 交互权重 | 由 $QK^T$ 随样本动态生成 | 由共享 MLP 参数产生，通常不显式做每对内容相似度 |
+| 归一化 | Softmax 或其他 attention 激活 | MLP + 非线性 + 残差 |
+| 优势 | 动态地选择不同 token 对 | 固定 $N$ 时实现简单、并行友好 |
+| 弱点 | 成本/显存较高 | 对 token 顺序/数量敏感，动态检索能力较弱 |
+
+因此不能说 RankMixer “没有 token 两两关系”或“必然更快”。Token Mixing 的全连接矩阵本身也常带 $N^2$ 参数/计算；它省掉的是 Q/K/V、相似度矩阵、Softmax 等机制，实际收益取决于 $N,D$、实现和硬件。
+
+## 4. 为什么在这里可能合适？
+
+PCVR 的 RankMixer 处理的是固定、较短的 token 集，而不是数千条原始历史。此时更重要的是让“当前候选—用户画像—请求上下文—已提炼兴趣 query”充分组合，而不是再从长序列中动态检索。受约束的 mixing 可以提供较强交叉，同时控制结构复杂度。
+
+是否有效必须通过等参数量、等训练预算消融确认；如果任务依赖样本级动态 token 选择，Self-Attention/Cross-Attention 仍可能更合适。
+
+## 5. 面试回答
+
+> RankMixer 接在候选感知 query 与静态 token 融合之后，输入是短而固定的 $B\times N\times D$ token 矩阵。它交替做 Token Mixing 和 Channel Mixing：前者在 token 维交换用户、候选、上下文和兴趣信息，后者在每个 token 内做非线性变换。它不像 Self-Attention 通过 $QK^T$ 做样本自适应检索，所以不是普遍替代 Transformer；优势在于固定短 token 集上的结构与工程折中。

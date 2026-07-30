@@ -61,7 +61,7 @@ Transformer Block 通过残差连接保留信息并改善梯度传播，但 Norm
 - 原始 Transformer 的 Post-LN：$\operatorname{LN}(x+F(x))$；
 - 现代大模型常见的 Pre-LN：$x+F(\operatorname{LN}(x))$，通常在整个堆叠末尾再加 Final Norm。
 
-Pre-LN 的残差主干更接近恒等映射，深层训练通常更稳定；Post-LN 的优化难度更高，但不能简单理解成效果一定差。完整公式、梯度解释与面试回答见：[[深度学习归一化方法全景指南：从 CNN 霸主到大模型基石#4. 高频面试问答]]。
+Pre-LN 的残差主干更接近恒等映射，深层训练通常更稳定；Post-LN 的优化难度更高，但不能简单理解成效果一定差。完整公式、梯度解释与面试回答见：[[归一化方法#4. 高频面试问答]]。
 
 **💡 核心抉择：为什么 NLP 霸主是 LayerNorm (LN) 而不是 BatchNorm (BN)？**
 
