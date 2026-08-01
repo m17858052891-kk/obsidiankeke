@@ -42,7 +42,7 @@ $$
 
 每个 token 先经各自的 embedding（图中彩色小矩形）并加位置编码，再送进 causal Transformer。因果掩码使当前位置只看得到左侧历史，不能偷看未来窗口。
 
-#### 真实业务里很多状态字段，$s_t$ 怎样输入模型？
+#### $s_t$ 怎样输入模型？
 
 $s_t$ 不是把“预算、CPA、流量、城市、活动类型”等字段逐个当作一长串 Transformer token。更常见、也是 GAVE 公开实现采用的形式是：**先把同一决策窗口内已经可知的字段整理为一个状态向量，再将这个向量映射为一个 state token。**
 
@@ -80,6 +80,114 @@ $$
 
 构造 $s_t$ 时最重要的是**无信息泄漏**：只能使用决策时刻 $t$ 已知的信息。例如当前预算、已发生成本和可提前获得的流量预测可以使用；$t+1$ 窗口结束后才知道的真实转化、实际成本不能提前放入 $s_t$。
 
+#### 特征从哪里计算而来
+
+这里有一条必须先说清的边界：论文与公开实现能确认 **state 的维度为 16、状态按时间窗口输入模型**，但没有逐项公开“第 1 维到第 16 维分别对应哪张业务表、采用哪个统计窗口”的完整字段字典。因此，上面“预算、CPA、流量、成本速度”等是对论文所述状态类别和投放系统常见做法的**解释性展开**，不是宣称论文逐项披露了这些字段。
+
+为了让读者在复现或迁移时不把三类信息混在一起，可以按下表建立特征血缘。第一列是 GAVE 必需的模型接口；后面的原始来源与加工方式必须由具体数据集或业务系统落实：
+
+| 模型接口 | 论文/公开实现可确认的信息 | 可落到的原始记录或环境反馈 | 进入 $t$ 时刻是否可用 | 常见加工方式 |
+|---|---|---|---|---|
+| $s_t\in\mathbb R^{16}$ | 一个窗口级状态向量；公开实现将其归一化并映射为 state token | 截至当前窗口的预算、累计 cost、赢单数/价值、CPA、流量和竞争统计；也可加入决策前可获得的流量预测 | **必须可用**；只能截到 $t$ 的决策前 | 缺失填充、异常截断、log / z-score；累计量转比例或速度。 |
+| $a_t=\lambda_t$ | 窗口级 bid coefficient，是日志策略实际执行的动作 | 旧自动出价器在窗口 $t$ 下发的系数或策略参数 | 训练时可从日志读取；线上待模型产生 | 明确单位、可行动作范围、clip 规则，并与基础价值 $v_{t,n}$ 的量纲匹配。 |
+| $v_{t,n}$ | 单曝光的私有价值，用于 $b_{t,n}=\lambda_tv_{t,n}$ 与 score | 竞价器/预估模型输出，如 pCVR、pCVR$\times$GMV 或业务价值 | 曝光竞价前应可用 | 校准、截断、价值加权；它不是 GAVE 的窗口动作，而是下游基础价值模型的输出。 |
+| $x_{t,n},c_{t,n}$ | 是否赢得曝光与实际成本，用于环境转移、累计 score | 拍卖结果、扣费日志 | 在执行后才可用 | 按窗口聚合，形成 cost、value、CPA、速度等下一状态字段。 |
+| $r_t$ | 由 score-based RTG 构造的条件 token | 完整轨迹的 score 序列；线上还需要一个目标/计划值 | 训练时可事后回填；线上不能使用未来真实 score | 见下一小节：训练反向计算，推理使用目标 RTG 及在线更新规则。 |
+
+因此，真正落地时最重要的产物不是“随便拼 16 个特征”，而是一张 **feature contract**：每个字段的来源、统计截止时间、更新延迟、归一化参数和是否允许上线使用。没有这张表，即便离线指标很好，也可能因未来信息泄漏而无法复现。
+
+#### 从一段真实日志走到四个 head：一个完整的小例子
+
+下面的数字只用于解释数据流，并非论文披露的某一条真实轨迹。假设一个广告主以 **30 分钟** 为一个决策窗口；现在是第 $t$ 个窗口，要决定此刻的 bid coefficient。我们截取最近两个完整窗口和当前窗口：
+
+| 时间步 | RTG $r$ | 已知状态 $s$（只列部分字段） | 日志中的动作 $a$ |
+|---|---:|---|---:|
+| $t-2$ | 0.42 | 剩余预算 75%、CPA/目标 CPA=0.90、剩余时间 30%、成本速度正常 | 0.92 |
+| $t-1$ | 0.37 | 剩余预算 66%、CPA/目标 CPA=0.96、剩余时间 20%、成本速度上升 | 0.98 |
+| $t$ | 0.31 | 剩余预算 55%、CPA/目标 CPA=0.93、剩余时间 10%、流量预测较高 | 训练时日志有 1.00；线上尚未决定 |
+
+为了送入模型，每个 $s_i$ 还会带有其余状态字段，组合成例如 16 维向量：
+
+$$
+s_t=[0.55,\ 0.93,\ 0.10,\ \text{成本速度},\ \text{流量预测},\ \text{近期转化速度},\ldots]\in\mathbb R^{16}.
+$$
+
+三个字段类型各自先投影到相同的 hidden size $d$，并与相同时间步的时间 embedding 融合：
+
+$$
+r_i\longrightarrow z_i^r\in\mathbb R^d,\qquad
+s_i\longrightarrow z_i^s\in\mathbb R^d,\qquad
+a_i\longrightarrow z_i^a\in\mathbb R^d.
+$$
+
+因此，**线上要预测动作时**的输入不是一堆原始标量，而是下面这串已经向量化的 token：
+
+$$
+[z^r_{t-2},z^s_{t-2},z^a_{t-2},z^r_{t-1},z^s_{t-1},z^a_{t-1},z^r_t,z^s_t].
+$$
+
+当前 $a_t$ 故意不放进来。对最后一个 $s_t$ token，causal mask 允许它读到左侧全部 token，却禁止它读取右侧未来：
+
+~~~text
+可见： r(t-2), s(t-2), a(t-2), r(t-1), s(t-1), a(t-1), r(t), s(t)
+不可见：a(t), r(t+1), s(t+1), a(t+1), ...
+~~~
+
+每一层 Transformer 都让 $s_t$ 的 query 与它可见的历史 token 的 key/value 做 attention；经过多层 attention、残差连接与 FFN 后，最后一层在 $s_t$ 位置输出：
+
+$$
+h_t^s=
+H_\theta(r_{t-2},s_{t-2},a_{t-2},r_{t-1},s_{t-1},a_{t-1},r_t,s_t)_{s_t}
+\in\mathbb R^d.
+$$
+
+这就是所谓的 **current state token hidden state**：它不是额外采集的特征，而是当前 state token 在看完历史后形成的上下文表示。若 hidden size 为 128，$h_t^s$ 就是一个 128 维向量；它把“预算还剩多少、CPA 是否健康、过去动作怎样影响 RTG、现在还剩多少时间”等信息压缩在一起。
+
+同一个 $h_t^s$ 接出三个 head：
+
+$$
+\hat a_t=\mathrm{Head}_a(h_t^s),\qquad
+\hat\beta_t=\operatorname{Sigmoid}(\mathrm{FC}_\beta(h_t^s))+0.5,\qquad
+\hat V_{t+1}=\mathrm{Head}_V(h_t^s).
+$$
+
+例如模型可能输出 $\hat a_t=1.07$、$\hat\beta_t=1.12$、$\hat V_{t+1}=0.32$。线上直接执行的候选动作是 $\hat a_t=1.07$；而训练时用日志锚点动作 $a_t=1.00$ 额外构造：
+
+$$
+\tilde a_t=1.12\times1.00=1.12.
+$$
+
+随后出现两次只差末尾动作的前向计算。用日志动作 $a_t=1.00$ 补全序列，读取 **action token** 的 hidden state 并经 RTG head 得到 $\hat r_{t+1}$；把同一个位置替换成探索动作 $\tilde a_t=1.12$，再次前向得到 $\tilde r_{t+1}$。例如：
+
+$$
+\hat r_{t+1}=0.300,\qquad \tilde r_{t+1}=0.304.
+$$
+
+这样，模型既能通过 $w_t$ 判断“1.12 是否相对 1.00 更好”，又能通过 $L_v$ 将探索后的预测 RTG 拉向 $\hat V_{t+1}=0.32$ 这个高价值锚点。其关键梯度链为：
+
+$$
+h_t^s\longrightarrow\hat\beta_t\longrightarrow\tilde a_t
+\longrightarrow\tilde r_{t+1}\longrightarrow L_v.
+$$
+
+~~~mermaid
+flowchart LR
+    A["历史原始字段<br/>r, s, a"] --> B["字段投影与时间编码<br/>得到 r/s/a token"]
+    B --> C["Causal Transformer<br/>当前 s_t 只看历史"]
+    C --> H["s_t 位置的最终隐状态 h_t^s"]
+    H --> AH["动作 head → â_t<br/>线上动作"]
+    H --> BH["β head → β̂_t"]
+    H --> VH["Value head → V̂_(t+1)"]
+    BH --> E["β̂_t × 日志 a_t"]
+    E --> F["探索动作 ã_t"]
+    F --> G["替换末尾 action token<br/>第二次前向"]
+    G --> RH["RTG head → r̃_(t+1)"]
+    VH --> LV["L_v：高价值锚点"]
+    RH --> LV
+~~~
+
+> **把两个位置分清：** 动作、$\beta$、value 这三个 head 都从当前 **state token** 的 $h_t^s$ 读出；只有“给定一个动作以后，下一步 RTG 怎样”才从补上 $a_t$ 或 $\tilde a_t$ 后的 **action token** 表示读出。这是 Figure 1 中 decoder 位置错开的原因。
+
 ### 2. 上半部分 (a)：同一个 Transformer 如何得到四类输出？
 
 Transformer 产生每个 token 位置的隐藏表示，之后接不同线性 decoder（图中的灰/黄/蓝矩形）。图中采用 DT 常见的“错位预测”：
@@ -88,7 +196,7 @@ Transformer 产生每个 token 位置的隐藏表示，之后接不同线性 dec
 |---|---|---|---|
 | $\hat a_t$ | 看到 $r_t,s_t$ 后 | 对当前出价系数的预测 | 正常动作头；线上最终使用的核心动作。 |
 | $\hat V_{t+1}$ | 看到 $r_t,s_t$ 后 | 下一步可达到的高价值 RTG 锚点 | 用 expectile loss 学习，指导探索方向。 |
-| $\hat\beta_t$ | 训练时看到日志动作 $a_t$ 后 | 对日志动作做局部缩放的倍率 | 与 $a_t$ 相乘，构造探索动作。 |
+| $\hat\beta_t$ | 看到 $r_t,s_t$ 后的 **state token 隐状态** | 对日志动作做局部缩放的倍率 | 与 $a_t$ 相乘，构造探索动作。 |
 | $\hat r_{t+1}$ | 给定到 $a_t$ 为止的历史后 | 若采取日志动作时，对下一步 RTG 的预测 | 与探索动作的 RTG 预测比较。 |
 
 这里有一个容易混淆的点：图中 $\hat\beta_t$ 不是直接替代线上 bid 的“另一个动作”。它服务于训练期的局部探索。因为训练日志里已知 $a_t$，模型可以围绕这个被数据支持的动作尝试小幅偏移；而线上真正转成出价系数的主要是动作头 $\hat a_t$。
@@ -124,17 +232,109 @@ $$
 
 构造 RTG。这样 $r_t$ 表示从当前时刻起，在 CPA 目标下还可能贡献多少有效业务价值；训练中“高 RTG”的含义便与评估时的高 score 对齐。这是目标对齐，不是保证每一时刻 CPA 都绝不越界的硬约束。
 
-### 4. 图橙色虚线框 (a.2)：$a_t\rightarrow\hat\beta_t\rightarrow\tilde a_t$
+#### 训练时的 RTG 怎样从整段日志回填，线上又怎样得到它？
 
-GAVE 用：
+这是 GAVE / Decision Transformer 中最容易混淆的时间边界。先记第 $t$ 个窗口结束为止的累计业务 score 为 $S_t$。训练数据拥有一整天已经结束的轨迹，因此可以在**离线回看**时先得到终局 score $S_T$，再对每个决策点回填：
 
 $$
-\hat\beta_t=\mathrm{Sigmoid}(\mathrm{FC}_\beta(\cdot))+0.5,
+r_t=S_T-S_{t-1}.
+$$
+
+例如一天有三个窗口，按论文选定的 CPA-价值 score 计算得到：
+
+| 窗口结束时刻 | 累计 score $S_t$ | 从该时刻后仍可争取的 RTG |
+|---|---:|---:|
+| $S_0$（开始前） | 0 | $r_1=S_3-S_0$ |
+| $S_1$ | 40 | $r_2=S_3-S_1$ |
+| $S_2$ | 70 | $r_3=S_3-S_2$ |
+| $S_3$（结束） | 100 | 0 |
+
+因此，训练样本中的 $r_t$ 的确利用了未来结果，但这不是泄漏到线上：它是离线日志已经结束后制作的 **监督/条件序列**。类似语言模型可在训练时看到完整句子，在线生成时却只能看到前缀。
+
+线上时刻 $t$ 并没有未来的 $S_T$，所以不能把真实公式直接照搬。论文披露的线上设置是：由于真实转化稀疏，训练时以赢得流量的预期总转化构造 RTG，推理时将整段 RTG 设为该 campaign 前一天的预期总转化。它明确给出了“初始目标 RTG 从何而来”，但没有在正文中逐项公开一个可泛化到所有业务的窗口级重算公式。
+
+工程上必须额外定义这条运行时契约。若业务 reward 是可加的，可采用常见的目标递减形式：
+
+$$
+\bar r_{t+1}=\bar r_t-g_t,
+$$
+
+其中 $\bar r_t$ 是在线输入给模型的**目标 RTG**，$g_t$ 是当前窗口已实现、且已确认的有效增益。可是 GAVE 的 CPA score 依赖累计 cost 与累计 value，通常不是简单的逐窗口可加 reward；此时不能机械地将当前 score 相减。更稳妥的做法是由 pacing / 目标规划模块根据剩余预算、剩余时间、当前 CPA 和预测流量重新产生 $\bar r_{t+1}$，再将其作为下一窗口的 RTG 条件。
+
+> **符号约定：** 离线训练中的 $r_t$ 是由完整轨迹回填的真实 RTG；线上输入的 $\bar r_t$ 是策略希望实现的目标 RTG。二者量纲必须一致，但来源不同。笔记后文若讨论“线上 RTG”，默认指后者。
+
+### 4. 图橙色虚线框 (a.2)：当前 state token 怎样接出 $\beta$ head？
+
+这一块应拆成两步看。**$\beta$ 的信息来源是当前状态；日志动作只是它随后要缩放的对象。** 对时间步 $t$，送入 causal Transformer 的有效上下文是：
+
+$$
+[r_{t-M},s_{t-M},a_{t-M},\ldots,a_{t-1},r_t,s_t].
+$$
+
+这里没有当前动作 $a_t$。因果掩码保证 state token 只能汇总过去的 RTG、状态和动作，以及当前已经观察到的 $r_t,s_t$；因此它是在“看完当前环境以后、动作尚未决定以前”形成表示。记最后一层中 $s_t$ 位置的隐状态为：
+
+$$
+h^s_t=H_\theta(r_{t-M},s_{t-M},a_{t-M},\ldots,a_{t-1},r_t,s_t)_{s_t}.
+$$
+
+然后接一个专门的 $\beta$ head：
+
+$$
+u^\beta_t=\mathrm{FC}_\beta(h^s_t),
 \qquad
+\hat\beta_t=\operatorname{Sigmoid}(u^\beta_t)+0.5.
+$$
+
+所以 $\hat\beta_t\in(0.5,1.5)$。论文用 $\mathrm{FC}_\beta$ 概括该 head；作者公开参考实现把它实现为一个小 MLP：hidden state $\rightarrow$ 16 维线性层 $\rightarrow$ GELU $\rightarrow$ 8 维线性层 $\rightarrow$ GELU $\rightarrow$ 1 维线性层 $\rightarrow$ sigmoid，最后在网络外加 $0.5$。这一层数和宽度是实现选择，核心结构是“**state-token hidden state $\rightarrow$ 标量倍率**”，并非给 $\beta$ 单独输入一张原始特征表。
+
+得到倍率后，训练时才取日志中已经记录的动作 $a_t$，构造附近的探索动作：
+
+$$
 \tilde a_t=\hat\beta_t a_t.
 $$
 
-因此 $\hat\beta_t\in(0.5,1.5)$。假设日志动作 $a_t=1.0$，模型输出 $\hat\beta_t=1.12$，探索动作就是 $\tilde a_t=1.12$：它只比旧策略积极一点，而不是跳到数据中几乎没见过的 2.5。图中上一时刻也画出 $a_{t-1}\rightarrow\hat\beta_{t-1}\rightarrow\tilde a_{t-1}$，说明每个时间步都可按同样方式构造局部候选动作。
+例如当前 state token 已编码“剩余预算充足、CPA 低于目标、剩余时段不多”。$\beta$ head 输出 $u^\beta_t=0.49$，则 $\operatorname{Sigmoid}(0.49)\approx0.62$，$\hat\beta_t\approx1.12$。若日志动作是 $a_t=1.00$，便得到 $\tilde a_t=1.12$。反之，若状态显示 CPA 已偏高，head 可输出更小的倍率，例如 $\hat\beta_t=0.78$，将 $a_t=1.00$ 变成更保守的 $0.78$。
+
+这里的因果方向很重要：
+
+$$
+(r_{<t},s_{<t},a_{<t},r_t,s_t)
+\longrightarrow h^s_t
+\longrightarrow\hat\beta_t
+\mathop{\longrightarrow}^{\times a_t}\tilde a_t.
+$$
+
+$a_t$ 是离线日志中的**锚点动作**，不是 $\beta$ head 的输入。这样做的目的不是让模型凭空提出任意新动作，而是根据当前状态决定“应在这个数据支持的旧动作附近上调还是下调、调多少”。因此 $\beta$ 也不是 Mixture-of-Experts 那种在多个专家之间分配权重的 gate；它是一个有范围限制的、乘在单个日志动作上的局部扰动倍率。
+
+#### 4.1 $\beta$ 没有直接标签，它靠哪条梯度学会“调多少”？
+
+$\beta$ 没有“正确倍率”的人工标签。一次训练中，它先产生 $\tilde a_t$；模型再把末尾动作替换为 $\tilde a_t$ 做第二次前向计算，得到探索后的预测 RTG $\tilde r_{t+1}$。value 头从同一个 $h^s_t$ 读出高价值锚点 $\hat V_{t+1}$，于是最直接训练探索倍率的路径是：
+
+$$
+h^s_t
+\longrightarrow \hat\beta_t
+\longrightarrow \tilde a_t
+\longrightarrow \tilde r_{t+1}
+\longrightarrow L_v
+=\bigl(\tilde r_{t+1}-\operatorname{stopgrad}(\hat V_{t+1})\bigr)^2.
+$$
+
+因为 $\hat V_{t+1}$ 在 $L_v$ 中 stop-gradient，优化器不能简单调低 value 头来减小误差；梯度会沿 $\tilde r_{t+1}\rightarrow\tilde a_t\rightarrow\hat\beta_t$ 回传，促使 $\beta$ 在受限区间内产生更接近该状态高价值锚点的扰动。若 $\alpha_4$ 是总损失中 $L_v$ 的权重，则该项梯度会再按 $\alpha_4$ 缩放。
+
+四个损失对 $\beta$ 的角色也不同：
+
+| 损失 | 是否给 $\beta$ head 提供主要直接训练信号 | 原因 |
+|---|---|---|
+| $L_r$ | 否 | 它用日志动作 $a_t$ 监督 $\hat r_{t+1}$，首先校准正常 RTG 预测。 |
+| $L_a$ | 否（$\tilde a_t,w_t$ 均 stop-gradient） | 它训练主动作头 $\hat a_t$；detach 防止 $\beta$ 通过改“伪标签”或权重而投机减小动作误差。 |
+| $L_e$ | 否 | 它训练 value head 形成高 expectile 的 $\hat V_{t+1}$ 锚点。 |
+| $L_v$ | **是，设计上最直接的一条** | 它通过探索动作后的 RTG 预测，反传到 $\beta$ head。 |
+
+共享 Transformer 参数仍可能同时收到多项损失的梯度；表中说的是 $\beta$ 这一探索头的**显式、直接**学习路径。这个拆分也解释了为何要 stop-gradient：没有 detach 时，$\beta$、$w_t$、value head 都可能通过彼此改变辅助目标来降低 loss，却不必学到可靠的探索方向。
+
+#### 4.2 训练时有 $\beta$，为什么线上最终动作仍是 $\hat a_t$？
+
+$\tilde a_t$ 的定义依赖历史日志动作 $a_t$，它是离线训练时用于制造“旧动作附近候选点”的工具。真实线上在时刻 $t$ 没有一条可供乘法的“本次日志动作”，所以 GAVE 的执行动作仍由看到 $r_t,s_t$ 的动作 head 输出 $\hat a_t$。换言之，$\beta$ 的价值是把 value-guided exploration 的学习信号传给共享表征和动作头；它不是部署时额外随机乘一次的试价器。生产环境仍需要对 $\hat a_t$ 再做动作限幅、预算与 CPA 护栏。
 
 ### 5. 图左下 (b.1)：比较 $\tilde r_{t+1}$ 与 $\hat r_{t+1}$，生成权重 $w_t$
 
@@ -316,17 +516,6 @@ $$
 
 所以强化学习或序列模型的动作 $a_t$ 就是窗口级 bid coefficient $\lambda_t$，而非每条曝光的绝对价格。
 
-### 1.2 一个贯穿全文的小例子
-
-假设某广告主日预算 10,000 元、目标 CPA 为 100 元。上午流量一般，旧策略在第 10 个窗口输出 $a_t=\lambda_t=1.0$。此时状态 $s_t$ 可能包括：
-
-- 已花 3,500 元、剩余预算 6,500 元；
-- 当前累计 CPA 为 92 元；
-- 距离一天结束还有 38 个窗口；
-- 未来流量预测较高；
-- 最近一段时间的平均出价系数和转化速度。
-
-如果午间将系数调到 1.5，可能拿到更多高价值曝光；也可能只是把低质量流量买贵，导致预算提前耗尽。日志没有真实执行过 1.5 时，离线算法不能把“模型认为好”当成事实。这就是 GAVE 要解决的离线策略改进问题。
 
 ---
 
@@ -412,6 +601,71 @@ $$
 6. 高 expectile value 通过 $L_v$ 给探索一个上行但受约束的目标；
 7. 四个损失加权反传。论文对部分中间量 stop-gradient，以防辅助目标互相“作弊”。
 
+#### 5.1.1 把一次训练写成可检查的张量与计算契约
+
+若要实现，建议先将一个 batch 固定写成下表；这比直接从 Figure 1 开始拼网络更不容易错位。这里 $L=M+1$ 是一个训练样本取出的窗口长度，$d_s=16$ 是公开实现的 state 维度，$d$ 是 Transformer hidden size。
+
+| 名称 | 典型形状 | 在训练中来自哪里 | 是否会在当前动作预测时被看到 |
+|---|---|---|---|
+| states | $B\times L\times d_s$ | 窗口级状态快照 | 当前 $s_t$ 可见，未来 state 不可见。 |
+| actions | $B\times L\times d_a$ | 日志的窗口级 $\lambda$；论文场景通常 $d_a=1$ | 历史 $a_{<t}$ 可见，当前 $a_t$ 对动作 head 不可见。 |
+| returns | $B\times L\times1$ | 完整轨迹回填的 score-based RTG | 当前 $r_t$ 作为条件可见，未来 RTG 不可见。 |
+| timesteps / mask | $B\times L$ | 窗口编号、padding 信息 | 提供时间语义，并屏蔽补齐 token 与未来 token。 |
+
+将最后一个动作位置先留空，定义当前动作决策上下文：
+
+$$
+X_t^{\mathrm{state}}=
+[r_{t-M},s_{t-M},a_{t-M},\ldots,a_{t-1},r_t,s_t].
+$$
+
+一次 causal Transformer 前向即可从 $s_t$ 位置读出：
+
+$$
+h_t^s=H_\theta(X_t^{\mathrm{state}})_{s_t},
+\quad
+\hat a_t=\mathrm{Head}_a(h_t^s),
+\quad
+\hat\beta_t=\mathrm{Head}_\beta(h_t^s),
+\quad
+\hat V_{t+1}=\mathrm{Head}_V(h_t^s).
+$$
+
+随后使用日志锚点 $a_t$ 组成两条只在末尾动作不同的序列：
+
+$$
+X_t^a=[X_t^{\mathrm{state}},a_t],
+\qquad
+X_t^{\tilde a}=[X_t^{\mathrm{state}},\tilde a_t],
+\qquad
+\tilde a_t=\hat\beta_ta_t.
+$$
+
+从各自 action token 的最后隐状态经过同一个 RTG decoder，得到：
+
+$$
+\hat r_{t+1}=\mathrm{Head}_r(H_\theta(X_t^a)_{a_t}),
+\qquad
+\tilde r_{t+1}=\mathrm{Head}_r(H_\theta(X_t^{\tilde a})_{\tilde a_t}).
+$$
+
+最后依次计算 $L_r,L_a,L_e,L_v$ 并对总损失做一次 backward。实际实现可把共享历史的前向合并以节省算力；但从理解和单元测试角度，先按“两条末尾动作分支”写最清晰。
+
+下表给出反传时各损失的主要职责。它补充而不替代前文对 $\beta$ 的详细梯度解释：
+
+| 损失 | 直接更新的主要 head | 对共享 Transformer 的影响 | 被刻意阻断的捷径 |
+|---|---|---|---|
+| $L_r$ | RTG head | 校准“日志动作后的 RTG”表征 | 不通过探索动作伪标签监督。 |
+| $L_a$ | 动作 head | 让状态表征更适于预测动作 | $w_t,\tilde a_t$ stop-gradient，不能靠篡改权重/伪标签降 loss。 |
+| $L_e$ | value head | 学到高 expectile 的 value 表征 | 不直接把 value 当成探索动作标签。 |
+| $L_v$ | $\beta$ head、RTG head | 让探索分支与高价值锚点对齐 | $\hat V_{t+1}$ stop-gradient，不能只移动 value 锚点。 |
+
+#### 5.1.2 复现时还必须写清的模型配置
+
+笔记已给出 token 顺序、state 维度和公开参考实现中 $\beta$ head 的小 MLP；但完整复现还应把以下配置与训练记录一起固化：历史窗口 $M$、hidden size $d$、Transformer 层数、attention head 数、dropout、各 token 的归一化统计、动作 clip 范围、expectile 系数 $\tau$、$\alpha_r$ 和总损失权重 $\alpha_1,\ldots,\alpha_4$。
+
+这些不是只影响吞吐的“工程参数”：例如动作归一化会改变 $\beta a_t$ 的实际扰动尺度，$\alpha_4$ 会改变 value 对探索的拉力，$M$ 决定模型能否看到一个完整的预算消耗节奏。论文未逐项公开或笔记尚未从作者配置核实的值，应在复现表中标为“待核实”，而不应以常见默认值补写成论文事实。
+
 ### 5.2 它和“先训 critic、再训 actor”有什么不同？
 
 传统 actor-critic 把 actor 和 critic 作为较明确的两类网络；GAVE 将动作、RTG、value 和探索倍率都接在同一个 Transformer 序列表示上，用多个线性 head 输出。它仍有 value 引导策略的思想，但训练形式更接近“多头生成式序列模型 + 辅助损失”，而非标准在线 TD actor-critic。
@@ -427,6 +681,28 @@ b_{t,n}=\lambda_t v_{t,n}.
 $$
 
 论文还提到为稳定在线竞价，会对近期 GAVE 动作做时间窗口平均，避免半小时粒度的系数剧烈抖动。这里可以把它理解为执行层的低通滤波：策略网络可能输出高频变化，但实际出价系数采用近期平滑值。
+
+### 6.1 线上 RTG、状态与动作的运行时闭环
+
+在线推理不能复用训练时“由终局 $S_T$ 回填”的真实 $r_t$。因此一次窗口级决策更准确的运行顺序应写为：
+
+1. **窗口开始前：** 从在线特征流读取截至当前的 $\mathrm{state}_t$，并由目标配置或上层 pacing 计划提供目标 RTG $\bar r_t$；
+2. **策略推理：** 输入 $[\,\bar r_{<t},s_{<t},a_{<t},\bar r_t,s_t\,]$，动作 head 输出候选 $\hat\lambda_t$；
+3. **安全执行：** 对候选动作做时间平滑、clip、预算和异常保护，得到实际执行的 $\lambda_t^{\mathrm{exec}}$；
+4. **窗口结束后：** 从拍卖/计费/转化流水汇总 cost、赢单价值、曝光等，更新 $s_{t+1}$；同时由目标计划模块生成下一窗口的 $\bar r_{t+1}$；
+5. **离线回流：** 当整条轨迹结束，再用终局 score 回填训练用真实 RTG，并写入下一轮训练样本。
+
+用符号写成：
+
+$$
+(\bar r_t,s_t,\text{history})
+\longrightarrow \hat\lambda_t
+\longrightarrow \lambda_t^{\mathrm{exec}}
+\longrightarrow \text{auction / cost / value}
+\longrightarrow s_{t+1},\bar r_{t+1}.
+$$
+
+其中从 $s_t$ 到 $s_{t+1}$ 的反馈来自真实环境；从 $\bar r_t$ 到 $\bar r_{t+1}$ 的更新则属于策略条件/预算节奏设计。论文披露了其线上 RTG 的初始化方式，但并未将一个通用于所有 score 的运行时 RTG 更新器作为核心方法给出。因此，后者在工程系统中应被明确实现、单独监控，不能隐含地当成 GAVE 自动完成。
 
 因此要区分三层：
 
@@ -566,3 +842,43 @@ $$
 4. **评估偏差。** AuctionNet 提供了可复现的多 agent 闭环模拟，却仍是对真实拍卖、竞争对手行为和用户反馈的近似；模型在模拟器中更高的 score 不必然等价于真实流量中同样的增益。线上 A/B 能补足一部分外部有效性，但论文只披露了 5 天、特定分流比例和有限场景，仍难据此判断长期效应、季节性影响或不同类型 campaign 的异质性。
 
 5. **score 是产品选择。** $\gamma$、CPA 惩罚形式、价值 $v_i$ 的定义都会改变高 RTG 的含义：提高 $\gamma$ 会更严厉地惩罚 CPA 超标；将 $v_i$ 从“转化数”换成“预估 GMV”又会改变策略优先购买的流量类型。因此 score 不是纯技术细节，而是把业务目标翻译为学习信号的接口；需要与业务方明确目标、容忍区间和异常情况下的优先级后再设定。
+
+---
+
+## 第十部分：在不改变 GAVE 核心思想下，架构还能怎样改进？
+
+本节是基于前述机制和风险做的工程推导，**不是论文已经实现或实验验证的结论**。GAVE 的长处是“用受限局部探索改善次优日志”；改进的重点应是让这条探索路径更可信、更可控，而不只是把 Transformer 堆得更大。
+
+| 优先级 | 可改进点 | 针对 GAVE 的哪个短板 | 一种具体做法 | 需要验证的指标与代价 |
+|---|---|---|---|---|
+| 高 | 不确定性感知的探索 | $\tilde r_{t+1}$ 是 OOD 区域的模型预测，均值可能虚高 | 用 ensemble / quantile head 得到探索收益下界；只有 $\mathrm{LCB}(\tilde r)-\mathrm{UCB}(\hat r)$ 仍为正时才提高 $w_t$ | 降低坏探索和 CPA 尾部风险；代价是多 head 或多模型带来的训练、推理成本。 |
+| 高 | 显式动作安全层 | score 惩罚是软约束，无法保证单窗口预算与 CPA 安全 | 将动作投影到随状态变化的可行集合，或用 primal-dual / risk constraint 调整 $\hat\lambda_t$ | 关注预算超限率、CPA 超标率、动作跳变率；过强约束可能压低转化。 |
+| 高 | 动态 RTG / pacing planner | 线上 RTG 初始化后，市场变化会让原目标失效 | 上层 planner 根据剩余预算、剩余时间、竞争和供给预测生成 $\bar r_t$；GAVE 专注在条件 $\bar r_t$ 下输出 $\lambda_t$ | 比较 spend 曲线、预算耗尽率与时段 CPA；增加一个需要校准的上层模块。 |
+| 中 | 拆分异质状态 token | 16 维状态被压为一个 token，字段级结构可能被掩盖 | 将预算时间、效率、流量竞争、广告主静态属性拆为少量 field token，再与时间轨迹 token 做 attention | 观察冷启动、非平稳时段和字段消融；序列更长，延迟与过拟合风险增加。 |
+| 中 | 多步一致性而非只做局部一步比较 | 连续多个窗口的预测误差会累积，单点改进不必然带来整日改进 | 为预测 RTG 加短 rollout / trajectory consistency loss，并用保守惩罚限制长 rollout 外推 | 评估全天 score、预算节奏和误差累积；模型设计更接近 planner，训练稳定性更难。 |
+| 中 | 更强的行为策略与反事实校准 | 日志动作分布会影响模型把 $\tilde a_t$ 当成“可学习探索”的可靠程度 | 估计 behavior policy / propensity，对低支持度动作降权；若有 RCT 数据，可用于校准 RTG 或探索选择 | 看离线—线上差距、不同策略日志混合下的稳定性；需要可用的策略记录或实验流量。 |
+
+### 10.1 最值得优先尝试的组合
+
+若只能做一个首版升级，我会保留 GAVE 的 causal Transformer 与 $\beta$ 局部扰动，但增加两层保护：
+
+$$
+\text{不确定性估计}
+\longrightarrow
+\text{保守的探索权重 } w_t
+\longrightarrow
+\text{预算 / CPA 动作投影}.
+$$
+
+逻辑是：先判断“探索比日志动作好”的结论是否可信，再决定是否把该结论传给动作 head，最后即使模型输出激进动作也由状态相关的可行域限制执行。它直接对应 GAVE 最主要的两类风险：反事实预测偏差与软约束失效。
+
+### 10.2 不建议一开始就做的改动
+
+不建议先仅靠“加深 Transformer、拉长历史窗口或加大 hidden size”解决问题。GAVE 的主要瓶颈通常不是模型容量不足，而是：
+
+1. 线上 RTG 条件是否合理；
+2. 探索动作是否处于日志支持区域；
+3. RTG / value 的不确定性是否被识别；
+4. 执行层能否满足预算与 CPA 安全边界。
+
+在这些接口未定义清楚前，扩大模型容易只让离线拟合能力更强，却不一定改善真实竞价闭环。
