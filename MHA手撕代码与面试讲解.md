@@ -11,8 +11,6 @@ updated: 2026-07-27
 
 # Multi-Head Attention：面试极简手撕版
 
-> 目标：面试现场能在 10 分钟内写完。这里只保留 Q/K/V 投影、拆头、缩放点积、Mask、合并多头和输出投影。
-
 ## 1. 先背数据流
 
 输入形状：
@@ -174,55 +172,4 @@ Self-Attention 与 Cross-Attention 的代码完全相同，区别只在 Q/K/V �
 - Self-Attention：Q、K、V 来自同一序列；
 - Cross-Attention：Q 来自查询侧，K、V 来自被检索的上下文序列。
 
----
 
-## 7. 为什么除以 $\sqrt{D_h}$？
-
-若 $q,k$ 各维独立且方差为 1，那么点积 $q^Tk$ 的方差约为 $D_h$。Head 维度越大，Attention Logit 越大，Softmax 越容易饱和，梯度变小。
-
-除以 $\sqrt{D_h}$ 后，Logit 的方差回到稳定量级。
-
-## 8. 为什么需要 `contiguous()`？
-
-`transpose` 改变了张量的 Stride，内存通常不连续。合并 Head 前写：
-
-```python
-context = context.transpose(1, 2).contiguous()
-```
-
-再 `reshape` 成 `(B,L,D)`，可以避免内存布局导致的问题。
-
-## 9. 参数量和复杂度
-
-Q、K、V、O 共四个 $D\times D$ 的投影矩阵：
-
-$$
-\operatorname{Params}\approx4D^2
-$$
-
-Self-Attention 的主要复杂度为：
-
-$$
-O(BL^2D+BLD^2)
-$$
-
-其中 $L^2D$ 来自 Attention，$LD^2$ 来自线性投影。Head 数变化通常不改变投影矩阵的总参数量。
-
-## 10. 面试最常见的错误
-
-1. 忘记检查 `d_model % num_heads == 0`；
-2. 拆头后忘记转成 `(B,H,L,Dh)`；
-3. 忘记除以 $\sqrt{D_h}$；
-4. Softmax 维度写错，应该在 Key 维 `dim=-1`；
-5. Mask 的 True/False 语义前后不一致；
-6. `K.transpose(-2, -1)` 的维度写错；
-7. 合并多头前忘记 `transpose`；
-8. 某个 Query 的所有 Key 都被 Mask，导致 `softmax(-inf)` 出现 NaN。
-
-## 11. 面试 30 秒讲法
-
-> 我先对输入做 Q、K、V 三个线性投影，然后把隐藏维拆成多个 Head，形状从 `(B,L,D)` 变成 `(B,H,L,Dh)`。每个 Head 计算 `QK^T / sqrt(Dh)`，加入 Mask 后在 Key 维做 Softmax，再乘 V 得到 Context。最后把多头结果 transpose、reshape 回 `(B,L,D)`，经过输出投影。最容易写错的是 Softmax 维度、Mask 语义和多头合并时的维度顺序。
-
-## 12. 一句话速记
-
-> **投影 QKV → 拆头 → QK 转置相乘并缩放 → Mask + Softmax → 乘 V → 合头 + 输出投影。**
