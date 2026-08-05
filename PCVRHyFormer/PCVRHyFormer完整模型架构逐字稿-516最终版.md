@@ -39,9 +39,9 @@ label = (label_type == 2)
 
 得到。模型输出的是 logit，训练时使用 `BCEWithLogitsLoss`，推理或计算概率时再做 sigmoid：
 
-\[
+$$
 p(y=1\mid x)=\sigma(z)=\frac{1}{1+e^{-z}}.
-\]
+$$
 
 需要特别注意：`label_type` 只用于构造标签，不进入模型特征，避免标签泄漏。
 
@@ -100,33 +100,33 @@ p(y=1\mid x)=\sigma(z)=\frac{1}{1+e^{-z}}.
 
 四个域、每域两个 Query，因此动态 Query 数量为：
 
-\[
-N_Q=4\times2=8.
-\]
+$$
+N_{Q}=4\times 2=8.
+$$
 
 静态 Token 数量为：
 
-\[
-N_{NS}=3+2+2+1=8.
-\]
+$$
+N_{\text{NS}}=3+2+2+1=8.
+$$
 
 进入 RankMixer 的总 Token 数：
 
-\[
-T=N_Q+N_{NS}=8+8=16.
-\]
+$$
+T=N_{Q}+N_{\text{NS}}=8+8=16.
+$$
 
 full RankMixer 要求 `d_model % T == 0`。当前：
 
-\[
-64\bmod16=0,
-\]
+$$
+64 \bmod 16 = 0,
+$$
 
 所以每个 Token 在 Token mixing 时对应的子空间宽度为：
 
-\[
-d_{sub}=64/16=4.
-\]
+$$
+d_{\text{sub}}=64/16=4.
+$$
 
 ## 四、从头到尾的数据流总图
 
@@ -226,16 +226,16 @@ out[i, c, :ul] = vals[s:s + ul]
 
 对于标量离散特征，先查 Embedding：
 
-\[
-e_f=E_f[x_f]\in\mathbb{R}^{64}.
-\]
+$$
+e_f = E_f[x_f] \in \mathbb{R}^{64}.
+$$
 
 对于 multi-hot 特征，先逐 ID 查表，再对非 padding 位置做 masked mean：
 
-\[
+$$
 e_f=\frac{\sum_j \mathbf{1}(x_{fj}\ne0)E_f[x_{fj}]}
 {\max(1,\sum_j\mathbf{1}(x_{fj}\ne0))}.
-\]
+$$
 
 这样无论一个 fid 是标量还是多个 ID，最后都得到一个 64 维 fid 表示。
 
@@ -243,9 +243,9 @@ e_f=\frac{\sum_j \mathbf{1}(x_{fj}\ne0)E_f[x_{fj}]}
 
 516 版本对指定用户 fid 使用 `CoupledNSTokenizer`。核心不是把 ID 和统计特征放进两个大向量后再拼，而是在 fid 层就对齐：
 
-\[
-h_f=E_f(x_f)+W_f s_f+b_f.
-\]
+$$
+h_f = E_f(x_f)+W_f s_f+b_f.
+$$
 
 其中：
 
@@ -277,16 +277,16 @@ h_f=E_f(x_f)+W_f s_f+b_f.
 
 每个 fid 先得到一个 64 维向量，然后按确定顺序拼成一个长向量：
 
-\[
+$$
 H_u=[h_1;h_2;\cdots;h_F].
-\]
+$$
 
 代码把长向量补齐到可被 3 整除，再平均切成 3 段。每段独立做：
 
-\[
+$$
 t_k=\operatorname{SiLU}(\operatorname{LN}(W_kH_u^{(k)}+b_k)),
 \quad k=1,2,3.
-\]
+$$
 
 得到：
 
@@ -300,9 +300,9 @@ user_ns: [B, 3, 64]
 
 用户 dense 特征中的 fid 61 和 87 不混在大向量中，而是各自经过：
 
-\[
-t_{UE}=\operatorname{SiLU}(\operatorname{LN}(Ws+b)),
-\]
+$$
+t_{\text{UE}}=\operatorname{SiLU}(\operatorname{LN}(Ws+b)),
+$$
 
 各生成一个 `[B,1,64]` Token。
 
@@ -325,10 +325,10 @@ item_ns: [B, 2, 64]
 
 原始请求时间戳先转换为东八区时间，再构造四维周期特征：
 
-\[
+$$
 r=[\sin(2\pi h/24),\cos(2\pi h/24),
 \sin(2\pi w/7),\cos(2\pi w/7)].
-\]
+$$
 
 然后经过 `Linear(4,64)+LayerNorm+SiLU` 得到一个 Token。
 
@@ -362,9 +362,9 @@ seq_m: [B, S_m, L_m]
 
 第 l 个行为位置上的每个字段分别查自己的 Embedding：
 
-\[
-e_{l,s}=E_s[x_{l,s}]\in\mathbb{R}^{64}.
-\]
+$$
+e_{l,s}=E_s[x_{l,s}] \in \mathbb{R}^{64}.
+$$
 
 如果某字段词表规模大于 `seq_id_threshold=10000`，训练时会额外施加 0.02 的 Embedding dropout。其直觉是：高基数 ID 更容易被模型记忆，增加一点随机失活可以缓解对具体 ID 的过拟合。
 
@@ -374,17 +374,15 @@ e_{l,s}=E_s[x_{l,s}]\in\mathbb{R}^{64}.
 
 同一时刻的所有字段 Embedding 沿最后一维拼接：
 
-\[
-c_l=[e_{l,1};e_{l,2};\cdots;e_{l,S_m}]
-\in\mathbb{R}^{S_m\times64}.
-\]
+$$
+c_l=[e_{l,1};e_{l,2};\cdots;e_{l,S_m}] \in \mathbb{R}^{S_m\times 64}.
+$$
 
 再通过该行为域独立的投影层：
 
-\[
-x_l=\operatorname{GELU}(\operatorname{LN}(W_mc_l+b_m))
-\in\mathbb{R}^{64}.
-\]
+$$
+x_l=\operatorname{GELU}(\operatorname{LN}(W_m c_l+b_m)) \in \mathbb{R}^{64}.
+$$
 
 因此，不论每个域有多少 side-info 字段，最终每个行为位置都被压成一个 64 维动态 Token。
 
@@ -402,17 +400,17 @@ item_id、category_id、action_type、scene_id、device_type
 
 对每个历史行为，计算：
 
-\[
+$$
 \Delta t=\max(t_{request}-t_{behavior},0).
-\]
+$$
 
 然后用一组非均匀边界离散成时间桶。短时间间隔的桶更密，例如 5 秒、10 秒、15 秒；长期逐渐变稀，覆盖天、周、月直至一年以上。
 
 获得桶 ID 后查时间 Embedding：
 
-\[
+$$
 \tilde{x}_l=x_l+E_{time}[bucket(\Delta t_l)].
-\]
+$$
 
 padding 位置的桶 ID 为 0，对应全零向量。
 
@@ -422,9 +420,9 @@ padding 位置的桶 ID 为 0，对应全零向量。
 
 根据真实长度构造：
 
-\[
+$$
 mask_{b,l}=[l\ge length_b].
-\]
+$$
 
 `True` 表示 padding。后续 Self-Attention、Cross-Attention 和候选感知池化都使用同一 mask，避免补零位置分走注意力。
 
@@ -456,9 +454,9 @@ mask_{b,l}=[l\ge length_b].
 
 两个物品 Token 取均值：
 
-\[
-v=\frac{1}{2}(t_{item,1}+t_{item,2})\in\mathbb{R}^{64}.
-\]
+$$
+v=\frac{1}{2}(t_{\text{item},1}+t_{\text{item},2}) \in \mathbb{R}^{64}.
+$$
 
 这里不直接拿原始 item_id Embedding，是因为两个物品 Token 已经融合了候选物品的多字段上下文，得到的是更完整的候选表示。
 
@@ -466,28 +464,28 @@ v=\frac{1}{2}(t_{item,1}+t_{item,2})\in\mathbb{R}^{64}.
 
 对第 m 路序列，先将行为 Token 做线性变换：
 
-\[
+$$
 k_{m,l}=W_m\tilde{x}_{m,l}.
-\]
+$$
 
 再与候选向量做缩放点积：
 
-\[
+$$
 s_{m,l}=\frac{k_{m,l}^{\top}v}{\sqrt{64}}.
-\]
+$$
 
 padding 位置分数被置为负无穷，之后 softmax：
 
-\[
+$$
 \alpha_{m,l}=\frac{\exp(s_{m,l})}
 {\sum_j\exp(s_{m,j})}.
-\]
+$$
 
 最后用权重对**原始序列 Token**加权求和：
 
-\[
+$$
 p_m=\sum_l\alpha_{m,l}\tilde{x}_{m,l}.
-\]
+$$
 
 这一步与 DIN 的候选感知思想相似，所以可以口语化称作“DIN 式 pooling”；但从代码结构上它是双线性/投影点积注意力，不应说成完整复刻 DIN 的 Local Activation Unit。
 
@@ -519,15 +517,15 @@ p_m=\sum_l\alpha_{m,l}\tilde{x}_{m,l}.
 
 8 个静态 Token 展平：
 
-\[
-n=Flatten(NS)\in\mathbb{R}^{8\times64}=\mathbb{R}^{512}.
-\]
+$$
+n=\operatorname{Flatten}(NS) \in \mathbb{R}^{8\times 64}=\mathbb{R}^{512}.
+$$
 
 对每个域，把候选感知兴趣 `p_m` 与全部静态上下文拼接：
 
-\[
-g_m=LN([p_m;n])\in\mathbb{R}^{64+512}=\mathbb{R}^{576}.
-\]
+$$
+g_m=\operatorname{LN}([p_m;n]) \in \mathbb{R}^{64+512}=\mathbb{R}^{576}.
+$$
 
 因此，Query 不是只由历史决定，也不是只由候选决定，而是联合依赖：
 
@@ -540,11 +538,11 @@ g_m=LN([p_m;n])\in\mathbb{R}^{64+512}=\mathbb{R}^{576}.
 
 每个域有两个相互独立的 Query MLP：
 
-\[
-q_{m,r}=LN(W^{(2)}_{m,r}\,
-SiLU(W^{(1)}_{m,r}g_m+b^{(1)}_{m,r})+b^{(2)}_{m,r}),
+$$
+q_{m,r}=\operatorname{LN}(W^{(2)}_{m,r}\,
+\operatorname{SiLU}(W^{(1)}_{m,r}g_m+b^{(1)}_{m,r})+b^{(2)}_{m,r}),
 \quad r\in\{1,2\}.
-\]
+$$
 
 维度变化是：
 
@@ -584,21 +582,21 @@ item_ns.mean(1)                  [B, 64]
 
 给定输入，先投影：
 
-\[
+$$
 Q=XW_Q,\quad K=XW_K,\quad V=XW_V.
-\]
+$$
 
 当前 `d_model=64`、`num_heads=4`，所以每个头 16 维：
 
-\[
-head\_dim=64/4=16.
-\]
+$$
+\operatorname{head_dim}=64/4=16.
+$$
 
 单头注意力为：
 
-\[
-Attention(Q,K,V)=Softmax\left(\frac{QK^\top}{\sqrt{16}}+Mask\right)V.
-\]
+$$
+\operatorname{Attention}(Q,K,V)=\operatorname{Softmax}\left(\frac{QK^\top}{\sqrt{16}}+Mask\right)V.
+$$
 
 多个头拼接后再做输出投影。
 
@@ -617,16 +615,16 @@ Attention(Q,K,V)=Softmax\left(\frac{QK^\top}{\sqrt{16}}+Mask\right)V.
 
 注意力输出还乘了一个由 Query 生成的门：
 
-\[
+$$
 G=\sigma(W_gQ+b_g),
-\qquad O=W_o(Attention\odot G).
-\]
+\qquad O=W_o(\operatorname{Attention}\odot G).
+$$
 
 `W_g` 初始为 0，`b_g` 初始为 1，所以初始门值约为：
 
-\[
+$$
 \sigma(1)\approx0.731.
-\]
+$$
 
 这意味着模型不会在训练开始时把注意力分支完全关闭，同时仍能逐渐学会哪些 Query 维度需要抑制或放大。
 
@@ -657,13 +655,13 @@ G=\sigma(W_gQ+b_g),
 
 采用 Pre-LN 结构：
 
-\[
-x'_m=x_m+MHA(LN(x_m)),
-\]
+$$
+x'_m=x_m+\operatorname{MHA}(\operatorname{LN}(x_m)),
+$$
 
-\[
-x''_m=x'_m+FFN(LN(x'_m)).
-\]
+$$
+x''_m=x'_m+\operatorname{FFN}(\operatorname{LN}(x'_m)).
+$$
 
 FFN 为：
 
@@ -679,9 +677,9 @@ FFN 为：
 
 每路的两个 Query 只读取对应域的序列：
 
-\[
-Q'_m=Q_m+CrossAttn(LN(Q_m),LN(X''_m)).
-\]
+$$
+Q'_m=Q_m+\operatorname{CrossAttn}(\operatorname{LN}(Q_m),\operatorname{LN}(X''_m)).
+$$
 
 这里：
 
@@ -719,43 +717,43 @@ Q'_m=Q_m+CrossAttn(LN(Q_m),LN(X''_m)).
 
 输入：
 
-\[
+$$
 Z\in\mathbb{R}^{B\times16\times64}.
-\]
+$$
 
 因为 `64=16×4`，先把每个 Token 的 64 维拆成 16 个、每个 4 维的子空间：
 
-\[
-Z\rightarrow\mathbb{R}^{B\times16_{token}\times16_{subspace}\times4}.
-\]
+$$
+Z\rightarrow\mathbb{R}^{B\times16_{\text{token}}\times16_{\text{subspace}}\times4}.
+$$
 
 然后交换 Token 轴和 subspace 轴：
 
-\[
-\mathbb{R}^{B\times16_{subspace}\times16_{token}\times4}.
-\]
+$$
+\mathbb{R}^{B\times16_{\text{subspace}}\times16_{\text{token}}\times4}.
+$$
 
 最后把后两维重新展平为 64：
 
-\[
-Z_{mix}\in\mathbb{R}^{B\times16\times64}.
-\]
+$$
+Z_{\text{mix}}\in\mathbb{R}^{B\times16\times64}.
+$$
 
 直观上，原来一个输出位置的 64 维都来自同一个 Token；转置重排后，一个输出位置会收集所有 16 个输入 Token 各自的一小段 4 维子空间。于是，在进入共享 MLP 前，每个位置已经看到了来自全部 Token 的切片。
 
 之后做：
 
-\[
-E=MLP(LN(Z_{mix})),
-\]
+$$
+E=\operatorname{MLP}(\operatorname{LN}(Z_{\text{mix}})),
+$$
 
 其中 MLP 为 `64→256→GELU→Dropout→64`。
 
 再与**重排前的原输入 Z**做残差并 LayerNorm：
 
-\[
-Z'=LN(Z+E).
-\]
+$$
+Z'=\operatorname{LN}(Z+E).
+$$
 
 ### 10.5 RankMixer 与直接堆 MLP 的区别
 
@@ -834,9 +832,9 @@ RankMixer 输出 `[B,16,64]`：
 
 先经过输出投影：
 
-\[
-h=LN(W_oFlatten(Q)+b_o)\in\mathbb{R}^{64}.
-\]
+$$
+h=\operatorname{LN}(W_o\operatorname{Flatten}(Q)+b_o) \in \mathbb{R}^{64}.
+$$
 
 再进入分类头：
 
@@ -851,10 +849,9 @@ h=LN(W_oFlatten(Q)+b_o)\in\mathbb{R}^{64}.
 
 训练时：
 
-\[
-\mathcal{L}_{BCE}=-\frac1B\sum_i
-[y_i\log\sigma(z_i)+(1-y_i)\log(1-\sigma(z_i))].
-\]
+$$
+\mathcal{L}_{\text{BCE}}=-\frac{1}{B}\sum_i\left[y_i\log\sigma(z_i)+(1-y_i)\log(1-\sigma(z_i))\right].
+$$
 
 代码使用 `binary_cross_entropy_with_logits`，把 sigmoid 与 BCE 合并计算，数值稳定性比“先手动 sigmoid 再算 log”更好。
 
@@ -930,9 +927,9 @@ Q_a1, Q_a2 → [1,2,64]
 
 最终 8 个 Query 展平为 512 维，投影成 64 维样本表示，再经分类头输出 logit。若 logit 为 1.2：
 
-\[
+$$
 P=\sigma(1.2)\approx0.7685.
-\]
+$$
 
 这个概率表示模型对该样本正类事件的估计，实际排序使用概率或 logit 都具有相同单调顺序。
 
@@ -992,9 +989,9 @@ Embedding 使用 Xavier normal 初始化，padding 行 0 被重新置零；时�
 
 对有对应统计值的用户 fid，使用：
 
-\[
+$$
 Embedding(ID)+Linear(stat)
-\]
+$$
 
 避免类别语义与统计语义在全局拼接中错位。
 
@@ -1065,9 +1062,9 @@ DIN 强项是候选感知：针对一个候选，从历史中挑相关行为。�
 
 候选感知软匹配则学习连续相关性：
 
-\[
-relevance(history,candidate)
-\]
+$$
+\operatorname{relevance}(\text{history},\text{candidate})
+$$
 
 不是非 0 即 1，而是可从数据中学习强弱。
 
@@ -1091,21 +1088,21 @@ relevance(history,candidate)
 
 标准 Self-Attention 每路主要复杂度：
 
-\[
+$$
 O(L_m^2D).
-\]
+$$
 
 四路总和：
 
-\[
+$$
 O\left(\sum_{m=1}^{M}L_m^2D\right).
-\]
+$$
 
 如果把四路先拼成一个长序列，复杂度会变为：
 
-\[
+$$
 O\left((\sum_mL_m)^2D\right),
-\]
+$$
 
 其中包含大量跨域两两注意力项。当前设计用独立编码器避免了这部分直接的全序列跨域平方开销。
 
@@ -1113,9 +1110,9 @@ O\left((\sum_mL_m)^2D\right),
 
 每路复杂度约为：
 
-\[
+$$
 O(QL_mD).
-\]
+$$
 
 当前 Q=2，远小于 L，所以 Query 读取历史相对便宜。
 
@@ -1123,9 +1120,9 @@ O(QL_mD).
 
 每路约为：
 
-\[
+$$
 O(L_mD),
-\]
+$$
 
 是线性随序列长度增长。
 
@@ -1133,9 +1130,9 @@ O(L_mD),
 
 reshape 和 transpose 主要是重排；共享 FFN 的主要开销约为：
 
-\[
+$$
 O(TD^2).
-\]
+$$
 
 当前 T=16、D=64，这一部分比长序列 Self-Attention 小得多。
 
