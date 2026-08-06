@@ -1,3 +1,4 @@
+# PEPNet × OneTrans：当前模型架构与单样本全链路
 
 > 这是一份可独立阅读的模型主线：讲清 **PEPNet 是什么、OneTrans 是什么、两者如何接入，以及一条司乘订单如何得到 D/O/OD 三个预测**。PLE、PosSA、AUC 对照与消融实验放在 [[背景与实验]]。
 
@@ -11,6 +12,25 @@
 
 它并非“先做序列向量、再把静态特征拼接到 MLP”的传统串行结构；核心变化是让当前订单条件能够直接参与历史 token 的选择与交互。
 
+## 2. 从输入到输出的全局位置
+
+```mermaid
+flowchart LR
+  P[乘客历史序列] --> E[字段 Embedding / 数值投影]
+  D[司机历史序列] --> E
+  S[当前用户、订单、上下文] --> E
+  E --> EP[EPNet：底层表示个性化]
+  EP --> T[Unified Tokenizer]
+  T --> OT[OneTrans：统一交互骨干]
+  OT --> POD[PPNet_OD]
+  OT --> PO[PPNet_O]
+  OT --> PD[PPNet_D]
+  POD --> YOD[OD：司乘履约]
+  PO --> YO[O：司机履约]
+  PD --> YD[D：乘客履约]
+```
+
+容易混淆的一点是：**PEPNet 不是一个整体都放在 OneTrans 后面。**
 
 ```text
 Base embedding
@@ -31,7 +51,9 @@ Base embedding
 Embedding → EPNet → Tokenizer → OneTrans → PPNet → D/O/OD heads
 ```
 
-这个顺序在**模块职责**上是明确的：EPNet 做底层 embedding 个性化；PPNet 才是 OneTrans 后的 hidden / 任务表示个性化。因此，不应把完整 PEPNet 简化成“位于 OneTrans 后的一个模块”。但在本文的架构叙事中，EPNet 位于 token 组装之前，PPNet 位于 OneTrans 之后。
+这个顺序在**模块职责**上是明确的：EPNet 做底层 embedding 个性化；PPNet 才是 OneTrans 后的 hidden / 任务表示个性化。因此，不应把完整 PEPNet 简化成“位于 OneTrans 后的一个模块”。
+
+EPNet 与 token projection 在代码中可能封装在同一层，故函数级调用先后仍需配置确认；但在本文的架构叙事中，EPNet 位于 token 组装之前，PPNet 位于 OneTrans 之后。
 
 ## 3. 输入单位、样本边界与特征形态
 
@@ -57,6 +79,7 @@ $$
 
 其中 `available_time` 很重要：一笔订单即使行为发生得早，若其状态在预测时点后才回刷完成，也不能作为当时可用输入。序列应以稳定键排序，例如 `(event_time, stable_event_id)`；`mask` 用于屏蔽 padding，`role_id` 区分乘客与司机主体。
 
+一版 PosSA 对照实验已知输入为 343 维：143 维数值/类别特征，加上乘客和司机各 `10 笔订单 × 10 字段` 的历史序列。它说明数据形态，但**不等于 OneTrans run 的确切 token 数或维度**。
 
 ### 3.1 一条历史事件里有什么
 
@@ -71,6 +94,16 @@ $$
 | 统计/画像 | 活跃度、历史频率、司机等级等 | 补充长期状态 |
 
 离散类别经 embedding table 查询；连续值先归一化后经 MLP 投影；同一历史事件的全部字段拼接后经 MLP 融合为 128 维事件向量。重点是：**保留每笔事件的顺序和上下文，不能先压成“过去十单取消率”这类单个统计量。**
+
+### 3.2 Token projection：怎样变成 OneTrans 能读的 token
+
+Token projection 不是另一种特征，而是将维度和类型不一致的字段整理到同一个 128 维空间的过程：
+
+$$
+t=\operatorname{MLP}(\operatorname{Concat}(e_1,e_2,\ldots,e_k))\in\mathbb R^{128}
+$$
+
+对历史订单，$t$ 是一枚乘客或司机 S-token；对静态字段组，$t$ 是 PassengerProfile、DriverProfile、Context、Statistics 或 Order 中的一枚 NS-token。EPNet 在 projection 前调节基础 embedding 的强度，token projection 则负责把已调节的字段组织成 OneTrans 能读取的统一 token。
 
 ## 4. PEPNet 是什么：用门控做个性化多任务建模
 
@@ -144,13 +177,13 @@ $$
 
 因此 EPNet 做的是**当前订单场景的公共适配**，并不直接区分 D/O/OD；D/O/OD 的任务差异留给后面的 PPNet。
 
-本文确定采用**样本级共享 gate**。基础字段先被投影到统一维度，形成预 token 表示 $X\in\mathbb R^{B\times N\times d}$；EPNet 根据当前订单场景产生 $g_{ep}\in\mathbb R^{B\times 1\times d}$，并沿字段/事件维广播：
+为统一当前模型的讲解，本文确定采用**样本级共享 gate**。各基础字段先完成 embedding 查询或必要的数值维度对齐，但尚未按“历史事件/静态字段组”拼接成 token，形成底层表示 $X\in\mathbb R^{B\times N\times d}$；EPNet 根据当前订单场景产生 $g_{ep}\in\mathbb R^{B\times 1\times d}$，并沿字段/事件维广播：
 
 $$
 X'_{b,n,:}=X_{b,n,:}\odot g_{ep,b,1,:}
 $$
 
-随后 Tokenizer 再将 $X'$ 组织为乘客历史 token、司机历史 token、订单 token 和上下文 token，输入 OneTrans。也就是说，同一条订单的所有底层字段/事件 embedding 都在“早高峰 / 产品 / 区域 / 供需”这一共同场景下，被同一组 embedding 维度权重调节。这样最贴近 EPNet 的全局底层 embedding 个性化，也避免额外假设一套按 token 类型拆开的 gate 网络。
+随后 Tokenizer 才按每笔历史事件或静态字段组拼接 $X'$ 中的相关字段、经 MLP 得到乘客历史 token、司机历史 token、订单 token 和上下文 token，并输入 OneTrans。也就是说，同一条订单的所有底层字段/事件 embedding 都在“早高峰 / 产品 / 区域 / 供需”这一共同场景下，被同一组 embedding 维度权重调节。这样最贴近 EPNet 的全局底层 embedding 个性化，也避免额外假设一套按 token 类型拆开的 gate 网络。
 
 ### 4.2 PPNet：为什么共享骨干之后还要分任务
 
@@ -160,17 +193,39 @@ OneTrans 产生的是司乘与当前订单联合后的共享表示 $z$，但三�
 - O 更可能关注司机近期接单/服务状态与时空条件；
 - OD 需要判断双方与当前订单共同满足履约的可能性。
 
-PPNet 在每个任务的 DNN hidden 前施加任务级 gate。以任务 $t\in\{D,O,OD\}$ 的第 $l$ 层为例：
+PPNet 与 EPNet 使用同一类两层 Gate MLP，但调节对象从输入 embedding 变成任务网络的 hidden。任务先验不是新数据或标签，而是当前样本静态 token 对应的字段按任务重新组合：
+
+```text
+p_D  = [PassengerProfile, Order, Context]
+p_O  = [DriverProfile,    Order, Context]
+p_OD = [PassengerProfile, DriverProfile, Order, Context]
+```
+
+其中 D 是乘客履约、O 是司机履约、OD 是司乘联合履约。OneTrans 输出的联合表示 $z$ 与对应任务先验一起进入该任务、该层自己的 Gate MLP：
 
 $$
-h_{l+1}^{(t)}=
-f_l^{(t)}\left(
-h_l^{(t)}\odot
-g_l^{(t)}([\operatorname{sg}(z),x_{pp}])
+g_{t,l}=2\cdot\sigma\left(
+\operatorname{MLP}_{t,l}([\operatorname{sg}(z),p_t])
 \right)
 $$
 
-其中 $x_{pp}$ 是任务、主体、类别、场景等个性化先验。直观上，PPNet 让一个共享的“当前订单风险”表示，在 D/O/OD 三条路径中被不同地解释，而不是要求三个任务共用完全相同的 hidden 通道。
+当前模型固定三条任务塔，hidden 宽度为 `512 → 512 → 256 → 128`；每层 hidden 都先被对应 gate 调节。以任务 $t\in\{D,O,OD\}$ 的第 $l$ 层为例：
+
+$$
+\tilde h_l^{(t)}=h_l^{(t)}\odot g_{t,l}
+$$
+
+$$
+h_{l+1}^{(t)}=f_l^{(t)}(\tilde h_l^{(t)})
+$$
+
+这就是 PPNet 中“Parameter Personalized”的含义：它不为每条样本生成完整新矩阵 $W$，而是通过 $h\odot g$ 改变当前样本实际激活的 hidden 通道。对线性层而言：
+
+$$
+W(h\odot g)=W\operatorname{diag}(g)h
+$$
+
+共享的 $W$ 不变，但每条样本得到不同的有效计算路径。直观上，PPNet 让同一个联合表示 $z$ 在 D/O/OD 三条路径中被不同地解释，而不是要求三个任务共用完全相同的 hidden 通道。真实 D/O/OD 标签绝不作为 $p_t$ 的输入，否则会产生标签泄漏。
 
 ## 5. OneTrans 是什么：将序列和静态特征放进同一交互框架
 
@@ -224,6 +279,28 @@ $$
 $$
 
 其中 $M$ 是可见性 mask。模型学到的不是一条人为规则，而是数据驱动的权重：例如“当前长接驾、早高峰”这个静态条件，可能使模型更关注乘客历史中相似时段的取消事件、也更关注司机历史中长接驾的服务表现。
+
+#### 5.3.1 联合表示 $z$ 是怎样从最后一个 Order token 得到的
+
+这里的 $z$ 不是对所有 token 做平均池化，也不是额外构造一个 `[CLS]`。它就是最后一个 `Order` token 经过 4 层 OneTrans 后的 hidden：
+
+$$
+z=h_{\text{Order}}^{(4)}
+$$
+
+初始时，$h_{\text{Order}}^{(0)}$ 只编码当前订单自身的信息，如产品、价格、接驾距离、起终点区域、时段和供需。每一层中，Order token 用自己的表示生成 query；在因果 mask 下，由于它固定放在统一序列末尾，它可以读取此前所有司机历史、乘客历史和静态 token 的 key/value：
+
+$$
+\alpha_{\text{Order},j}^{(l)}=
+\operatorname{softmax}_j\left(
+\frac{q_{\text{Order}}^{(l)}(k_j^{(l)})^T}{\sqrt d}+M_{\text{Order},j}
+\right),\qquad
+a_{\text{Order}}^{(l)}=\sum_j\alpha_{\text{Order},j}^{(l)}v_j^{(l)}
+$$
+
+再经过残差连接和 FFN，Order hidden 会被更新。第一层主要完成“当前订单条件下选哪些历史”；后续层读取的已是被其他 token 交互过的上下文表示，因此能逐步组合司乘双方状态。最终的 $z$ 可以理解为：**以当前订单为查询条件、从双边历史和静态条件中读出的联合履约表征。**
+
+固定顺序还带来一个清晰的因果关系：早位置的司机 token 看不到后面的乘客 token，后位置的乘客 token 能读取前面的司机 token；但末尾 Order token 对两侧均可见，因此适合承担最终 readout。这个不对称性是所选 causal-token 顺序的结果，不代表司机特征在业务上天然比乘客特征更重要。
 
 ### 5.4 混合参数化：为什么不让所有 token 完全共享参数
 
