@@ -20,29 +20,6 @@ HTML：[arXiv HTML](https://arxiv.org/html/2505.04421)
 
 ---
 
-## 0. 先纠正旧笔记中的三个关键误区
-
-### 误区一：Hybrid Attention = Local Window + Stride Attention
-
-不是。LONGER 论文中的 Hybrid Attention 指：
-
-1. 第一层使用 **Cross-Causal Attention**，少量 Query 读取完整长序列；
-2. 后续层使用 **Self-Causal Attention**，只处理第一层已经压缩后的短序列。
-
-论文没有把 Local Window、Stride Attention 或 Dilated Receptive Field 作为 LONGER 的核心结构。
-
-### 误区二：Token Merge 后 Attention 计算量直接变成 $1/K^2$
-
-不准确。长度确实从 $L$ 变成 $L/K$，但论文的 Concat Merge 会把隐藏维从 $d$ 扩成 $Kd$。因此 Attention 部分约减少为原来的 $1/K$，而 FFN/线性投影部分反而随 $K$ 增长。
-
-所以 $K$ 不是越大越好，需要在长度、宽度、参数量和效果之间权衡。
-
-### 误区三：Global Token 只是“全局平均池化”
-
-不是。Global Token 是参加 Attention 的特殊 Token，可以来自候选商品、UID、可学习 CLS 或高阶交互特征。它一方面承担全局信息锚点，另一方面让候选信息能够主动查询整段历史。
-
----
-
 ## 1. LONGER 到底要解决什么问题？
 
 ### 1.1 推荐系统为什么需要长序列？

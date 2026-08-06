@@ -33,6 +33,102 @@ Token 化则把字段或字段组组织成一组有身份的向量：
 
 **一句话：Concat 是把所有特征提前揉成一根向量；Token 化是先保留信息块的边界，再让模型根据样本动态建立信息块之间的关系。**
 
+### 1.1 Token 化是不是 Embedding 后再拼接？
+
+可以这样理解，但需要区分“怎样得到向量”和“怎样组织向量”两个问题。
+
+第一步是把不同类型的原始字段编码到统一维度 $D$。这个过程不一定都使用 Embedding：
+
+- 离散 ID、类别字段通常查 Embedding 表；
+- 连续数值通常先归一化，再通过 $Wx+b$ 投影；
+- 多个连续字段可以先组成向量，再经过 Linear 或小 MLP；
+- 多值集合或行为组可以先做 sum、mean 或 attention pooling；
+- 已经是稠密表示的特征，也可以再通过投影层对齐维度。
+
+统一写成：
+
+$$
+t_i=\operatorname{Project}_i(x_i)\in\mathbb R^D,
+$$
+
+其中 $\operatorname{Project}_i$ 可以是 Embedding、线性层、小 MLP 或 Pooling。随后通常还会加入字段身份：
+
+$$
+\tilde t_i=t_i+e_{\text{type}(i)}.
+$$
+
+因此，**成为 Token 的关键不是必须使用 Embedding，而是得到一个有明确字段或实体身份的 $D$ 维向量。**
+
+第二步才是把这些向量组织起来。普通 Concat 与 Token 化都可能在代码里调用 `torch.cat`，真正的区别是有没有保留 Token 轴。
+
+假设用户、候选、上下文三个表示都是 $D$ 维。普通 Concat 沿特征维拼接：
+
+```python
+x = torch.cat([user_emb, item_emb, context_emb], dim=-1)
+# [B, 3 * D]
+```
+
+对应形状：
+
+$$
+[B,D]+[B,D]+[B,D]\longrightarrow[B,3D].
+$$
+
+随后送入 MLP：
+
+$$
+h=\sigma(Wx+b).
+$$
+
+把 $W$ 按输入字段拆开，可以写成：
+
+$$
+h=\sigma(W_u e_u+W_i e_i+W_c e_c+b).
+$$
+
+这里所谓“固定混合”，是指模型使用训练得到的一套全局共享矩阵，在固定字段位置上完成第一次混合；并不是说 MLP 对所有样本输出相同，也不是说 MLP 不能学习非线性交互。
+
+Token 化则沿 Token 维堆叠：
+
+```python
+tokens = torch.stack([user_token, item_token, context_token], dim=1)
+# [B, 3, D]
+```
+
+也可以写成：
+
+```python
+tokens = torch.cat(
+    [
+        user_token.unsqueeze(1),
+        item_token.unsqueeze(1),
+        context_token.unsqueeze(1),
+    ],
+    dim=1,
+)
+# [B, 3, D]
+```
+
+对应形状：
+
+$$
+[B,D]+[B,D]+[B,D]\longrightarrow[B,3,D].
+$$
+
+虽然代码也可能使用 `cat`，但没有把三个向量展平成 $3D$ 维，用户、候选和上下文仍是三个独立 Token。Attention 因而可以让候选 Token 作为 Query，根据当前样本动态计算它对用户、上下文和历史 Token 的读取权重。
+
+| 对比项 | 普通 Concat | Token 化 |
+|---|---|---|
+| 编码方式 | Embedding、线性投影等均可 | Embedding、线性投影等均可 |
+| 最终形状 | $[B,N\times D]$ | $[B,N,D]$ |
+| 字段边界 | 主要依赖长向量中的固定位置 | 由独立 Token 和 type/field 标识保留 |
+| 第一次交互 | MLP 使用全局共享参数整体混合 | Attention 按当前样本动态分配读取权重 |
+| 后续处理 | MLP、Cross Network 等 | Attention、Transformer，再 Pooling/Concat + MLP |
+
+所以最准确的总结是：
+
+> Token 化先用 Embedding、$Wx+b$、小 MLP 或 Pooling 把不同字段变成统一的 $D$ 维表示，再沿 Token 轴组成 $[B,N,D]$；普通 Concat 则把它们展平成 $[B,N\times D]$。两者都可能使用拼接操作，但只有前者保留了可供 Attention 逐 Token 读取的实体边界。
+
 ---
 
 ## 2. 原始字段怎样变成一个 Token？
@@ -177,9 +273,8 @@ $$\operatorname{Attn}(Q,K,V)=\operatorname{Softmax}(QK^T/\sqrt d)V.$$
 
 ---
 
-## 8. 面试回答模板
+## 8. 回答模板
 
-### 30 秒版
 
 > 在这里 Token 化不是分词，而是把用户、候选、请求等字段或字段组编码成带类型标识的 $D$ 维向量。Concat 会让字段在第一层 MLP 固定混合；Token 化保留实体边界，让候选 Token 可以通过 Attention 动态读取用户、上下文和历史行为。静态与序列 token 虽来源不同，但分别编码后进入同一交互维度，训练目标会学习它们在当前 CVR 任务中的兼容关系；同维度是接口，不是语义相同。
 

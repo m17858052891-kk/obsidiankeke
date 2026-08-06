@@ -1,7 +1,4 @@
 
-
-# OneTrans：用一个 Transformer 统一序列建模与特征交互
-
 > 论文：[OneTrans: Unified Feature Interaction and Sequence Modeling with One Transformer in Industrial Recommender](https://arxiv.org/html/2510.26104v3)（WWW 2026）。本文只按论文公开版本描述；文中的小例子仅用于解释。
 
 # 目录

@@ -14,7 +14,7 @@
 1. [[序列建模/DIN：候选感知兴趣网络]]：候选相关的历史筛选。
 2. [[序列建模/SASRec：因果自注意力序列推荐]]：因果 Self-Attention 与顺序建模。
 3. [[MIND]]：召回阶段的多兴趣表示。
-4. [[HSTU/HSTU：高效长序列推荐建模]] → [[序列建模/LONGER]] → [[序列建模/Onetrans]]：从长序列效率到统一 token 化 backbone。
+4. [[HSTU/HSTU：高效长序列推荐建模]] → [[序列建模/LONGER]] → [[OneTrans：用一个 Transformer 统一序列建模与特征交互]]：从长序列效率到统一 token 化 backbone。
 5. [[特征交叉/Hyformer-序列特征处理]]：静态条件与序列兴趣如何分层融合。
 
 ## 3. 召回与多任务

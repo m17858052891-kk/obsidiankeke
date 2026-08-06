@@ -1683,7 +1683,7 @@ D/O/OD Heads：输出乘客、司机和司乘联合预测
 ## 24. 关联文档
 
 - [[04-离线实验与消融]]
-- [[模型架构/序列建模/Onetrans]]
+- [[OneTrans：用一个 Transformer 统一序列建模与特征交互]]
 - [[司乘行为序列建设项目面试问答]]
 - [PEPNet 论文](https://arxiv.org/abs/2302.01115)
 - [OneTrans 论文](https://arxiv.org/abs/2510.26104)
