@@ -2,7 +2,6 @@
 tags: [PCVRHyFormer, Token化, Attention, 特征工程, 序列建模, 面试]
 ---
 
-# 静态特征 Token 化：原理、实现与 PCVRHyFormer 中的作用
 
 > 这里的 Token 化不是 NLP 里“把句子切成词”。在推荐模型中，它指的是：把一个原始字段或一组语义紧密的字段，编码成一个固定维度的向量，并保留它来自哪个字段、属于什么类型。这个向量就是可以送入 Attention 的 token。
 

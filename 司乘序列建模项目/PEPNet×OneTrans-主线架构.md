@@ -1,7 +1,3 @@
-# PEPNet × OneTrans：当前模型架构与单样本全链路
-
-> 这是一份可独立阅读的模型主线：讲清 **PEPNet 是什么、OneTrans 是什么、两者如何接入，以及一条司乘订单如何得到 D/O/OD 三个预测**。PLE、PosSA、AUC 对照与消融实验放在 [[背景与实验]]。
-
 ## 1. 一句话说明模型
 
 这是一个司乘双边履约多任务模型。它把**乘客历史订单、司机历史订单、当前订单与上下文**统一表示为 token，利用 **OneTrans** 在 token 级建模时序、司乘跨序列和序列—静态特征交互；再利用 **PEPNet** 的两层个性化门控，让不同场景、不同主体以及不同任务走不同强度的特征通道，最后输出：
@@ -12,36 +8,6 @@
 
 它并非“先做序列向量、再把静态特征拼接到 MLP”的传统串行结构；核心变化是让当前订单条件能够直接参与历史 token 的选择与交互。
 
-## 2. 从输入到输出的全局位置
-
-```mermaid
-flowchart LR
-  P[乘客历史序列] --> E[字段 Embedding / 数值投影]
-  D[司机历史序列] --> E
-  S[当前用户、订单、上下文] --> E
-  E --> EP[EPNet：底层表示个性化]
-  EP --> T[Unified Tokenizer]
-  T --> OT[OneTrans：统一交互骨干]
-  OT --> POD[PPNet_OD]
-  OT --> PO[PPNet_O]
-  OT --> PD[PPNet_D]
-  POD --> YOD[OD：司乘履约]
-  PO --> YO[O：司机履约]
-  PD --> YD[D：乘客履约]
-```
-
-容易混淆的一点是：**PEPNet 不是一个整体都放在 OneTrans 后面。**
-
-```text
-Base embedding
-  → EPNet（embedding / 底层表示的个性化）
-  → token 组装
-  → OneTrans（统一交互）
-  → PPNet（hidden / task representation 的个性化）
-  → D/O/OD heads
-```
-
-也就是说：EPNet 更靠下，PPNet 更靠上；OneTrans 是把两侧序列和静态特征揉在一起的共享骨干。
 
 ### 2.1 本文采用的接入顺序
 
@@ -53,11 +19,9 @@ Embedding → EPNet → Tokenizer → OneTrans → PPNet → D/O/OD heads
 
 这个顺序在**模块职责**上是明确的：EPNet 做底层 embedding 个性化；PPNet 才是 OneTrans 后的 hidden / 任务表示个性化。因此，不应把完整 PEPNet 简化成“位于 OneTrans 后的一个模块”。
 
-EPNet 与 token projection 在代码中可能封装在同一层，故函数级调用先后仍需配置确认；但在本文的架构叙事中，EPNet 位于 token 组装之前，PPNet 位于 OneTrans 之后。
-
 ## 3. 输入单位、样本边界与特征形态
 
-每条样本对应一个明确预测时点 `prediction_time`。可抽象为：
+每条样本对应一个明确预测时点 `prediction_time`。
 
 ```text
 sample = {
@@ -78,8 +42,6 @@ available\_time \le prediction\_time
 $$
 
 其中 `available_time` 很重要：一笔订单即使行为发生得早，若其状态在预测时点后才回刷完成，也不能作为当时可用输入。序列应以稳定键排序，例如 `(event_time, stable_event_id)`；`mask` 用于屏蔽 padding，`role_id` 区分乘客与司机主体。
-
-一版 PosSA 对照实验已知输入为 343 维：143 维数值/类别特征，加上乘客和司机各 `10 笔订单 × 10 字段` 的历史序列。它说明数据形态，但**不等于 OneTrans run 的确切 token 数或维度**。
 
 ### 3.1 一条历史事件里有什么
 

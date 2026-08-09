@@ -1,10 +1,8 @@
-# Bi-DFCL：沿着 Figure 2 讲清 RCT、OBS、Bridge 与双层梯度
+
 
 论文：[Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization: Bridging Observational and Experimental Data](https://arxiv.org/abs/2510.19517)  
 会议：NeurIPS 2025  
 原图：Figure 1（预算分配问题）、Figure 2（Bi-DFCL 总体架构）
-
-> 阅读目标：读完后应能顺着 Figure 2 说明：左侧 OBS 怎样训练 Target、为什么要复制 Target 做 assumed update、右侧 RCT 怎样评价预算策略、PPL/PIFD 怎样跨过离散分配器、以及梯度最终为什么能更新 Bridge。
 
 ## 1. 一句话总结
 

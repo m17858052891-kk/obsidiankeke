@@ -1,5 +1,3 @@
-# 训练策略：为什么 Embedding 用 Adagrad、主干用 AdamW
-
 ## 结论
 
 模型的参数不是一类数据：Embedding 是高基数、长尾、按行命中的稀疏参数；HyFormer、RankMixer、MLP 是每步都参与更新的稠密参数。因此采用分治优化。
