@@ -11,16 +11,6 @@ created: 2026-07-28
 
 > 这五篇不是在做五件互不相干的事，而是在依次回答一个越来越难的问题：**如何从历史出价日志中，学习一个既有效、又能上线的自动出价策略？**
 
-## 先建立一张总地图
-
-```mermaid
-flowchart LR
-    A["1. Decision Transformer\nRL怎样改写成序列建模？"] --> B["2. AIGB / DiffBid\n怎样生成整段出价轨迹？"]
-    B --> C["3. GAVE\n怎样超过历史次优轨迹？"]
-    C --> D["4. GRM\n怎样显式可靠地满足约束？"]
-    D --> E["5. LBM\n怎样引入LLM的推理能力？"]
-```
-
 | 顺序 | 论文 | 读它时只抓住一个问题 | 核心回答 |
 |---:|---|---|---|
 | 1 | Decision Transformer, ICML 2021 | RL怎样变成序列建模？ | 把 $R_t,s_t,a_t$ 排成 token 序列，用 causal Transformer 预测 $a_t$。 |

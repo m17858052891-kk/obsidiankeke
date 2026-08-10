@@ -1,4 +1,4 @@
-# 03 RQ-VAE 与 Semantic ID
+
 
 ## 1. 目标
 
