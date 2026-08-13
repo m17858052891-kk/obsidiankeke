@@ -2,7 +2,7 @@
 tags: [模型架构, 序列建模, HSTU, Transformer, 推荐系统, 面试]
 ---
 
-# HSTU：高效长序列推荐建模
+# 08 HSTU 原理与复杂度
 
 > HSTU（Hierarchical Sequential Transduction Unit）是面向工业推荐行为序列的 Transformer 变体。它要回答的并不是“如何完全消除注意力的二次复杂度”，而是：当序列很长、用户长度不一、batch 很大时，如何让**整个 Block**而非只有 Attention 更高效，同时保留行为间的细粒度交互。
 
@@ -288,4 +288,3 @@ GPU 训练不总是算力受限，也常受限于带宽：一个模块先写出�
 ### 90 秒
 
 > 标准 Transformer 既有 $O(L^2D)$ 的注意力，也有 QKV、输出投影和宽 FFN 带来的 $O(LD^2)$；在推荐中用户序列长度长尾明显，padding 和 FFN 激活常是实际瓶颈。HSTU 先对 token 做 Pre-Norm，联合投影得到 Q、K、V 和 gate；对 $QK^T$ 加上因果 mask、相对时间/位置 bias 后，用 SiLU 型 pointwise 激活而非 Softmax，再聚合 V。随后将聚合结果归一化并与当前 token 的 gate 逐元素相乘，最后输出投影加残差。这样一方面多个相关历史可同时累积，另一方面不用独立的大 FFN；配合 jagged 和 fused kernel，端到端更适合大 batch 的变长行为序列。但 dense attention 的配对仍是二次项，所以不能夸张成线性 Attention。
-
