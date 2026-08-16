@@ -38,12 +38,12 @@ $$Y=X'+\operatorname{ChannelMLP}(\operatorname{Norm}(X')).$$
 
 ## 3. 它和 Self-Attention 的本质区别
 
-| | Self-Attention | RankMixer / MLP-Mixer 风格 |
-|---|---|---|
-| token 交互权重 | 由 $QK^T$ 随样本动态生成 | 由共享 MLP 参数产生，通常不显式做每对内容相似度 |
-| 归一化 | Softmax 或其他 attention 激活 | MLP + 非线性 + 残差 |
-| 优势 | 动态地选择不同 token 对 | 固定 $N$ 时实现简单、并行友好 |
-| 弱点 | 成本/显存较高 | 对 token 顺序/数量敏感，动态检索能力较弱 |
+|            | Self-Attention           | RankMixer / MLP-Mixer 风格   |
+| ---------- | ------------------------ | -------------------------- |
+| token 交互权重 | 由 $QK^T$ 随样本动态生成         | 由共享 MLP 参数产生，通常不显式做每对内容相似度 |
+| 归一化        | Softmax 或其他 attention 激活 | MLP + 非线性 + 残差             |
+| 优势         | 动态地选择不同 token 对          | 固定 $N$ 时实现简单、并行友好          |
+| 弱点         | 成本/显存较高                  | 对 token 顺序/数量敏感，动态检索能力较弱   |
 
 因此不能说 RankMixer “没有 token 两两关系”或“必然更快”。Token Mixing 的全连接矩阵本身也常带 $N^2$ 参数/计算；它省掉的是 Q/K/V、相似度矩阵、Softmax 等机制，实际收益取决于 $N,D$、实现和硬件。
 
