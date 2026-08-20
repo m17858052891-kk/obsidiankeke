@@ -2,394 +2,458 @@
 tags:
   - 自动出价
   - GRM
-  - Constrained-Optimization
-  - 论文调研
-created: 2026-08-06
+  - 响应建模
+  - 预算控制
+  - CPA约束
+  - AuctionNet
+  - KDD2026
+created: 2026-08-20
 ---
 
 # GRM：怎样显式、可靠地满足预算与 CPA 约束？
 
-论文：[Constrained Auto-Bidding via Generative Response Modeling](https://arxiv.org/abs/2605.27811)
+论文：[Constrained Auto-Bidding via Generative Response Modeling](https://arxiv.org/abs/2605.27811)  
+PDF：[arXiv PDF](https://arxiv.org/pdf/2605.27811)  
+会议：KDD 2026  
+作者：Eunseok Yang、Xingdong Zuo、Kyung-Min Kim  
+机构：NAVER Corporation  
+代码：论文与 arXiv 页面未提供官方代码仓库
 
-作者：Eunseok Yang、Xingdong Zuo、Kyung-Min Kim（NAVER）  
-版本：arXiv v1，2026-05-27  
-发表信息：Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2，KDD 2026；DOI：[10.1145/3770855.3817847](https://doi.org/10.1145/3770855.3817847)  
-实验环境：AuctionNet 仿真环境
+## 1. 前置信息：总览、摘要与引言
 
-> **一句话总结：**GRM 不直接生成“下一步应该出多少价”，而是预测“不同 multiplier 会如何影响未来流量、成本和价值”，再通过预算根与 CPA 根求解当前最大的可行 multiplier。
+### 1.1 一句话总览
 
+GRM 不直接学习“当前应该输出什么 multiplier”，而是先根据历史预测**剩余周期的流量，以及 multiplier 对成本和价值的响应曲线**；控制器再分别求出满足剩余预算与目标 CPA 的最大 multiplier，并执行两者中更严格的一个。
 
+### 1.2 研究背景与核心问题
 
-![[GRM Figure 1 - Framework.png|1000]]
-> **论文 Figure 1：**左侧的 GRM 用历史状态和动作预测未来 traffic、cost/value response curves；右侧的 min-pacing controller 分别求预算根与 CPA 根，再执行当前 multiplier。
+自动出价希望在一个完整投放周期内最大化转化、收入等广告主价值，同时满足总预算与 CPA/ROAS 等效率约束。难点在于：约束跨越整个周期，但每次竞价发生在当下，决策时并不知道未来还有多少流量、竞争会有多激烈、不同出价强度能换来多少成本与价值。
 
-## 1. 前置信息：摘要与引言
+论文将既有方法概括为两类：
 
-### 1.1 先用一轮决策讲清 GRM
+1. **直接输出动作。** 反馈控制根据已经发生的花费和效率调节 multiplier，稳定但偏反应式；强化学习和生成式策略可以利用长历史，却常把预算、CPA 等约束压进 reward 或 RTG，难以看清是哪条约束限制了动作，也难以诊断违约原因。
+2. **预测环境量再控制。** 流量预测或 bid-landscape 模型会预测流量、赢标率或价格分布，但通常只覆盖某一个环境量或单次竞价快照，仍缺少面向剩余周期、可直接用于约束求解的成本—价值响应。
 
-GRM 不直接让网络输出“下一步该出多少价”。它先预测：在不同 multiplier 下，剩余周期会有多少流量、花多少钱、产生多少价值；再由解析 controller 把预算和 CPA 约束变成可求解的 multiplier 上界。
+GRM 的关键变化是：**把学习目标从 action 改成 response。** 响应曲线比最优动作更平滑；最优动作可能在约束边界处突然跳变，而成本和价值随 multiplier 的变化通常连续、单调、趋于饱和，因此更适合作为监督学习目标。
+
+### 1.3 核心思路与数据流
+
+<p align="center"><img src="./GRM Figure 1 - Framework.png" alt="Figure 1：GRM 整体框架" width="900" style="max-width: 100%; height: auto;"></p>
+
+> Figure 1：左侧 GRM 使用 causal Transformer 编码状态—动作历史，输出剩余流量、成本曲线和价值曲线；右侧 Min-Pacing Controller 分别求预算根与 CPA 根，再取更小的 multiplier。
+
+一轮在线决策可以概括为：
+
+```text
+截至当前 tick 的状态和历史 multiplier
+                  |
+                  v
+          Causal Transformer
+                  |
+                  v
+预测剩余流量 + 成本响应曲线 + 价值响应曲线
+                  |
+          +-------+-------+
+          |               |
+       预算求根          CPA 求根
+        alpha_B           alpha_C
+          |               |
+          +-------+-------+
+                  |
+          alpha_t = min(alpha_B, alpha_C)
+                  |
+                  v
+       对当前 tick 内所有曝光统一执行
+       b_{t,i} = alpha_t * v_{t,i}
+```
+
+需要区分三个层次：
+
+- **预测层：**GRM 输出的是函数形状和剩余流量，不是最终动作；
+- **控制层：**解析控制器在预测曲线上求出当前窗口的 $\alpha_t$；
+- **执行层：**同一 tick 内共享 $\alpha_t$，每个曝光的基础价值 $v_{t,i}$ 不同，因此最终 bid 仍然不同。
+
+### 1.4 主要贡献
+
+论文明确给出三项贡献：
+
+1. 提出历史条件化的 GRM，预测剩余周期的流量、成本曲线与价值曲线，而不是直接生成动作；
+2. 提出解析 Min-Pacing Controller，通过两个一维求根显式处理预算与 CPA，并证明它是 single-$\alpha$ 问题的精确解；
+3. 从理论上给出 single-$\alpha$ 近似误差和预测误差到约束违约的界，并在 AuctionNet 上取得比最强基线高 $7.8\%$ 的平均 score。
+
+### 1.5 阅读前先明确三个边界
+
+#### 1.5.1 GRM 输出 multiplier 还是 bid
+
+GRM 网络既不直接输出最终 bid，也不直接输出 multiplier。它输出 $7$ 个量：剩余流量的对数，以及成本曲线和价值曲线各 $3$ 个参数。控制器用这些预测求出 tick 级 multiplier $\alpha_t$，最终曝光级 bid 才是 $b_{t,i}=\alpha_t v_{t,i}$。
+
+#### 1.5.2 预测的是因果响应还是条件响应
+
+论文明确说明，日志只记录实际执行的 multiplier 及其结果，GRM 的目标不是恢复严格意义上的反事实因果效应，而是学习部署分布上的条件预测 $\widehat{\bar C}_{t:T}(\alpha\mid H_t)$。因此“response curve”不应直接等同于经过随机实验识别的因果剂量—反应曲线。
+
+#### 1.5.3 “显式约束”是否等于绝对不违约
+
+控制器会在**预测曲线**上显式求解预算与 CPA 可行边界；若预测完全准确且单调性、可求根条件成立，single-$\alpha$ 解满足约束。真实环境仍可能因曲线和流量预测误差而违约，论文给出的是“违约规模由预测误差控制”的上界，而不是无条件零违约保证。
+
+## 2. Problem Setup：自动出价问题定义
+
+### 2.1 General Bid Optimization：曝光级约束优化
+
+广告主面对 $N$ 次曝光机会。第 $i$ 次机会的 bid 为 $b_i$，赢得曝光后的实际成本为 $c_i(b_i)$，实际业务价值为 $u_i(b_i)$。一般问题是：
 
 $$
-H_t \xrightarrow{f_\theta}
-\left(\widehat I_{t:T},\widehat{\bar C}_{t:T}(\alpha),\widehat{\bar V}_{t:T}(\alpha)\right)
-\xrightarrow{\text{budget root + CPA root}}
-\alpha_t \xrightarrow{b_{t,i}=\alpha_t v_{t,i}} \text{auction feedback}.
+\max_{b_1,\ldots,b_N}\sum_{i=1}^{N}u_i(b_i). \qquad \text{(1)}
 $$
 
-| 层级 | 决策对象 | GRM 的职责 |
-|---|---|---|
-| campaign / horizon | 剩余预算、累计 CPA、未来流量 | 预测从当前到结束的响应曲线。 |
-| tick | multiplier $\alpha_t$ | 求预算根、CPA 根，取更小的可行上界。 |
-| 曝光 | bid $b_{t,i}$ | 用 $\alpha_t$ 缩放基础价值 $v_{t,i}$。 |
-
-因此，GRM 不替代 CVR 或价值预估模型；它是价值预估与拍卖执行之间的**受约束 campaign controller**。
-
-### 1.2 训练、控制、执行各负责什么
-
-| 阶段 | 输入 | 输出 | 是否直接出价 |
-|---|---|---|---|
-| 离线训练 | 历史状态、历史 multiplier、未来日志反馈 | response model 参数 | 否 |
-| 当前 tick 推理 | 当前历史与业务目标 | $\widehat I,\widehat{\bar C}(\alpha),\widehat{\bar V}(\alpha)$ | 否 |
-| 约束控制 | 预测曲线、剩余预算、累计成本和价值 | $\alpha_t=\min(\alpha_B,\alpha_C)$ | 否 |
-| 实时拍卖 | $\alpha_t$ 与 $v_{t,i}$ | $b_{t,i}=\alpha_t v_{t,i}$ | 是 |
-
-### 1.3 用一个虚构例子理解 controller
-
-假设当前 campaign 已消耗 80% 预算，晚高峰即将到来。GRM 预测如果将 multiplier 提到 1.30，未来成本会超过剩余预算，因此得到 $\alpha_B=1.12$；同时 CPA 方程表明 $\alpha>1.05$ 会突破目标，所以 $\alpha_C=1.05$。最终执行 $\alpha_t=1.05$，说明此刻 CPA 比预算更紧。新的流量、成本和价值反馈，再进入下一个 tick 的重规划。
-
-网络回答的是“调到这里会发生什么”，controller 回答的是“约束下最多能调到哪里”。
-
-### 1.4 公式中的每个量分别是什么意思
-
-总览公式不是一个端到端黑盒，而是一条分工清晰的决策链：
-
-$$
-H_t
-\xrightarrow{f_\theta}
-\left(\widehat I_{t:T},\widehat{\bar C}_{t:T}(\alpha),\widehat{\bar V}_{t:T}(\alpha)\right)
-\xrightarrow{\text{budget root + CPA root}}
-\alpha_t
-\xrightarrow{b_{t,i}=\alpha_t v_{t,i}}
-\text{auction feedback}.
-$$
-
-1. $H_t$：**当前时刻的历史状态。**$t$ 是当前 tick，例如当天第 20 个半小时窗口。$H_t$ 汇总截至当前的 campaign 信息，例如历史流量、历史 multiplier、已花费用、累计转化/价值、剩余预算和当前 CPA 状态。
-2. $f_\theta$：**GRM 的 Causal Transformer。**参数 $\theta$ 由离线日志训练得到。它读取历史状态，但不直接输出“现在用多少 $\alpha$”；它的任务是预测不同 $\alpha$ 会带来怎样的未来响应。
-3. $I^{\mathrm{pred}}_{t:T}$：**剩余周期的流量预测。**它表示从当前 $t$ 到结束 $T$，预计还会出现多少可竞价机会；上标 $\mathrm{pred}$ 表示模型预测值。
-4. $C^{\mathrm{pred,avg}}_{t:T}(\alpha)$：**未来平均成本曲线。**给定一个候选 multiplier $\alpha$，它预测剩余周期内每次机会的平均成本；上标 $\mathrm{avg}$ 表示平均到单次机会。与预测流量相乘后，得到未来总成本 $C^{\mathrm{pred,total}}_{t:T}(\alpha)$。
-5. $V^{\mathrm{pred,avg}}_{t:T}(\alpha)$：**未来平均价值曲线。**它预测同一个 $\alpha$ 下每次机会平均能带来的转化、GMV 或业务 value；乘以预测流量后得到未来总价值 $V^{\mathrm{pred,total}}_{t:T}(\alpha)$。
-6. budget root，$\alpha_B$：**预算允许的最高强度。**求解使“预测未来总成本 = 剩余预算”的 $\alpha$。如果 $\alpha$ 再增大，就会在预测下超预算。
-7. CPA root，$\alpha_C$：**效率目标允许的最高强度。**求解使“历史累计成本加未来预测成本”与“历史累计价值加未来预测价值”之比恰好达到目标 CPA 的 $\alpha$。更大的 $\alpha$ 会让预测 CPA 超标。
-8. $\alpha_t=\min(\alpha_B,\alpha_C)$：**当前最终 multiplier。**预算和 CPA 必须同时满足，因此只能取两个上界中更小的一个。若 $\alpha_C<\alpha_B$，说明当前是 CPA 更紧；反之则是预算更紧。
-9. $b_{t,i}=\alpha_t v_{t,i}$：**第 $i$ 次曝光的实际 bid。**$v_{t,i}$ 是基础价值模型对该曝光的估值，$\alpha_t$ 是 campaign 层面的统一“油门”。GRM 因而不改变不同曝光的价值排序，只整体调高或调低出价强度。
-10. auction feedback：**拍卖反馈。**赢标、实际成本、转化/GMV 与流量等结果会更新到下一时刻的 $H_{t+1}$，于是系统再次预测、求根和出价。
-
-例如，若预算根为 $\alpha_B=1.12$，CPA 根为 $\alpha_C=1.05$，最终取 $\alpha_t=1.05$。这不是经验规则，而是两个约束可行区间的交集上界；此时 CPA 是真正限制出价的约束。
-
-## 2. Problem Setup：问题定义
-
-### 2.1 General bid optimization：一般竞价优化
-
-实时竞价广告中，广告主面对连续到来的曝光机会。每次机会都需要在很短时间内决定是否竞价、出价多少，但广告主真正关心的通常不是单次曝光，而是整个 campaign 周期内的目标：
-
-- 在总预算内尽可能获得更多转化、GMV 或收入；
-- 满足目标 CPA，例如平均每个转化成本不超过 100 元；
-- 或满足目标 ROAS，例如广告收入与广告成本的比值不低于某个阈值。
-
-抽象成优化问题：
-
-$$
-\max_{b_1,\ldots,b_N}\;\sum_{i=1}^{N}u_i(b_i). \qquad \text{(1)}
-$$
+预算约束为：
 
 $$
 \sum_{i=1}^{N}c_i(b_i)\le B. \qquad \text{(2)}
 $$
 
-$$
-\frac{\sum_{i=1}^{N}c_i(b_i)}{\sum_{i=1}^{N}u_i(b_i)}\le \tau. \qquad \text{(3)}
-$$
-
-其中：
-
-- $b_i$：第 $i$ 次曝光的竞价；
-- $u_i$：曝光带来的转化或收入价值；
-- $c_i$：实际支付成本；
-- $B$：campaign 总预算；
-- $\tau$：CPA 目标。
-
-这个问题难在三个地方：每天的曝光机会可能达到百万级；竞价竞争、流量和转化率不断变化；预算和 CPA 是全周期约束，不能只看当前一条曝光。
-
-### 2.2 Multiplier-based pacing：为什么先压缩成一个 multiplier
-
-价值模型负责回答：**这次曝光值多少钱？**  
-自动出价模块负责回答：**在当前预算和效率状态下，整体应该激进还是保守？**
-
-论文采用生产中常见的 multiplier 形式：
+目标 CPA 或 inverse ROAS 约束为：
 
 $$
-b_i=\alpha v_i. \qquad \text{(4)}
+\frac{\sum_{i=1}^{N}c_i(b_i)}
+{\sum_{i=1}^{N}u_i(b_i)}\le\tau. \qquad \text{(3)}
 $$
 
-$v_{t,i}$ 保留不同曝光之间的相对价值排序，$\alpha_t$ 则在 campaign 层面统一调节竞价强度。也就是说，GRM 不替代 CVR、GMV 或转化价值预估模型，而是位于价值预估和竞价执行之间。
+$B$ 是整个周期的预算，$\tau$ 是目标 CPA；若 $u_i$ 表示收入，同一形式也可表达 inverse ROAS。这个问题难在曝光数量可能达到百万级、未来流量未知，而且预算与 CPA 将全部曝光决策耦合在一起。
 
-### 2.3 Tick-level formulation：从曝光级决策到 tick 级决策
+### 2.2 Multiplier-Based Pacing：将高维 bid 压缩成一个控制量
 
-论文把连续曝光机会聚合成 $T$ 个 tick。第 $t$ 个 tick 有 $I_t$ 个曝光机会，统一使用该 tick 的 multiplier：
+生产系统通常将自动出价拆为两层：
+
+- 下游价值模型对每次曝光预测基础价值 $v_i$；
+- campaign 级控制器输出 pacing multiplier $\alpha$，形成 $b_i=\alpha v_i$。
+
+这样不再独立优化数百万个 $b_i$，而是只调节一个 multiplier；同时保留基础价值排序：$v_i$ 越高，最终 bid 仍越高。
+
+### 2.3 Tick-Level Formulation：窗口级控制与曝光级执行
+
+论文将投放周期划分为 $T$ 个 tick，每个 tick 可以是分钟或小时。tick $t$ 内有 $I_t$ 次曝光机会，控制器选择一个有界 multiplier：
 
 $$
 b_{t,i}(\alpha_t)=\alpha_t v_{t,i},
-\qquad i=1,\ldots,I_t.
+\qquad i=1,\ldots,I_t. \qquad \text{(4)}
 $$
 
-这里的 tick 级动作只是为了让长周期预算控制可计算；真正提交给拍卖的仍是曝光级 bid。
+其中 $\alpha_t\in\mathcal A=[\underline\alpha,\bar\alpha]$。同一 tick 的 multiplier 相同，但 $v_{t,i}$ 随曝光变化，因此 bid 不相同。
 
-### 2.4 Information structure：当前时刻能看到什么
+**直观理解：**GRM 决定的是“这一窗口整体要激进多少”，价值模型决定“窗口里哪条曝光更值得出高价”。
 
-在 tick $t$ 开始时，模型只能看到当前及以前的状态、历史 multiplier 和已经实现的结果，不能看到当前 tick 之后的真实流量与竞价结果：
+### 2.4 Information Structure：决策时已经知道什么
 
-$$
-H_t=\left(s_{1:t},\alpha_{1:t-1},I_{1:t-1},\mathrm{Cost}_{<t},\mathrm{Val}_{<t}\right). \qquad \text{(5)}
-$$
-
-因此，GRM 要做的是：根据 $H_t$ 预测未来响应，再由 controller 决定当前 $α_t$。
-
-### 2.5 Spend/value response curves：成本和价值如何依赖 multiplier
-
-对每个未来 tick，定义在历史条件 $H_t$ 下、给定 multiplier 后单次机会的期望成本和期望价值：
+tick $t$ 开始时可见的决策前历史为：
 
 $$
-C_t(\alpha)=\mathbb{E}\left[c_{t,i}(\alpha)\mid H_t\right]. \qquad \text{(6)}
+H_t:=\bigl(
+s_{1:t},\alpha_{1:t-1},I_{1:t-1},
+\mathrm{Cost}_{<t},\mathrm{Val}_{<t}
+\bigr). \qquad \text{(5)}
 $$
 
+- $s_{1:t}$：时间、campaign 状态等上下文；
+- $\alpha_{1:t-1}$：过去真正执行的 multiplier；
+- $I_{1:t-1}$：过去各 tick 的流量；
+- $\mathrm{Cost}_{<t}$、$\mathrm{Val}_{<t}$：截至上一 tick 的累计成本与价值。
+
+控制器先基于 $H_t$ 决定 $\alpha_t$，随后 tick $t$ 的曝光才到达并完成竞价。因此 $I_t$、当前结果和未来响应都不能提前放入输入。
+
+### 2.5 Spend and Value Curves：响应曲线是什么
+
+给定历史 $H_t$，每次机会的期望成本曲线定义为：
+
 $$
-V_t(\alpha)=\mathbb{E}\left[u_{t,i}(\alpha)\mid H_t\right]. \qquad \text{(7)}
+C_t(\alpha)
+:=\mathbb E\!\left[c_{t,i}(\alpha)\mid H_t\right].
+\qquad \text{(6)}
 $$
 
-论文假设成本曲线随 $α$ 严格增加、价值曲线随 $α$ 不下降，并且两者有界。这些假设是后续求根和理论保证的基础。
-
-### 2.6 Tick-level constrained objective：带约束的序列决策
-
-将每个 tick 的单次机会响应乘以流量 $I_t$，得到全周期目标：
+每次机会的期望价值曲线为：
 
 $$
-\max_{\alpha_{1:T}}\;\sum_{t=1}^{T}I_tV_t(\alpha_t). \qquad \text{(8)}
+V_t(\alpha)
+:=\mathbb E\!\left[u_{t,i}(\alpha)\mid H_t\right].
+\qquad \text{(7)}
 $$
+
+$v_{t,i}$ 是出价时使用的预估价值，$u_{t,i}$ 是竞价后实现的 KPI 结果，两者不是同一个量。CPA 场景中 $u_{t,i}$ 可以是转化指标；ROAS 场景中可以是收入。
+
+### 2.6 Structural Assumptions：可求解依赖哪些结构
+
+论文作出两个结构假设：
+
+- **S1：**$C_t(\alpha)$ 严格递增，$V_t(\alpha)$ 非递减；
+- **S2：**两条曲线有界，即 $C_t(\alpha),V_t(\alpha)\in[0,\bar M]$。
+
+提高 multiplier 会提高赢标概率，因此成本增加、价值通常也不会下降；但当可赢流量趋于耗尽时，两者会逐渐饱和。这些性质是后续一维求根和精确性证明的基础。
+
+### 2.7 Tick-Level Constrained Objective：序列目标
+
+窗口级目标为：
+
+$$
+\max_{\alpha_{1:T}}
+\sum_{t=1}^{T}I_tV_t(\alpha_t). \qquad \text{(8)}
+$$
+
+预算约束为：
 
 $$
 \sum_{t=1}^{T}I_tC_t(\alpha_t)\le B. \qquad \text{(9)}
 $$
 
-$$
-\frac{\sum_{t=1}^{T}I_tC_t(\alpha_t)}{\sum_{t=1}^{T}I_tV_t(\alpha_t)}\le\tau. \qquad \text{(10)}
-$$
-
-### 2.7 适用的业务场景
-
-GRM 适合以下场景：
-
-| 场景 | 需要满足的约束 | GRM 的作用 |
-|---|---|---|
-| 效果广告 | 预算 + 目标 CPA | 预测未来花费/转化响应，求 CPA 可行 multiplier |
-| 电商广告 | 预算 + GMV 或 ROI 目标 | 预测收入响应，控制 ROI/ROAS |
-| 应用下载 | 预算 + CPI/CPA | 在剩余预算和转化成本之间动态 pacing |
-| 品牌/效果混合投放 | 时间进度 + 消耗目标 + 效率目标 | 统一处理多种 horizon-level 约束 |
-| 竞争突变环境 | 竞争加剧、目标 CPA 收紧 | 每个 tick 重新预测并重新求根 |
-
-适合“约束不能只靠调 reward 权重表达”的生产场景。预算超支、CPA 超标通常不是可以接受的普通 loss，而是需要显式监控和解释的业务风险。
-
-## 3. GRM和现有方法的区别
-
-### 3.1 反应式 pacing/control
-
-PID、规则控制、FTRL 或 primal-dual 方法根据已经发生的消耗和 CPA 调整 multiplier。它们的优点是稳定、实时、容易部署；缺点是主要根据偏差做反应，无法充分预判未来流量和竞争变化。
-
-### 3.2 Offline RL
-
-CQL、IQL 等方法学习价值函数或策略，并通过 reward shaping、Lagrangian 或正则项把预算和 CPA 写进目标。问题是：
-
-- reward 权重和预算、CPA 目标绑定较强；
-- 违规程度被压缩成一个标量，难以定位是预算约束还是效率约束导致；
-- 分布漂移时，策略可能输出训练数据覆盖之外的动作。
-
-### 3.3 Decision Transformer 与生成式出价
-
-DT、DiffBid、EBaReT 等方法将自动出价转成序列生成，通常通过 return-to-go、条件变量、搜索或专家轨迹影响约束。它们可以建模长历史，但约束仍主要是间接控制：模型生成了动作以后，系统再判断是否合规。
-
-### 3.4 GRM 的核心区别
-
-GRM 将学习目标从“动作”改成“环境响应”：
-
-```text
-历史状态/动作
-        ↓
-预测未来 traffic、cost curve、value curve
-        ↓
-预算根 + CPA 根
-        ↓
-α_t = min(α_B, α_C)
-        ↓
-执行 b_ti = α_t × v_ti
-```
-
-约束不再隐藏在 reward 或条件变量中，而是直接出现在 controller 的求根方程里。
-
-## 4. 训练侧：GRM 怎样学习未来 response bundle
-
-### 4.1 Response Bundle：预测未来响应而不是直接预测动作
-
-在决策时刻 $t$，模型输入历史状态和历史 multiplier：
+CPA 约束为：
 
 $$
-H_t=(s_{1:t},\alpha_{1:t-1},I_{1:t-1},\mathrm{Cost}_{<t},\mathrm{Val}_{<t}). \qquad \text{(5)}
+\frac{\sum_{t=1}^{T}I_tC_t(\alpha_t)}
+{\sum_{t=1}^{T}I_tV_t(\alpha_t)}\le\tau. \qquad \text{(10)}
 $$
 
-Causal Transformer 将历史压缩为：
+公式（10）也可写成 $\sum_t I_tC_t(\alpha_t)\le\tau\sum_t I_tV_t(\alpha_t)$。ROI floor 等其他比率约束可以用相同方式扩展，但本文实验和控制推导主要围绕预算与 CPA。
 
-$$
-h_t=f_\theta(s_{1:t},\alpha_{1:t-1}). \qquad \text{(14)}
-$$
+## 3. Generative Response Model：怎样预测未来响应
 
-GRM 输出未来 horizon 的 response bundle：
+### 3.1 Response Objects and Horizon-Aggregate Curves
 
-$$
-\widehat{\mathcal R}_{t:T}
-=\left(\widehat I_{t:T},
-\widehat{\bar C}_{t:T}(\alpha),
-\widehat{\bar V}_{t:T}(\alpha)\right). \qquad \text{(15)}
-$$
+#### 3.1.1 Horizon-Aggregate Curves：为什么预测整段平均曲线
 
-三个输出分别表示：
-
-| 输出 | 含义 |
-|---|---|
-| $\widehat I_{t:T}$ | 从当前到周期结束预计会有多少曝光机会 |
-| $\widehat{\bar C}_{t:T}(\alpha)$ | 使用 multiplier $\alpha$ 时，未来每次机会的平均成本 |
-| $\widehat{\bar V}_{t:T}(\alpha)$ | 使用 multiplier $\alpha$ 时，未来每次机会的平均价值 |
-
-将单位机会曲线转成 horizon 总量：
-
-$$
-\widehat{\mathcal C}_{t:T}(\alpha)
-=\widehat I_{t:T}\widehat{\bar C}_{t:T}(\alpha),
-\qquad
-\widehat{\mathcal V}_{t:T}(\alpha)
-=\widehat I_{t:T}\widehat{\bar V}_{t:T}(\alpha).
-\qquad \text{(20)--(21)}
-$$
-
-### 4.2 为什么预测 horizon-aggregate curve
-
-如果每个未来 tick 都单独预测一条曲线，输出空间和训练目标都会变得很大。GRM 假设从当前到周期结束使用一个临时 constant $\alpha$，直接预测剩余 horizon 的 traffic-weighted aggregate curve：
+控制器每次规划时暂时假设从当前 tick 到周期结束都使用同一个候选 multiplier $\alpha$，因此将逐 tick 曲线按流量加权，得到剩余周期的每机会平均成本：
 
 $$
 \bar C_{t:T}(\alpha)
-=\frac{\sum_{k=t}^{T}I_k C_k(\alpha)}{\sum_{k=t}^{T}I_k}. \qquad \text{(11)}
+:=\frac{\sum_{k=t}^{T}I_kC_k(\alpha)}
+{\sum_{k=t}^{T}I_k}. \qquad \text{(11)}
 $$
+
+对应的每机会平均价值为：
 
 $$
 \bar V_{t:T}(\alpha)
-=\frac{\sum_{k=t}^{T}I_k V_k(\alpha)}{\sum_{k=t}^{T}I_k}. \qquad \text{(12)}
+:=\frac{\sum_{k=t}^{T}I_kV_k(\alpha)}
+{\sum_{k=t}^{T}I_k}. \qquad \text{(12)}
 $$
 
-线上并不是一整天只执行一次 $\alpha$。GRM 每个 tick 都重新读取状态、重新预测、重新求根，因此最终仍会得到 $\alpha_1,\ldots,\alpha_T$ 的动态轨迹。这属于 receding-horizon control。
+它们不是简单的逐 tick 算术平均，而是让高流量 tick 权重更大。虽然一次规划暂时使用 single-$\alpha$，系统每个 tick 都会重算，所以最终实际执行的 $\alpha_1,\ldots,\alpha_T$ 仍会随时间变化。
 
-### 4.3 Log-sigmoid 曲线参数化
+#### 3.1.2 Response Bundle：模型到底要预测什么
 
-论文不用神经网络在大量离散 multiplier 上逐点预测，而是让网络输出少量曲线参数。成本曲线形式为：
+剩余周期的完整响应对象为：
+
+$$
+\mathcal R_{t:T}
+:=\Bigl(
+I_{t:T},\bar C_{t:T}(\cdot),\bar V_{t:T}(\cdot)
+\Bigr). \qquad \text{(13)}
+$$
+
+其中 $I_{t:T}=\sum_{k=t}^{T}I_k$。给定候选 $\alpha$，剩余总成本与总价值分别为：
+
+$$
+\mathcal C_{t:T}(\alpha)
+=I_{t:T}\bar C_{t:T}(\alpha),
+\qquad
+\mathcal V_{t:T}(\alpha)
+=I_{t:T}\bar V_{t:T}(\alpha).
+$$
+
+**直观理解：**GRM 预测的是一张“如果后面整体使用不同 multiplier，预计会有多少机会、花多少钱、得到多少价值”的响应地图；controller 再在这张地图上找满足约束的点。
+
+#### 3.1.3 History Encoder and Response Decoder
+
+Causal sequence model 将历史压缩成隐状态：
+
+$$
+h_t=f_\theta\!\left(s_{1:t},\alpha_{1:t-1}\right)
+\in\mathbb R^d. \qquad \text{(14)}
+$$
+
+响应解码器从 $h_t$ 预测完整 response bundle：
+
+$$
+\widehat{\mathcal R}_{t:T}
+=g_\theta(h_t)
+=\Bigl(
+\widehat I_{t:T},
+\widehat{\bar C}_{t:T}(\cdot),
+\widehat{\bar V}_{t:T}(\cdot)
+\Bigr). \qquad \text{(15)}
+$$
+
+网络只预测一组剩余周期聚合曲线，不为每个未来 tick 单独输出一组曲线。
+
+### 3.2 Function-Valued Curve Parameterization
+
+#### 3.2.1 Design Motivation：为什么使用 log-sigmoid
+
+曲线需要同时满足：$\alpha=0$ 时没有赢标、成本和价值为 $0$；提高 multiplier 后响应单调增加；当几乎赢得全部可用流量时趋于饱和。论文将正态分布 CDF 作用在 $\log(\alpha)$ 上，用低维参数表达“前期增长快、后期边际收益递减”的竞价结构。
+
+#### 3.2.2 Parametric Family：成本和价值曲线
+
+成本曲线参数化为：
 
 $$
 \widehat{\bar C}_{t:T}(\alpha)
-=a^{(C)}\tilde\Phi(b^{(C)},c^{(C)},\alpha). \qquad \text{(16)}
+=a^{(C)}\cdot
+\widetilde\Phi\!\left(b^{(C)},c^{(C)},\alpha\right).
+\qquad \text{(16)}
 $$
 
-其中：
+归一化函数为：
 
 $$
-\tilde\Phi(b,c,\alpha)=
-\frac{\Phi(b\log(\alpha+\varepsilon)+c)-
-\Phi(b\log\varepsilon+c)}
-{1-\Phi(b\log\varepsilon+c)}.
+\widetilde\Phi(b,c,\alpha)
+:=
+\frac{
+\Phi\!\left(b\log(\alpha+\varepsilon)+c\right)
+-\Phi\!\left(b\log\varepsilon+c\right)
+}{
+1-\Phi\!\left(b\log\varepsilon+c\right)
+}.
 $$
 
-价值曲线使用同样的参数化。$a$ 控制饱和上限，$b$ 控制敏感度，$c$ 控制横向位置；论文通过 softplus 保证 $a>0,b>0$，从而保证曲线单调。
-
-这样做的工程意义是：曲线天然满足 $\alpha=0$ 时没有赢量、$\alpha$ 增大时响应不下降、极大 $\alpha$ 时逐渐饱和，更适合后续使用 bisection 求根。
-
-### 4.4 Future-sampling supervision
-
-日志只提供实际执行过的动作点：
+它满足：
 
 $$
-(\alpha_k,I_k,\mathrm{Cost}_k,\mathrm{Val}_k).
-$$
-
-训练时，对当前 anchor $t$ 从未来 $t{:}T$ 中采样 $M$ 个 tick $k_m$，在日志实际动作 $\alpha_{k_m}$ 处拟合：
-
-$$
-C_{k_m}(\alpha_{k_m})\approx \frac{\mathrm{Cost}_{k_m}}{I_{k_m}},
+\widetilde\Phi(b,c,0)=0,
 \qquad
-V_{k_m}(\alpha_{k_m})\approx \frac{\mathrm{Val}_{k_m}}{I_{k_m}}. \qquad \text{(18)}
+\lim_{\alpha\to\infty}\widetilde\Phi(b,c,\alpha)=1.
 $$
 
-论文实现中每个 anchor 采样 $M=8$ 个未来 tick，并使用 traffic weighting；traffic 预测使用 log-scale loss，以减轻流量长尾分布影响。完整训练损失为：
+因此 $a^{(C)}$ 表示成本饱和值，$b^{(C)}$ 控制对 multiplier 的敏感程度，$c^{(C)}$ 控制水平位移。论文使用 $\varepsilon=10^{-3}$ 避免 $\log 0$。价值曲线使用完全相同的形式，参数为 $\theta^{(V)}=(a^{(V)},b^{(V)},c^{(V)})$；$a^{(\cdot)}$ 和 $b^{(\cdot)}$ 经过 softplus，保证为正并维持单调性。
+
+#### 3.2.3 Seven-Dimensional Output：网络实际输出
+
+模型输出为：
+
+$$
+\left(
+\widehat I_{t:T},
+\theta^{(C)},
+\theta^{(V)}
+\right)
+=g_\theta(h_t). \qquad \text{(17)}
+$$
+
+由于两条曲线各有 $3$ 个参数，再加 $1$ 个剩余流量预测，所以每个 anchor tick 只需输出 $1+6=7$ 个数。附录进一步说明，实际输出的是 $\log\widehat I_{t:T}$，以适应重尾流量。
+
+### 3.3 Training with Future-Sampling Supervision
+
+#### 3.3.1 Training Data and Point Supervision
+
+日志在 tick $k$ 只记录真正执行的 $\alpha_k$，以及 $I_k$、$\mathrm{Cost}_k$ 和 $\mathrm{Val}_k$。因此可构造的每机会监督点是：
+
+$$
+C_k(\alpha_k)\approx\frac{\mathrm{Cost}_k}{I_k},
+\qquad
+V_k(\alpha_k)\approx\frac{\mathrm{Val}_k}{I_k}.
+\qquad \text{(18)}
+$$
+
+对于 anchor tick $t$，训练时从未来 $\{t,\ldots,T\}$ 中抽取多个 tick。不同未来 tick 的日志 multiplier 通常不同，于是形成散落在 $\alpha$ 轴上的监督点。
+
+#### 3.3.2 Weighted Curve Fitting：散点如何监督整条曲线
+
+GRM 并没有观察同一历史 $H_t$ 下所有候选 multiplier 的真实反事实结果。它用后续不同 tick、不同日志 multiplier 的观测点拟合一条剩余周期聚合曲线，并按 $I_k$ 加权，使高流量 tick 对曲线贡献更大。
+
+**直观理解：**不是先在日志里找出一条完整曲线，而是把未来不同位置留下的“在这个 multiplier 下发生了什么”当作散点，训练一个历史条件化模型将这些散点概括为平滑曲线。
+
+#### 3.3.3 Training Loss
+
+每个 anchor $t$ 独立采样 $M$ 个未来索引 $k_1,\ldots,k_M\sim\mathcal U\{t,\ldots,T\}$，损失为：
 
 $$
 \begin{aligned}
-\mathcal{L}(\theta)=\mathbb{E}_{t}\Bigg[\frac{1}{M}\sum_{m=1}^{M}\Big(&I_{k_m}\big(\widehat{\bar C}_{t:T}(\alpha_{k_m})-C_{k_m}(\alpha_{k_m})\big)^2 \\
-&+I_{k_m}\big(\widehat{\bar V}_{t:T}(\alpha_{k_m})-V_{k_m}(\alpha_{k_m})\big)^2\Big) \\
-&+\lambda_I\big(\log\widehat I_{t:T}-\log I_{t:T}\big)^2\Bigg]. \qquad \text{(19)}
+\mathcal L(\theta)
+=\mathbb E_t\Bigg[
+&\frac{1}{M}\sum_{m=1}^{M}
+\Bigg(
+I_{k_m}
+\Bigl(
+\widehat{\bar C}_{t:T}(\alpha_{k_m})
+-C_{k_m}(\alpha_{k_m})
+\Bigr)^2\\
+&\qquad\qquad+
+I_{k_m}
+\Bigl(
+\widehat{\bar V}_{t:T}(\alpha_{k_m})
+-V_{k_m}(\alpha_{k_m})
+\Bigr)^2
+\Bigg)\\
+&+\lambda_I
+\Bigl(
+\log\widehat I_{t:T}-\log I_{t:T}
+\Bigr)^2
+\Bigg].
 \end{aligned}
+\qquad \text{(19)}
 $$
 
-前两项是在日志动作点上拟合成本和价值曲线的 traffic-weighted MSE，最后一项是剩余流量的 log-scale MSE。三个目标共同训练，不存在先训练曲线、再单独训练 traffic head 的阶段。
+前两项拟合成本和价值曲线，第三项拟合剩余流量。流量使用对数误差稳定重尾分布，$\lambda_I$ 控制流量损失权重。
 
-需要注意：这不是严格的反事实因果估计。日志只观察到“当时用了 $\alpha_k$ 后发生了什么”，其他 multiplier 下的结果依赖曲线族、历史条件化和数据中的动作覆盖来泛化。
+#### 3.3.4 Identifiability and Coverage：论文如何界定可识别性
 
-### 4.5 模型网络与输出维度
+论文明确承认：$(\alpha_k,C_k(\alpha_k))$ 来自不同历史 $H_k$，不能据此恢复同一 $H_t$ 下严格的反事实曲线。GRM 学习的是部署分布上的条件预测，而不是无条件因果曲线。
 
-论文实现使用 **2 层 Causal Transformer encoder**，配置为 4 个 attention head、128 维 hidden state；随后接 **2 层 MLP decoder**，每个 anchor 输出 7 个数：
+模型依赖日志中的 action coverage。论文认为 pacing 调节、广告主异质性和 A/B 实验会自然产生多样的 multiplier 轨迹，因此无需另行在线探索；但若某些状态下 multiplier 覆盖非常窄，区间外的曲线形状仍主要来自参数化假设与跨样本泛化。
 
-$$
-\big(\widehat I_{t:T},\theta^{(C)},\theta^{(V)}\big)=g_\theta(h_t),
-\qquad
-\theta^{(C)}=(a^{(C)},b^{(C)},c^{(C)}),
-\quad
-\theta^{(V)}=(a^{(V)},b^{(V)},c^{(V)}). \qquad \text{(17)}
-$$
+## 4. Analytic Constrained Control：怎样在预测曲线上求动作
 
-其中 1 个数预测剩余 traffic，3 个参数生成成本曲线，3 个参数生成价值曲线。网络到这里就停止了：它不直接输出 $\alpha_t$，也不直接输出逐曝光 bid。
+### 4.1 From Average Curves to Horizon Totals
 
-## 5. Analytic Constrained Control：预算与 CPA 怎样显式落到动作上
-
-### 5.1 剩余预算约束
-
-记 $\mathrm{Cost}_{<t}$ 为当前 tick 之前已经实现的累计成本，剩余预算为：
+预测的剩余总成本为：
 
 $$
-B_t=B-\mathrm{Cost}_{<t}. \qquad \text{(22)}
+\widehat{\mathcal C}_{t:T}(\alpha)
+:=\widehat I_{t:T}\cdot
+\widehat{\bar C}_{t:T}(\alpha).
+\qquad \text{(20)}
 $$
 
-预算根 $\alpha_B$ 使预测的剩余总成本恰好等于剩余预算：
+预测的剩余总价值为：
 
 $$
-\widehat{\mathcal C}_{t:T}(\alpha_B)=B_t. \qquad \text{(24)}
+\widehat{\mathcal V}_{t:T}(\alpha)
+:=\widehat I_{t:T}\cdot
+\widehat{\bar V}_{t:T}(\alpha).
+\qquad \text{(21)}
 $$
 
-成本曲线单调时，可以使用二分法求解。若根不存在，则按边界处理：
+### 4.2 State-Dependent Remaining Constraints
 
-- 最小 multiplier 仍然超预算：取动作下界；
-- 最大 multiplier 仍花不完预算：预算不是当前 binding constraint，取动作上界。
-
-### 5.2 CPA 约束
-
-目标 CPA 为 $\tau$。历史已经积累的“CPA 余量”定义为：
+当前剩余预算为：
 
 $$
-\Delta_t=\tau\,\mathrm{Val}_{<t}-\mathrm{Cost}_{<t}. \qquad \text{(23)}
+B_t:=B-\mathrm{Cost}_{<t}. \qquad \text{(22)}
 $$
 
-整体 CPA 约束可以改写成：
+历史 CPA slack 为：
+
+$$
+\Delta_t
+:=\tau\cdot\mathrm{Val}_{<t}-\mathrm{Cost}_{<t}.
+\qquad \text{(23)}
+$$
+
+$\Delta_t>0$ 表示历史价值按目标 CPA 折算后仍有余量，$\Delta_t<0$ 表示历史阶段已经超出 CPA 目标。每个 tick 重新使用实际累计结果更新这两个量，使控制形成闭环。
+
+### 4.3 Two One-Dimensional Solves
+
+#### 4.3.1 Budget Root
+
+预算边界要求预测的剩余总成本刚好等于剩余预算：
+
+$$
+\widehat{\mathcal C}_{t:T}(\alpha_B)=B_t.
+\qquad \text{(24)}
+$$
+
+成本曲线严格递增时，$\alpha_B$ 是预算允许的最大出价强度，可通过二分查找求解。
+
+#### 4.3.2 CPA Root
+
+整体 CPA 约束等价于：
 
 $$
 \widehat{\mathcal C}_{t:T}(\alpha)
@@ -397,7 +461,7 @@ $$
 \le\Delta_t. \qquad \text{(25)}
 $$
 
-则 CPA 根 $\alpha_C$ 满足：
+CPA 边界根满足：
 
 $$
 \widehat{\mathcal C}_{t:T}(\alpha_C)
@@ -405,253 +469,654 @@ $$
 =\Delta_t. \qquad \text{(26)}
 $$
 
-直观上，$\Delta_t>0$ 表示历史表现给后续留下了一些效率余量；$\Delta_t<0$ 表示历史 CPA 已经偏高，后续必须更保守地出价来修复。
+$\alpha_C$ 是 CPA 允许的最大出价强度。它同时使用历史累计 slack 和未来成本—价值预测，因此不是只看未来平均 CPA。
 
-### 5.3 Min-pacing 控制律
+### 4.4 Min-Pacing Control Law
 
-两个根分别代表预算和 CPA 允许的最大 multiplier，最终执行：
+最终执行：
 
 $$
-\alpha_t=\min\{\alpha_B,\alpha_C\}. \qquad \text{(27)}
+\alpha_t=\min\{\alpha_B,\alpha_C\}.
+\qquad \text{(27)}
 $$
 
-如果 $\alpha_B<\alpha_C$，预算更紧；如果 $\alpha_C<\alpha_B$，CPA 更紧。该 min 不是经验 gate，而是两个可行区间交集的右端点。
+- 若 $\alpha_B<\alpha_C$，当前主要受预算限制；
+- 若 $\alpha_C<\alpha_B$，当前主要受 CPA 限制；
+- 取更小者就是选择两个可行上界中更严格的一个。
 
-### 5.4 “可靠满足”到底是什么意思
+**直观理解：**预算根回答“最多出多激进才不会把钱花超”，CPA 根回答“最多出多激进才不会把效率做坏”；两者都要满足，所以选择更保守的那个。
 
-论文的理论保证不是“真实线上永不违规”，而是分层的：
+### 4.5 CPA Monotonicity and Fallback
 
-1. 在单 multiplier 问题中，曲线单调且根存在时，min-pacing 是精确解；
-2. 单 multiplier 相比每个 tick 都单独控制的结构损失，由各 tick 边际 value-per-cost 的 dispersion 控制；
-3. receding-horizon 下，真实预算/效率违规由 response curve、traffic prediction error 控制，并且每个 tick 重规划能减轻累计误差。
+定义：
 
-CPA 根唯一存在的充分条件，是
+$$
+\Psi_{t:T}(\alpha)
+:=\widehat{\mathcal C}_{t:T}(\alpha)
+-\tau\widehat{\mathcal V}_{t:T}(\alpha).
+$$
+
+若：
 
 $$
 \Psi'(\alpha)
-=\widehat{\mathcal C}'(\alpha)-\tau\widehat{\mathcal V}'(\alpha)>0.
+=\widehat{\mathcal C}'(\alpha)
+-\tau\widehat{\mathcal V}'(\alpha)>0,
 $$
 
-论文报告在 P14--P20 的 4,032 个 anchor-tick 预测中，$\Psi(\alpha)=\widehat{\mathcal C}(\alpha)-\tau\widehat{\mathcal V}(\alpha)$ 约 98% 的案例在整个 operating range 内单调；非单调时取包含动作下界的第一个根，避免跳入内部不可行区。
+即边际成本大于目标 CPA 缩放后的边际价值，则 CPA 方程有唯一根。论文报告在 P14--P20 的 $4{,}032$ 个 anchor-tick 预测中，约 $98\%$ 的 $\Psi$ 在整个 action range 上单调。
 
-因此更严谨的总结是：**GRM 显式保证预测模型下的可行性，真实约束稳定性仍取决于响应预测误差和分布漂移。**
+若接近饱和导致 $\Psi$ 非单调，论文取从 $\underline\alpha$ 出发遇到的第一个根 $\alpha^{(1)}$，也就是包含最小 multiplier 的可行区间右端点，避免跨过第一个边界进入内部不可行区域。
 
-## 6. Theoretical Analysis：三条理论结论
+### 4.6 Algorithm 1：Future-Sampling Training
 
-### 6.1 Single-$\alpha$ approximation：单一 multiplier 会损失多少
+<p align="center"><img src="./GRM Algorithm 1 - Training.png" alt="Algorithm 1：GRM Future-Sampling 训练流程" width="760" style="max-width: 100%; height: auto;"></p>
 
-完整问题允许未来每个 tick 使用不同的 $\alpha_k$，而 GRM 为了得到低维、平滑的响应曲线，在每次规划中暂时假设剩余周期使用同一个 $\alpha$。论文用各 tick 的边际 value-per-cost 离散程度刻画这种结构损失：
+> Algorithm 1：对每个 anchor tick 编码历史、预测流量与两条曲线参数，再从未来抽取 $M$ 个监督 tick，通过公式（19）联合更新模型。
+
+### 4.7 Algorithm 2：Receding-Horizon Online Control
+
+<p align="center"><img src="./GRM Algorithm 2 - Online Control.png" alt="Algorithm 2：GRM 在线滚动控制流程" width="620" style="max-width: 100%; height: auto;"></p>
+
+> Algorithm 2：每个 tick 都用真实累计成本和价值更新 $B_t$、$\Delta_t$，重新预测剩余响应并求两个根；只执行当前的 $\alpha_t$，观察反馈后再次规划。
+
+这一区分很重要：训练阶段只学习环境响应；线上阶段不更新网络参数，而是不断更新状态并重复“预测—求根—执行一步”。
+
+## 5. Theoretical Analysis：三条理论结论
+
+### 5.1 Single-$\alpha$ Approximation and Structural Gap
+
+#### 5.1.1 为什么 single-$\alpha$ 会有近似误差
+
+原始问题允许每个未来 tick 使用不同的 $\alpha_k$，而一次 GRM 规划只用一条剩余周期聚合曲线，相当于假设剩余周期暂时共用一个 $\alpha$。令 $\mathrm{OPT}_{\mathrm{trajectory}}$ 为逐 tick 最优值，$\mathrm{OPT}_{\mathrm{single\text{-}}\alpha}$ 为 single-$\alpha$ 限制下的最优值，论文用不同 tick 的边际效率差异刻画两者间隙。
+
+设 $\alpha^*$ 是 single-$\alpha$ 最优解，剩余周期平均边际效率为：
 
 $$
-\sigma^2=\frac{1}{I_{t:T}}\sum_{k=t}^{T}I_k
-\left(\frac{V_k'(\alpha^*)}{C_k'(\alpha^*)}-\widetilde\lambda\right)^2,
-\qquad
-\widetilde\lambda=\frac{\bar V'(\alpha^*)}{\bar C'(\alpha^*)}.
+\widetilde\lambda
+:=\frac{\bar V'(\alpha^*)}{\bar C'(\alpha^*)}.
 $$
 
-在论文给出的光滑性与局部强凹假设下：
+效率离散度定义为：
 
 $$
-\mathrm{OPT}_{\mathrm{trajectory}}-
-\mathrm{OPT}_{\mathrm{single\text{-}}\alpha}
+\sigma^2
+:=\frac{1}{I_{t:T}}
+\sum_{k=t}^{T}I_k
+\left(
+\frac{V_k'(\alpha^*)}{C_k'(\alpha^*)}
+-\widetilde\lambda
+\right)^2.
+$$
+
+它是各 tick“增加一点成本能换来多少边际价值”的流量加权方差。
+
+#### 5.1.2 假设与 Structural Gap 定理
+
+- **B1：**$C_k$、$V_k$ 二阶可微，且 $C_k'(\alpha)>0$；
+- **B2：**$h_k(\alpha):=V_k(\alpha)-\widetilde\lambda C_k(\alpha)$ 在 $\alpha^*$ 邻域内为 $\gamma$-强凹。
+
+论文给出：
+
+$$
+\mathrm{OPT}_{\mathrm{trajectory}}
+-\mathrm{OPT}_{\mathrm{single\text{-}}\alpha}
 \le
-\frac{C_{\max}'^{\,2}I_{t:T}}{2\gamma}\sigma^2.
+\frac{C_{\max}'^{,2}I_{t:T}}{2\gamma}\sigma^2,
 $$
 
-这条结论不是说“统一 multiplier 永远近似最优”，而是说：当不同时段的边际效率接近、$\sigma^2$ 较小时，单一 multiplier 的结构损失才小；如果时段之间效率差异很大，GRM 的统一控制表达力会受限。
+其中 $C'_{\max}=\max_k C_k'(\alpha^*)$。
 
-### 6.2 Min-pacing exactness：为什么取两个根的最小值
+**直观理解：**如果各未来 tick 的边际效率差不多，$\sigma\approx0$，暂时用一个 multiplier 规划整段未来几乎不损失最优性；如果不同时间段效率差别很大，single-$\alpha$ 的结构性损失就可能增大。
 
-在成本曲线严格递增、价值曲线不下降且两个根存在时，预算可行域的右端点是 $\alpha_B$，CPA 可行域的相关右端点是 $\alpha_C$。由于目标价值随 $\alpha$ 不下降，最优解就是两个约束共同允许的最大值：
+论文强调 B2 是局部假设。对公式（16）的 log-sigmoid，只需 $h_k$ 在实验中内部最优点 $\alpha^*$ 附近强凹，而不是要求整个 action range 都强凹。
+
+### 5.2 Min-Pacing Exactness：为什么取两个根的最小值
+
+假设：
+
+- **A1：**$\mathcal V_{t:T}(\alpha)$ 非递减，$\mathcal C_{t:T}(\alpha)$ 严格递增；
+- **A2：**在问题可行时，$\alpha_B$、$\alpha_C$ 的边界根存在。
+
+预算可行域是 $\mathcal F_B=[\underline\alpha,\alpha_B]$，CPA 可行域的右边界不超过 $\alpha_C$。由于价值随 $\alpha$ 非递减，最优解必然是交集中的最大可行 multiplier，因此：
 
 $$
 \alpha^*=\min\{\alpha_B,\alpha_C\}.
 $$
 
-因此，min-pacing 对论文定义的 **single-$\alpha$ 子问题**是精确解；它并不等于对原始逐 tick 自由控制问题也精确。当最大预测成本仍不足以花完剩余预算时，预算根不存在，论文把 $\alpha_B$ 设为动作上界 $\bar\alpha$，此时由 CPA 根或动作上界决定最终动作。
+这个结论是对 **single-$\alpha$ 子问题** 的精确性证明，不代表 single-$\alpha$ 与完整逐 tick 最优策略完全等价；两者的差距由上一节的 $\sigma^2$ 控制。
 
-### 6.3 Prediction error and constraint violation：预测误差怎样变成约束误差
+若最大可能成本也花不完剩余预算，即：
 
-论文分别定义成本曲线、价值曲线和流量预测误差 $\epsilon_C$、$\epsilon_V$、$\epsilon_I$。预测总成本曲线的误差满足：
+$$
+B_t>a^{(C)}\widehat I_{t:T},
+$$
+
+则预算根不存在，论文令 $\alpha_B:=\bar\alpha$；此时只由 CPA 根限制动作，若 CPA 也不绑定则执行 $\bar\alpha$。
+
+### 5.3 Prediction Error and Constraint Violation
+
+#### 5.3.1 三类预测误差
+
+定义剩余周期上的一致误差：
+
+$$
+\epsilon_C
+:=\sup_{t,\alpha}
+\left|
+\widehat{\bar C}_{t:T}(\alpha)
+-\bar C_{t:T}(\alpha)
+\right|,
+$$
+
+$$
+\epsilon_V
+:=\sup_{t,\alpha}
+\left|
+\widehat{\bar V}_{t:T}(\alpha)
+-\bar V_{t:T}(\alpha)
+\right|,
+$$
+
+$$
+\epsilon_I
+:=\sup_t
+\left|
+\widehat I_{t:T}-I_{t:T}
+\right|.
+$$
+
+总成本曲线误差满足：
 
 $$
 \epsilon_t
-:=\sup_{\alpha}\left|\widehat{\mathcal C}_{t:T}(\alpha)-\mathcal C_{t:T}(\alpha)\right|
-\le I_{t:T}\epsilon_C+\epsilon_I\bar C_{\max}+\epsilon_I\epsilon_C.
+:=\sup_\alpha
+\left|
+\widehat{\mathcal C}_{t:T}(\alpha)
+-\mathcal C_{t:T}(\alpha)
+\right|
+\le
+I_{t:T}\epsilon_C
++\epsilon_I\bar C_{\max}
++\epsilon_I\epsilon_C.
 \qquad \text{(28)}
 $$
 
-在论文的导数上下界条件下，receding-horizon min-pacing 的预算和 CPA 违约上界分别为：
+其中 $\bar C_{\max}=\sup_\alpha\bar C_{t:T}(\alpha)$。第一项来自曲线形状误差，第二、三项来自剩余流量误差及其与曲线误差的交互。
+
+#### 5.3.2 斜率假设
+
+令：
 
 $$
+\bar\Psi_{t:T}(\alpha)
+=\bar C_{t:T}(\alpha)-\tau\bar V_{t:T}(\alpha),
+\qquad
+\Psi_t(\alpha)=C_t(\alpha)-\tau V_t(\alpha).
+$$
+
+论文要求成本曲线与 $\Psi$ 的导数存在正下界，同时每 tick 导数有上界：
+
+$$
+0<\underline C'
+\le\bar C'_{t:T}(\alpha)
+\le\bar L_C,
+\qquad
+C_t'(\alpha)\le L_C,
+$$
+
+$$
+0<\underline\Psi'
+\le\bar\Psi'_{t:T}(\alpha)
+\le\bar L_\Psi,
+\qquad
+|\Psi_t'(\alpha)|\le L_\Psi.
+$$
+
+正下界保证小的函数值误差不会被近乎水平的曲线放大成极大的根位置误差。
+
+#### 5.3.3 Constraint Violation Bounds
+
+在 A1--A2 与上述斜率条件下，预算满足：
+
+$$
+\begin{aligned}
 \sum_t I_tC_t(\alpha_t)
-\le B+\rho\left(I_{1:T}\epsilon_C
-+\epsilon_I\bar C_{\max}H_I
-+\epsilon_I\epsilon_CH_I\right). \qquad \text{(29)}
+\le B+\rho\Bigl(&
+I_{1:T}\epsilon_C
++\epsilon_I\bar C_{\max}H_I\\
+&+\epsilon_I\epsilon_CH_I
+\Bigr),
+\end{aligned}
+\qquad \text{(29)}
 $$
 
+CPA slack 满足：
+
 $$
+\begin{aligned}
 \sum_t I_t\Psi_t(\alpha_t)
-\le \Delta+\rho_\Psi\left(I_{1:T}(\epsilon_C+\tau\epsilon_V)
-+\epsilon_I\bar\Psi_{\max}H_I
-+\epsilon_I(\epsilon_C+\tau\epsilon_V)H_I\right). \qquad \text{(30)}
+\le\Delta+\rho_\Psi\Bigl(&
+I_{1:T}(\epsilon_C+\tau\epsilon_V)
++\epsilon_I\bar\Psi_{\max}H_I\\
+&+\epsilon_I(\epsilon_C+\tau\epsilon_V)H_I
+\Bigr),
+\end{aligned}
+\qquad \text{(30)}
 $$
 
-核心含义是：曲线预测误差会形成系统性误差，而流量预测误差会因为每个 tick 重新规划而被不断校正；均匀流量下，累计影响中的 $H_I$ 只按约 $\log T$ 增长。这里给出的是“误差越小，约束偏差越小”的上界，不是无条件的线上零违规保证。
+其中：
 
-## 7. 训练与线上控制全流程
+$$
+\rho=\frac{L_C}{\underline C'},
+\qquad
+\rho_\Psi=\frac{L_\Psi}{\underline\Psi'},
+\qquad
+H_I=\sum_{t=1}^{T}\frac{I_t}{I_{t:T}}.
+$$
 
-### 7.1 训练时：学习 response，不把日志动作当作最优答案
+均匀流量下 $H_I$ 等于调和数 $H_T\le1+\ln T$。因此曲线误差带来 $O(I_{1:T}\epsilon_C)$ 的系统项，而流量误差因每 tick 重规划只累计到约 $O(\epsilon_I\log T)$。
 
-离线日志只记录历史 policy 在某个 multiplier 下得到的流量、成本和价值。GRM 用这些观测监督 response bundle：给定当前历史和候选 multiplier，预测剩余 horizon 的 traffic、cost 与 value。它学习的是“该条件下环境会如何响应”，不是照搬历史动作。
+**直观理解：**GRM 不是声称预测有误时也绝不违约，而是把“会违约多少”明确连接到“曲线和流量预测错了多少”；滚动重规划会不断用真实反馈纠偏，尤其抑制流量误差的长期累积。
 
-所以它也不是严格的反事实因果识别。对日志覆盖较少的 multiplier，可靠性来自单调 Log-sigmoid 曲线、历史条件化和动作覆盖的共同外推。
+## 6. Experiments：AuctionNet 实验
 
-### 7.2 线上时：先预测曲线，再让 controller 决定动作
+### 6.1 Setup
 
-```text
-读取当前状态
--> 预测剩余 horizon 的流量、成本曲线、价值曲线
--> 根据剩余预算求 alpha_B
--> 根据累计 CPA slack 求 alpha_C
--> 取 min(alpha_B, alpha_C)
--> 用 alpha_t 缩放每条曝光的基础价值并参与拍卖
--> 用新反馈进入下一个 tick
-```
+#### 6.1.1 Environment and Data
 
-**GRM 显式保证的是预测模型下的可行性，不等于真实环境永不违规。**真实效果仍受曲线校准误差和分布漂移影响；receding-horizon 的价值在于每个 tick 用新反馈重新校正。
+实验使用 NeurIPS 2024 Auto-Bidding Challenge 的 AuctionNet 仿真环境：
 
-### 7.3 为什么 response model 和 controller 要拆开
+- 每个 delivery period 有 $48$ 个 tick 和超过 $0.5$ million 次竞价机会；
+- 每个 tick 有 $48$ 个 agent 参与竞价；
+- 日志总计超过 $500$ million 条记录，包含预估转化价值、bid、竞价日志和曝光结果；
+- P7--P13 用于训练，P14--P20 用于主实验和预测质量评估。
 
-| 模块 | 回答的问题 | 失败时怎样定位 |
-|---|---|---|
-| response model | 调到该 $\alpha$ 后，未来花费和价值会怎样？ | 流量、成本曲线或价值曲线预测失准。 |
-| root-finding controller | 预算和 CPA 允许的最大 $\alpha$ 是多少？ | 根、单调性或边界处理错误。 |
-| bid execution | 当前曝光最终提交多少钱？ | 基础价值模型或拍卖执行偏差。 |
+这里的 P7、P8 等表示 AuctionNet 数据中的 **delivery period 编号**，不是模型参数或数据比例。主实验固定其他 $47$ 个广告主的 bid，只替换目标广告主策略；分布变化实验则让竞争 agent 按 AuctionNet competition protocol 动态出价。
 
-## 8. Experiments：AuctionNet 仿真评估
+#### 6.1.2 Baselines
 
-论文不是把 GRM 放到真实广告平台线上反复试错，而是在 AuctionNet 中评估。可以把 AuctionNet 理解成一个可重复运行的多广告主拍卖环境：它根据各广告主的 bid 决定曝光是否赢得、实际成本和价值，再把这些反馈写回下一时段状态。
+所有方法最终都被统一为 tick 级 multiplier 输出：
 
-```mermaid
-flowchart LR
-    A["当前 campaign 状态<br/>历史成本、价值、流量、multiplier"] --> B["GRM response model<br/>预测未来 I, C(alpha), V(alpha)"]
-    B --> C["解析 controller<br/>求 alpha_B、alpha_C<br/>alpha_t = min(...)"]
-    C --> D["目标广告主逐曝光出价<br/>bid = alpha_t x v"]
-    D --> E["AuctionNet 拍卖环境<br/>与其他 advertiser 竞争"]
-    E --> F["赢标、成本、价值、流量"]
-    F --> G["更新 campaign 状态"]
-    G --> A
-```
+- **BC：**模仿日志 multiplier；
+- **CQL、IQL：**带离线正则的价值学习；
+- **DT：**根据 RTG 生成动作，RTG 设为满足约束下的最佳可达价值；
+- **DiffBid：**条件扩散出价；
+- **EBaReT：**expert-guided reward Transformer；
+- **FTRL：**分布变化实验中的工业控制基线。
 
-### 8.1 在仿真中，GRM 的输入和输出是什么
+对原本输出曝光级 bid 的 BC、CQL、IQL，论文先对预测 bid 求 tick 平均，再除以平均预测价值，转换成 multiplier。
 
-每个 campaign 被划为 48 个 tick。目标广告主在当前 tick 读取自己的历史状态，GRM 预测剩余 horizon 的流量、成本曲线和价值曲线，controller 求出当前 multiplier $\alpha_t$；随后对每条曝光以 $b_{t,i}=\alpha_t v_{t,i}$ 出价。AuctionNet 根据所有广告主的 bid 运行拍卖，返回实际赢标、成本与 value，并进入下一 tick 的重规划。
+#### 6.1.3 Metrics
 
-主实验中，论文用 P7--P13 训练、P14--P20 测试；每个周期超过 0.5M 次竞价机会。为了主要评估目标策略本身，主测试将其他 47 个 advertiser 的 bid 固定；分布漂移实验则让竞争 advertiser 的 bid 动态变化。
-这里的 **P** 是一个完整的投放周期（period / episode），可以理解为一次独立的 campaign 仿真回合；每个 P 被切成 48 个 tick。于是，P7--P13 是用于拟合模型参数的 7 个完整回合，P14--P20 是参数不再更新时用于评估泛化的 7 个完整回合。每个测试 P 内，GRM 都会从第 1 个 tick 跑到第 48 个 tick，反复执行“预测 response → 求 $\alpha_t$ → 出价 → 接收反馈”的闭环，最后再统计整段周期的累计 value、CPA、预算消耗和官方 score。
+AuctionNet 官方 score 为：
 
+$$
+\mathrm{score}
+=p(\mathrm{cpa};d)
+\sum_t\mathrm{Val}_t,
+$$
 
-### 8.2 主结果
+其中：
 
-| 结果                 |        数值 | 支持的结论                            |
-| ------------------ | --------: | -------------------------------- |
-| GRM 平均 score       | **33.88** | 主实验最优。                           |
-| 最强 baseline EBaReT |     31.43 | GRM 相对提升 **7.8%**。               |
-| GRM-short          |     31.14 | 只预测当前 tick 会比完整 GRM 低约 **8.1%**。 |
+$$
+p(\mathrm{cpa};d)
+=\min\left\{
+\left(\frac{d}{\mathrm{cpa}}\right)^\beta,1
+\right\},
+\qquad \beta=2.
+$$
 
-这里最重要的并不只是 33.88 比 31.43 高，而是 **GRM-short 明显更差**：只看当前快照不足以控制预算与 CPA，预测“从当前到结束”的 aggregate response 才能让 controller 看到未来流量、竞争和约束余量。
+当实际 CPA 不超过目标 $d$ 时惩罚为 $1$；超过目标后，累计价值会按违约程度折损。分布变化实验额外报告从正常环境到 shifted 环境的 score 下降比例。
 
-### 8.3 分布变化时，闭环有什么价值
+#### 6.1.4 Implementation Details
 
-![[GRM Figure 2 - Robustness.png|760]]
-> **论文 Figure 2：**左图提高竞争广告主预算，右图收紧目标 CPA；实色柱是正常环境，斜线柱是分布变化后的 score。GRM 在两种变化下的相对下降都小于 FTRL 和 DT。
+正文给出的主要设置为：2 层 causal Transformer、4 个 attention head、hidden size $128$；2 层 MLP decoder 输出 $7$ 个参数；AdamW 学习率 $10^{-3}$、weight decay $10^{-5}$、batch size $64$；每个 anchor 抽取 $M=8$ 个未来 tick。完整设置见附录 Table 3。
 
-| 扰动                       | GRM 表现                                      | 对比方法                     | 含义                                                |
-| ------------------------ | ------------------------------------------- | ------------------------ | ------------------------------------------------- |
-| 竞争广告主预算提高到 $1.1\times$   | score 下降 **7.2%**                           | FTRL 下降 9.0%，DT 下降 22.6% | 新竞争环境出现后，GRM 能重新预测 response curve 并重算 multiplier。 |
-| CPA 目标收紧到原来的 $0.8\times$ | score 下降 **5.0%**；violation rate 为 **9.8%** | FTRL 为 15.3%，DT 为 28.7%  | 显式 CPA 根更容易把效率约束落到当前动作。                           |
+### 6.2 Overall Performance
 
-这些结果不表示 GRM 在真实环境中“永远不会违规”。它们说明在 AuctionNet 的环境变化下，**response prediction + 求根控制 + 每 tick 重规划**比直接生成动作的策略更稳定；真实线上效果仍取决于 response curve 的校准、日志覆盖和分布漂移程度。
+<p align="center"><img src="./GRM Table 1 - Overall Performance.png" alt="Table 1：AuctionNet 主实验结果" width="900" style="max-width: 100%; height: auto;"></p>
 
-### 8.4 Prediction quality：预测更准是否真的带来更好的决策
+> Table 1：GRM 在 P14--P20 的平均 score 为 $33.88\pm2.40$，比最强基线 EBaReT 的 $31.43\pm1.86$ 高 $7.8\%$。
 
-![[GRM Figure 3 - Validation Loss.png|700]]
-> **论文 Figure 3：**横轴是 response model 的验证损失，纵轴是测试 score。整体负相关说明模型不是“曲线预测得好看但控制没收益”，预测质量会沿求根链路影响最终竞价表现。
+GRM-short 只预测当前 tick 的响应，平均 score 为 $31.14$，比完整 GRM 低约 $8.1\%$。这项对照支持论文的核心主张：只做当前快照响应无法提前利用未来流量、竞争、预算和 CPA 演化，剩余周期聚合预测具有额外价值。
 
-论文用 10 个收敛程度不同的 checkpoint 检查验证集损失与测试 score 的关系，得到 Pearson 相关系数 $r=-0.78$、$p<0.01$：验证损失越低，竞价 score 整体越高。扩展到 18 组架构和超参数配置后，相关系数仍为 $r=-0.72$。
+需要注意，Table 1 的 score 已包含 CPA 违约惩罚，因此它同时反映累计价值与约束表现，并不是单独的纯价值指标。
 
-这组实验验证了 GRM 最关键的误差链路：网络本身不直接学动作，但 response prediction 越准，后面的预算根与 CPA 根越可靠，最终竞价表现也越好。不过相关性不是严格因果证明，训练方差仍会造成散点波动。
+### 6.3 Robustness to Distribution Shift
 
-### 8.5 Curve family ablation：为什么选择 log-sigmoid
+<p align="center"><img src="./GRM Figure 2 - Robustness.png" alt="Figure 2：分布变化下的鲁棒性" width="900" style="max-width: 100%; height: auto;"></p>
 
-| 曲线族 | 平均 score | 相对完整模型 |
-|---|---:|---:|
-| Linear | 30.18 | -10.9% |
-| Piecewise-linear | 31.57 | -6.8% |
-| Sigmoid | 32.49 | -4.1% |
-| Monotone MLP | 33.52 | -1.1% |
-| Log-sigmoid | **33.88** | - |
+> Figure 2：左图将竞争者预算提高到 $1.1$ 倍，右图将目标 CPA 收紧到原来的 $0.8$ 倍；实色柱为正常环境，斜线柱为 shifted 环境。
 
-Linear 无法表达高 multiplier 下的饱和，普通 sigmoid 对中间区间的边际收益递减刻画不足；单调 MLP 虽然更灵活，但在这类平滑 aggregate target 上更容易拟合噪声。结果支持论文选择低维 log-sigmoid 作为“既有结构约束、又容易求根”的响应曲线。
+在竞争增强下：
 
-## 9. 与 AIGB、GAVE 对比
+- GRM 下降 $7.2\%$；
+- FTRL 下降 $9.0\%$；
+- DT 下降 $22.6\%$。
 
-三篇论文都在处理长期目标下的自动出价，但把学习与约束放在不同位置：
+在 CPA 收紧下：
 
-| 方法             | 先生成/预测什么                                               | 约束怎样进入                             | 最终动作怎样得到                            |
-| -------------- | ------------------------------------------------------ | ---------------------------------- | ----------------------------------- |
-| AIGB / DiffBid | 条件化的未来**状态轨迹**                                         | 作为生成条件的一部分                         | inverse dynamics 将计划状态转为动作。         |
-| GAVE           | 基于 DT 的下一步 multiplier，并在日志邻域做 value-guided exploration | score-based RTG 与 value 引导，主要是间接偏好 | Transformer 动作 head 输出 coefficient。 |
-| GRM            | 不同 multiplier 下未来的**流量、成本、价值响应曲线**                     | 直接变成预算根与 CPA 根                     | 解析 controller 求最大可行 multiplier。     |
+- GRM 下降 $5.0\%$；
+- FTRL 下降 $6.9\%$；
+- DT 下降 $13.9\%$。
 
-AIGB 的主线是“生成未来计划”，GAVE 的主线是“价值引导的受限外推”，GRM 的主线则是“先把环境响应预测清楚，再显式解约束”。最关键的差异不在是否使用 Transformer，而在于 GRM 的网络停在 response curve，最终 multiplier 由求根控制器决定；预算紧还是 CPA 紧，可以从 $\alpha_B$ 与 $\alpha_C$ 的大小直接解释。
-### 9.1 论文输出的是 multiplier 还是 bid
+论文还报告 shifted 环境中的约束违约率：GRM 从 $6.5\%$ 增至 $9.8\%$，FTRL 从 $8.2\%$ 增至 $15.3\%$，DT 从 $10.8\%$ 增至 $28.7\%$。论文将 GRM 的优势归因于：每个 tick 重预测响应，并根据新 $B_t$、$\Delta_t$ 重新求根，而不是继续复用离线策略的固定动作规律。
 
-先区分两个层级：**时段级控制量**决定这一时段整体该激进还是保守；**曝光级 bid**才是每一条曝光真正提交给拍卖系统的价格。三篇论文最终都必须形成 bid，但它们直接由模型生成或由 controller 求出的对象不同。
+### 6.4 Prediction Quality and Performance
 
-| 论文 | 模型或控制器直接产出 | 实际 bid 怎样得到 |
-|---|---|---|
-| AIGB / DiffBid | 扩散模型先生成未来**状态轨迹**；inverse dynamics 再输出时段级参数动作 $\hat a_t$ | 将参数动作代入解析竞价公式，得到每条曝光的 $b_i^*$。 |
-| GAVE | Transformer 的 action head 输出窗口级 bid coefficient，即 $a_t=\lambda_t$ | $b_{t,n}=\lambda_t v_{t,n}$。 |
-| GRM | Transformer 输出 response curve；解析 controller 通过预算根与 CPA 根求出 $\alpha_t$ | $b_{t,i}=\alpha_t v_{t,i}$。 |
+<p align="center"><img src="./GRM Figure 3 - Validation Loss.png" alt="Figure 3：验证损失与决策表现" width="760" style="max-width: 100%; height: auto;"></p>
+
+> Figure 3：横轴是 held-out validation loss，纵轴是 test score；10 个不同收敛程度的 checkpoint 呈显著负相关 $r=-0.78$、$p<0.01$。
+
+最佳 checkpoint 的 loss 为 $0.96$，score 为 $33.88$；loss 高于 $1.04$ 的欠收敛 checkpoint 平均 score 低于 $30.0$。在 $18$ 组架构与超参数配置上重复分析，相关系数仍为 $r=-0.72$。
+
+这说明更低的响应预测损失通常对应更好的决策表现，与公式（29）至（30）的方向一致。不过相关性实验不能单独证明全部性能增益由预测精度因果造成，因为 checkpoint 之间还可能存在其他训练差异；论文将 validation loss 作为难以直接观测反事实曲线误差时的代理指标。
+
+### 6.5 Curve Family Ablation
+
+<p align="center"><img src="./GRM Table 2 - Curve Ablation.png" alt="Table 2：响应曲线族消融" width="760" style="max-width: 100%; height: auto;"></p>
+
+> Table 2：log-sigmoid 得分最高；linear、piecewise-linear、普通 sigmoid 和 monotone MLP 均有所下降。
+
+论文给出的解释是：linear 无法表达高 $\alpha$ 区间的饱和，普通 sigmoid 缺少 $\log(\alpha)$ 变换，难以刻画中间区间的边际收益递减；monotone MLP 容量更大但略差，说明平滑的 horizon-aggregate target 不需要过高自由度，额外容量反而可能拟合噪声。
+
+## 7. Related Work：相关工作
+
+### 7.1 Real-Time Bidding and Auto-Bidding
+
+RTB 需要在约 $100$ ms 内完成曝光级竞价，而预算、CPA 和 ROAS 约束跨越整个 campaign。系统必须同时满足“曝光级执行足够快”和“周期级决策能够协调未来”这两个尺度要求，这也是生产系统普遍采用价值模型加 campaign multiplier 分层架构的原因。
+
+### 7.2 Control and Pacing
+
+PID、反馈控制和拉格朗日对偶方法通过实际花费与目标之间的偏差更新 multiplier，具有稳定、低延迟的优势，但通常只使用有限的未来预测，主要在偏差发生后进行纠正。生产系统也常把预算 pacing 与 CPA/ROAS pacing 分开实现，再取多个 multiplier 的最小值。
+
+GRM 保留这种 minimally-coupled 的 Min-Pacing 结构，但将根求解建立在历史条件化的未来响应曲线上，使 controller 从纯反应式控制扩展为预测式控制。
+
+### 7.3 Reinforcement Learning
+
+CQL、IQL 等 offline RL 通过保守价值估计或隐式正则从日志学习策略；online RL 可以持续适应环境，却会带来不可接受的预算浪费与在线探索风险。RL 出价方法通常通过 reward shaping 表达预算和效率约束，违约时难以区分是策略、价值估计还是 reward 权重造成的问题。
+
+GRM 不学习 action policy 或 Q function，而是预测环境响应，再交给显式求解器处理约束。这种分解提高了可诊断性，但效果仍依赖响应模型在部署分布中的准确性。
+
+### 7.4 Generative Models
+
+DT、Constrained DT、DiffBid、GAS、GAVE 和 EBaReT 等方法将自动出价改写为 RTG 条件动作生成、扩散采样或带价值引导的序列生成。论文认为这些方法大多属于 scalar-conditioned action generation：多个业务目标被压入一个 return、critic 或搜索分数，难以直接指出当前 binding constraint。
+
+GRM 的差别不是换一种动作生成器，而是根本不生成动作：先生成 function-valued response，再由解析 controller 求动作。
+
+### 7.5 Bid-Landscape Modeling
+
+Bid-landscape 模型预测单次竞价的赢标率或 clearing-price 分布，可以刻画 bid 对单次竞价结果的影响，但通常是曝光级快照，需要额外流量预测与周期控制层，也不一定利用 campaign 的执行历史。
+
+GRM 直接预测历史条件化的剩余周期聚合成本与价值曲线，目标粒度不同。
+
+### 7.6 Forecasting and Control Hybrids
+
+预测加控制的方法会先预测流量或价值点估计，再由优化器转成动作。GRM 将点预测扩展成函数值预测：对每个候选 $\alpha$ 都能得到成本和价值响应，因此预算与 CPA 可以直接在预测函数上求解。
+
+## 8. Conclusion：论文结论与证据边界
+
+论文将自动出价重新拆成两个职责明确的模块：GRM 学习“环境会怎样响应 multiplier”，Min-Pacing Controller 决定“在预算和 CPA 下允许使用多大的 multiplier”。这一设计使每条约束都有独立边界根，也使真实违约能够对应到成本曲线、价值曲线或流量预测误差。
+
+论文的核心结论为：
+
+1. 在各 tick 边际效率离散度较小时，single-$\alpha$ 聚合规划接近逐 tick 最优；
+2. 在单调且根存在的条件下，$\min\{\alpha_B,\alpha_C\}$ 是 single-$\alpha$ 问题的精确解；
+3. 滚动控制的约束违约上界随曲线和流量预测误差增长；
+4. AuctionNet 实验中 GRM 平均 score 为 $33.88$，比最强基线高 $7.8\%$，在两种 episode 级分布变化下也更稳定。
+
+使用这一方法依赖几个关键前提：日志中必须有足够的 multiplier 覆盖；未来成本和价值对 multiplier 的响应能够被单调低维曲线近似；single-$\alpha$ 足以表达主要控制需求；线上环境与训练分布不能相差到使条件响应预测失真。论文仅在 AuctionNet 仿真环境中验证，没有公开真实线上 A/B 结果或官方实现。
+
+## 9. Appendix A：完整理论证明
+
+### 9.1 Structural Gap 的完整证明
+
+附录先处理仅有预算约束的情况。trajectory 问题允许每个 tick 独立选择 $\alpha_k$，single-$\alpha$ 问题要求所有剩余 tick 共用一个 $\alpha$。
+
+#### 9.1.1 Step 1：比较两个拉格朗日对偶
+
+trajectory 形式的对偶函数为：
+
+$$
+D_T(\lambda)
+=\sum_{k=t}^{T}I_k
+\max_\alpha
+\left[V_k(\alpha)-\lambda C_k(\alpha)\right]
++\lambda B_t.
+$$
+
+single-$\alpha$ 形式为：
+
+$$
+D_S(\lambda)
+=\max_\alpha
+\sum_{k=t}^{T}I_k
+\left[V_k(\alpha)-\lambda C_k(\alpha)\right]
++\lambda B_t.
+$$
+
+因为 trajectory 允许每个 tick 分别最大化，所以对任意 $\lambda\ge0$ 都有 $D_T(\lambda)\ge D_S(\lambda)$。
+
+#### 9.1.2 Step 2：代入 single-$\alpha$ 的最优对偶变量
+
+预算绑定时，single-$\alpha$ 最优点 $\alpha^*$ 的 KKT 条件给出：
+
+$$
+\lambda_S^*
+=\frac{\sum_k I_kV_k'(\alpha^*)}
+{\sum_k I_kC_k'(\alpha^*)}
+=\frac{\bar V'(\alpha^*)}{\bar C'(\alpha^*)}
+=\widetilde\lambda.
+$$
+
+由 single-$\alpha$ 问题的强对偶与 trajectory 问题的弱对偶：
+
+$$
+\begin{aligned}
+\mathrm{OPT}_{\mathrm{trajectory}}
+-\mathrm{OPT}_{\mathrm{single\text{-}}\alpha}
+&\le D_T(\widetilde\lambda)-D_S(\widetilde\lambda)\\
+&=\sum_{k=t}^{T}I_k
+\left[
+\max_\alpha h_k(\alpha)-h_k(\alpha^*)
+\right],
+\end{aligned}
+$$
+
+其中 $h_k(\alpha)=V_k(\alpha)-\widetilde\lambda C_k(\alpha)$。
+
+#### 9.1.3 Step 3：用强凹性限制每个 tick 的收益差
+
+令：
+
+$$
+e_k
+:=\frac{V_k'(\alpha^*)}{C_k'(\alpha^*)}
+-\widetilde\lambda,
+$$
+
+则：
+
+$$
+h_k'(\alpha^*)
+=C_k'(\alpha^*)e_k.
+$$
+
+由 $\gamma$-强凹性：
+
+$$
+\max_\alpha h_k(\alpha)-h_k(\alpha^*)
+\le
+\frac{\left(h_k'(\alpha^*)\right)^2}{2\gamma}
+=\frac{\left(C_k'(\alpha^*)\right)^2e_k^2}{2\gamma}.
+$$
+
+对 tick 求和并使用 $C_k'(\alpha^*)\le C'_{\max}$：
+
+$$
+\mathrm{gap}
+\le
+\frac{C_{\max}'^{,2}}{2\gamma}
+\sum_{k=t}^{T}I_ke_k^2
+=\frac{C_{\max}'^{,2}I_{t:T}}{2\gamma}\sigma^2.
+$$
+
+#### 9.1.4 Extension to Budget + CPA
+
+联合约束的拉格朗日函数为：
+
+$$
+\begin{aligned}
+D(\lambda,\mu)
+=&\sum_{k=t}^{T}I_k\max_\alpha
+\Bigl[
+V_k(\alpha)-\lambda C_k(\alpha)\\
+&\qquad\qquad
+-\mu\bigl(C_k(\alpha)-\tau V_k(\alpha)\bigr)
+\Bigr]
++\lambda B_t+\mu\Delta_t.
+\end{aligned}
+$$
+
+内部项可以重写为：
+
+$$
+V_k-\lambda C_k-\mu(C_k-\tau V_k)
+=(1+\mu\tau)
+\left[V_k-\widetilde\lambda C_k\right],
+$$
+
+其中有效对偶变量为：
+
+$$
+\widetilde\lambda
+:=\frac{\lambda^*+\mu^*}{1+\mu^*\tau}.
+$$
+
+因此相同证明成立，只多出缩放系数：
+
+$$
+\mathrm{OPT}_{\mathrm{trajectory}}
+-\mathrm{OPT}_{\mathrm{single\text{-}}\alpha}
+\le
+\frac{(1+\mu^*\tau)C_{\max}'^{,2}I_{t:T}\sigma^2}
+{2\gamma}.
+$$
+
+### 9.2 Constraint Violation Bound 的完整证明
+
+#### 9.2.1 先把平均曲线误差转成总成本误差
+
+由：
+
+$$
+\begin{aligned}
+\widehat{\mathcal C}_{t:T}-\mathcal C_{t:T}
+=&\widehat I_{t:T}
+\left(
+\widehat{\bar C}_{t:T}-\bar C_{t:T}
+\right)\\
+&+\left(
+\widehat I_{t:T}-I_{t:T}
+\right)\bar C_{t:T},
+\end{aligned}
+$$
+
+并使用 $\widehat I_{t:T}\le I_{t:T}+\epsilon_I$，得到公式（28）。
+
+#### 9.2.2 Step 1：函数误差如何变成根误差
+
+预测控制器和 oracle 共享同一个真实剩余预算 $B_t$：
+
+$$
+\widehat{\mathcal C}_{t:T}(\widehat\alpha_B)=B_t,
+\qquad
+\mathcal C_{t:T}(\alpha_B^*)=B_t.
+$$
 
 因此：
 
-1. **GAVE** 可以说模型输出 multiplier 或 bid coefficient，但不是逐曝光直接输出 bid；它每个窗口输出一个 $\lambda_t$。
-2. **GRM** 不能准确地说 Transformer 直接输出 multiplier。Transformer 输出的是“不同 $\alpha$ 下未来会花多少、获得多少价值”的曲线；预算/CPA controller 再据此求出 $\alpha_t$。
-3. **AIGB** 更不能说扩散模型直接输出 bid 或 multiplier。扩散模型停在状态计划；inverse dynamics 输出时段级参数动作，解析竞价公式才形成曝光级 bid。参数动作中可以包含 multiplier，也可能包含多个 bidding parameters。
-
-例如一个窗口最终得到 $\lambda_t=1.2$，两条曝光的基础价值为 $v_1=10$、$v_2=3$，则：
-
 $$
-b_1=1.2\times10=12,
-\qquad
-b_2=1.2\times3=3.6.
+\mathcal C_{t:T}(\widehat\alpha_B)-B_t
+\le\epsilon_t.
 $$
 
-同一个 multiplier 控制整体出价强度，但每条曝光仍会因为自己的价值不同而得到不同 bid。可以概括为：**这些方法通常在时段级输出或求得 bid multiplier/参数；真正送入拍卖的是结合每条曝光价值计算出的曝光级 bid。**
+由中值定理和导数下界：
 
-## 10. Conclusion：论文贡献、价值与局限
+$$
+|\widehat\alpha_B-\alpha_B^*|
+\le
+\frac{\epsilon_t}{I_{t:T}\underline C'}.
+$$
 
-### 10.1 论文真正贡献
+#### 9.2.3 Step 2：根误差如何变成当前 tick 成本误差
 
-1. **学习目标重写**：从直接预测 action 改为预测 multiplier 到未来 cost/value 的 response。
-2. **约束显式化**：预算和 CPA 变成两个一维求根问题，而不是 reward penalty。
-3. **神经预测与解析控制解耦**：模型负责不确定环境预测，controller 负责业务可行性。
-4. **可解释的误差链路**：最终违规可以追溯到 traffic、cost curve 或 value curve 的预测误差。
-5. **长 horizon 的实验证据**：GRM 完整版本优于 GRM-short，说明 horizon-aggregate response 不是装饰设计。
+$$
+\begin{aligned}
+&\left|
+I_tC_t(\widehat\alpha_B)
+-I_tC_t(\alpha_B^*)
+\right|\\
+&\qquad\le
+I_tL_C|\widehat\alpha_B-\alpha_B^*|
+\le
+\rho\frac{I_t}{I_{t:T}}\epsilon_t,
+\end{aligned}
+$$
 
-### 10.2 局限与谨慎解读
+其中 $\rho=L_C/\underline C'$。
 
-- **这是仿真环境结果，不是线上广告平台 A/B 结果。**论文使用 AuctionNet P14–P20 评估，不能直接等价为线上 CPA 或 GMV 提升。
-- **反事实识别依赖日志覆盖。**日志只观察真实执行过的 multiplier，曲线外推依赖函数族和历史分布。
-- **single-multiplier 是结构限制。**未来 horizon 内如果不同 tick 的边际 value-per-cost 差异很大，单曲线方案会产生 structural gap。
-- **CPA 方程不总是单调。**论文报告约 98% anchor-tick prediction 单调，剩余非单调情况需要取第一个根，说明 controller 仍需要边界与异常处理。
-- **真实环境预测错仍会违规。**min-pacing 对预测曲线是精确的，但不能消除竞价环境突变、反馈延迟和预测偏差。
-- **系统依赖 multiplier 分解。**如果业务需要人群、地域、商品或时段级异质出价，一个全局 $\alpha_t$ 可能表达力不足。
+#### 9.2.4 Step 3：跨 tick 累加
 
+令当前 tick 成本偏差为 $\delta_t$，则：
 
-## 11. 总结
+$$
+\begin{aligned}
+\sum_{t=1}^{T}|\delta_t|
+\le\rho\Bigl(&
+I_{1:T}\epsilon_C
++\epsilon_I\bar C_{\max}H_I\\
+&+\epsilon_I\epsilon_CH_I
+\Bigr).
+\end{aligned}
+$$
 
-> GRM 的核心范式是：**response modeling + analytic constrained control + receding-horizon replanning**。它通过预测未来响应曲线来面对不确定环境，通过预算根和 CPA 根显式满足约束，并用每个 tick 的重新规划修正预测误差。论文在 AuctionNet 上以 33.88 的平均 score 超过最强 baseline 31.43，提升 7.8%；但这是一项仿真 benchmark 结果，不应直接表述为线上广告收益提升。
+#### 9.2.5 Step 4：滚动控制为什么能够自我修正
+
+由于实际动作 $\widehat\alpha_t\le\widehat\alpha_B$，且成本非负、单调：
+
+$$
+I_tC_t(\widehat\alpha_t)
+\le I_tC_t(\alpha_B^*)+|\delta_t|.
+$$
+
+又因为 oracle 剩余成本不超过当前真实剩余预算 $B_t=B-\mathrm{Cost}_{<t}$，过去若多花了钱，下一 tick 的 $B_t$ 会变小，controller 自动变得更保守。这个 telescoping 结构最终得到公式（29）。
+
+CPA 情况对 $\Psi_t=C_t-\tau V_t$ 重复 Step 1--3，得到公式（30）。由于 $\Psi_t$ 可以为正也可以为负，无法直接使用成本非负性的 telescoping，因此论文给出的 CPA 界是更保守的逐 tick 偏差累加界。
+
+## 10. Appendix B：实现与补充实验
+
+### 10.1 GRM Architecture and Hyperparameters
+
+<p align="center"><img src="./GRM Table 3 - Hyperparameters.png" alt="Table 3：GRM 网络和训练超参数" width="760" style="max-width: 100%; height: auto;"></p>
+
+> Table 3：causal Transformer 最长处理 $48$ 个 tick，decoder 为 hidden size $64$ 的 2 层 MLP，总参数量约 $850$K；controller 的 action range 为 $[0.01,300.0]$。
+
+网络输入由最多 $48$ 个 tick 的状态与历史 multiplier 组成。Transformer 为 2 层、4 个 head，hidden/FFN dimension 分别为 $128/512$；decoder 输出 $\log\widehat I_{t:T}$ 与两条曲线的 $6$ 个参数。$a^{(\cdot)}$、$b^{(\cdot)}$ 使用 softplus 保证正值，二分求根相对误差阈值为 $10^{-6}$。
+
+### 10.2 Per-Horizon-Phase Prediction Quality
+
+<p align="center"><img src="./GRM Table 4 - Horizon Prediction.png" alt="Table 4：不同剩余周期阶段的预测质量" width="760" style="max-width: 100%; height: auto;"></p>
+
+> Table 4：越接近周期末尾，成本与价值曲线 MSE 越低；但剩余流量分母变小，因此 traffic MAPE 从 early 的 $2.7\%$ 升至 late 的 $7.4\%$。
+
+论文认为这一权衡会被滚动重规划部分吸收：晚期曲线更容易预测，流量相对误差虽上升，但可影响的剩余 tick 已经更少；理论上流量误差项按约 $O(\epsilon_I\log T)$ 累积。
+
+### 10.3 Sensitivity to Traffic-Loss Weight
+
+<p align="center"><img src="./GRM Table 5 - Traffic Loss Weight.png" alt="Table 5：流量损失权重敏感性" width="620" style="max-width: 100%; height: auto;"></p>
+
+> Table 5：默认 $\lambda_I=0.1$ 得分最高；减到 $0.05$ 的损失大于增到 $0.5$，说明剩余流量预测对固定总成本和总价值的绝对尺度很重要。
+
+这一结果也对应公式（20）至（21）：即使平均响应曲线正确，$\widehat I_{t:T}$ 明显偏差仍会使预测总成本和总价值整体缩放错误，进而移动预算根与 CPA 根。
