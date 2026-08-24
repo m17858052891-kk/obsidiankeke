@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 任务类型: py_spark
-# desc: 首次自动初始化并按 T-1 日期类型更新原策略 buffer
+# desc: 首次自动初始化并按生效日 T 的日期类型更新原策略 buffer
 # 阅读入口：搜索 calculate_new_buffer，可直接定位自动 buffer 核心计算公式。
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
@@ -200,18 +200,32 @@ OUTPUT_TABLE = (
 )
 ABSOLUTE_BUFFER_UPPER = 2.99
 
-# 目标率取发布/生效日 T，实际率取观察日 T-1。
-# 目标率任务的物理分区 P 读取规划源 P+1，因此目标表 dt=STAT_DT
-# 保存的正是 T=STAT_DT+1 的目标率，不需要再做日期偏移。
-TARGET_PARTITION_DT = STAT_DT
+def resolve_date_type(date_text):
+    """周一至周四为 weekday，周五至周日为 weekend。"""
+    weekday = datetime.strptime(date_text, "%Y-%m-%d").weekday()
+    return "weekday" if weekday in (0, 1, 2, 3) else "weekend"
 
-# BIZ_DATE_LINE 表示公式观察日 T-1。周一至周四更新 weekday，
-# 周五至周日更新 weekend；另一类型分区保持不变。
-STATE_DATE_TYPE = (
-    "weekday"
-    if datetime.strptime(STAT_DT, "%Y-%m-%d").weekday() in (0, 1, 2, 3)
-    else "weekend"
-)
+
+def previous_date_in_same_type(date_text):
+    """返回同一 date_type 序列中的上一期，而不是简单的自然日减一天。"""
+    current_date = datetime.strptime(date_text, "%Y-%m-%d")
+    current_date_type = resolve_date_type(date_text)
+    previous_date = current_date - timedelta(days=1)
+    while resolve_date_type(previous_date.strftime("%Y-%m-%d")) != current_date_type:
+        previous_date -= timedelta(days=1)
+    return previous_date.strftime("%Y-%m-%d")
+
+
+# 目标表物理分区 STAT_DT 保存的是源规划 STAT_DT+1，因此：
+# - TARGET_BUSINESS_DT：同一 date_type 状态序列中的当前期 T；
+# - ACTUAL_RATE_DT：同一 date_type 状态序列中的上一期，不是固定自然日 T-1；
+# - old_buffer：当前 date_type 分区上一次成功更新后的状态。
+TARGET_PARTITION_DT = STAT_DT
+TARGET_BUSINESS_DT = (
+    datetime.strptime(STAT_DT, "%Y-%m-%d") + timedelta(days=1)
+).strftime("%Y-%m-%d")
+STATE_DATE_TYPE = resolve_date_type(TARGET_BUSINESS_DT)
+ACTUAL_RATE_DT = previous_date_in_same_type(TARGET_BUSINESS_DT)
 
 
 spark.sql(
@@ -429,7 +443,8 @@ def calculate_new_buffer(joined_df):
 
 def build_output_df():
     # 1. 当前 buffer 表同时维护 weekday/weekend 两套状态。每日只读取
-    #    stat_dt 对应分区；stg_group 的业务语义就是 LambdaGroup。
+    #    生效日 T 对应的 date_type 分区；其中的 union_buffer 是该类型
+    #    上一次成功更新后的状态。stg_group 的业务语义就是 LambdaGroup。
     current_buffer_df = (
         spark.table(CURRENT_BUFFER_TABLE)
         .filter(F.col("date_type") == STATE_DATE_TYPE)
@@ -453,11 +468,12 @@ def build_output_df():
             F.col("total_subsidy_rate").cast("double").alias("target_rate"),
         )
     )
-    # 3. 实际率上游按运筹平台实验组—LambdaGroup 映射完成归因。
+    # 3. 实际率取同一 date_type 序列的上一期 ACTUAL_RATE_DT，不是固定
+    #    自然日 T-1。上游按运筹平台实验组—LambdaGroup 映射完成归因。
     #    要求字段：city_id, lambda_group, actual_rate, dt。
     actual_df = (
         spark.table(ACTUAL_RATE_TABLE)
-        .filter(F.col("dt") == STAT_DT)
+        .filter(F.col("dt") == ACTUAL_RATE_DT)
         .select(
             "city_id",
             "lambda_group",
@@ -533,7 +549,12 @@ if run_mode == "compute_new_daily_snapshot":
 # target/actual/old buffer、adjust_status 和截断原因未来应另行落审计表，
 # 不在当前任务中计算后丢弃，也不塞入 extra_data 改变下游契约。
 print(
-    "baseline auto buffer updated: stat_dt={}, state_date_type={}, mode={}".format(
-        STAT_DT, STATE_DATE_TYPE, run_mode
+    "baseline auto buffer updated: stat_dt={}, target_business_dt={}, "
+    "actual_rate_dt={}, state_date_type={}, mode={}".format(
+        STAT_DT,
+        TARGET_BUSINESS_DT,
+        ACTUAL_RATE_DT,
+        STATE_DATE_TYPE,
+        run_mode,
     )
 )
