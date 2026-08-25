@@ -16,9 +16,6 @@ from pyspark.sql.types import (
 )
 
 
-CURRENT_BUFFER_TABLE = (
-    "kflower_strategy.platform_union_strategy_budget_buffer_source_config"
-)
 OBJECT_GROUP = "max_order_v1"
 DEFAULT_BUFFER = 1.0
 
@@ -192,9 +189,10 @@ def resolve_city_scope(date_type, city_scope):
 
 
 STAT_DT = "${BIZ_DATE_LINE}"
-ACTUAL_RATE_TABLE = "${ACTUAL_RATE_TABLE}"  # 口径对齐后的实际率明细表
 
 TARGET_TABLE = "kflower_strategy.platform_price_anchor_union_strategy_budget_dict"
+ACTUAL_RATE_TABLE = "kflower_strategy.pltf_union_stg_budget_control_dashboard"
+TRAFFIC_SWITCH_TABLE = "kflower_strategy.pltf_union_stg_exp_evaluation_pas_tag"
 OUTPUT_TABLE = (
     "kflower_strategy.platform_union_strategy_budget_buffer_auto_baseline_by_city_object_stg"
 )
@@ -219,34 +217,24 @@ def previous_date_in_same_type(date_text):
 # 目标表物理分区 STAT_DT 保存的是源规划 STAT_DT+1，因此：
 # - TARGET_BUSINESS_DT：同一 date_type 状态序列中的当前期 T；
 # - ACTUAL_RATE_DT：同一 date_type 状态序列中的上一期，不是固定自然日 T-1；
-# - old_buffer：当前 date_type 分区上一次成功更新后的状态。
+# - PREVIOUS_BUFFER_DT：同一 date_type 上一期结果所在的 baseline 物理分区。
 TARGET_PARTITION_DT = STAT_DT
 TARGET_BUSINESS_DT = (
     datetime.strptime(STAT_DT, "%Y-%m-%d") + timedelta(days=1)
 ).strftime("%Y-%m-%d")
 STATE_DATE_TYPE = resolve_date_type(TARGET_BUSINESS_DT)
 ACTUAL_RATE_DT = previous_date_in_same_type(TARGET_BUSINESS_DT)
+PREVIOUS_BUFFER_DT = (
+    datetime.strptime(ACTUAL_RATE_DT, "%Y-%m-%d") - timedelta(days=1)
+).strftime("%Y-%m-%d")
+# 切流判断使用实际率观测日及其自然日前一天。同一 pid 在该
+# 窗口内命中多个 exp_group，表示实验组归属发生了切流。
+TRAFFIC_SWITCH_BEGIN_DT = PREVIOUS_BUFFER_DT
+TRAFFIC_SWITCH_END_DT = ACTUAL_RATE_DT
 
 
-spark.sql(
-    """
-    CREATE TABLE IF NOT EXISTS {table_name}
-    (
-        city_id BIGINT COMMENT '城市ID',
-        object_group STRING COMMENT '优化目标',
-        stg_group STRING COMMENT 'lambda分组，业务语义等于LambdaGroup',
-        union_buffer DOUBLE COMMENT '当前使用的buffer',
-        extra_data STRING COMMENT '扩展字段'
-    )
-    PARTITIONED BY
-    (
-        date_type STRING COMMENT 'weekday/weekend'
-    )
-    TBLPROPERTIES ('TTL' = '730')
-    """.format(table_name=CURRENT_BUFFER_TABLE)
-)
-
-# baseline 始终保留现有 dt 分区契约。
+# 本任务只创建和写入这一张 baseline 表；后续运行从它的同类型上一期
+# dt 分区读取 old_buffer，再把新结果写入本次 STAT_DT 分区。
 spark.sql(
     """
     CREATE TABLE IF NOT EXISTS {output_table}
@@ -264,151 +252,112 @@ spark.sql(
     TBLPROPERTIES ('TTL' = '180')
     """.format(output_table=OUTPUT_TABLE)
 )
-# 只用一次聚合得到当前分区、全量历史和最大分区日期，供初始化与幂等共用。
-output_state = spark.table(OUTPUT_TABLE).agg(
+# dt 是物理分区；对应业务日为 dt+1。由业务日派生 date_type，判断当前
+# 类型是否已经初始化，以及严格的同类型上一期分区是否存在。
+output_history_df = spark.table(OUTPUT_TABLE)
+snapshot_date_type = F.when(
+    F.dayofweek(F.date_add(F.to_date(F.col("dt")), 1)).between(2, 5),
+    F.lit("weekday"),
+).otherwise(F.lit("weekend"))
+output_state = output_history_df.agg(
     F.sum(
         F.when(F.col("dt") == STAT_DT, F.lit(1)).otherwise(F.lit(0))
     ).alias("existing_output_count"),
-    F.count(F.lit(1)).alias("output_total_count"),
+    F.sum(
+        F.when(
+            (F.col("dt") < STAT_DT)
+            & (snapshot_date_type == F.lit(STATE_DATE_TYPE)),
+            F.lit(1),
+        ).otherwise(F.lit(0))
+    ).alias("same_type_history_count"),
+    F.sum(
+        F.when(F.col("dt") == PREVIOUS_BUFFER_DT, F.lit(1)).otherwise(F.lit(0))
+    ).alias("previous_buffer_count"),
     F.max("dt").alias("max_output_dt"),
 ).collect()[0]
 existing_output_count = output_state["existing_output_count"] or 0
-output_total_count = output_state["output_total_count"] or 0
+same_type_history_count = output_state["same_type_history_count"] or 0
+previous_buffer_count = output_state["previous_buffer_count"] or 0
 max_output_dt = output_state["max_output_dt"]
 later_output_exists = max_output_dt is not None and max_output_dt > STAT_DT
 
 if later_output_exists:
     raise ValueError(
-        "historical stat_dt={} cannot overwrite current buffer because max snapshot dt={}".format(
+        "historical stat_dt={} cannot be written after newer snapshot dt={}".format(
             STAT_DT, max_output_dt
         )
     )
 
 
-def build_initial_buffer_df():
+def build_initial_old_buffer_df(date_type):
+    """某个 date_type 第一次运行时，以 1.0 作为该类型唯一一次初值。"""
     rows = []
-    row_counts = {"weekday": 0, "weekend": 0}
-    for date_type in ("weekday", "weekend"):
-        for stg_group, city_scope in STG_GROUP_TO_CITY_SCOPE.items():
-            for city_id in sorted(resolve_city_scope(date_type, city_scope)):
-                rows.append(
-                    (
-                        int(city_id),
-                        OBJECT_GROUP,
-                        stg_group,
-                        date_type,
-                        DEFAULT_BUFFER,
-                        "",
-                    )
+    for stg_group, city_scope in STG_GROUP_TO_CITY_SCOPE.items():
+        for city_id in sorted(resolve_city_scope(date_type, city_scope)):
+            rows.append(
+                (
+                    int(city_id),
+                    OBJECT_GROUP,
+                    stg_group,
+                    DEFAULT_BUFFER,
+                    "",
                 )
-                row_counts[date_type] += 1
+            )
 
-    init_df = spark.createDataFrame(
+    return spark.createDataFrame(
         rows,
         StructType(
             [
                 StructField("city_id", LongType(), False),
                 StructField("object_group", StringType(), False),
                 StructField("stg_group", StringType(), False),
-                StructField("date_type", StringType(), False),
-                StructField("union_buffer", DoubleType(), False),
+                StructField("old_buffer", DoubleType(), False),
                 StructField("extra_data", StringType(), False),
             ]
         ),
     )
 
-    return init_df, row_counts
 
+def load_old_buffer_df():
+    """读取严格的同类型上一期；只有该类型从未出现过时才使用 1.0。"""
+    if same_type_history_count == 0:
+        return build_initial_old_buffer_df(STATE_DATE_TYPE), "initialize_date_type"
 
-def initialize_current_buffer_once(output_history_exists):
-    partition_counts = {
-        row["date_type"]: row["count"]
-        for row in spark.table(CURRENT_BUFFER_TABLE)
-        .groupBy("date_type")
-        .count()
-        .collect()
-    }
-    unexpected_date_types = set(partition_counts) - {"weekday", "weekend"}
-    if unexpected_date_types:
+    if previous_buffer_count == 0:
         raise ValueError(
-            "unexpected current buffer date_type: {}".format(
-                sorted(unexpected_date_types)
+            "missing previous same-type buffer partition: stat_dt={}, "
+            "state_date_type={}, expected_previous_dt={}".format(
+                STAT_DT, STATE_DATE_TYPE, PREVIOUS_BUFFER_DT
             )
         )
 
-    weekday_count = partition_counts.get("weekday", 0)
-    weekend_count = partition_counts.get("weekend", 0)
-    if weekday_count and weekend_count:
-        print(
-            "current buffer already initialized; skip initialization: counts={}".format(
-                partition_counts
-            )
-        )
-        return False
-
-    if weekday_count or weekend_count:
-        raise ValueError(
-            "partial current buffer state; refuse automatic initialization: counts={}".format(
-                partition_counts
-            )
-        )
-
-    if output_history_exists:
-        raise ValueError(
-            "current buffer is empty but baseline history exists; refuse reset to 1.0"
-        )
-
-    init_df, row_counts = build_initial_buffer_df()
-    for date_type in ("weekday", "weekend"):
-        (
-            init_df.filter(F.col("date_type") == date_type)
-            .select(
-                "city_id",
-                "object_group",
-                "stg_group",
-                "union_buffer",
-                "extra_data",
-            )
-            .createOrReplaceTempView("current_buffer_init_tmp")
-        )
-        spark.sql(
-            """
-            INSERT OVERWRITE TABLE {table_name}
-            PARTITION (date_type='{date_type}')
-            SELECT
-                city_id,
-                object_group,
-                stg_group,
-                union_buffer,
-                extra_data
-            FROM current_buffer_init_tmp
-            """.format(
-                table_name=CURRENT_BUFFER_TABLE,
-                date_type=date_type,
-            )
-        )
-
-    print(
-        "current buffer initialized once: table={}, counts={}, default_buffer={}".format(
-            CURRENT_BUFFER_TABLE,
-            row_counts,
-            DEFAULT_BUFFER,
+    old_buffer_df = (
+        spark.table(OUTPUT_TABLE)
+        .filter(F.col("dt") == PREVIOUS_BUFFER_DT)
+        .select(
+            "city_id",
+            "object_group",
+            "stg_group",
+            F.col("union_buffer").cast("double").alias("old_buffer"),
+            "extra_data",
         )
     )
-    return True
-
-
-initialize_current_buffer_once(output_total_count > 0)
+    return old_buffer_df, "read_previous_same_type_partition"
 
 
 def calculate_new_buffer(joined_df):
     """计算本次要写入 baseline 的新 buffer；这是自动调整的核心公式。"""
 
-    # 只有目标率非负且实际率为正时才计算。
+    # 切流判断的优先级高于 buffer 调整公式。只有没有切流、
+    # 目标率非负且实际率为正时才计算。
     # target_rate=0 会严格按公式得到 0；缺数、负目标率、实际率非正或
     # 数据异常时保留 old_buffer，避免除零或异常数据放大结果。
+    has_exp_traffic_switch = (
+        F.coalesce(F.col("has_exp_traffic_switch"), F.lit(0)) == F.lit(1)
+    )
     can_adjust = (
-        F.col("target_rate").isNotNull()
+        (~has_exp_traffic_switch)
+        & F.col("target_rate").isNotNull()
         & (F.col("target_rate") >= 0.0)
         & F.col("actual_rate").isNotNull()
         & (F.col("actual_rate") > 0.0)
@@ -431,9 +380,9 @@ def calculate_new_buffer(joined_df):
             F.col("old_buffer") * F.col("raw_factor"),
         )
         .withColumn(
-            # union_buffer 就是最终落 baseline、并回写当前状态表的新 buffer。
+            # union_buffer 就是最终写入本次 baseline dt 分区的新 buffer。
             "union_buffer",
-            F.when(
+            F.when(has_exp_traffic_switch, F.col("old_buffer")).when(
                 can_adjust,
                 F.least(F.lit(ABSOLUTE_BUFFER_UPPER), F.col("calculated_buffer")),
             ).otherwise(F.col("old_buffer")),
@@ -441,23 +390,9 @@ def calculate_new_buffer(joined_df):
     )
 
 
-def build_output_df():
-    # 1. 当前 buffer 表同时维护 weekday/weekend 两套状态。每日只读取
-    #    生效日 T 对应的 date_type 分区；其中的 union_buffer 是该类型
-    #    上一次成功更新后的状态。stg_group 的业务语义就是 LambdaGroup。
-    current_buffer_df = (
-        spark.table(CURRENT_BUFFER_TABLE)
-        .filter(F.col("date_type") == STATE_DATE_TYPE)
-        .select(
-            "city_id",
-            "object_group",
-            "stg_group",
-            "date_type",
-            F.col("stg_group").alias("lambda_group"),
-            F.col("union_buffer").cast("double").alias("old_buffer"),
-            "extra_data",
-        )
-    )
+def build_output_df(old_buffer_df):
+    # 1. old_buffer_df 来自 baseline 同日期类型上一期分区；该类型首次运行
+    #    时才由初始化键集合提供 1.0。stg_group 的业务语义就是 LambdaGroup。
     # 2. 目标补贴率取 T 日。目标表 dt=STAT_DT 的内容对应 T=STAT_DT+1，
     #    再与当前 buffer 键关联，展开到该城市全部 LambdaGroup。
     target_df = (
@@ -468,55 +403,98 @@ def build_output_df():
             F.col("total_subsidy_rate").cast("double").alias("target_rate"),
         )
     )
-    # 3. 实际率取同一 date_type 序列的上一期 ACTUAL_RATE_DT，不是固定
-    #    自然日 T-1。上游按运筹平台实验组—LambdaGroup 映射完成归因。
-    #    要求字段：city_id, lambda_group, actual_rate, dt。
-    actual_df = (
+    # 3. 实际率直接读取实花看板的 act_subsidy_rate，不在本任务内重算。
+    #    上游口径为：
+    #        act_subsidy_rate = round((cost + delay_cost) / gmv_amt * 100, 2)
+    #    看板同时包含全国、城市汇总和实验明细行，这里只保留
+    #    city_id + lambda_group 粒度的实验明细行。看板 city_id 是 string，
+    #    需转成 bigint；lambda_group 的业务语义等于 baseline.stg_group。
+    actual_detail_df = (
         spark.table(ACTUAL_RATE_TABLE)
         .filter(F.col("dt") == ACTUAL_RATE_DT)
+        .filter(~F.col("city_id").isin("all", "all2"))
+        .filter(F.col("exp_group") != "all")
+        .filter(~F.col("lambda_group").isin("all", "未分组"))
         .select(
-            "city_id",
-            "lambda_group",
-            F.col("actual_rate").cast("double").alias("actual_rate"),
+            F.col("city_id").cast("bigint").alias("city_id"),
+            F.col("exp_group"),
+            F.col("lambda_group").alias("stg_group"),
+            F.col("act_subsidy_rate").cast("double").alias("actual_rate"),
         )
     )
-    actual_keys = ["city_id", "lambda_group"]
-
-    joined_df = (
-        current_buffer_df.alias("c")
-        .join(target_df.alias("t"), ["city_id"], "left")
-        .join(actual_df.alias("a"), actual_keys, "left")
-        .persist()
+    actual_df = actual_detail_df.select(
+        "city_id", "stg_group", "actual_rate"
     )
 
-    # 4. 调用核心公式，得到本次新的 union_buffer。
+    # 4. 切流判断：在 begin~end 窗口内，如果同一 pid 命中过多个
+    #    exp_group，则将该 pid 命中的城市—实验组标记为切流。
+    #    再通过实花看板当日的 exp_group—lambda_group 关系，转换为
+    #    buffer 任务需要的 city_id + stg_group 粒度。
+    pas_info_raw_df = (
+        spark.table(TRAFFIC_SWITCH_TABLE)
+        .filter(
+            F.col("dt").between(
+                TRAFFIC_SWITCH_BEGIN_DT, TRAFFIC_SWITCH_END_DT
+            )
+        )
+        .select(
+            F.col("pid").cast("string").alias("pid"),
+            F.col("exp_group"),
+            F.col("city_id").cast("bigint").alias("city_id"),
+        )
+        .filter(
+            F.col("pid").isNotNull()
+            & F.col("exp_group").isNotNull()
+            & F.col("city_id").isNotNull()
+        )
+        .distinct()
+    )
+    switched_pid_df = (
+        pas_info_raw_df.groupBy("pid")
+        .agg(F.countDistinct("exp_group").alias("pid_exp_group_count"))
+        .filter(F.col("pid_exp_group_count") > 1)
+        .select("pid")
+    )
+    switched_city_exp_df = (
+        pas_info_raw_df.join(switched_pid_df, ["pid"], "inner")
+        .select("city_id", "exp_group")
+        .distinct()
+    )
+    traffic_switch_df = (
+        actual_detail_df.select("city_id", "exp_group", "stg_group")
+        .join(switched_city_exp_df, ["city_id", "exp_group"], "inner")
+        .select("city_id", "stg_group")
+        .distinct()
+        .withColumn("has_exp_traffic_switch", F.lit(1))
+    )
+
+    joined_df = (
+        old_buffer_df
+        .join(target_df, ["city_id"], "left")
+        .join(actual_df, ["city_id", "stg_group"], "left")
+        .join(traffic_switch_df, ["city_id", "stg_group"], "left")
+    )
+
+    # 5. 切流键优先保留 old_buffer；非切流键才调用核心公式。
     result_df = calculate_new_buffer(joined_df)
 
-    output_df = result_df.select(
+    return result_df.select(
         "city_id",
         "object_group",
         "stg_group",
         F.col("union_buffer").cast("double"),
         F.coalesce(F.col("extra_data"), F.lit("")).alias("extra_data"),
-    ).persist()
-    joined_df.unpersist()
-    return output_df
+    )
 
 
-# baseline 的 dt 分区是日级结果，也是幂等日志。若分区已经存在，说明该日
-# 已经计算过：直接复用它同步当前状态，避免重跑时再次乘调整系数。
-existing_output_df = (
-    spark.table(OUTPUT_TABLE)
-    .filter(F.col("dt") == STAT_DT)
-    .select("city_id", "object_group", "stg_group", "union_buffer", "extra_data")
-)
-
+# baseline 的 dt 分区既是结果也是状态历史。当前分区已存在时不再重复计算。
 if existing_output_count:
-    output_df = existing_output_df
     run_mode = "reuse_existing_daily_snapshot"
+    state_source = "current_partition_already_exists"
 else:
-    # 首次执行该 stat_dt：计算新 buffer，并保存为 baseline 的 dt 日快照。
-    output_df = build_output_df()
+    # 读取同类型上一期作为 old_buffer；该类型第一次出现时仅初始化一次 1.0。
+    old_buffer_df, state_source = load_old_buffer_df()
+    output_df = build_output_df(old_buffer_df)
     output_df.createOrReplaceTempView("auto_buffer_result_tmp")
     spark.sql(
         """
@@ -527,34 +505,18 @@ else:
     )
     run_mode = "compute_new_daily_snapshot"
 
-# baseline 快照成功后，再把同一份新 buffer 回写当前状态表。
-# 这里只覆盖本次 STATE_DATE_TYPE；另一个 date_type 完全不动，因此
-# weekday/weekend 两套 buffer 可分别连续演进。
-output_df.createOrReplaceTempView("current_buffer_state_tmp")
-spark.sql(
-    """
-    INSERT OVERWRITE TABLE {current_buffer_table}
-    PARTITION (date_type='{state_date_type}')
-    SELECT city_id, object_group, stg_group, union_buffer, extra_data
-    FROM current_buffer_state_tmp
-    """.format(
-        current_buffer_table=CURRENT_BUFFER_TABLE,
-        state_date_type=STATE_DATE_TYPE,
-    )
-)
-
-if run_mode == "compute_new_daily_snapshot":
-    output_df.unpersist()
-
-# target/actual/old buffer、adjust_status 和截断原因未来应另行落审计表，
-# 不在当前任务中计算后丢弃，也不塞入 extra_data 改变下游契约。
 print(
     "baseline auto buffer updated: stat_dt={}, target_business_dt={}, "
-    "actual_rate_dt={}, state_date_type={}, mode={}".format(
+    "actual_rate_dt={}, previous_buffer_dt={}, state_date_type={}, "
+    "traffic_switch_window={}~{}, state_source={}, mode={}".format(
         STAT_DT,
         TARGET_BUSINESS_DT,
         ACTUAL_RATE_DT,
+        PREVIOUS_BUFFER_DT,
         STATE_DATE_TYPE,
+        TRAFFIC_SWITCH_BEGIN_DT,
+        TRAFFIC_SWITCH_END_DT,
+        state_source,
         run_mode,
     )
 )

@@ -26,18 +26,18 @@ city_id + LambdaGroup/stg_group + date_type
 ## 文件和执行顺序
 
 1. `auto_buffer_job.py`
-   - 首次初始化和每日状态更新已合并为一个任务。
-   - 仅当当前 buffer 表完全为空且 baseline 没有任何历史分区时，使用两套日期城市全集、5 类城市范围规则和 9 条 `stg_group → city_scope` 映射，展开 weekday 2070、weekend 1997 个有效键，初始 `union_buffer=1.0`；当前表为空但 baseline 已有历史时阻断，避免误重置。
-   - weekday/weekend 两个分区都已存在时跳过初始化；仅存在一个分区时直接阻断，避免残缺状态被静默补齐。
+   - 只创建并写入 baseline 一张表，不再创建额外的当前状态表、规则表或审计表。
+   - 每个 `date_type` 第一次出现时，使用日期城市全集、5 类城市范围规则和 9 条 `stg_group → city_scope` 映射生成该类型键集合，并以 `old_buffer=1.0` 完成唯一一次初始化。
    - 不创建实验组映射表；实验组到 LambdaGroup 的映射属于运筹平台。
    - `TARGET_BUSINESS_DT=STAT_DT+1` 是本次生效日 T；按 T 的日期类型得到唯一 `state_date_type`，每日只执行一次通用计算链路。
    - 不在同一 `dt` 同时计算两套状态，也不对两个非空分支执行 `UNION ALL`。
-   - 直接读取当前 buffer 表对应 `date_type` 分区的 `union_buffer` 作为本类型上一期 `old_buffer`，不查询 baseline 历史值，也没有冷启动回退。
+   - 后续直接读取 baseline 中同 `date_type` 上一期的 `dt` 分区，将其 `union_buffer` 作为 `old_buffer`；若该类型已有历史但严格上一期缺失，任务阻断，不回退到 1.0。
    - 实际率读取同一 `date_type` 序列中 T 的上一期：周一回看上周四，周五回看上周日，其余日期回看自然日前一天。
-   - 严格执行 `union_buffer = min(2.99, old_buffer × target_rate / actual_rate)`；不设置 buffer 下限或单日调整比例上下限，也不依赖规则配置表。
-   - 先写 baseline 自动结果表 `dt=STAT_DT`，再覆盖当前 buffer 表的本次 `date_type` 分区；另一分区保持不变。baseline 只保留 `dt` 分区，不增加 `date_type`。
-   - baseline 的日分区同时作为幂等日志：重跑发现该分区已存在时复用结果，仅重新同步当前 buffer，避免重复调整。
-   - 若已存在晚于 `STAT_DT` 的快照，任务阻断该历史日期回写，防止补数把当前状态倒退；历史回放应使用独立影子表。
+   - 最新目标口径：目标率为城市粒度；实际率从 `kflower_strategy.pltf_union_stg_budget_control_dashboard.act_subsidy_rate` 读取，粒度为 `city_id + LambdaGroup`。
+   - 若实际观测日有实验切流，受影响的 `city_id + LambdaGroup` 不调整，直接复制 `old_buffer`；非切流键执行 `union_buffer = min(2.99, old_buffer × target_rate / actual_rate)`。
+   - 新结果只写 baseline 的 `dt=STAT_DT` 分区；`date_type` 由业务日 `T=dt+1` 派生，不增加表字段或分区。
+   - baseline 的日分区同时是状态历史和幂等结果：重跑发现当前分区已存在时直接跳过，避免重复调整。
+   - 若已存在晚于 `STAT_DT` 的快照，任务阻断旧日期补写；历史回放应使用独立影子表。
    - 当前按约定不在任务内执行表结构比对、业务键唯一性或输入输出行数一致性校验；代码假定上游表及建表 SQL 符合约定。
 
 2. `3.6-buffer-自动调整-TODO路线.md`
@@ -47,25 +47,34 @@ city_id + LambdaGroup/stg_group + date_type
 
 ```text
 BIZ_DATE_LINE     = baseline 物理分区 stat_dt；T=stat_dt+1
-ACTUAL_RATE_TABLE = 已归因完成的日级实际率明细表
 ```
 
-`ACTUAL_RATE_TABLE` 必须至少提供：
+最新目标输入口径：
 
 ```text
-dt
-city_id
-lambda_group
-actual_rate
+目标：kflower_strategy.platform_price_anchor_union_strategy_budget_dict
+      total_subsidy_rate
+
+实际：kflower_strategy.pltf_union_stg_budget_control_dashboard
+      字段 = act_subsidy_rate
+      粒度 = city_id + LambdaGroup
+      上游公式 = ROUND((cost + delay_cost) / gmv_amt * 100, 2)
+
+切流：kflower_strategy.pltf_union_stg_exp_evaluation_pas_tag
+      窗口 = previous_buffer_dt ~ actual_rate_dt
+      规则 = 同一 pid 的 count(distinct exp_group) > 1
+      输出 = city_id + LambdaGroup 粒度 has_exp_traffic_switch
 ```
 
-`actual_rate` 与 `target_rate` 都使用百分数值，例如 `3.0` 表示 `3%`。
+目标率按 `city_id` 展开，实际率和切流标记按 `city_id + stg_group/LambdaGroup` 关联。实际率单位最终必须与目标表一致。
+
+> `auto_buffer_job.py` 已读取实花看板的 `act_subsidy_rate`，按 `city_id + LambdaGroup` 关联，并实现切流键复制 `old_buffer`。正式运行前需将看板上游 CTE 修正为 `GROUP BY city_id, exp_group, lambda_group`，并对账切流日期窗口。
 
 ## 上线前仍需补齐
 
-- 实际补贴率上游根据运筹平台映射完成实验归因，并向本任务输出 `city_id + lambda_group`粒度。
 - 目标补贴率取生效日 T。目标表读取 `dt=BIZ_DATE_LINE`：该物理分区由源规划表
   `dt=BIZ_DATE_LINE+1` 生成，业务内容对应 T 日目标，因此不再单独传 `TARGET_DT`。
 - `actual_rate` 读取 T 所属 `date_type` 的上一期，不是固定读取自然日 `T-1`。
-- `actual_rate<=0` 时当前代码保持 `old_buffer` 以避免除零；`target_rate=0` 且实际率有效时按公式得到 `0`。
-- 最终发布任务应按 `publish_dt=stat_dt+1` 选择日期类型，并读取当前 buffer 表对应的 `date_type` 分区；不应与本状态更新任务混为一步。
+- 修正实际率上游的 LambdaGroup 聚合粒度，并确认缺失值、零值处理和分区就绪时间。
+- 对账确认切流窗口 `previous_buffer_dt~actual_rate_dt` 与线上 `${begin}~${end}` 口径一致。
+- 最终发布任务读取 baseline 当次 `dt=stat_dt` 分区；该分区对应 `publish_dt=stat_dt+1` 的新 buffer。发布仍与计算任务分开。
