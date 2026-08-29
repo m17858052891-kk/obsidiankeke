@@ -12,17 +12,17 @@ SET spark.sql.sources.partitionOverwriteMode = dynamic;
 WITH
 lambda_dict AS
 (
-    SELECT  city_id,
-            stg_group
+    SELECT  stg_group
     FROM    kflower_strategy.platform_union_stg_lambda_dict_manually_update
-    WHERE   city_id IS NOT NULL
-      AND   stg_group IS NOT NULL
+    WHERE   stg_group IS NOT NULL
 ),
 city_list AS
 (
     SELECT DISTINCT
             CAST(city_id AS BIGINT) AS city_id
-    FROM    lambda_dict
+    FROM    whole_dw.dim_city
+    WHERE   dt = '${BIZ_DATE_LINE}'
+      AND   city_id IS NOT NULL
 ),
 stg_group_list AS
 (

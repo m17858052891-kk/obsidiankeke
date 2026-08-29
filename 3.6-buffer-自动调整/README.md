@@ -36,7 +36,7 @@ kflower_strategy.platform_union_strategy_budget_buffer_auto_baseline_by_city_obj
 reset_previous_buffer_for_dry_run.py  # 独立计算并写入 dt=T
 ```
 
-该脚本与正式任务使用相同的目标率 `T`、实际率 `T^-d`、自然日 `T-1` 切流判断和计算公式，唯一差异是不会从 baseline 读取历史 `union_buffer`，而是在当天计算中直接令 `old_buffer=1.0`。这样每日输出都是一次独立调整，不会累计上一期空跑结果。
+该脚本与正式任务使用相同的目标率 `T^-d`、实际率 `T^-d`、自然日 `T-1` 切流判断和计算公式，唯一差异是不会从 baseline 读取历史 `union_buffer`，而是在当天计算中直接令 `old_buffer=1.0`。这样每日输出都是一次独立调整，不会累计上一期空跑结果。
 
 脚本只覆盖当天 `dt=T`，不会修改昨天或同日期类型上一期分区，因此各日空跑快照可以保留。同日重跑仍会覆盖同一个 `dt=T` 分区。正式上线后必须停止该脚本，改为调度 `auto_buffer_job.py`，恢复真实 buffer 的连续状态更新。
 
@@ -54,20 +54,26 @@ reset_auto_buffer_before_launch.sql
 2026-09-01 ～ 2026-09-07
 ```
 
-每个分区重新写入当前 `distinct city_id × distinct stg_group × max_order_v1` 键空间，`union_buffer=1.0`、`extra_data=''`。SQL 通过动态分区一次覆盖这七个分区，不会覆盖范围外的分区。覆盖完整一周可同时清理 weekday 和 weekend 两条状态链；同一上线日参数重复执行结果不变。
+每个分区重新写入 `dim_city.dt=上线日 T` 的 `distinct city_id × 人工字典表的 distinct stg_group × max_order_v1` 键空间，`union_buffer=1.0`、`extra_data=''`。SQL 通过动态分区一次覆盖这七个分区，不会覆盖范围外的分区。覆盖完整一周可同时清理 weekday 和 weekend 两条状态链；同一上线日参数重复执行结果不变。
 
 ## buffer 键空间
 
-从下表读取当前城市和 LambdaGroup 值域：
+城市全集读取：
 
 ```text
-kflower_strategy.platform_union_stg_lambda_dict_manually_update
+whole_dw.dim_city.dt=T
+```
+
+LambdaGroup 值域读取：
+
+```text
+kflower_strategy.platform_greedy_solver_lambda_dict
 ```
 
 生成方式：
 
 ```text
-distinct city_id × distinct stg_group
+dim_city 当天 distinct city_id × 人工字典 distinct stg_group
 ```
 
 `stg_group = LambdaGroup`；`object_group` 固定为 `max_order_v1`。不再维护 weekday/weekend 两套城市 include/exclude 配置。
@@ -76,8 +82,9 @@ distinct city_id × distinct stg_group
 
 ```text
 T                  = ${BIZ_DATE_LINE}
-target_rate_dt     = T
 previous_state_dt  = T 所属日期类型的上一期
+target_rate_dt     = previous_state_dt = T^-d
+actual_rate_dt     = previous_state_dt = T^-d
 traffic_switch_dt  = 自然日 T-1
 ```
 
@@ -101,14 +108,14 @@ traffic_switch_dt  = 自然日 T-1
 
 输入：
 
-- 目标率：`platform_price_anchor_union_strategy_budget_dict.dt=T`，城市粒度；
-- 实际率：`pltf_union_stg_budget_control_dashboard.dt=T^-d`，`city_id + LambdaGroup` 粒度；
+- 目标率：`platform_price_anchor_union_strategy_budget_dict.dt=T^-d`，城市粒度；
+- 实际率：读取 `pltf_union_stg_budget_control_dashboard.dt=T^-d` 的实验明细，按 `city_id + LambdaGroup` 汇总 `cost`、`delay_cost`、`gmv_amt`，再计算 `round((cost + delay_cost) / gmv_amt * 100, 2)`；正式任务与空跑任务使用同一逻辑；
 - 切流：`pltf_union_stg_exp_evaluation_pas_tag.dt=自然日 T-1`。
 
 任一条件成立时不调整：
 
 - 自然日 T-1 有 PID 命中多个实验组；
-- `target_rate` 缺失；
+- `target_rate` 缺失或小于等于 0；
 - `actual_rate` 缺失或等于 0。
 
 此时：

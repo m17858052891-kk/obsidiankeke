@@ -13,7 +13,8 @@ from pyspark.sql import functions as F
 # ============================================================================
 STAT_DT = "${BIZ_DATE_LINE}"
 
-LAMBDA_DICT_TABLE = "kflower_strategy.platform_union_stg_lambda_dict_manually_update"
+CITY_TABLE = "whole_dw.dim_city"
+LAMBDA_DICT_TABLE = "kflower_strategy.platform_greedy_solver_lambda_dict"
 TARGET_TABLE = "kflower_strategy.platform_price_anchor_union_strategy_budget_dict"
 ACTUAL_RATE_TABLE = "kflower_strategy.pltf_union_stg_budget_control_dashboard"
 TRAFFIC_SWITCH_TABLE = "kflower_strategy.pltf_union_stg_exp_evaluation_pas_tag"
@@ -44,8 +45,9 @@ def previous_date_in_same_type(date_text):
 
 
 STATE_DATE_TYPE = resolve_date_type(STAT_DT)
-# old_buffer 和实际率均读取 T 所属日期类型的上一期 T^-d。
+# old_buffer、目标率和实际率均读取 T 所属日期类型的上一期 T^-d。
 PREVIOUS_STATE_DT = previous_date_in_same_type(STAT_DT)
+TARGET_RATE_DT = PREVIOUS_STATE_DT
 # 切流只检查自然日 T-1，与 T^-d 独立。
 TRAFFIC_SWITCH_DT = (
     datetime.strptime(STAT_DT, "%Y-%m-%d") - timedelta(days=1)
@@ -56,12 +58,14 @@ TRAFFIC_SWITCH_DT = (
 # 02 生成本次需要维护的 buffer 键空间
 #
 # 粒度：city_id + object_group + stg_group，其中 stg_group = LambdaGroup。
-# 城市全集 × distinct stg_group 直接做笛卡尔积。
+# 城市全集取 dim_city 当天分区，LambdaGroup 全集取人工字典表。
+# 两者直接做笛卡尔积。
 # ============================================================================
 lambda_dict_df = spark.table(LAMBDA_DICT_TABLE)
 
 city_df = (
-    lambda_dict_df
+    spark.table(CITY_TABLE)
+    .filter(F.col("dt") == STAT_DT)
     .filter(F.col("city_id").isNotNull())
     .select(F.col("city_id").cast("bigint").alias("city_id"))
     .distinct()
@@ -124,31 +128,54 @@ old_buffer_df = (
 
 
 # ============================================================================
-# 04 读取目标率 T、实际率 T^-d 和自然日 T-1 切流标记
+# 04 读取目标率 T^-d、实际率 T^-d 和自然日 T-1 切流标记
 # ============================================================================
-# 目标率是城市粒度，会按 city_id 展开到该城市的全部 LambdaGroup。
+# 目标率是城市粒度，与实际率一起读取同日期类型上一期 T^-d，
+# 再按 city_id 展开到该城市的全部 LambdaGroup。
 target_df = (
     spark.table(TARGET_TABLE)
-    .filter(F.col("dt") == STAT_DT)
+    .filter(F.col("dt") == TARGET_RATE_DT)
     .select(
         "city_id",
         F.col("total_subsidy_rate").alias("target_rate"),
     )
 )
 
-# 实际率是 city_id + LambdaGroup 粒度，按 city_id + stg_group 关联。
+# 看板原始明细包含 exp_group 维度。先按 city_id + LambdaGroup 汇总
+# cost、delay_cost 和 gmv_amt，再计算实际率，保证关联键唯一。
 actual_df = (
     spark.table(ACTUAL_RATE_TABLE)
     .filter(
         (F.col("dt") == PREVIOUS_STATE_DT)
         & (~F.col("city_id").isin("all", "all2"))
-        & (F.col("exp_group") != "all")
+        & F.col("lambda_group").isNotNull()
         & (~F.col("lambda_group").isin("all", "未分组"))
     )
-    .select(
+    .groupBy(
         F.col("city_id").cast("bigint").alias("city_id"),
         F.col("lambda_group").alias("stg_group"),
-        F.col("act_subsidy_rate").alias("actual_rate"),
+    )
+    .agg(
+        F.sum(F.coalesce(F.col("cost"), F.lit(0.0))).alias("cost"),
+        F.sum(F.coalesce(F.col("delay_cost"), F.lit(0.0))).alias(
+            "delay_cost"
+        ),
+        F.sum(F.coalesce(F.col("gmv_amt"), F.lit(0.0))).alias("gmv_amt"),
+    )
+    .select(
+        "city_id",
+        "stg_group",
+        F.when(
+            F.col("gmv_amt") > 0,
+            F.round(
+                (F.col("cost") + F.col("delay_cost"))
+                / F.col("gmv_amt")
+                * 100,
+                2,
+            ),
+        )
+        .otherwise(F.lit(0.0))
+        .alias("actual_rate"),
     )
 )
 
@@ -181,7 +208,7 @@ traffic_switch_flag_df = pid_exp_group_range_df.agg(
 # ============================================================================
 # 05 计算新 buffer
 #
-# 不调整：自然日 T-1 切流，或目标率缺失，或实际率缺失/为 0。
+# 不调整：自然日 T-1 切流，或目标率缺失/小于等于 0，或实际率缺失/为 0。
 # 正常调整：min(2.99, old_buffer * target_rate / actual_rate)。
 # ============================================================================
 calculated_buffer = (
@@ -191,8 +218,9 @@ calculated_buffer = (
 keep_old_buffer = (
     (F.col("has_exp_traffic_switch") == 1)
     | F.col("target_rate").isNull()
+    | (F.col("target_rate") <= 0)
     | F.col("actual_rate").isNull()
-    | (F.col("actual_rate") == 0)
+    | (F.col("actual_rate") <= 0)
 )
 
 output_df = (
@@ -236,9 +264,10 @@ spark.sql(
 
 print(
     "baseline auto buffer updated: stat_dt={}, date_type={}, "
-    "previous_state_dt={}, traffic_switch_dt={}".format(
+    "target_rate_dt={}, actual_rate_dt={}, traffic_switch_dt={}".format(
         STAT_DT,
         STATE_DATE_TYPE,
+        TARGET_RATE_DT,
         PREVIOUS_STATE_DT,
         TRAFFIC_SWITCH_DT,
     )
