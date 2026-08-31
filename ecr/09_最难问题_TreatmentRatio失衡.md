@@ -12,17 +12,17 @@
 
 ## 2. 采取过的尝试与取舍
 
-| 尝试 | 出发点 | 观察到的结论 | 为什么不单独采用 |
-| --- | --- | --- | --- |
-| Factual CFR baseline | 建立稳定响应锚点 | ratio 相对可控，但 Call MTAUCC 较低（记录约 0.59046） | 没有直接优化 uplift 排序 |
-| Pairwise alone | 用局部可比顺序改善 AUCC | 有小幅提升（CFR 记录约 0.60117） | 有效 pair 稀疏、匹配噪声大，梯度不足 |
-| 强 PU-Corr / IPW Corr | 用稠密全局排序直接冲 AUCC | AUCC 上升最强；强 IPW Corr 记录可达约 1.01302 | ratio 风险最大，无法作为稳健主线 |
-| 清理极端 PID | 降低异常重复曝光污染 | 清理后强 rank 仍可提升 | 清洗本身不等于排序优化，且不能替代结构约束 |
-| user-day 频次降权 | 抑制高频用户支配训练 | 部分风险被压制 | 真实高价值信号也被一刀切压掉，Random/主指标受损 |
-| 仅做 score calibration | 处理档位尺度和长尾 | zscore+tanh 对 AUCC 有帮助 | 强 rank 的 assignment artifact 仍在 |
-| Stage 2 hard-freeze | 防 rank 污染 shared bottom | ratio 更稳 | 只动 head，AUCC 回升有限 |
-| 强 soft-unfreeze | 恢复排序自由度 | B2/C2 stronger 等方案可取得更高 AUCC | rank 风险回潮，不能只以主指标选型 |
-| 延长 H2 训练 | 检查是否仅是未收敛 | e8 的 Call MTAUCC 从约 0.65293 降至约 0.63490 | 训练更久不是瓶颈解法 |
+| 尝试                   | 出发点                     | 观察到的结论                                   | 为什么不单独采用                        |
+| -------------------- | ----------------------- | ---------------------------------------- | ------------------------------- |
+| Factual CFR baseline | 建立稳定响应锚点                | ratio 相对可控，但 Call MTAUCC 较低（记录约 0.59046） | 没有直接优化 uplift 排序                |
+| Pairwise alone       | 用局部可比顺序改善 AUCC          | 有小幅提升（CFR 记录约 0.60117）                   | 有效 pair 稀疏、匹配噪声大，梯度不足           |
+| 强 PU-Corr / IPW Corr | 用稠密全局排序直接冲 AUCC         | AUCC 上升最强；强 IPW Corr 记录可达约 1.01302       | ratio 风险最大，无法作为稳健主线             |
+| 清理极端 PID             | 降低异常重复曝光污染              | 清理后强 rank 仍可提升                           | 清洗本身不等于排序优化，且不能替代结构约束           |
+| user-day 频次降权        | 抑制高频用户支配训练              | 部分风险被压制                                  | 真实高价值信号也被一刀切压掉，Random/主指标受损     |
+| 仅做 score calibration | 处理档位尺度和长尾               | zscore+tanh 对 AUCC 有帮助                   | 强 rank 的 assignment artifact 仍在 |
+| Stage 2 hard-freeze  | 防 rank 污染 shared bottom | ratio 更稳                                 | 只动 head，AUCC 回升有限               |
+| 强 soft-unfreeze      | 恢复排序自由度                 | B2/C2 stronger 等方案可取得更高 AUCC             | rank 风险回潮，不能只以主指标选型             |
+| 延长 H2 训练             | 检查是否仅是未收敛               | e8 的 Call MTAUCC 从约 0.65293 降至约 0.63490  | 训练更久不是瓶颈解法                      |
 
 ## 3. 为什么最终不选择其他办法
 
