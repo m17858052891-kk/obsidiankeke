@@ -219,6 +219,9 @@ $$
 
 ### 4.3 价值评估：IQL critic 统一裁决
 
+> [!info] 方法背景
+> IQL、CQL、BCQ、BEAR、TD3+BC、优势加权行为克隆与 ensemble critic 的统一对照，见 [[离线强化学习方法对照：IQL、CQL、BCQ与价值集成]]。
+
 DRIVE 采用 IQL 训练两个 Q 网络和一个状态价值网络。状态价值通过上分位 expectile 回归逼近数据支持内的较高 Q 值：
 
 $$
