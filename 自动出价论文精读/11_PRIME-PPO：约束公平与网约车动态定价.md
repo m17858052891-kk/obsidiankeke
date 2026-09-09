@@ -493,7 +493,73 @@ Table 13 对 PRIME-PPO 与 JPDR/FaPU 的五指标做配对 $t$ 检验，报告�
 
 ---
 
-## 9. 覆盖账本与素材说明
+## 9. 官方 PDF 原始图表与表格裁图
+
+以下素材均从官方 43 页 PDF 中按对象边界裁出，不是整页截图；图表的读法与结论已在前面的对应小节说明。
+
+### 9.1 方法总览与训练过程
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-01-Overall-Architecture.png" alt="Figure 1：PRIME-PPO 总体架构" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-01-Notation-part-1.png" alt="Table 1：方法符号（第 1 部分）" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-01-Notation-part-2.png" alt="Table 1：方法符号（续）" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Algorithm-01-Training-Procedure.png" alt="Algorithm 1：PRIME-PPO 训练过程" width="620" style="max-width: 100%; height: auto;"></p>
+
+### 9.2 收益、匹配与司机侧公平（Figures 2–4；Tables 2–4）
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-02-Revenue-Convergence.png" alt="Figure 2：平均营收训练收敛" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-02-Revenue-Comparison.png" alt="Table 2：平台营收比较" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-03-Matching-Rate.png" alt="Figure 3：匹配率训练曲线" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-03-Matching-Rate.png" alt="Table 3：订单匹配率比较" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-04-JFI-Training.png" alt="Figure 4：JFI 训练曲线" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-04-Revenue-Fairness.png" alt="Table 4：收入公平 JFI 比较" width="900" style="max-width: 100%; height: auto;"></p>
+
+### 9.3 收益、空驶、用户公平与预算（Figures 5–8；Tables 5–8）
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-05-Platform-Revenue.png" alt="Figure 5：平台营收比较" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-05-Platform-Revenue-part-1.png" alt="Table 5：平台总营收比较（第 1 部分）" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-05-Platform-Revenue-part-2.png" alt="Table 5：平台总营收比较（续）" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-06-Empty-Travel-Distance.png" alt="Figure 6：空驶距离比较" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-06-Empty-Travel-Distance.png" alt="Table 6：空驶距离比较" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-07-User-Fairness-CV.png" alt="Figure 7：用户侧价格 CV 公平" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-07-User-Fairness-CV.png" alt="Table 7：用户侧价格 CV" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-08-Budget-Compliance.png" alt="Figure 8：预算约束符合度" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-08-Budget-Deviation.png" alt="Table 8：归一化预算偏差" width="900" style="max-width: 100%; height: auto;"></p>
+
+### 9.4 鲁棒性、综合权衡、弹性与消融（Figures 9–11；Tables 9–13）
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-09-Demand-Shock-Robustness.png" alt="Figure 9：需求冲击鲁棒性" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-09-Demand-Shock-Robustness.png" alt="Table 9：需求冲击鲁棒性" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-10-Multi-Metric-Tradeoff.png" alt="Figure 10：多指标权衡雷达图" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-10-Multi-Metric-Tradeoff.png" alt="Table 10：多指标权衡得分" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Figure-11-Elasticity-Smoothness.png" alt="Figure 11：价格弹性与营收平滑度" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-11-Elasticity-Smoothness.png" alt="Table 11：价格弹性与营收曲线平滑度" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-12-Ablation.png" alt="Table 12：模块消融实验" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p align="center"><img src="./assets/PRIME-PPO/Table-13-Significance-Tests.png" alt="Table 13：显著性检验 p 值" width="900" style="max-width: 100%; height: auto;"></p>
+
+## 10. 覆盖账本与素材说明
 
 | 原文对象 | 覆盖位置 | 状态 |
 |---|---|---|
@@ -501,17 +567,17 @@ Table 13 对 PRIME-PPO 与 JPDR/FaPU 的五指标做配对 $t$ 检验，报告�
 | 公式（1）–（43） | 第 3–4 节 | 已覆盖；按论文文字/符号转写为可移植 LaTex |
 | 公式（44）–（52） | 第 5 节 | 已覆盖；（46）/（47）是 JFI 的重复下标写法，（44）/（48）是营收的两种写法 |
 | Table 1–13 | 第 3、5 节及表格转录 | 已覆盖；关键数值逐表转录/说明 |
-| Figure 1 | 第 1.4 节结构转写 | 已覆盖（原图标题：Overall Architecture） |
-| Figure 2–4 | 第 5.2 节 | 已覆盖（营收、匹配、JFI 训练曲线） |
-| Figure 5–8 | 第 5.3 节 | 已覆盖（城市营收、空驶、价格 CV、预算偏差） |
-| Figure 9–11 | 第 5.4 节 | 已覆盖（冲击鲁棒性、综合雷达、弹性/平滑性） |
-| Algorithm 1 | 第 4.6 节 | 已覆盖（输入、6 步迭代和停止条件） |
+| Figure 1 | 第 1.4、9.1 节 | 已覆盖：原图紧凑裁图 + 结构转写 |
+| Figure 2–4 | 第 5.2、9.2 节 | 已覆盖：原始裁图、表格与读图说明 |
+| Figure 5–8 | 第 5.3、9.3 节 | 已覆盖：原始裁图、表格与读图说明 |
+| Figure 9–11 | 第 5.4、9.4 节 | 已覆盖：原始裁图、表格与读图说明 |
+| Algorithm 1 | 第 4.6、9.1 节 | 已覆盖：输入、6 步迭代、停止条件及原始裁图 |
 | Discussion/Deployment/Conclusion | 第 6–7 节 | 已覆盖 |
 
-> **素材限制说明：** 出版社页面与 ResearchGate 全文可读取正文、公式、图表标题和数值，但在本次抓取环境中拒绝 PDF/原图二进制下载（HTTP 403）。为避免把整页截图伪装成图表，本文没有嵌入失真的页图，而是逐项保留图号、标题、读图结论和表值转录；原图可由论文 DOI 页或作者上传全文查看。若后续拿到 PDF，可在本笔记同级 `assets/` 中补入 Figure 1–11 的紧凑裁图，不需改写正文。
+> **素材来源：** 本节图表、表格与算法均由用户提供的官方 IGI Global PDF 逐对象裁出；跨页 Table 1、Table 5 分别保留为两个连续裁图。所有相对路径已在同级 `assets/PRIME-PPO/` 中核验。
 
 ---
 
-## 10. 最终结论
+## 11. 最终结论
 
 PRIME-PPO 的核心启示是：不要把动态定价/自动出价只当成“预测一个最赚钱的动作”，而应明确分离 **硬可行域**、**累计软约束**、**业务外溢的辅助预测** 和 **主决策策略**。论文的结果表明这种组合在其评测环境中同时改善营收、匹配、公平、预算与稳定性；但缺少代码、反事实环境细节和一致的数据集映射，暂不足以当成已验证的生产方案。真正值得优先落地和评估的，是动作投影与预算/效率对偶控制这一小而可审计的闭环。
