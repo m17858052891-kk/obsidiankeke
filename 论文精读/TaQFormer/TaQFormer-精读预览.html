@@ -1,0 +1,707 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TaQFormer 论文精读</title><style>
+*{box-sizing:border-box}body{margin:0;background:#fafaf8;color:#202a33;font:17px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft Yahei",sans-serif}main{max-width:1020px;padding:48px 48px 100px;margin:auto;background:white}h1{font-size:30px;line-height:1.45}h2{font-size:26px;border-top:1px solid #d9e1e6;padding-top:28px;margin-top:52px}h3{font-size:22px;margin-top:38px}h4{font-size:19px;margin-top:30px}a{color:#22658e;text-decoration:none}blockquote{margin:24px 0;padding:12px 20px;background:#eef5f8;border-left:4px solid #48809b}p{margin:16px 0}li{margin:10px 0}img{max-width:100%;height:auto}.display-math{display:block;max-width:100%;overflow-x:auto;padding:9px 0;font-size:95%}.table-scroll{overflow-x:auto;margin:24px 0}table{width:100%;border-collapse:collapse;font-size:15px;line-height:1.6}th,td{border:1px solid #dfe5e8;padding:9px 12px;text-align:left}th{background:#f0f5f7}mjx-container{color:#172d40}code{background:#f0f2f4} @media(max-width:640px){main{padding:20px 18px 60px}body{font-size:16px}h1{font-size:25px}h2{font-size:23px}h3{font-size:20px}.table-scroll table{min-width:600px}}
+</style><script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']],packages:{'[+]':['ams']}},svg:{fontCache:'local'},startup:{ready(){MathJax.startup.defaultReady();MathJax.startup.promise.then(()=>{window.mathReady=true})}}};</script><script defer src="./assets/preview/tex-svg-full.js"></script><main><h1>TaQFormer：多维优惠券建模与 OBS–RCT 融合</h1>
+<p>论文：<strong>TaQFormer: A Treatment-as-Query Transformer with Data-Fusion for Multidimensional Treatment Modeling in Coupon Allocation</strong><br>作者：Jiahong Li、Zeqin Yang、Yu Xiang、Zhifan Jiang、Jingqi Ma、Enzheng Hua、Jixing Xu、Jun Wu、Fei Wang、Enyun Yu、Jiecheng Guo；机构为滴滴出行。<br>版本：<a href="https://arxiv.org/abs/2610.26199v1">arXiv:2610.26199v1</a>，2026-10-19 提交；本文按预印本 v1 解读，不推定会议录用。<br>原文：<a href="https://arxiv.org/html/2610.26199v1">HTML</a> · <a href="https://arxiv.org/pdf/2610.26199v1">在线 PDF</a> · <a href="./assets/source/paper.pdf">本地 PDF</a> · <a href="./assets/source/draft.tex">LaTeX 源码</a><br>代码：本版本未提供公开代码链接。<br>范围：覆盖摘要、正文全部章节和小节、公式（1）—（15）、全部 3 图和 3 表，以及方法性无编号表达式。原文没有技术附录、独立算法块或定理证明章节。逐项核对见 <a href="./coverage.md">覆盖清单</a>。</p>
+<blockquote>
+<p>本笔记按章节做中文归纳与技术解释，不是逐句译文。“论文明确说明”指原文陈述；“从图中可以看出”指图表观察；“直观理解”“阅读判断”和“解释性公式”属于辅助理解。未公开的信息不自行补全。原图与原表归原作者所有，来源许可标为 CC BY-NC-ND 4.0；这里保留原始内容和来源，用于个人精读。</p>
+</blockquote>
+<h2>1. 前置信息：总览、摘要与引言</h2>
+<h3>1.1 一句话总览</h3>
+<p>TaQFormer 把每个品类的折扣编码为独立 query，让它们读取同一份请求特征，再联合预测<strong>完整折扣组合下某个目标品类的成交概率</strong>；用观测日志预训练、RCT 上的 LoRA 适配和双分支 logit 门控，在补贴率近似一致的线上实验中提高人均业务价值。</p>
+<h3>1.2 研究背景与核心问题</h3>
+<p>同一请求可以同时看到多个可替代服务品类。某一品类降价不仅可能增加自身成交，还可能把其他品类的需求吸引过来。因此，只估计某一折扣的孤立效果不足以支持联合优惠券分配。当前价格、服务质量、供给和市场条件也会改变响应。</p>
+<p>原文的三个问题分别是：</p>
+<ol>
+<li><strong>组合动作的结构共享。</strong> 一个动作包含多个品类折扣，组合数随品类数和档位数增大。同一品类折扣相同的不同动作应能共享信息，同时仍需考虑其余品类折扣对目标响应的影响。线上 PEPNet 基线先把各维 embedding 融成一个向量，再送入门控预测塔，无法一直保留坐标级查询。</li>
+<li><strong>大规模偏置日志与小规模随机数据如何结合。</strong> OBS 覆盖大量请求，但历史策略造成请求—动作覆盖不均；RCT 能在随机支持范围内比较 treatment，规模却小。需要保留 OBS 学到的表征，同时用随机监督校正响应预测。</li>
+<li><strong>反事实质量与工程价值如何共同验证。</strong> 预测损失降低不等于 uplift 排序改善，模型更大也不保证分配收益更高。需要离线 RCT 评价、全候选动作推理压测和成本可比的线上 A/B 实验。</li>
+</ol>
+<h3>1.3 核心思路与贡献边界</h3>
+<p>论文贡献是三个相互配合的设计：按品类分解的 treatment queries 与联合响应读出；保留冻结 OBS 参考的两阶段随机适配；能够共享请求计算的全 treatment 并行服务，并给出生产验证。</p>
+<p>线上实验持续 14 天，双阶段模型相对 PEPNet 的人均业务价值提高 <strong>1.26%</strong>，相对 RCT-only 的额外相对提升约 <strong>0.178%</strong>。这些指标是目标品类完成交易形成的业务价值，业务计算方式和绝对值未公开，不能直接称为 GMV、利润或整个市场总收益。实验设计和全部数字见第 5.7 节。</p>
+<p><strong>阅读判断：</strong> treatment-as-query 并非本文首次提出；本文更应被理解为面向联合折扣决策的结构化建模、随机适配和部署方案。OBS 预训练也不自动保证因果正确，识别仍有假设与支持集边界。</p>
+<h2>2. 相关工作（原文 §2）</h2>
+<h3>2.1 结构化 treatment 的 uplift 建模</h3>
+<p>早期 uplift 工作主要研究随机实验中的二元干预；后续扩展到多 treatment、不同结果类型以及有成本的分配。神经异质性处理效应模型使用 treatment-specific heads、连续剂量响应函数或正交目标，相关例子包括 Dragonnet、VCNet、RieszNet。</p>
+<p>与本文最接近的是 <strong>TransTEE</strong> 和 <strong>EFIN</strong>。TransTEE 支持离散、连续和结构化 treatment，通过 treatment self-attention 建模交互，并让 treatment 表征查询协变量；EFIN 使用 treatment-conditioned attention，并将估计的增量加到自然响应上。TaQFormer 保留每个折扣坐标的 token，经过 cross-attention 后用非线性联合读出预测目标品类响应，并加上 OBS–RCT 适配流程。不能把 TransTEE 中的 treatment self-attention 直接当成 TaQFormer 已实现的模块。</p>
+<h3>2.2 随机数据与观测数据融合</h3>
+<p>历史策略会让未经调整的结果比较受到混杂影响，条件估计需要充分调整和重叠性。RCT 的随机比较也仅针对试验人群和动作支持集成立。已有方法包括联合估计、自适应加权、表征迁移和预测校正，各有自己的识别假设。</p>
+<p>本文选择表征迁移加随机适配：OBS 提供预测信息，RCT 调整响应估计，减少对 OBS 无混杂假设的依赖。论文没有给出“任意 OBS 偏置都能被门控消除”的理论保证，也没有将 gate 输出解释为可信度概率。</p>
+<h3>2.3 Transformer、容量与工业推理</h3>
+<p>TabTransformer、FT-Transformer 将注意力用于表格特征；HiFormer、Wukong 等研究异质特征交互和容量；OneTrans、RankMixer、TokenMixer-Large、UniMixer、WHALE 等进一步探索统一交互、序列建模或更高效的 token mixing。它们说明容量和推理效率的重要性，但大多聚焦排序或响应预测。</p>
+<p>本文的区别在评价对象：固定训练预算下同时考察 BCE、AUC 和 <strong>uplift 排序</strong>，还要求对每个请求打分全部可行动作。容量实验的结论不能从普通预测任务的 scaling 规律直接推出。</p>
+<h2>3. 问题定义（原文 §3）</h2>
+<h3>3.1 耦合的多 treatment 场景（原文 §3.1）</h3>
+<p>输入单位是一次在线决策请求，而不是用户完整轨迹。\(X_i=x_i\) 表示决策时可用的上下文，\(A_i\in\mathcal A\) 是实际分配动作。\(\mathcal M=\{1,\dots,M\}\) 按<strong>原价由高到低</strong>排列品类。一个 treatment 是完整的多维干预，一个 action 是满足业务约束的某个具体组合：</p>
+<p><span class="display-math">\[
+a=(a_1,\dots,a_M)\in\prod_{m\in\mathcal M}\mathcal D_m, \qquad \text{(1)}
+\]</span></p>
+<p>\(a_m\) 是折扣深度，<strong>值越大代表优惠越深</strong>。不要把它直接读成“支付原价的几折”。各品类共享固定步长的网格：</p>
+<p><span class="display-math">\[
+\mathcal D=\{d_k=d_{\min}+(k-1)\Delta:k=1,\dots,K\},
+    \qquad \Delta&gt;0. \qquad \text{(2)}
+\]</span></p>
+<p>各品类允许的范围可不同，即 \(\mathcal D_m\subseteq\mathcal D\)，但步长一致。业务要求高价品类的折扣深度严格小于低价品类：</p>
+<p><span class="display-math">\[
+\mathcal A=
+    \left\{a\in\prod_{m\in\mathcal M}\mathcal D_m:
+    a_{m+1}-a_m\ge\Delta,\;m=1,\dots,M-1\right\}. \qquad \text{(3)}
+\]</span></p>
+<p>因此所有可行动作满足 \(a_1&lt;\cdots&lt;a_M\)；相邻维至少差一个档位，就保证任意较高价品类的优惠更浅。\(a_0\) 是<strong>最浅的可行组合</strong>，不一定是完全不发券。约束减少组合数，但动作空间仍随品类数和折扣档位组合式增长。</p>
+<p><strong>直观理解：</strong> 先根据业务规则列出合法优惠组合，再让模型在这些组合之间做比较。顺序约束是候选集的硬过滤，不是训练中的软惩罚，也不是对模型输出施加单调性保证。</p>
+<h3>3.2 因果目标与识别（原文 §3.2）</h3>
+<p>目标只针对一个 focal category。对一次符合条件的曝光，\(Y(a)\in\{0,1\}\) 表示采取完整动作 \(a\) 后，在归因窗口内是否完成该目标品类的交易；其他品类的折扣仍会影响这一结果。原文无编号定义为：</p>
+<p><span class="display-math">\[
+\tau(x;a,a_0)=\mathbb E[Y(a)-Y(a_0)\mid X=x],
+\]</span></p>
+<p><span class="display-math">\[
+\mu(x,a)=\mathbb E[Y(a)\mid X=x],\qquad
+\tau(x;a,a_0)=\mu(x,a)-\mu(x,a_0).
+\]</span></p>
+<p>模型 \(\hat y(x,a)\) 估计曝光到目标品类完单的概率。它不直接输出每个品类的全部效应矩阵，也不直接以真实个体 uplift 作为监督标签；一个请求只能观测到实际分配动作的事实结果。</p>
+<p>从 OBS 识别响应曲面需要四项假设：</p>
+<ul>
+<li><strong>一致性：</strong> 当 \(A=a\) 时，观测结果就是 \(Y(a)\)。</li>
+<li><strong>无干扰：</strong> 一个请求的结果不依赖其他请求所分配的动作。</li>
+<li><strong>条件可交换性／无混杂：</strong> 给定上下文后，潜在结果与动作分配独立。</li>
+<li><strong>正性：</strong> 对 OBS 人群中的每个上下文和每个可行动作，分配概率为正。</li>
+</ul>
+<p>对应的原文无编号表达式为：</p>
+<p><span class="display-math">\[
+\{Y(a):a\in\mathcal A\}\perp\!\!\!\perp A\mid X,
+\qquad \Pr(A=a\mid X=x)&gt;0.
+\]</span></p>
+<p>在这些条件下：</p>
+<p><span class="display-math">\[
+\mu(x,a)=\mathbb E[Y\mid X=x,A=a],
+\]</span></p>
+<p><span class="display-math">\[
+\tau(x;a,a_0)=\mathbb E[Y\mid X=x,A=a]
+-\mathbb E[Y\mid X=x,A=a_0].
+\]</span></p>
+<p>RCT 微调在试验支持集内使用随机监督，降低对 OBS 无混杂假设的依赖。<strong>论文未证明</strong>其能够修复完全没有覆盖的动作，也未证明真实供需环境必然满足无干扰假设。本文没有专门的识别定理、误差界或一致性证明。</p>
+<h3>3.3 下游分配决策（原文 §3.3）</h3>
+<p>预测概率先结合“在完成交易条件下的期望业务贡献”，得到请求 \(i\) 在动作 \(a\) 下的期望业务价值 \(\hat r_{ia}\)。这一步的业务转换公式保密，但所有线上实验组使用相同规则。</p>
+<p>\(c_{ia}\) 表示单位业务价值对应的补贴成本，因此期望补贴支出是 \(c_{ia}\hat r_{ia}\)。注意它不是一次请求的固定绝对补贴金额。给定补贴率目标 \(\rho\)，原文将总体分配写为两个分别编号的式子：</p>
+<p><span class="display-math">\[
+\max_{b\in\mathcal B}\quad
+    \sum_{i\in\mathcal I}\sum_{a\in\mathcal A}
+    b_{ia}\hat r_{ia} \qquad \text{(4)}
+\]</span></p>
+<p><span class="display-math">\[
+\text{s.t.}\quad
+    \sum_{i\in\mathcal I}\sum_{a\in\mathcal A}
+    b_{ia}(c_{ia}-\rho)\hat r_{ia}\leq 0, \qquad \text{(5)}
+\]</span></p>
+<p>其中 \(\mathcal I=\{1,\ldots,n\}\)，\(\mathcal B\) 是二元分配矩阵的集合，每个请求只选择一个动作：</p>
+<p><span class="display-math">\[
+b_{ia}\in\{0,1\},\qquad \sum_{a\in\mathcal A}b_{ia}=1.
+\]</span></p>
+<p>公式（5）控制的是总体期望补贴成本与总体期望业务价值的比率。为解释该含义，在总期望价值为正时，它<strong>等价变形</strong>为：</p>
+<p><span class="display-math">\[
+\frac{\sum_{i\in\mathcal I}\sum_{a\in\mathcal A}b_{ia}c_{ia}\hat r_{ia}}
+{\sum_{i\in\mathcal I}\sum_{a\in\mathcal A}b_{ia}\hat r_{ia}}\leq\rho.
+\]</span></p>
+<p>对固定非负拉格朗日乘子 \(\lambda\ge0\)，松弛后的目标按请求分离，线上采用：</p>
+<p><span class="display-math">\[
+a_i^\star
+    =
+    \arg\max_{a\in\mathcal A}
+    \hat r_{ia}\bigl(1-\lambda(c_{ia}-\rho)\bigr). \qquad \text{(6)}
+\]</span></p>
+<p>\(\lambda\) 离线基于日志校准，使实际补贴率接近 \(\rho\)；线上打分全部候选动作后取最大。论文没有给出乘子的具体搜索算法、更新频率或在线纠偏控制器。</p>
+<p><strong>直观理解：</strong> 模型负责回答“给这个请求这组券，目标品类成交的可能性多大”；分配器再把它换算成价值，并用成本乘子压低过于昂贵的方案。</p>
+<p><strong>约束层级：</strong> 可行动作集合与每请求一个动作是硬结构；总体补贴率是优化问题中的约束；部署用离线校准的 \(\lambda\) 实现近似成本控制，论文没有声称公式（6）对每个请求或每段实时流量都严格满足补贴率上限。系统也没有描述探索动作、fallback 策略或额外预测器，不能自行补入。</p>
+<h2>4. TaQFormer 模型（原文 §4）</h2>
+<h3>4.1 架构（原文 §4.1）</h3>
+<p align="center"><img src="./assets/TaQFormer-Figure-1.png" alt="Figure 1：TaQFormer 架构" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p><strong>Figure 1：TaQFormer 架构。</strong> (a) 特征编码器、treatment decoder、独立的目标响应读出及辅助分支；(b) pre-norm 自注意力与 token-wise FFN；(c) treatment 状态查询请求 memory 的解码块。沿 (a) 从输入读到输出，再用 (b)(c) 查看模块内部；图支持“请求编码与动作解码分离”的计算结构。</p>
+<h4>4.1.1 输入、输出与完整信息流</h4>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>输入与处理</th>
+<th>输出与用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>请求 tokenizer</td>
+<td>决策时可用的标量、类别 embedding、预训练结构向量</td>
+<td>\(X(x)\in\mathbb R^{N\times d}\)</td>
+</tr>
+<tr>
+<td>请求 encoder</td>
+<td>固定语义字段 token 经自注意力和私有 FFN</td>
+<td>与动作无关的 \(H(x)\in\mathbb R^{N\times d}\)</td>
+</tr>
+<tr>
+<td>treatment encoder</td>
+<td>完整动作的各维折扣</td>
+<td>\(T(a)\in\mathbb R^{M\times d}\)</td>
+</tr>
+<tr>
+<td>treatment decoder</td>
+<td>折扣 token 作 query，请求 memory 作 key/value</td>
+<td>\(Z^{(L)}\)，每个折扣坐标一条解码后的表示</td>
+</tr>
+<tr>
+<td>目标响应 readout</td>
+<td>展平并联合读取全部坐标</td>
+<td>标量 logit \(s(x,a)\) 和成交概率 \(\hat y(x,a)\)</td>
+</tr>
+<tr>
+<td>全动作推理</td>
+<td>固定请求，遍历合法动作的张量批次</td>
+<td>\(\{\hat y(x,a):a\in\mathcal A\}\)，交给分配器</td>
+</tr>
+<tr>
+<td>辅助分支</td>
+<td>pooled memory 或相应任务分支</td>
+<td>辅助监督；不作为下游分配输入</td>
+</tr>
+</tbody></table></div>
+<p>原文的 \(X_i\) 是随机变量／上下文记号，\(X(x)\) 是 tokenizer 输出；第 4.3 节的 \(X\) 又表示请求批次，阅读时按上下文区分。</p>
+<h4>4.1.2 Feature tokenizer 与 encoder</h4>
+<p>每个标量特征、类别 embedding、预训练结构向量分别形成自己的 token；相同输入类型共享投影，并添加 type embedding。位置遵循固定特征顺序，而非任意可交换的序列元素。</p>
+<p>encoder 堆叠 pre-RMSNorm Transformer blocks，每块交替使用多头自注意力和 FFN。区别于普通共享 FFN，每个 token 位置有<strong>私有 FFN 参数</strong>，让不同语义字段拥有自己的通道变换。Figure 1 标明这里是 all-pairs self-attention，没有 causal mask；token-wise FFN 使用 GELU、宽度为 \(4d\)。自注意力仍负责跨字段交互。输出完整 memory \(H(x)\) 给 decoder，pooled summary \(\bar h(x)\) 可交给辅助头。</p>
+<p><strong>直观理解：</strong> “年龄”“价格”“供给状态”等字段即使都被编码成同维向量，也不必经过同一套字段内变换；注意力负责交换信息，私有 FFN 负责各字段自己的加工。具体特征列表、token 数 \(N\)、结构向量预训练方式没有公开。</p>
+<h4>4.1.3 组合式 treatment 编码</h4>
+<p>品类 \(j\) 的映射为 \(e_j:\mathcal D_j\to\mathbb R^d\)：</p>
+<p><span class="display-math">\[
+T(a) = [\,e_1(a_1),\dots,e_M(a_M)\,] \in \mathbb R^{M\times d}. \qquad \text{(7)}
+\]</span></p>
+<p>同一品类具有同一折扣值的动作共享 \(e_j(d)\)，而不同品类使用独立 embedding 表。因此“某品类给同样折扣”在不同完整组合之间可以共享信息，同时保留品类身份。</p>
+<p>这里是坐标级参数共享，不是把每个完整 action ID 当成完全独立类别，也不是所有品类共用一张不区分身份的表。各坐标保留到 attention decoder 之后才由 readout 联合读取。</p>
+<h4>4.1.4 Treatment-aware cross-attention</h4>
+<p>decoder 堆叠 \(L\) 个 pre-norm block，初值为 \(Z^{(0)}=T(a)\)。在第 \(\ell\) 层，上一层的 treatment 状态作 query，始终用同一个请求 memory 作 key/value：</p>
+<p><span class="display-math">\[
+\widetilde Z^{(\ell)}
+    = Z^{(\ell-1)} + \mathrm{CA}^{(\ell)}\!\bigl(\mathrm{LayerNorm}(Z^{(\ell-1)}),\, \mathrm{LayerNorm}(H(x))\bigr). \qquad \text{(8)}
+\]</span></p>
+<p>对注意力头 \(h\)，\(Q_h^{(\ell)}\) 与 \(K_h^{(\ell)}\) 分别是归一化 treatment 状态、特征状态投影后的矩阵，坐标到特征的注意力为：</p>
+<p><span class="display-math">\[
+P_h^{(\ell)}(x,a)=
+    \mathrm{softmax}\!\left(
+    \frac{Q_h^{(\ell)}\bigl(K_h^{(\ell)}\bigr)^\top}{\sqrt{d_h}}
+    \right)\in\mathbb R^{M\times N}. \qquad \text{(9)}
+\]</span></p>
+<p>\(P_h^{(\ell)}\) 每一行对应一个 treatment 坐标，每一列对应一个请求特征 token。改变某品类折扣可以改变其关注的市场特征。随后是 FFN 残差更新：</p>
+<p><span class="display-math">\[
+Z^{(\ell)}
+    = \widetilde Z^{(\ell)} + \mathrm{FFN}^{(\ell)}\!\bigl(\mathrm{LayerNorm}(\widetilde Z^{(\ell)})\bigr). \qquad \text{(10)}
+\]</span></p>
+<p>这里 decoder 使用 LayerNorm，encoder 使用 RMSNorm，不能混写。decoder 始终读取完整的 \(N\times d\) memory，而不是预先压缩成一个 pooled 向量。</p>
+<p><strong>直观理解：</strong> 不同折扣各自“询问”请求中哪些信号与自己相关；经过多层后，query 已包含先前检索的请求信息，可以继续细化查询。式（8）—（10）只明确 cross-attention 和 FFN，不能从中额外推定存在 treatment-token self-attention。</p>
+<h4>4.1.5 联合读出与跨品类依赖</h4>
+<p>经过 \(L\) 层及最终 LayerNorm，独立的两层 GELU MLP 读取所有解码坐标：</p>
+<p><span class="display-math">\[
+\begin{aligned}
+    s(x,a) &amp;= f\!\bigl(\mathrm{vec}(\mathrm{LayerNorm}(Z^{(L)}))\bigr), \\
+    \hat y(x,a) &amp;= \sigma\bigl(s(x,a)\bigr).
+    \end{aligned} \qquad \text{(11)}
+\]</span></p>
+<p>\(\mathrm{vec}\) 将所有 \(M\) 个坐标展平，\(f\) 做非线性联合映射。于是目标品类的预测既依赖自己的折扣，也依赖其他品类折扣。</p>
+<p><strong>直观理解：</strong> 每个品类折扣先从同一请求中提取相关信息，最终由一个联合判断器汇总，给出目标品类的成交概率。跨品类响应依赖明确落在联合读出上，而不是每个 token 各自独立输出本品类结果后简单相加。</p>
+<p><strong>边界：</strong> 此结构允许学习折扣组合的非线性关系，但没有显式保证响应单调、因果识别或对未覆盖组合的可靠外推。原文也没有报告专门检验跨品类替代效应的独立实验。</p>
+<h3>4.2 两阶段训练：观测预训练与随机适配（原文 §4.2）</h3>
+<p align="center"><img src="./assets/TaQFormer-Figure-2.png" alt="Figure 2：两阶段 OBS–RCT 训练" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p><strong>Figure 2：TaQFormer 的两阶段训练。</strong> (a) OBS 上训练所有模块；(b) 保留冻结的 OBS 路线，共享冻结 encoder 前缀，并对后缀进行 LoRA 适配。仅更新 LoRA 因子、新初始化的 RCT prediction stack（包含 treatment encoder）和 gate；门控输入 stop-gradient，目标 logits 融合，直接辅助输出来自 RCT stack。读图时先区分共享前缀、两条后缀和两套预测头，再看 gate 的输入与输出。</p>
+<p>原文把 prediction stack 定义为 treatment encoder、Treatment Decoder Blocks、目标响应 readout 和辅助头的组合，不能将它仅理解成最后一层线性分类器。</p>
+<h4>4.2.1 Stage I：OBS 预训练</h4>
+<p>在 OBS 数据上训练 tokenizer、整个 encoder 和 prediction stacks，共一个 epoch。目标是原文公式（15）的主任务 BCE 加辅助监督。它学习日志分布下的请求表征和 treatment-aware 响应；覆盖不均、有限样本和模型误设仍可能造成响应曲面误差。</p>
+<p>论文没有宣称这一阶段直接获得无偏反事实估计，也没有在本阶段给出显式倾向评分重加权公式。不要将 PEPNet 基线所保留的 propensity 辅助项误安到 TaQFormer 上。</p>
+<h4>4.2.2 Stage II：冻结参考与参数高效 RCT 微调</h4>
+<p>完整保留 Stage I 模型，作为不计算梯度的 OBS 参考路线。同时构造不同的 RCT 路线：</p>
+<ol>
+<li>tokenizer 和 encoder 前缀冻结、共享且只计算一次。</li>
+<li>最后 \(L_{\mathrm a}\) 个 encoder blocks 计算两次：原始冻结权重给出 \(H^{\mathrm{obs}}(x)\)；加入 LoRA 的后缀给出 \(H^{\mathrm{rct}}(x)\)。</li>
+<li>LoRA 放在后缀的 attention projections 和 token-wise FFN factors 上；所有 encoder 基础权重保持冻结。</li>
+<li>OBS prediction stack 从 Stage I 保留；RCT prediction stack <strong>重新初始化并训练</strong>，包括自己的 treatment embeddings \(T^{\mathrm{rct}}(a)\)。</li>
+</ol>
+<p>对冻结矩阵 \(W\)，适配路线使用：</p>
+<p><span class="display-math">\[
+W' = W + (\eta / r) AB, \qquad \text{(12)}
+\]</span></p>
+<p>\(A\)、\(B\) 是可训练的低秩因子，\(r\) 是秩，\(\eta\) 是缩放常数。此处 \(A\) 是 LoRA 因子，而第 3 节的 \(A_i\) 是分配动作，属于原文符号复用。</p>
+<p>原文在这一段用“前 \(L-L_{\mathrm a}\) 个 Encoder Blocks”表示共享前缀，但前文 \(L\) 用于 treatment decoder 深度，存在记号复用。部署配置消除了实现层面的歧义：<strong>encoder 4 层，前 2 层共享冻结、后 2 层双路计算；decoder 2 层</strong>。不能把这里的 \(L\) 一律代入 2 后得出“没有共享前缀”。</p>
+<p><strong>直观理解：</strong> OBS 路线像一个保留原状的参考预测器；RCT 路线复用底层表征，在较高层做低秩适配，并重新学习如何读取 treatment。它不是在整个旧模型上直接进行全参数微调。</p>
+<h4>4.2.3 请求—动作级 gate：融合的是 logits</h4>
+<p>OBS 分支使用 \(H^{\mathrm{obs}}(x)\) 与冻结的 \(T^{\mathrm{obs}}(a)\)，输出 \(s^{\mathrm{obs}}(x,a)\)。RCT 分支使用 \(H^{\mathrm{rct}}(x)\) 和独立的 \(T^{\mathrm{rct}}(a)\)，输出 \(s^{\mathrm{rct}}(x,a)\)。</p>
+<p>小型 MLP \(g\) 接收下列输入：适配后 memory 的 mean/max pooling 拼接、RCT treatment tokens、两支 logits、两者绝对差；这些 gate 输入都停止梯度：</p>
+<p><span class="display-math">\[
+\alpha(x,a) =
+   \sigma\Bigl(
+   g\bigl(
+   \mathrm{sg}\bigl[
+   \bar H^{\mathrm{rct}}(x),\,
+   T^{\mathrm{rct}}(a),\,
+   s^{\mathrm{obs}},\,
+   s^{\mathrm{rct}},\,
+   |s^{\mathrm{obs}}-s^{\mathrm{rct}}|
+   \bigr]
+   \bigr)
+   \Bigr), \qquad \text{(13)}
+\]</span></p>
+<p>\(\bar H^{\mathrm{rct}}(x)\) 是 \(H^{\mathrm{rct}}(x)\) 的 mean-pooled 与 max-pooled token 拼接，\(\mathrm{sg}\) 表示 stop-gradient。gate 既依赖请求，也依赖当前候选动作，不是全局固定混合系数。</p>
+<p><span class="display-math">\[
+\begin{aligned}
+   s(x,a) &amp;=
+   \alpha(x,a)\,s^{\mathrm{obs}}(x,a)
+   + \bigl(1-\alpha(x,a)\bigr)\,s^{\mathrm{rct}}(x,a),\\
+   \hat y(x,a) &amp;= \sigma\bigl(s(x,a)\bigr).
+   \end{aligned} \qquad \text{(14)}
+\]</span></p>
+<p>\(\alpha\) 越大，冻结 OBS logit 的权重越大。融合发生在 sigmoid <strong>之前</strong>，不是两个成交概率的直接加权平均。论文明确说明 gate 权重<strong>不是经过校准的因果可靠性度量</strong>。</p>
+<p><strong>直观理解：</strong> 对不同请求和券组合，模型学习怎样组合“旧日志路线的判断”与“随机数据适配路线的判断”。两个预测差得多只是 gate 的输入信息，不能自动解释成哪一支更可信。</p>
+<h4>4.2.4 梯度、目标与辅助监督</h4>
+<p>Stage II 在 RCT 上训练一个 epoch，以融合预测计算同一主任务 BCE。可训练参数是 LoRA 因子、整套 RCT prediction stack 和 gate；OBS 路线、tokenizer、基础 encoder 权重冻结。</p>
+<p>stop-gradient 只阻断“通过 gate 输入回传到表征”的路径。\(s^{\mathrm{rct}}\) 仍直接出现在公式（14）中，故主损失仍能沿显式混合路径更新 RCT 分支。gate 和 RCT 路线因此仍通过最终预测<strong>联合优化</strong>，并没有被彻底解耦。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>Stage I</th>
+<th>Stage II</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tokenizer、encoder 前缀</td>
+<td>训练</td>
+<td>冻结且共享</td>
+</tr>
+<tr>
+<td>Encoder 后缀基础权重</td>
+<td>训练</td>
+<td>两路线均冻结</td>
+</tr>
+<tr>
+<td>Encoder 后缀 LoRA 因子</td>
+<td>此阶段未使用</td>
+<td>在 RCT 路线训练</td>
+</tr>
+<tr>
+<td>OBS prediction stack</td>
+<td>训练</td>
+<td>冻结参考</td>
+</tr>
+<tr>
+<td>RCT prediction stack</td>
+<td>此阶段未建立独立分支</td>
+<td>新初始化，全部训练</td>
+</tr>
+<tr>
+<td>Gate</td>
+<td>此阶段未使用</td>
+<td>训练，输入停止梯度</td>
+</tr>
+<tr>
+<td>主任务输出</td>
+<td>单路线完单概率</td>
+<td>融合 logit 的 sigmoid</td>
+</tr>
+<tr>
+<td>直接辅助输出</td>
+<td>对应辅助头</td>
+<td>来自 RCT stack，不经过 focal gate</td>
+</tr>
+</tbody></table></div>
+<p>辅助任务或使用 decoder 模板预测请求级标签，或读取请求和 treatment 表征的 stop-gradient 副本；缺失标签做 mask。论文没有公开完整辅助任务清单、逐头损失公式、权重、gate 隐层宽度或所有优化器设置。<strong>确切可复现的损失只有主任务形式；不能自行写出一个带假定权重的完整总损失。</strong></p>
+<h3>4.3 Treatment 并行服务（原文 §4.3）</h3>
+<p>训练和推理接口不对称：训练样本只有策略实际分配的一个 \((x,a)\) 及事实标签；推理则需要同一请求的全部可行动作响应。并行实现保留原模型函数，不重新训练一个近似模型。</p>
+<p>对 batch size 为 \(B\) 的请求批次 \(X\)，请求编码仅运行一次。原文无编号张量表达式如下：</p>
+<p><span class="display-math">\[
+H(X)\in\mathbb R^{B\times N\times d},\qquad
+T(\mathcal A)\in\mathbb R^{|\mathcal A|\times M\times d}.
+\]</span></p>
+<p>可行动作表存为常量张量。只在 decoder 引入动作维，将 \(B|\mathcal A|\) 个请求—动作对展平为一次解码批次，再 reshape 为 \(B\times|\mathcal A|\) 响应矩阵。</p>
+<p>原文给出的每请求计算量从</p>
+<p><span class="display-math">\[
+|\mathcal A|(C_{\mathrm{enc}}+C_{\mathrm{dec}})
+\]</span></p>
+<p>降低为</p>
+<p><span class="display-math">\[
+C_{\mathrm{enc}}+|\mathcal A|C_{\mathrm{dec}}.
+\]</span></p>
+<p>所有动作在一次适合加速器的 static tensor pass 中处理，没有逐 action 循环或数据依赖控制流。双阶段进一步共享 tokenizer 与前两个 encoder blocks；后两个 blocks 分别计算 OBS 和 RCT memory，各自计算一次后在全部动作间复用。</p>
+<p><strong>直观理解：</strong> 请求本身不随候选优惠券变化，所以只“读请求”一次，再批量回答 33 个优惠方案的问题。双分支只重复一部分编码器，不会为每个动作都重跑两套完整模型。</p>
+<p><strong>边界：</strong> decoder 成本仍随 \(|\mathcal A|\) 增长；论文只验证当前 33 个动作。共享编码降低重复工作，但没有消除未来组合空间膨胀的问题。</p>
+<h2>5. 实验（原文 §5）</h2>
+<p>原文按六个问题组织：整体效果（RQ1）、架构选择（RQ2）、容量（RQ3）、两阶段训练（RQ4）、服务效率（RQ5）和线上收益（RQ6）。离线表中的架构比较都是 RCT 直接训练；数据融合效果另由 Table 2 检验，不能把两张表的实验条件混为一谈。</p>
+<h3>5.1 实验设置（原文 §5.1）</h3>
+<h4>5.1.1 数据、训练预算与部署配置</h4>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>论文公开配置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Treatment</td>
+<td>\(M=2\) 个服务品类，\(|\mathcal A|=33\) 个可行动作</td>
+</tr>
+<tr>
+<td>Encoder</td>
+<td>\(d=64\)；4 blocks；4 attention heads；FFN width 为 \(4d\)</td>
+</tr>
+<tr>
+<td>Decoder</td>
+<td>\(L=2\) blocks</td>
+</tr>
+<tr>
+<td>Stage II encoder suffix</td>
+<td>\(L_{\mathrm a}=2\)，只适配最后两个 blocks</td>
+</tr>
+<tr>
+<td>LoRA</td>
+<td>\(r=16\)，\(\eta=16\)</td>
+</tr>
+<tr>
+<td>部署容量</td>
+<td>34.5M 参数配置</td>
+</tr>
+<tr>
+<td>OBS 数据</td>
+<td>数千万条</td>
+</tr>
+<tr>
+<td>RCT 数据</td>
+<td>数百万条</td>
+</tr>
+<tr>
+<td>训练轮次</td>
+<td>单阶段 1 epoch；双阶段每阶段各 1 epoch</td>
+</tr>
+<tr>
+<td>离线硬件</td>
+<td>单张 NVIDIA RTX 6000D</td>
+</tr>
+<tr>
+<td>比较控制</td>
+<td>相同数据切分、seed、batch size 和 GPU 类别；相同 held-out RCT week</td>
+</tr>
+<tr>
+<td>未统一因素</td>
+<td>不同方法的学习率日程和辅助损失不同</td>
+</tr>
+</tbody></table></div>
+<p>架构与容量实验使用 Stage II 相同的 RCT 训练集。数据量仅描述部署规模，不代表做过数据规模敏感性实验；精确样本数、训练 batch size、具体时间切分日期等未公开。后文服务压测的 batch size 256 不能自动当成训练 batch size。</p>
+<h4>5.1.2 三种离线指标分别衡量什么</h4>
+<ul>
+<li><strong>Qini：</strong> 对 \(|\mathcal A|-1=32\) 个非参考动作分别处理，将分配到该动作和 \(a_0\) 的请求按预测 uplift 排序，计算 normalized Qini coefficient，最后对 32 个动作平均。它检验 treatment 效果的排序能力。</li>
+<li><strong>AUC：</strong> 在事实分配动作下，预测成交概率与观测完单标签之间的 ROC AUC；它检验响应区分能力。</li>
+<li><strong>PCOC：</strong> 总预测概率除以总观测结果，越接近 1 越好；它检验总体校准。绝对概率进入分配器，因此总体校准影响补贴控制。</li>
+</ul>
+<p><strong>解释性公式（将原文的文字定义写成式子，不另占论文编号）：</strong></p>
+<p><span class="display-math">\[
+\mathrm{PCOC}=\frac{\sum_i\hat y(x_i,A_i)}{\sum_i y_i}.
+\]</span></p>
+<p>PCOC 接近 1 不意味着每个用户、每个 treatment 或每个分组都校准；AUC 更高也不直接推出 Qini 更高。原文未给出 Qini 的积分实现或归一化分母，不能擅自套用某一种库的计算公式。</p>
+<h4>5.1.3 主任务损失与辅助目标</h4>
+<p>主标签 \(y\) 为“符合条件的曝光是否在归因窗口内完成目标品类交易”。原文主损失为：</p>
+<p><span class="display-math">\[
+\mathcal L_{\mathrm{main}}(\mathcal S)
+=
+\sum_{(x,a,y)}
+\ell_{\mathrm{BCE}}\!\left(y,\hat y(x,a)\right), \qquad \text{(15)}
+\]</span></p>
+<p>这里的 \(\mathcal S\) 表示相应训练数据集，但原式求和下标仅写 \((x,a,y)\)，本笔记保留这一写法。<strong>解释性公式：</strong> 单样本 BCE 的标准展开为</p>
+<p><span class="display-math">\[
+\ell_{\mathrm{BCE}}(y,p)=-y\log p-(1-y)\log(1-p).
+\]</span></p>
+<p>Stage I 使用 OBS，Stage II 使用 RCT 上的融合预测；辅助损失与主目标共同训练，缺失辅助标签被 mask。论文没有 head-level ablation，因此不能把总收益具体归因于某个辅助头。</p>
+<h3>5.2 RQ1：整体效果（原文 §5.2）</h3>
+<p align="center"><img src="./assets/TaQFormer-Table-1.png" alt="Table 1：单阶段 RCT 效果、消融与替代 encoder" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p><strong>Table 1：随机数据上训练一个 epoch 的比较。</strong> 所有模型使用同一 held-out RCT week，数据、seed、batch size、GPU 类别相同，学习率日程和辅助损失不同。Qini 与 AUC 越高越好，PCOC 越接近 1 越好；原表粗体只在排除替代 encoder 行之后评选。读表时需区分 Baseline、External、Ablation、Encoder 与 Ours 五组。</p>
+<p>为便于检索，以下转录保留原表数值和加粗位置：</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Model</th>
+<th align="right">Qini</th>
+<th align="right">AUC</th>
+<th align="right">PCOC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Baseline</td>
+<td>PEPNet</td>
+<td align="right">0.1612</td>
+<td align="right">0.6776</td>
+<td align="right">1.3737</td>
+</tr>
+<tr>
+<td>External</td>
+<td>EFIN (adapted)</td>
+<td align="right">0.2129</td>
+<td align="right">0.6938</td>
+<td align="right">0.9802</td>
+</tr>
+<tr>
+<td>External</td>
+<td>TransTEE (adapted)</td>
+<td align="right">0.2612</td>
+<td align="right">0.7362</td>
+<td align="right">1.0223</td>
+</tr>
+<tr>
+<td>Ablation</td>
+<td>flat MLP + Treatment Decoder</td>
+<td align="right">0.2592</td>
+<td align="right">0.7184</td>
+<td align="right">1.1395</td>
+</tr>
+<tr>
+<td>Ablation</td>
+<td>Encoder Block + gated towers</td>
+<td align="right">0.2536</td>
+<td align="right">0.7391</td>
+<td align="right">0.9446</td>
+</tr>
+<tr>
+<td>Encoder</td>
+<td>Wukong + Treatment Decoder</td>
+<td align="right">0.2391</td>
+<td align="right">0.7051</td>
+<td align="right">0.9608</td>
+</tr>
+<tr>
+<td>Encoder</td>
+<td>UniMixer + Treatment Decoder</td>
+<td align="right">0.2700</td>
+<td align="right">0.7385</td>
+<td align="right">0.9740</td>
+</tr>
+<tr>
+<td>Ours</td>
+<td>Encoder Block + Treatment Decoder</td>
+<td align="right"><strong>0.2697</strong></td>
+<td align="right"><strong>0.7393</strong></td>
+<td align="right"><strong>1.0012</strong></td>
+</tr>
+</tbody></table></div>
+<p>基线的工业适配方式也影响比较：PEPNet 使用共享 MLP、融合 treatment embeddings、逐层 gate 和任务塔，保留 propensity 与 pairwise 辅助项；EFIN 将 treatment 维度变成 tokens，并将原单层加性注意力替换为多头注意力，仍有自然响应与干预损失；TransTEE 保留 treatment-token cross-attention、添加任务头，因为数据随机而移除 propensity regularization。</p>
+<p><strong>结论与证据：</strong> 相比 PEPNet，TaQFormer 的 Qini 从 0.1612 到 0.2697，AUC 从 0.6776 到 0.7393，PCOC 从 1.3737 接近到 1.0012。它在 PEPNet、EFIN、TransTEE 这组比较中拥有最佳点估计，TransTEE 已相当接近。由于完整损失不同，不能把全部差距归因于单个 attention 模块，也不能将点估计差异称为离线统计显著。</p>
+<h3>5.3 RQ2：架构选择（原文 §5.3）</h3>
+<p>本节复用 Table 1，无需重复图片。两个消融和两个替代骨干分别回答不同问题：</p>
+<ul>
+<li><strong>去掉 Transformer encoder、改为 flat MLP：</strong> Qini 降到 0.2592，AUC 降到 0.7184，PCOC 变为 1.1395，支持请求特征交互模块有贡献。</li>
+<li><strong>保留 encoder，decoder 改为 fused-treatment gated towers：</strong> AUC 仍为 0.7391，但 Qini 降到 0.2536，PCOC 为 0.9446。说明近似的预测区分能力可以对应更弱的 uplift 排序。该变体还保留生产辅助损失，不能认为这是完全隔离 decoder 结构的纯消融。</li>
+<li><strong>Wukong encoder：</strong> Qini 0.2391、AUC 0.7051、PCOC 0.9608，表现弱于原 encoder。</li>
+<li><strong>UniMixer encoder：</strong> Qini 0.2700，略高于原 encoder 的 0.2697；AUC 0.7385 和 PCOC 0.9740 则略弱。总体相近，支持 decoder 可迁移到其他 encoder。</li>
+</ul>
+<p>替代 encoder 使用相同深度和 hidden width，但参数量<strong>没有对齐</strong>。因此“TaQFormer 在 Table 1 所有行的所有指标都最优”是错误的；原表也明确排除了替代 encoder 行的加粗比较。</p>
+<h3>5.4 RQ3：容量选择（原文 §5.4）</h3>
+<p align="center"><img src="./assets/TaQFormer-Figure-3.png" alt="Figure 3：宽度、深度与 BCE、Qini、AUC" width="900" style="max-width: 100%; height: auto;"></p>
+
+<p><strong>Figure 3：一个 RCT epoch 后的单阶段容量比较。</strong> 三个子图依次为主任务 BCE、Qini 和 AUC；横轴是参数量，对数刻度。蓝色为宽度扫描，橙色为深度扫描，空心点为部署配置。宽度为 \(d_{\mathrm{model}}\in\{16,32,64,128\}\)，固定 L2；深度扫描固定 \(d_{\mathrm{model}}=64\)，L1—L4 分别对应 encoder 2/4/6/8 层与 decoder 1/2/3/4 层。全部为单 seed、单 epoch，验证损失是主任务 BCE。</p>
+<p>总共七个不同配置，参数量从 2.6M 到 136M。宽度与深度扫描共享部署配置 d64 L2，因此不是八个独立配置。L2 是实验设置标签，<strong>不是整个模型只有两层</strong>；部署点为 encoder 4 层、decoder 2 层、34.5M 参数。</p>
+<p>从图中可以看出，BCE 随容量增大总体下降或平台化，AUC 多数改善，但 Qini 不单调：</p>
+<ul>
+<li>深度扫描中，AUC 从 L1 的 0.7392 到 L4 的 0.7412；Qini 在 L4 达到 0.2737，中间的 L3 却降到 0.2665。</li>
+<li>宽度 128、136M 参数的模型 AUC 达到 0.7407，但 Qini 只有 0.2653，低于宽度 32、9M 参数模型的 0.2666。</li>
+<li>论文报告宽度 128 配置的 wall-clock 成本与 51.5M 参数的 L3 配置大致相当，但没有给出完整训练时长表。</li>
+</ul>
+<p><strong>证据支持的结论：</strong> 在本次固定训练预算下，不能只按更低 BCE 选择 uplift 模型。部署使用 34.5M 配置，是效果与服务成本的工程折中，不是宣称它有最高离线 Qini。单 seed、单 epoch、有限配置也不足以建立普遍 scaling law。</p>
+<h3>5.5 RQ4：两阶段训练（原文 §5.5）</h3>
+<p align="center"><img src="./assets/TaQFormer-Table-2.png" alt="Table 2：OBS 与 RCT 的训练策略比较" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p><strong>Table 2：同一 held-out RCT week 上的训练策略比较。</strong> 上半部分是相同响应架构的单分支训练；下半部分均保留冻结 OBS 参考。Encoder full fine-tuning 仅将 RCT 后缀改为直接全参数更新；direct residual 使用两支 logits 相加。Qini/AUC 越高越好，PCOC 越接近 1 越好；粗体在全部行中比较。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>分组</th>
+<th>Training variant</th>
+<th align="right">Qini</th>
+<th align="right">AUC</th>
+<th align="right">PCOC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Single-branch training</td>
+<td>OBS only</td>
+<td align="right">0.2548</td>
+<td align="right">0.7382</td>
+<td align="right">1.0315</td>
+</tr>
+<tr>
+<td>Single-branch training</td>
+<td>RCT only</td>
+<td align="right">0.2697</td>
+<td align="right">0.7393</td>
+<td align="right"><strong>1.0012</strong></td>
+</tr>
+<tr>
+<td>Single-branch training</td>
+<td>OBS + RCT (shuffled)</td>
+<td align="right">0.2665</td>
+<td align="right">0.7398</td>
+<td align="right">1.0136</td>
+</tr>
+<tr>
+<td>Single-branch training</td>
+<td>OBS → RCT (full fine-tuning)</td>
+<td align="right">0.2673</td>
+<td align="right">0.7421</td>
+<td align="right">1.0114</td>
+</tr>
+<tr>
+<td>Frozen-reference adaptation</td>
+<td>Encoder full fine-tuning + Gate</td>
+<td align="right">0.2700</td>
+<td align="right">0.7416</td>
+<td align="right">1.0100</td>
+</tr>
+<tr>
+<td>Frozen-reference adaptation</td>
+<td>LoRA + direct residual</td>
+<td align="right">0.2686</td>
+<td align="right">0.7443</td>
+<td align="right">0.9923</td>
+</tr>
+<tr>
+<td>Frozen-reference adaptation</td>
+<td>LoRA + Gate (TaQFormer)</td>
+<td align="right"><strong>0.2706</strong></td>
+<td align="right"><strong>0.7454</strong></td>
+<td align="right">1.0027</td>
+</tr>
+</tbody></table></div>
+<p><strong>先分清两类“full fine-tuning”。</strong> 上组的 OBS → RCT 是常规单分支顺序训练，所有 Stage I 模块在 RCT 上全参数微调，没有冻结参考和 gate；下组则仍有冻结参考，只把 RCT encoder 后缀的 LoRA 换成全参数更新。两者不是同一实验。</p>
+<p>OBS-only 到 shuffled 再到常规 sequential，Qini、AUC 和总体校准逐步改善；但 conventional sequential 的 Qini 0.2673 仍低于 RCT-only 的 0.2697，即使 AUC 更高。这证明在本次实验中，添加 OBS 数据本身不自动改善 uplift 排序。</p>
+<p>完整 LoRA + Gate 的 Qini/AUC 分别为 0.2706/0.7454，相比 conventional sequential 均高 0.0033，PCOC 从 1.0114 接近到 1.0027。它相对 RCT-only 的 Qini 仅高 <strong>0.0009</strong>，AUC 高 <strong>0.0061</strong>；PCOC 最接近 1 的仍是 RCT-only，不能称两阶段在所有指标上都更好。</p>
+<p>固定 LoRA、改 gate 为直接 residual 时，原文使用无编号式：</p>
+<p><span class="display-math">\[
+s(x,a)=s^{\mathrm{obs}}(x,a)+s^{\mathrm{rct}}(x,a).
+\]</span></p>
+<p>与之相比，gated fusion 的 Qini 0.2706 高于 0.2686，AUC 0.7454 高于 0.7443。固定 gate 后，LoRA 比后缀全参微调在三个指标上均有更优点估计，同时更新更少参数。</p>
+<p><strong>证据边界：</strong> 没有多 seed 不确定性估计，因此这些小幅离线差距不能直接称为显著；与 conventional sequential 的差异同时包含冻结参考、新预测栈、适配方式和融合设计，评价的是完整方案，不是单独隔离某一因素。论文也未给出具体可训练参数比例。</p>
+<h3>5.6 RQ5：服务效率（原文 §5.6）</h3>
+<p>比较原始“每个 action 重跑完整 encoder”的实现与第 4.3 节的 treatment-parallel 实现。配置为 NVIDIA RTX 6000D、服务 batch size 256，500 QPS、10 分钟 load test，统计 P99 serving latency。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>模型</th>
+<th align="right">原始实现 P99</th>
+<th align="right">Treatment-parallel P99</th>
+<th>证据含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单阶段 RCT</td>
+<td align="right">29 ms</td>
+<td align="right">18 ms</td>
+<td>共享请求编码也能改善单分支服务</td>
+</tr>
+<tr>
+<td>双阶段 OBS–RCT</td>
+<td align="right">34 ms</td>
+<td align="right">21 ms</td>
+<td>原文报告约 38% 降低</td>
+</tr>
+</tbody></table></div>
+<p>两行都是正文数字的整理，不是额外的源论文表格。此实验支持“复用请求表示、静态图中批量处理动作”能显著减少重复计算；双阶段上线配置可在该条件下打分全部 33 个动作。</p>
+<p><strong>边界：</strong> 这是指定硬件、batch size、QPS 和压测时长下的结果，不能理解成所有流量下都有 21 ms，也不能把它当成未来更多品类、更大候选集的性能保证。论文未公开一个单独的数值化延迟 SLA 上限。</p>
+<h3>5.7 RQ6：线上影响（原文 §5.7）</h3>
+<p>按 user ID hash 固定分组，确保同一用户在 14 天期间一直使用同一模型。三组分别是生产 PEPNet、单阶段 RCT-only 和双阶段模型，各占 5% 流量，各有百万级样本；共享分配器和补贴率目标。</p>
+<p align="center"><img src="./assets/TaQFormer-Table-3.png" alt="Table 3：线上 A/B 测试" width="760" style="max-width: 100%; height: auto;"></p>
+
+<p><strong>Table 3：线上 A/B 结果。</strong> 人均业务价值以 PEPNet 为 100；上标 \(*\) 表示优于 PEPNet，\(\dagger\) 表示优于 RCT-only，显著性水平为 \(p&lt;0.05\)。读表时同时检查业务价值和实际补贴率，避免把增加补贴带来的变化误当成模型收益。</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>Model</th>
+<th align="right">Business value index</th>
+<th align="right">Subsidy rate</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PEPNet</td>
+<td align="right">100.00</td>
+<td align="right">20.43%</td>
+</tr>
+<tr>
+<td>RCT-only</td>
+<td align="right">\(101.08^{*}\)</td>
+<td align="right">20.45%</td>
+</tr>
+<tr>
+<td>Two-stage (TaQFormer)</td>
+<td align="right">\(101.26^{*\dagger}\)</td>
+<td align="right">20.42%</td>
+</tr>
+</tbody></table></div>
+<p>三组实际补贴率几乎一致，双阶段反而略低。相对生产控制组，RCT-only 人均业务价值提高 1.08%，双阶段提高 1.26%。原文明确说明，三组所有两两比较都通过 CUPED-adjusted 双样本 \(t\) 检验，\(p&lt;0.05\)。</p>
+<p><strong>解释性计算：</strong> 双阶段相对 RCT-only 的新增收益为</p>
+<p><span class="display-math">\[
+\left(\frac{101.26}{101.08}-1\right)\times100\%\approx0.178\%.
+\]</span></p>
+<p>这与“相对控制组的提升幅度相差 0.18 个百分点”表达不同，也不能说双阶段相对 RCT-only 又提高 1.26%。业务价值的定义、绝对量、精确样本量、置信区间、CUPED 协变量和具体 \(p\) 值没有公开。</p>
+<p>试验后模型推广到全量流量；原文称截至 2026 年 10 月已全量运行数月。<strong>全量运行时间不是 A/B 实验时长</strong>，不能把长期运行表述成持续数月的随机对照因果证据。</p>
+<h2>6. 结论与后续方向（原文 §6）</h2>
+<p>论文总结：结构化 treatment queries、联合目标响应读出、保留冻结参考的 OBS–RCT 训练，以及共享请求计算的并行服务，共同形成可部署的联合优惠券方案。离线结果支持相对生产模型更好的 uplift 排序和总体校准；线上对照实验支持完整双阶段方案在可比补贴率下提升人均业务价值。</p>
+<p>作者计划把联合分配扩展到<strong>超过 7 个服务品类</strong>，需要进一步处理动作覆盖、候选动作选择和服务效率。注意目前实验只涉及 2 个品类、33 个动作，不能把未来规划当成已完成的验证。</p>
+<h3>6.1 阅读后的证据边界检查</h3>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+<th>容易过度解读的说法</th>
+<th>本文实际支持的范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>首创 treatment-as-query</td>
+<td>相关工作已明确 TransTEE 等先行工作；本文是具体组合与工业实现</td>
+</tr>
+<tr>
+<td>模型给出每个品类的完整因果效应</td>
+<td>主输出是一个目标品类在完整动作下的成交概率</td>
+</tr>
+<tr>
+<td>Gate 能判断哪条路线因果上可信</td>
+<td>gate 为 RCT 结果预测优化，其权重不是校准的因果可靠性</td>
+</tr>
+<tr>
+<td>加 OBS 一定提升 uplift</td>
+<td>shuffled 和 conventional sequential 的 Qini 仍低于 RCT-only</td>
+</tr>
+<tr>
+<td>更大模型一定更好</td>
+<td>BCE/AUC 和 Qini 的趋势不完全一致，且只测单 seed、单 epoch</td>
+</tr>
+<tr>
+<td>离线消融完全隔离结构因素</td>
+<td>部分变体辅助损失不同，替代 encoder 参数量不匹配</td>
+</tr>
+<tr>
+<td>每个请求都严格守住补贴率</td>
+<td>硬候选限制与总体成本控制不同；线上用校准乘子近似实现总体目标</td>
+</tr>
+<tr>
+<td>证明了多品类大规模动作空间能力</td>
+<td>已测 2 品类、33 动作，更高维扩展尚待评估</td>
+</tr>
+<tr>
+<td>已公开完整复现材料</td>
+<td>业务转换、特征、辅助损失及多项训练细节未披露，未给出代码链接</td>
+</tr>
+</tbody></table></div>
+<h3>6.2 可迁移的设计认识</h3>
+<p><strong>阅读判断：</strong> 最值得借鉴的是把“请求表征”“结构化动作读取”“成本分配”拆成清晰接口：这样既便于复用请求计算，也能把模型质量与分配器收益分开检验。第二个可借鉴点是用保留参考的随机适配控制小 RCT 数据下的更新范围；但其有效性应在具体数据覆盖和线上目标下验证，不能从本论文推出通用最优性。</p>
+<h2>7. 来源与覆盖说明</h2>
+<p>正文遵循原文 §1—§6 顺序；摘要与引言已去重合并到第 1 节，相关工作保留在第 2 节。原论文没有 appendix、algorithm 环境、独立 theory/proof 章节；不能为了补齐模板而虚构内容。</p>
+<p>15 个源编号公式完整保留，公式（4）（5）按原文分开；无编号的因果目标、识别条件、表示形状、解码初值、服务复杂度及 residual fusion 已放在相应章节。“PCOC 展开”“BCE 展开”“补贴率等价式”和“0.178% 换算”明确标为解释或等价变形，不冒用论文编号。</p>
+<p>3 张图由作者源码中的独立 PDF 图直接渲染并裁去外部留白；3 张表从原论文 PDF 做对象级裁剪，保留标题、数值、分组、加粗和显著性标记。Table 1 在 RQ1/RQ2 共享使用，正文引用而不重复嵌图。图内出现的简写公式与正文对应内容一起保留。</p>
+<p>参考文献不是额外技术章节，不逐篇翻译或声称已独立精读；原文完整 26 条文献保存在 <a href="./assets/source/oneuplift_refs.bib">BibTeX</a> 和本地 PDF 第 9 页。本笔记的相关工作陈述依据本论文对相关文献的描述。</p>
+<ul>
+<li><a href="./coverage.md">覆盖清单</a>：章节、小节、公式、图表与无编号技术项的逐项核对。</li>
+<li><a href="./assets/source/draft.tex">原始 LaTeX</a>：核对公式、版本与未公开细节。</li>
+<li><a href="./assets/source/paper.pdf">原始 PDF</a>：核对图表与版面。</li>
+<li><a href="./TaQFormer-%E7%B2%BE%E8%AF%BB%E9%A2%84%E8%A7%88.html">浏览器预览</a>：从本 Markdown 生成，附带本地数学渲染组件，可离线阅读。</li>
+</ul>
+</main></html>
