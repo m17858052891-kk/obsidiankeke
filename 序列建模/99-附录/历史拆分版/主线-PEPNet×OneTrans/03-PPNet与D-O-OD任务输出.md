@@ -1,3 +1,12 @@
+---
+type: "项目"
+topics: ["序列建模"]
+status: "已归档"
+---
+
+> [!info] 历史拆分版
+> 本页保留原组织与当时口径，当前阅读从 [[序列建模/README|项目入口]] 开始；架构主文为 [[序列建模/PEPNet×OneTrans-主线架构|PEPNet×OneTrans-主线架构]]。
+
 # PPNet 与 D/O/OD 任务输出
 
 ## 1. 为什么 OneTrans 后还需要 PPNet

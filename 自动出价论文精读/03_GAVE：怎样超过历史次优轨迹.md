@@ -17,7 +17,7 @@ PDF：[作者公开版本](https://personal.ntu.edu.sg/boan/papers/SIGIR25_autob
 > **一句话总结：** GAVE 以 Decision Transformer 为序列 backbone，但不止模仿历史动作。它先把广告主目标写成 score-based RTG，再在日志动作附近构造受限探索，用预测的 RTG 判断探索是否值得学习，并用高 expectile 的 value 估计为探索提供“朝更高价值处走”的方向。
 
 
-![[Pasted image 20260730151405.png]]
+![[自动出价论文精读/assets/GAVE-image-01.png|GAVE-image-01.png]]
 
 ## 第一部分：全景地图
 
@@ -243,7 +243,7 @@ $x_i$ 表示是否赢得曝光，$v_i$ 是该曝光的价值，$C$ 是目标 CPA
 #### $S_1,S_2,S_3$ 不是模型自动挑选的三个分数
 
 它们是论文用来展示 score-based RTG 的三个例子，不是模型输出。论文主实验采用 $S_2$（惩罚指数为 2），并在 Table 3 中交叉比较三种 score 构造 RTG、三种 score 评估的结果；其报告的现象是，对角线（RTG score 与评估 score 一致）通常最好。论文没有给出一个跨业务通用的 score 选择规则。
-![[Pasted image 20260803170957.png]]
+![[自动出价论文精读/assets/GAVE-image-02.png|GAVE-image-02.png]]
 
 只把转化或累计价值当 reward 会有一个直接问题：模型可能通过激进抬价买到更多转化，却明显突破 CPA 目标。举例来说，若目标 CPA 为 100：
 

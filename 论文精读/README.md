@@ -2,19 +2,24 @@
 title: 论文精读索引
 tags: [论文精读, 推荐系统]
 created: 2026-08-27
+type: "索引"
+topics: ["论文阅读", "推荐系统"]
+status: "维护中"
 ---
+
+[[00-首页|返回首页]] · [[00-导航/知识地图|知识地图]] · [[00-导航/论文阅读|论文阅读]]
 
 # 论文精读
 
 ## 推荐系统统一建模
 
-- [[OneTrans/OneTrans：统一特征交互与序列建模|OneTrans：统一特征交互与序列建模]] — S/NS token 统一因果 Transformer、混合参数、金字塔堆叠、跨请求 KV Cache。
-- [[HyFormer/HyFormer：CTR中的序列建模与特征交互|HyFormer：CTR 中的序列建模与特征交互]] — Query Decoding 与 Query Boosting 逐层交替，多序列独立解码。
-- [[HSTU/HSTU：生成式推荐与层次序列转导单元|HSTU：生成式推荐与层次序列转导单元]] — GR 任务重构、HSTU、Stochastic Length、M-FALCON，含技术附录。
+- [[论文精读/OneTrans/OneTrans：统一特征交互与序列建模|OneTrans：统一特征交互与序列建模]] — S/NS token 统一因果 Transformer、混合参数、金字塔堆叠、跨请求 KV Cache。
+- [[论文精读/HyFormer/HyFormer：CTR中的序列建模与特征交互|HyFormer：CTR 中的序列建模与特征交互]] — Query Decoding 与 Query Boosting 逐层交替，多序列独立解码。
+- [[论文精读/HSTU/HSTU：生成式推荐与层次序列转导单元|HSTU：生成式推荐与层次序列转导单元]] — GR 任务重构、HSTU、Stochastic Length、M-FALCON，含技术附录。
 
 ## 因果建模与优惠券分配
 
-- [[TaQFormer/TaQFormer：多维优惠券建模与OBS-RCT融合|TaQFormer：多维优惠券建模与 OBS–RCT 融合]] — 品类折扣 query、目标品类响应、冻结 OBS 参考与 LoRA 随机适配、全动作并行服务；含全部公式与原始图表。版本：arXiv:2610.26199v1。
+- [[论文精读/TaQFormer/TaQFormer：多维优惠券建模与OBS-RCT融合|TaQFormer：多维优惠券建模与 OBS–RCT 融合]] — 品类折扣 query、目标品类响应、冻结 OBS 参考与 LoRA 随机适配、全动作并行服务；含全部公式与原始图表。版本：arXiv:2610.26199v1。
 
 ## 快速对照
 
@@ -26,4 +31,3 @@ created: 2026-08-27
 
 > [!info] 版本
 > OneTrans 使用 arXiv:2510.26104v3；HyFormer 使用 arXiv:2601.12681v2；HSTU 使用 arXiv:2402.17152v3。
-

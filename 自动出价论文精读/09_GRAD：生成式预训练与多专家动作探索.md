@@ -141,7 +141,7 @@ $$
 
 ### 3.1 Figure 1：整体架构
 
-<p align="center"><img src="./GRAD Figure 1 - Overall Architecture.png" alt="Figure 1：GRAD 整体架构" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Figure%201%20-%20Overall%20Architecture.png" alt="Figure 1：GRAD 整体架构" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Figure 1：GRAD 整体架构。左侧为 RTG、状态和历史动作的序列输入，中间为 Causal Transformer，右上为 Value Estimator，底部为 ActionMoE。
 
@@ -330,7 +330,7 @@ $\omega_m$ 是可训练权重。该式将“根据当前状态生成的残差”
 
 #### 3.4.5 Algorithm 1：ActionMoE 前向流程
 
-<p align="center"><img src="./GRAD Algorithm 1 - ActionMoE Forward.png" alt="Algorithm 1：ActionMoE 前向流程" width="620" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Algorithm%201%20-%20ActionMoE%20Forward.png" alt="Algorithm 1：ActionMoE 前向流程" width="620" style="max-width: 100%; height: auto;"></p>
 
 > Algorithm 1：输入状态表示 $\mathbf h_t$ 和基础动作 $\hat a_t$，先计算 MoE 表示与残差，再构造候选动作，最后通过可训练权重与残差得到 refined action。
 
@@ -435,7 +435,7 @@ AuctionNet 以 CPA 为约束，线上美团场景主要展示 CPC。两者共享
 
 所有方法在 AuctionNet 与 Sparse 版本上使用 50%、75%、100%、125%、150% 五档预算比较。
 
-<p align="center"><img src="./GRAD Table 1 - Performance Comparison.png" alt="Table 1：主实验结果" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Table%201%20-%20Performance%20Comparison.png" alt="Table 1：主实验结果" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Table 1：主实验结果。粗体是最高值，下划线是次优值。
 
@@ -450,7 +450,7 @@ AuctionNet 以 CPA 为约束，线上美团场景主要展示 CPC。两者共享
 
 ### 4.3 Parameter Analysis：专家数量
 
-<p align="center"><img src="./GRAD Figure 2 - Number of Experts.png" alt="Figure 2：不同专家数量的表现" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Figure%202%20-%20Number%20of%20Experts.png" alt="Figure 2：不同专家数量的表现" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Figure 2：在 AuctionNet、100% 预算下比较 4、6、8 个专家。柱形表示 Score 和 Total Reward，折线表示 Exceed Rate 与 CPA Ratio。
 
@@ -458,7 +458,7 @@ AuctionNet 以 CPA 为约束，线上美团场景主要展示 CPC。两者共享
 
 ### 4.4 Ablation Study：组件消融
 
-<p align="center"><img src="./GRAD Table 2 - Ablation Study.png" alt="Table 2：GRAD 组件消融" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Table%202%20-%20Ablation%20Study.png" alt="Table 2：GRAD 组件消融" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Table 2：$\mathbf A$ 表示 ActionMoE，$\mathbf V$ 表示 Value Estimator。
 
@@ -494,7 +494,7 @@ $\lambda\in\{0,1\}$ 控制违规时是否激活惩罚，$\vartheta$ 是 CPC 阈�
 
 ### 5.2 Deployment：训练与推理链路
 
-<p align="center"><img src="./GRAD Figure 3 - Online Deployment.png" alt="Figure 3：美团线上部署架构" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Figure%203%20-%20Online%20Deployment.png" alt="Figure 3：美团线上部署架构" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Figure 3：训练侧使用历史行为、预算和 KPI；推理侧使用 Causal Transformer、共享专家、Top-1 路由专家和 Value Estimator，生成 bid 后进入 Ranking。
 
@@ -518,7 +518,7 @@ $$
 
 $\gamma=1.2$，即平均 CPC 不超过目标的 120% 就算当天合规。
 
-<p align="center"><img src="./GRAD Table 3 - Online AB Test.png" alt="Table 3：线上 A/B 实验" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Table%203%20-%20Online%20AB%20Test.png" alt="Table 3：线上 A/B 实验" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Table 3：相对美团平台最优 RL 基线，CTR +3.93%、CPC_CR +5.64%、ROI +10.68%、GMV +2.18%。
 
@@ -572,7 +572,7 @@ GRAD 选择第一条路线，并将多专家动作探索与价值监督嵌入 Ca
 
 ### 8.1 Table 4：数据集统计
 
-<p align="center"><img src="./GRAD Table 4 - Dataset Statistics.png" alt="Table 4：AuctionNet 数据统计" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Table%204%20-%20Dataset%20Statistics.png" alt="Table 4：AuctionNet 数据统计" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Table 4：两个数据集均含 479,376 条轨迹、每条轨迹 48 个时间步、16 维状态和 1 维动作。Sparse 版本的转化更稀疏，CPA 范围更高。
 
@@ -580,7 +580,7 @@ AuctionNet-Sparse 的单轨迹总转化范围为 0 到 57，而完整版本为 0
 
 ### 8.2 Table 5：超参数
 
-<p align="center"><img src="./GRAD Table 5 - Hyperparameters.png" alt="Table 5：GRAD 超参数" width="620" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Table%205%20-%20Hyperparameters.png" alt="Table 5：GRAD 超参数" width="620" style="max-width: 100%; height: auto;"></p>
 
 > Table 5：模型使用 8 层注意力、16 个头、512 隐藏维度、6 个专家，训练 400,000 步。
 
@@ -871,7 +871,7 @@ Top-1 每次只激活一个路由分支，因此上界依赖 $L_s+L_r$，而不�
 
 ### 10.1 Figure 4：惩罚目标与梯度稳定性
 
-<p align="center"><img src="./GRAD Figure 4 - Penalized Objective Analysis.png" alt="Figure 4：惩罚目标训练分析" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Figure%204%20-%20Penalized%20Objective%20Analysis.png" alt="Figure 4：惩罚目标训练分析" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Figure 4：左图比较 Top-1 routing 与多专家同时激活时的梯度范数；右图展示惩罚目标 $J_\lambda$ 随训练步数上升并逐渐稳定。
 
@@ -881,7 +881,7 @@ Top-1 每次只激活一个路由分支，因此上界依赖 $L_s+L_r$，而不�
 
 ### 10.2 Figure 5：随机轨迹的 CPC_CR
 
-<p align="center"><img src="./GRAD Figure 5 - CPC CR Trajectory.png" alt="Figure 5：随机轨迹 CPC_CR 对比" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRAD%20Figure%205%20-%20CPC%20CR%20Trajectory.png" alt="Figure 5：随机轨迹 CPC_CR 对比" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Figure 5：在一段随机轨迹上比较 CEM、IQL 与 GRAD 的 CPC_CR。
 

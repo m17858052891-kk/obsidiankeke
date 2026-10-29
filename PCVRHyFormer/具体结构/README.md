@@ -1,21 +1,30 @@
+---
+type: "索引"
+topics: ["推荐系统", "序列建模"]
+status: "维护中"
+---
+
+> [!info] 本页定位
+> 模块级阅读路线与事实卡；项目总入口见 [[PCVRHyFormer/README|PCVRHyFormer入口]]。
+
 # PCVRHyFormer 项目笔记
 
 这套笔记只保留可复现的模型事实、实验证据与面试表达。历史目录曾在多次试验后继续被修改，因此必须区分：**当前用于讲解的 516 前置候选感知主线**，与**有完整分数证据的历史实验结论**。
 
 ## 建议阅读顺序
 
-1. [[当前模型架构（516 前置候选感知）]]：从输入到 logit 的完整数据流。
-2. [[动态序列编码：从一条行为到 Query]]：用单个样本解释多字段行为、时间桶与前置 bilinear pooling。
-3. [[Sequence Evolution：四域独立Transformer与RoPE]]：域内 Transformer、RoPE、mask 与两层序列演化。
-4. [[共享序列Encoder与域特定Adapter-FiLM]]：独立与共享 Encoder 的取舍，以及 Adapter / FiLM 的原理、适用信号和消融方案。
-5. [[Pyramid序列压缩：从逐层缩短到候选感知筛选]]：OneTrans 的逐层 Query 收缩、与可学习裁剪的区别，以及当前模型可验证的改造方案。
-6. [[实验复盘与证据边界]]：哪些结论有日志/源码支持，哪些仍需复验。
-7. [[改动一：ID与统计值的语义对齐]]、[[改动二：请求与行为时间的双尺度对齐]]、[[改动三：前置候选感知Query初始化]]：基于 baseline 的三项核心改动。
-8. [[讲解逐字稿（3分钟）]]：3 分钟主讲版本与 30 秒版本。
-9. [[PCVRHyFormer完整模型架构逐字稿-516最终版]]：从数据流、实现细节到 20 分钟、5 分钟和 90 秒口述版本的完整材料。
-10. [[面试深挖问题地图（从业务到落地）]]：按架构、训练、工程和反思组织的 41 个高频深挖问题与回答。
-11. [[面试问答（精简）]]：高频追问的短答版本。
-12. [[训练策略：为什么 Embedding 用 Adagrad、主干用 AdamW]]：Adagrad + AdamW 的原理与答法。
+1. [[PCVRHyFormer/具体结构/当前模型架构（516 前置候选感知）|当前模型架构（516 前置候选感知）]]：从输入到 logit 的完整数据流。
+2. [[PCVRHyFormer/具体结构/动态序列编码：从一条行为到 Query|动态序列编码：从一条行为到 Query]]：用单个样本解释多字段行为、时间桶与前置 bilinear pooling。
+3. [[PCVRHyFormer/具体结构/Sequence Evolution：四域独立Transformer与RoPE|Sequence Evolution：四域独立Transformer与RoPE]]：域内 Transformer、RoPE、mask 与两层序列演化。
+4. [[PCVRHyFormer/具体结构/共享序列Encoder与域特定Adapter-FiLM|共享序列Encoder与域特定Adapter-FiLM]]：独立与共享 Encoder 的取舍，以及 Adapter / FiLM 的原理、适用信号和消融方案。
+5. [[PCVRHyFormer/具体结构/Pyramid序列压缩：从逐层缩短到候选感知筛选|Pyramid序列压缩：从逐层缩短到候选感知筛选]]：OneTrans 的逐层 Query 收缩、与可学习裁剪的区别，以及当前模型可验证的改造方案。
+6. [[PCVRHyFormer/实验复盘与证据边界|实验复盘与证据边界]]：哪些结论有日志/源码支持，哪些仍需复验。
+7. [[PCVRHyFormer/具体结构/改动一：ID与统计值的语义对齐|改动一：ID与统计值的语义对齐]]、[[PCVRHyFormer/具体结构/改动二：请求与行为时间的双尺度对齐|改动二：请求与行为时间的双尺度对齐]]、[[PCVRHyFormer/具体结构/改动三：前置候选感知Query初始化|改动三：前置候选感知Query初始化]]：基于 baseline 的三项核心改动。
+8. [[PCVRHyFormer/讲解逐字稿（3分钟）|讲解逐字稿（3分钟）]]：3 分钟主讲版本与 30 秒版本。
+9. [[PCVRHyFormer/具体结构/PCVRHyFormer完整模型架构逐字稿-516最终版|PCVRHyFormer完整模型架构逐字稿-516最终版]]：从数据流、实现细节到 20 分钟、5 分钟和 90 秒口述版本的完整材料。
+10. [[PCVRHyFormer/具体结构/面试深挖问题地图（从业务到落地）|面试深挖问题地图（从业务到落地）]]：按架构、训练、工程和反思组织的 41 个高频深挖问题与回答。
+11. [[PCVRHyFormer/具体结构/面试问答（精简）|面试问答（精简）]]：高频追问的短答版本。
+12. [[PCVRHyFormer/具体结构/训练策略：为什么 Embedding 用 Adagrad、主干用 AdamW|训练策略：为什么 Embedding 用 Adagrad、主干用 AdamW]]：Adagrad + AdamW 的原理与答法。
 
 ## 一页事实卡
 

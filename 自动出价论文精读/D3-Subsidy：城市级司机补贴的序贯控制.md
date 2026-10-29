@@ -38,7 +38,7 @@ D3-Subsidy 的主要决策对象是低维的城市级控制信号，而不是实
 
 Figure 2 展示了这条闭环中规划层和执行层的连接：模型先生成城市级未来计划，再通过逆动力学和对偶映射落到细粒度的订单—司机级补贴。
 
-![[D3-Subsidy Figure 2 - Framework.png]]
+![[自动出价论文精读/assets/D3-Subsidy Figure 2 - Framework.png|D3-Subsidy Figure 2 - Framework.png]]
 
 
 ### 1.2 Abstract 摘要
@@ -115,7 +115,7 @@ Preliminary 主要完成三件事：
 
 论文原文的 Figure 1 展示了这个闭环：在窗口开始时观察上一窗口状态、更新当前城市级全局控制；在窗口内保持该控制固定，对新到订单计算订单—司机级补贴；根据司机是否接受、订单是否完成得到窗口奖励，再进入下一窗口。
 
-![[D3-Subsidy Figure 1 - Problem Formulation.png]]
+![[自动出价论文精读/assets/D3-Subsidy Figure 1 - Problem Formulation.png|D3-Subsidy Figure 1 - Problem Formulation.png]]
 
 ### 2.2 问题建模
 
@@ -354,7 +354,7 @@ $$
 
 论文中的 Figure 3 对比了普通扩散和前缀条件扩散：
 
-![[D3-Subsidy Figure 3 - Prefix-Conditional Diffusion.png]]
+![[自动出价论文精读/assets/D3-Subsidy Figure 3 - Prefix-Conditional Diffusion.png|D3-Subsidy Figure 3 - Prefix-Conditional Diffusion.png]]
 
 图中左侧普通扩散会对整条序列加噪；右侧 Prefix-Conditional Diffusion 只对 prefix 之后的未来部分加噪，并在反向采样的每一步重新固定 prefix。对 D3-Subsidy 来说，右侧机制是关键，因为补贴策略必须接着真实历史继续执行。
 
@@ -527,13 +527,13 @@ $$
 
 **Algorithm 1：前向加噪的论文逻辑**
 
-![[Algorithm-1.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Algorithm-1.png|D3-Subsidy-Algorithm-1.png]]
 
 这一步对应训练时的前向扩散。模型只对未来的 suffix 加入高斯噪声，前缀 prefix 直接保留真实轨迹，因此得到的 $z^\tau$ 同时包含“已观测的真实历史”和“被扰动的未来”。这样训练目标就明确限定为：根据真实前缀和上下文，学习如何恢复未来轨迹，而不是重建已经知道的历史。
 
 **Algorithm 2：前缀条件反向采样的逻辑**
 
-![[Algorithm-2.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Algorithm-2.png|D3-Subsidy-Algorithm-2.png]]
 
 这一步对应推理时的反向去噪。首先将真实 prefix 固定不动，并把未来 suffix 初始化为噪声；随后从扩散步 $L$ 逐步去噪到 $1$，每一步都重新钳制 prefix，防止采样过程修改已观测历史。最终保留下来的 suffix 就是模型在给定历史和上下文条件下生成的未来轨迹，之后再用于计算补贴动作。
 
@@ -748,7 +748,7 @@ $$
 
 每条样本是一条“城市—天”轨迹。每个时间窗口聚合城市级供需信号和上下文，记录线上策略的平均城市级控制量，并计算 Rides、GMV 和司机收入 DRV 等 KPI。
 
-![[Table-1.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-1.png|D3-Subsidy-Table-1.png]]
 
 
 这里可以看出，论文的动作空间始终只有一个标量：城市级补贴控制，而不是订单—司机级高维动作。订单—司机级补贴由前面公式（6）和（8）的解析映射得到。
@@ -793,7 +793,7 @@ $$
 
 论文的主结果显示，D3-Subsidy 在三个城市和三种时间窗口下都取得最高 Score，并持续超过生产 Online 策略。Offline RL 基线中 DT 的平均表现最强，但仍落后于 D3-Subsidy。由于不同时间窗口的趋势一致，后续消融和深入分析统一使用 5 分钟窗口。
 
-![[Table-2.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-2.png|D3-Subsidy-Table-2.png]]
 
 
 这个结果支持的是一个比较具体的结论：在相同补贴率约束和相同闭环仿真环境下，D3-Subsidy 生成的城市级控制轨迹能比生产策略和直接 Offline RL 策略获得更高的约束感知 Score。
@@ -811,7 +811,7 @@ $$
 | D3-Subsidy-P | 去掉 PEFT / fine-tuning，直接使用预训练模型推理 | 检验目标城市适配的作用 |
 
 City C、5 分钟窗口上的结果如下：
-![[Table-3.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-3.png|D3-Subsidy-Table-3.png]]
 
 
 论文的结论是，三个组件都在发挥作用，其中去掉多城市预训练的下降最大。这说明模型的收益不是某一个单独模块带来的，而是由条件控制、跨城市预训练和目标城市适配共同形成。
@@ -824,19 +824,19 @@ City C、5 分钟窗口上的结果如下：
 
 论文原表 Table 4：
 
-![[Table-4.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-4.png|D3-Subsidy-Table-4.png]]
 
 #### 4.4.2 Temporal Dynamics：窗口级 KPI 的时间变化
 
 论文 Figure 4：City C 的日内 KPI 动态。左图为累计 Rides、GMV、DRV，右图为窗口级 Rides、GMV、DRV。
 >
-![[Figure 4a - City C Cumulative KPI.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 4a - City C Cumulative KPI.svg|D3-Subsidy-Figure 4a - City C Cumulative KPI.svg]]
 >
-![[Figure 4b - City C Per-window KPI.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 4b - City C Per-window KPI.svg|D3-Subsidy-Figure 4b - City C Per-window KPI.svg]]
 >
 论文 Figure 5：City C 的日补贴率。
 >
-![[Figure 5 - City C Daily Subsidy Rate.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 5 - City C Daily Subsidy Rate.svg|D3-Subsidy-Figure 5 - City C Daily Subsidy Rate.svg]]
 
 论文以 City C 的 5 分钟窗口为例，观察一天内 Rides、GMV、DRV 的变化：
 
@@ -848,7 +848,7 @@ City C、5 分钟窗口上的结果如下：
 
 论文 Figure 6：KPI-conditional policy steering，展示改变目标 KPI 条件后，Score、Rides 和 GMV 的变化。
 >
-![[Figure 6 - KPI Conditional Policy Steering.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 6 - KPI Conditional Policy Steering.svg|D3-Subsidy-Figure 6 - KPI Conditional Policy Steering.svg]]
 
 论文还验证了部署时的可调节性：固定补贴率约束，只改变 context 中的目标 KPI 信号，然后重新 rollout。结果显示，调整目标输入能够带来方向一致的 Score、Rides 和 GMV 变化。
 
@@ -858,9 +858,9 @@ City C、5 分钟窗口上的结果如下：
 
 论文 Figure 7：不同训练设置下的 loss 曲线。左图是不使用 MNDL，右图是使用 MNDL。
 >
-![[Figure 7a - Loss without MNDL.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 7a - Loss without MNDL.svg|D3-Subsidy-Figure 7a - Loss without MNDL.svg]]
 >
-![[Figure 7b - Loss with MNDL.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 7b - Loss with MNDL.svg|D3-Subsidy-Figure 7b - Loss with MNDL.svg]]
 
 论文比较了普通去噪损失和 Mask-Normalized Denoising Loss（MNDL）。由于不同样本的前缀长度和 padding 长度不同，普通损失的有效预测位置数量会变化，导致 batch 间损失尺度和梯度波动。
 
@@ -872,7 +872,7 @@ MNDL 按有效的、未被 mask 的 suffix 位置数归一化，使损失大小�
 
 在 City D、City E、City F 上，所有目标城市数据都被排除在训练集之外，因此不能使用目标城市 PEFT。5 分钟窗口下的结果如下：
 
-![[Table-5.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-5.png|D3-Subsidy-Table-5.png]]
 
 
 D3-Subsidy 在冷启动城市上仍然优于 Online 和 DT，说明多城市预训练学到的不只是某个城市的固定策略，而是具有一定跨城市迁移能力的城市运营动态先验。
@@ -883,7 +883,7 @@ D3-Subsidy 在冷启动城市上仍然优于 Online 和 DT，说明多城市预�
 
 论文 Figure 8：City C 在不同反向扩散步数下的 Score。
 >
-![[Figure 8 - Diffusion Steps.svg]]
+![[自动出价论文精读/assets/D3-Subsidy-Figure 8 - Diffusion Steps.svg|D3-Subsidy-Figure 8 - Diffusion Steps.svg]]
 
 论文在 City C 上测试反向扩散步数 $\tau\in\{10,50,100,150\}$。结果在 50 步时达到最佳；步数太少会降低生成质量，继续增加步数也没有稳定收益。
 
@@ -893,7 +893,7 @@ D3-Subsidy 在冷启动城市上仍然优于 Online 和 DT，说明多城市预�
 
 约束感知 Score 的惩罚指数 $\beta$ 控制补贴率超过目标上限后，Score 下降的幅度。论文在 City C 上测试 $\beta\in\{0.5,1.0,2.0\}$：
 
-![[Table-6.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-6.png|D3-Subsidy-Table-6.png]]
 
 
 Online 在该城市始终没有超过补贴率上限，因此 Score 不随 $\beta$ 变化。D3-Subsidy 会更贴近目标预算，在部分日期可能略高于软上限，所以 $\beta$ 增大后 Score 会逐渐下降；但在所有测试值下仍然优于 Online。
@@ -926,7 +926,7 @@ $$
 
 线上结果：
 
-![[Table-7.png]]
+![[自动出价论文精读/assets/D3-Subsidy-Table-7.png|D3-Subsidy-Table-7.png]]
 
 
 线上实验支持三点：第一，离线闭环仿真的收益能够迁移到真实市场；第二，在相同补贴率约束下，Rides、GMV 和 DRV 同时提升；第三，推理额外增加约 20 ms，仍具有生产可执行性。

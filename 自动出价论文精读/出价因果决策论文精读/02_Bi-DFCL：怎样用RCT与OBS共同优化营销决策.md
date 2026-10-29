@@ -139,7 +139,7 @@ $$
 
 ## 4. 先看 Figure 2：图中每一块在回答什么
 
-![[Pasted image 20260730214003.png]]
+![[自动出价论文精读/出价因果决策论文精读/assets/Bi-DFCL-image-01.png|Bi-DFCL-image-01.png]]
 
 从左到右是三段不同性质的计算：
 

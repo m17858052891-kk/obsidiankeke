@@ -1,3 +1,12 @@
+---
+type: "项目"
+topics: ["序列建模"]
+status: "已归档"
+---
+
+> [!info] 历史拆分版
+> 本页保留原组织与当时口径，当前阅读从 [[序列建模/README|项目入口]] 开始；架构主文为 [[序列建模/PEPNet×OneTrans-主线架构|PEPNet×OneTrans-主线架构]]。
+
 # OneTrans：统一序列交互
 
 ## 1. 解决的硬边界
@@ -48,4 +57,4 @@ OneTrans 的关键差异是：S-token 通常共享 Q/K/V 与 FFN 参数，以学
 
 ## 6. 输出交给 PPNet
 
-OneTrans 输出的是一份融合后的共享表示，而不是直接预测履约。接下来由任务级 PPNet 决定 OD/O/D 各自应保留哪些 hidden 通道，见 [[03-PPNet与D-O-OD任务输出]]。
+OneTrans 输出的是一份融合后的共享表示，而不是直接预测履约。接下来由任务级 PPNet 决定 OD/O/D 各自应保留哪些 hidden 通道，见 [[序列建模/99-附录/历史拆分版/主线-PEPNet×OneTrans/03-PPNet与D-O-OD任务输出|03-PPNet与D-O-OD任务输出]]。

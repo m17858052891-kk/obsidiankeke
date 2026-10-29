@@ -13,7 +13,7 @@ created: 2026-07-28
 会议：ICML 2021
 
 > **一句话总结：** DT 不显式学习 value function 或 policy gradient；它把离线轨迹写成“期望回报—状态—动作”的 token 序列，用带因果 mask 的 Transformer 在给定目标回报和历史时预测下一步动作。
-![[Pasted image 20260730172627.png]]
+![[自动出价论文精读/assets/DT-image-01.png|DT-image-01.png]]
 
 ## 对照主图：逐个 token 看 DT 如何产生动作
 
@@ -247,11 +247,11 @@ $$
 
 **先看 Table 3（D4RL，数据相对充足）。** 每行是一种数据集与环境，`10%BC / 25%BC / 40%BC / 100%BC` 表示只拿回报最高的不同百分比时间步训练 BC；加粗是该行最好结果。平均分上，最好的 %BC 为 $56.7$，DT 为 $56.1$，两者接近，但这个“最好的百分比”随环境变化，事先并不知道应该选 $10\%$、$25\%$ 还是其他值。
 
-![[DT Discussion Table 3.png|700]]
+![[自动出价论文精读/assets/DT Discussion Table 3.png|700]]
 
 **再看 Table 4（Atari，作者使用的是仅 $1\%$ replay 数据）。** 此时 DT 在四个游戏中都优于各个固定比例的 %BC。它表明当数据较少时，硬丢弃其余轨迹会更伤泛化；DT 则能保留全量轨迹，同时通过 RTG 在推理时偏向高回报行为。
 
-![[DT Discussion Table 4.png|700]]
+![[自动出价论文精读/assets/DT Discussion Table 4.png|700]]
 
 **本节结论。** 在数据足够时，精选后的 BC 可以很强；但固定筛选比例需要环境知识，且小数据下会浪费样本。DT 的价值不是“总比 BC 强”，而是用一个条件模型在全量数据中学习不同质量的行为模式，免去预先物理筛选一个 top 子集。
 
@@ -263,7 +263,7 @@ $$
 
 Figure 4 的横轴是推理时喂给 DT 的 target return，纵轴是 rollout 得到的实际 performance。蓝线是 DT，绿色虚线是理想的 Oracle（指定多少目标，实际就达到多少），橙色竖线是日志中最好轨迹的 return。蓝线整体随横轴上升，说明 RTG 确实改变了策略行为；但它并不总贴着绿色线，且在高目标处会饱和或回落，说明模型仍受数据覆盖限制。
 
-![[DT Discussion Figure 4.png|700]]
+![[自动出价论文精读/assets/DT Discussion Figure 4.png|700]]
 
 **本节结论。** RTG 是一个可调的策略条件，而非无效装饰；Seaquest 等个别任务还出现了超过橙线的结果，说明存在一定外推。但这张图不是“目标越大越好”的证明，正确读法是：目标与实际回报在实验范围内通常正相关，超出数据支持范围后并无保证。
 
@@ -271,7 +271,7 @@ Figure 4 的横轴是推理时喂给 DT 的 target return，纵轴是 rollout �
 
 Table 5 把原 DT 与“无上下文”的 $K=1$ 对比；原 DT 在 Atari 中使用 $K=30$，Pong 使用 $K=50$。四项任务均下降，Pong 从 $106.1\pm8.1$ 降至 $2.5\pm0.2$，是最醒目的例子。
 
-![[DT Discussion Table 5.png|650]]
+![[自动出价论文精读/assets/DT Discussion Table 5.png|650]]
 
 **本节结论。** 历史不是可有可无的冗余。论文的解释是：离线数据常混合多种行为策略，context 让 Transformer 判断“当前动作前已经发生了什么、这条轨迹处于何种行为模式”，从而选择更符合指定 RTG 的动作。它并没有证明 context 越长必然越好；这里只验证了从 $K=1$ 到论文使用的长度，长上下文显著有帮助。
 
@@ -281,7 +281,7 @@ Table 5 把原 DT 与“无上下文”的 $K=1$ 对比；原 DT 在 Atari 中�
 
 Table 6 的指标是成功率。训练数据是随机轨迹，DT 从 1K 条日志达到 $71.8\%$，10K 条达到 $94.6\%$；CQL 分别仅为 $13.1\%$、$13.3\%$。同时 %BC 也达到 $69.9\%$ 与 $95.1\%$，是解读这张表时不能忽略的对照。
 
-![[DT Discussion Table 6.png|650]]
+![[自动出价论文精读/assets/DT Discussion Table 6.png|650]]
 
 **本节结论。** 这不是“只有 Transformer 神奇地完成 credit assignment”。DT 和只学习成功轨迹的 %BC 都利用了 hindsight 信息：已完成轨迹的 RTG 告诉模型“这段序列最后成功了”。实验支持的是：当日志含成功轨迹时，目标条件化的序列学习能较直接关联早期拿钥匙和很晚才到的开门结果；CQL 的长程 TD 传播在这个设置中失败。
 
@@ -291,7 +291,7 @@ Table 6 的指标是成功率。训练数据是随机轨迹，DT 从 1K 条日�
 
 Figure 5 左图显示三类轨迹结果的预测回报概率如何随时间变化：模型在 `key room`、`distractor room`、`door room` 中持续更新判断；右图叠加所有时间步对一条成功轨迹的注意力，红色虚线标出“拿钥匙”和“到门”这两个关键时刻，注意力在其附近集中。
 
-![[DT Discussion Figure 5.png|700]]
+![[自动出价论文精读/assets/DT Discussion Figure 5.png|700]]
 
 **本节结论。** 该 probe 表明 Transformer 的隐表示可以形成状态—回报关联，并在关键事件后调整成功概率；但它只是论文对内部机制的证据，不能等同于“原始 DT 训练时显式学习了一个可供 argmax 的 $Q$ critic”。
 
@@ -301,7 +301,7 @@ Figure 5 左图显示三类轨迹结果的预测回报概率如何随时间变�
 
 Table 7 左半部分 `Delayed (Sparse)` 是延迟奖励版本，中间 `Agnostic` 是不使用奖励的 BC/%BC，右半部分 `Original (Dense)` 是原始稠密奖励任务。以 Medium-Replay 为例，DT 从原始的 $82.7$ 变为延迟奖励的 $78.5$，变化较小；CQL 从 $48.6$ 降到 $2.0$。三行数据都体现同一趋势。
 
-![[DT Discussion Table 7.png|700]]
+![[自动出价论文精读/assets/DT Discussion Table 7.png|700]]
 
 **本节结论。** 原因不是 DT 不需要 reward，而是它训练时直接读取整条已完成轨迹的 RTG，监督目标仍是日志 action，不依赖逐步 Bellman bootstrap 才获得学习信号。BC 本身也对 reward 不敏感，所以这一实验更准确地说明 DT 在该 delayed-return 设定下比 CQL 稳健，而不是证明 DT 普遍胜过所有稀疏奖励方法。
 

@@ -9,6 +9,9 @@ tags:
   - 时间片实验
   - VCM
 source: Cooper / 孟盈（原始 WIP）
+type: "讲稿"
+topics: ["实验设计"]
+status: "维护中"
 ---
 
 # AB 实验分享：从业务假设到决策

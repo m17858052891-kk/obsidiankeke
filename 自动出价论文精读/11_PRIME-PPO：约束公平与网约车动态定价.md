@@ -499,65 +499,65 @@ Table 13 对 PRIME-PPO 与 JPDR/FaPU 的五指标做配对 $t$ 检验，报告�
 
 ### 9.1 方法总览与训练过程
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-01-Overall-Architecture.png" alt="Figure 1：PRIME-PPO 总体架构" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-01-Overall-Architecture.png" alt="Figure 1：PRIME-PPO 总体架构" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-01-Notation-part-1.png" alt="Table 1：方法符号（第 1 部分）" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-01-Notation-part-1.png" alt="Table 1：方法符号（第 1 部分）" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-01-Notation-part-2.png" alt="Table 1：方法符号（续）" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-01-Notation-part-2.png" alt="Table 1：方法符号（续）" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Algorithm-01-Training-Procedure.png" alt="Algorithm 1：PRIME-PPO 训练过程" width="620" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Algorithm-01-Training-Procedure.png" alt="Algorithm 1：PRIME-PPO 训练过程" width="620" style="max-width: 100%; height: auto;"></p>
 
 ### 9.2 收益、匹配与司机侧公平（Figures 2–4；Tables 2–4）
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-02-Revenue-Convergence.png" alt="Figure 2：平均营收训练收敛" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-02-Revenue-Convergence.png" alt="Figure 2：平均营收训练收敛" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-02-Revenue-Comparison.png" alt="Table 2：平台营收比较" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-02-Revenue-Comparison.png" alt="Table 2：平台营收比较" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-03-Matching-Rate.png" alt="Figure 3：匹配率训练曲线" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-03-Matching-Rate.png" alt="Figure 3：匹配率训练曲线" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-03-Matching-Rate.png" alt="Table 3：订单匹配率比较" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-03-Matching-Rate.png" alt="Table 3：订单匹配率比较" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-04-JFI-Training.png" alt="Figure 4：JFI 训练曲线" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-04-JFI-Training.png" alt="Figure 4：JFI 训练曲线" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-04-Revenue-Fairness.png" alt="Table 4：收入公平 JFI 比较" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-04-Revenue-Fairness.png" alt="Table 4：收入公平 JFI 比较" width="900" style="max-width: 100%; height: auto;"></p>
 
 ### 9.3 收益、空驶、用户公平与预算（Figures 5–8；Tables 5–8）
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-05-Platform-Revenue.png" alt="Figure 5：平台营收比较" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-05-Platform-Revenue.png" alt="Figure 5：平台营收比较" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-05-Platform-Revenue-part-1.png" alt="Table 5：平台总营收比较（第 1 部分）" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-05-Platform-Revenue-part-1.png" alt="Table 5：平台总营收比较（第 1 部分）" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-05-Platform-Revenue-part-2.png" alt="Table 5：平台总营收比较（续）" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-05-Platform-Revenue-part-2.png" alt="Table 5：平台总营收比较（续）" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-06-Empty-Travel-Distance.png" alt="Figure 6：空驶距离比较" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-06-Empty-Travel-Distance.png" alt="Figure 6：空驶距离比较" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-06-Empty-Travel-Distance.png" alt="Table 6：空驶距离比较" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-06-Empty-Travel-Distance.png" alt="Table 6：空驶距离比较" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-07-User-Fairness-CV.png" alt="Figure 7：用户侧价格 CV 公平" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-07-User-Fairness-CV.png" alt="Figure 7：用户侧价格 CV 公平" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-07-User-Fairness-CV.png" alt="Table 7：用户侧价格 CV" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-07-User-Fairness-CV.png" alt="Table 7：用户侧价格 CV" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-08-Budget-Compliance.png" alt="Figure 8：预算约束符合度" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-08-Budget-Compliance.png" alt="Figure 8：预算约束符合度" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-08-Budget-Deviation.png" alt="Table 8：归一化预算偏差" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-08-Budget-Deviation.png" alt="Table 8：归一化预算偏差" width="900" style="max-width: 100%; height: auto;"></p>
 
 ### 9.4 鲁棒性、综合权衡、弹性与消融（Figures 9–11；Tables 9–13）
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-09-Demand-Shock-Robustness.png" alt="Figure 9：需求冲击鲁棒性" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-09-Demand-Shock-Robustness.png" alt="Figure 9：需求冲击鲁棒性" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-09-Demand-Shock-Robustness.png" alt="Table 9：需求冲击鲁棒性" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-09-Demand-Shock-Robustness.png" alt="Table 9：需求冲击鲁棒性" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-10-Multi-Metric-Tradeoff.png" alt="Figure 10：多指标权衡雷达图" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-10-Multi-Metric-Tradeoff.png" alt="Figure 10：多指标权衡雷达图" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-10-Multi-Metric-Tradeoff.png" alt="Table 10：多指标权衡得分" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-10-Multi-Metric-Tradeoff.png" alt="Table 10：多指标权衡得分" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Figure-11-Elasticity-Smoothness.png" alt="Figure 11：价格弹性与营收平滑度" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Figure-11-Elasticity-Smoothness.png" alt="Figure 11：价格弹性与营收平滑度" width="760" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-11-Elasticity-Smoothness.png" alt="Table 11：价格弹性与营收曲线平滑度" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-11-Elasticity-Smoothness.png" alt="Table 11：价格弹性与营收曲线平滑度" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-12-Ablation.png" alt="Table 12：模块消融实验" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-12-Ablation.png" alt="Table 12：模块消融实验" width="900" style="max-width: 100%; height: auto;"></p>
 
-<p align="center"><img src="./assets/PRIME-PPO/Table-13-Significance-Tests.png" alt="Table 13：显著性检验 p 值" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/PRIME-PPO/Table-13-Significance-Tests.png" alt="Table 13：显著性检验 p 值" width="900" style="max-width: 100%; height: auto;"></p>
 
 ## 10. 覆盖账本与素材说明
 

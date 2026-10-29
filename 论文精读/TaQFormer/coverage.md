@@ -2,7 +2,7 @@
 
 来源：[arXiv:2610.26199v1](https://arxiv.org/abs/2610.26199v1)。先于正文建立清单，完成后逐项回核。
 
-主笔记：[TaQFormer：多维优惠券建模与 OBS–RCT 融合](./TaQFormer：多维优惠券建模与OBS-RCT融合.md)。
+主笔记：[TaQFormer：多维优惠券建模与 OBS–RCT 融合](TaQFormer%EF%BC%9A%E5%A4%9A%E7%BB%B4%E4%BC%98%E6%83%A0%E5%88%B8%E5%BB%BA%E6%A8%A1%E4%B8%8EOBS-RCT%E8%9E%8D%E5%90%88.md)。
 
 | 类型 | 原文条目 | 笔记位置 | 状态／说明 |
 |---|---|---|---|

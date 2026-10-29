@@ -1,0 +1,202 @@
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/01-预算问题建模与指标口径.md",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 260,
+      "color": "1"
+    },
+    {
+      "id": "n2",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/02-静态预算分配：背包、边际收益与影子价格.md",
+      "x": 920,
+      "y": 0,
+      "width": 390,
+      "height": 260,
+      "color": "2"
+    },
+    {
+      "id": "n3",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/03-反馈系统基础：状态、响应与稳定性.md",
+      "x": 0,
+      "y": 380,
+      "width": 390,
+      "height": 260,
+      "color": "3"
+    },
+    {
+      "id": "n4",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/04-P、PI与PID：推导、离散化与调参.md",
+      "x": 460,
+      "y": 380,
+      "width": 390,
+      "height": 260,
+      "color": "4"
+    },
+    {
+      "id": "n5",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/05-在线对偶更新与预算消耗节奏.md",
+      "x": 920,
+      "y": 380,
+      "width": 390,
+      "height": 260,
+      "color": "5"
+    },
+    {
+      "id": "n6",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/06-延迟、噪声、限幅与抗积分饱和.md",
+      "x": 0,
+      "y": 760,
+      "width": 390,
+      "height": 260,
+      "color": "6"
+    },
+    {
+      "id": "n7",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/07-多约束、分层控制与MPC.md",
+      "x": 920,
+      "y": 760,
+      "width": 390,
+      "height": 260,
+      "color": "1"
+    },
+    {
+      "id": "n8",
+      "type": "file",
+      "file": "知识体系/08-预算分配与反馈控制/08-案例：从现有Buffer到分层预算控制.md",
+      "x": 460,
+      "y": 760,
+      "width": 390,
+      "height": 260,
+      "color": "2"
+    },
+    {
+      "id": "math",
+      "type": "file",
+      "file": "知识体系/01-统计与优化/05-约束优化：拉格朗日、对偶与KKT.md",
+      "x": 460,
+      "y": 0,
+      "width": 390,
+      "height": 260,
+      "color": "1"
+    },
+    {
+      "id": "cmdp",
+      "type": "file",
+      "file": "知识体系/05-强化学习/06-CMDP：预算约束与原始对偶学习.md",
+      "x": 920,
+      "y": 1140,
+      "width": 390,
+      "height": 260,
+      "color": "5"
+    }
+  ],
+  "edges": [
+    {
+      "id": "b0",
+      "fromNode": "n1",
+      "fromSide": "right",
+      "toNode": "math",
+      "toSide": "left",
+      "label": "定义约束"
+    },
+    {
+      "id": "b1",
+      "fromNode": "math",
+      "fromSide": "right",
+      "toNode": "n2",
+      "toSide": "left",
+      "label": "对偶分解"
+    },
+    {
+      "id": "b2",
+      "fromNode": "n3",
+      "fromSide": "right",
+      "toNode": "n4",
+      "toSide": "left",
+      "label": "动态与离散实现"
+    },
+    {
+      "id": "b3",
+      "fromNode": "n4",
+      "fromSide": "right",
+      "toNode": "n5",
+      "toSide": "left",
+      "label": "乘子积分结构"
+    },
+    {
+      "id": "b4",
+      "fromNode": "n2",
+      "fromSide": "bottom",
+      "toNode": "n5",
+      "toSide": "top",
+      "label": "从静态到在线"
+    },
+    {
+      "id": "b5",
+      "fromNode": "n3",
+      "fromSide": "bottom",
+      "toNode": "n6",
+      "toSide": "top",
+      "label": "延迟与执行边界"
+    },
+    {
+      "id": "b6",
+      "fromNode": "n6",
+      "fromSide": "right",
+      "toNode": "n8",
+      "toSide": "left",
+      "label": "源码的饱和与时序"
+    },
+    {
+      "id": "b7",
+      "fromNode": "n4",
+      "fromSide": "bottom",
+      "toNode": "n8",
+      "toSide": "top",
+      "label": "比率积分的联系"
+    },
+    {
+      "id": "b8",
+      "fromNode": "n5",
+      "fromSide": "bottom",
+      "toNode": "n7",
+      "toSide": "top",
+      "label": "联合约束与规划"
+    },
+    {
+      "id": "b9",
+      "fromNode": "n7",
+      "fromSide": "bottom",
+      "toNode": "cmdp",
+      "toSide": "top",
+      "label": "规划与长期学习"
+    },
+    {
+      "id": "b10",
+      "fromNode": "math",
+      "fromSide": "right",
+      "toNode": "cmdp",
+      "toSide": "right",
+      "label": "期望成本的对偶"
+    },
+    {
+      "id": "b11",
+      "fromNode": "n8",
+      "fromSide": "right",
+      "toNode": "n7",
+      "toSide": "left",
+      "label": "分层控制接口"
+    }
+  ]
+}

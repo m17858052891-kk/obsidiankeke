@@ -86,7 +86,7 @@ Guide 的基本设计因此是：DT 负责探索，IDM 学习行为轨迹中的�
 
 #### 1.3.3 Figure 1：不同广告出价建模方式
 
-![[Figure 1 - Different Modeling Approaches.png]]
+![[自动出价论文精读/assets/Guide-Figure 1 - Different Modeling Approaches.png|Guide-Figure 1 - Different Modeling Approaches.png]]
 
 > 论文原图 Figure 1：Different Modeling Approaches in Ad Bidding。图中的 $a_t$ 和 $s_t$ 分别表示动作与状态，$\hat a_t^*$ 表示更好的动作，Q 表示 Q-value 模块。
 
@@ -189,7 +189,7 @@ Preliminary 做了一个关键抽象：
 
 论文方法部分先介绍 DT 与 IDM，再介绍两阶段训练，随后介绍 Q-value 优化和推理时动作选择。
 
-![[Figure 2 - Overview Architecture.png]]
+![[自动出价论文精读/assets/Guide-Figure 2 - Overview Architecture.png|Guide-Figure 2 - Overview Architecture.png]]
 
 > 论文原图 Figure 2：Overview architecture。左侧是统一建模框架的训练流程，右侧是推理阶段的候选动作生成与 Q-value 选择。
 
@@ -456,7 +456,7 @@ Guide 在所有预算水平上都取得最高分。论文的解释是，统一�
 
 #### 4.3.1 Ablation Study：消融实验
 
-![[Figure 3 - Ablation Study.png]]
+![[自动出价论文精读/assets/Guide-Figure 3 - Ablation Study.png|Guide-Figure 3 - Ablation Study.png]]
 
 > 论文原图 Figure 3：Ablation Study。
 
@@ -478,7 +478,7 @@ Guide 在所有预算水平上都取得最高分。论文的解释是，统一�
 
 #### 4.3.2 Two-stage Training Analysis：两阶段训练分析
 
-![[Figure 4 - Two-stage Training Analysis.png]]
+![[自动出价论文精读/assets/Guide-Figure 4 - Two-stage Training Analysis.png|Guide-Figure 4 - Two-stage Training Analysis.png]]
 
 > 论文原图 Figure 4：Two-stage Training Analysis。
 
@@ -497,7 +497,7 @@ Guide 在所有预算水平上都取得最高分。论文的解释是，统一�
 
 #### 4.4.1 两种动作源的使用偏好
 
-![[Figure 5 - Action Preferences.png]]
+![[自动出价论文精读/assets/Guide-Figure 5 - Action Preferences.png|Guide-Figure 5 - Action Preferences.png]]
 
 > 论文原图 Figure 5：Action preferences of different advertisers。
 
@@ -516,7 +516,7 @@ Guide 在所有预算水平上都取得最高分。论文的解释是，统一�
 
 #### 4.4.2 动作波动性
 
-![[Figure 6 - Action Volatility Comparison.png]]
+![[自动出价论文精读/assets/Guide-Figure 6 - Action Volatility Comparison.png|Guide-Figure 6 - Action Volatility Comparison.png]]
 
 > 论文原图 Figure 6：Volatility comparison between DT and IDM bid actions。
 
@@ -585,7 +585,7 @@ Guide 在所有预算水平上都取得最高分。论文的解释是，统一�
 
 广告投放中，理想的花费轨迹应该随流量自然波动：流量高时多花，流量低时少花。论文根据观测到的流量事后构造 ideal ad cost trajectory，作为 oracle 参考。
 
-![[Figure 7 - Cost Trajectory Analysis.png]]
+![[自动出价论文精读/assets/Guide-Figure 7 - Cost Trajectory Analysis.png|Guide-Figure 7 - Cost Trajectory Analysis.png]]
 
 > 论文原图 Figure 7：Cost Trajectory Analysis。
 

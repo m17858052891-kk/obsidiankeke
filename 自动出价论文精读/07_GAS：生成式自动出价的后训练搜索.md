@@ -114,11 +114,11 @@ $$
 
 论文先说明如何使用受 MCTS 启发的后训练搜索优化基础策略输出，再给出搜索在自动出价中的两种应用方式。
 
-<p align="center"><img src="assets/GAS Figure 1a - Post-training Search Pipeline.png" width="780"></p>
+<p align="center"><img src="assets/GAS%20Figure%201a%20-%20Post-training%20Search%20Pipeline.png" width="780"></p>
 
 > **Figure 1(a)：GAS 流程。** GAS 将基础动作 $a_t$ 优化为与 critic 所表示偏好更一致的动作 $a_t^j$，包含三个阶段：（1）通过带噪扰动进行选择；（2）由基于 Transformer 的 Q-value 网络 QT 近似扩展与模拟；（3）通过 Q-voting 机制反向传播，以进行更好的价值评估。
 
-<p align="center"><img src="assets/GAS Figure 1b - Online Auto-bidding System.png" width="520"></p>
+<p align="center"><img src="assets/GAS%20Figure%201b%20-%20Online%20Auto-bidding%20System.png" width="520"></p>
 
 > **Figure 1(b)：在线自动出价系统。** 快手在线自动出价系统，包括竞价环境与 GAS 的交互。
 
@@ -205,7 +205,7 @@ $$
 论文使用 IQL 学习 $Q_\phi$。IQL 引入额外的 value 网络 $V_\psi(s)$，其损失为：
 
 > [!info] 方法背景
-> IQL 与 CQL、BCQ、BEAR、TD3+BC 等离线强化学习方法的差异，见 [[离线强化学习方法对照：IQL、CQL、BCQ与价值集成]]。
+> IQL 与 CQL、BCQ、BEAR、TD3+BC 等离线强化学习方法的差异，见 [[知识体系/05-强化学习/专题/离线强化学习方法对照：IQL、CQL、BCQ与价值集成|离线强化学习方法对照：IQL、CQL、BCQ与价值集成]]。
 
 $$
 \begin{aligned}
@@ -417,7 +417,7 @@ $$
 
 在推理的每个时间步重复第 3.1 节的搜索过程，即得到 GAS-infer。它可以与一个基础策略模型和多个 critic 一起直接部署。
 
-<p align="center"><img src="assets/GAS Algorithm 1 - Inference with Search.png" width="660"></p>
+<p align="center"><img src="assets/GAS%20Algorithm%201%20-%20Inference%20with%20Search.png" width="660"></p>
 
 > **Algorithm 1：Inference with Search（GAS-infer）。** 输入基础策略 $\pi_\theta$、critic 集合 $\{Q_{\phi_k}^{\pi_\epsilon}\}_{k=1}^M$ 和初始状态 $s_0$。在每个时间步生成基础动作，构造 $N-1$ 个带噪动作，与基础动作组成候选集合；用式（14）的 Q-voting 估计每个候选动作的价值，选择价值最大的动作执行并更新状态。
 
@@ -488,7 +488,7 @@ GAS 包括基础策略模型和多个 QT 网络。基础策略采用 DT-score；
 
 实验在 AuctionNet 和 AuctionNet-sparse 上，将预算设为最大可用预算的 50%、75%、100%、125% 和 150%，使用 Score 进行综合评估，基础策略为 DT-score。
 
-<p align="center"><img src="assets/GAS Table 1 - Baseline Comparison.png" width="920"></p>
+<p align="center"><img src="assets/GAS%20Table%201%20-%20Baseline%20Comparison.png" width="920"></p>
 
 > **Table 1：MCB 任务中不同设置下与基线的比较。** 最优结果用粗体表示，基础策略结果加下划线，最后一列给出 GAS-infer 相对基础策略的提升。
 
@@ -500,7 +500,7 @@ GAS-sft 的表现不及 GAS-infer。论文将其归因于 GAS-infer 在测试时
 
 论文比较了 GAS-infer、GAS-sft 与基础 DT-score 在 Score-first、Value-first 和 ER-first 三种偏好下的对齐结果。
 
-<p align="center"><img src="assets/GAS Table 2 - Preference Alignment.png" width="860"></p>
+<p align="center"><img src="assets/GAS%20Table%202%20-%20Preference%20Alignment.png" width="860"></p>
 
 > **Table 2：不同偏好下两种搜索范式相对基础 DT-score 的对齐性能。**
 
@@ -508,19 +508,19 @@ GAS-sft 的表现不及 GAS-infer。论文将其归因于 GAS-infer 在测试时
 
 ### 4.4 消融实验
 
-<p align="center"><img src="assets/GAS Figure 2a - Searching Budget.png" width="520"></p>
+<p align="center"><img src="assets/GAS%20Figure%202a%20-%20Searching%20Budget.png" width="520"></p>
 
 > **Figure 2(a)：搜索预算。** 在不使用原始基础动作的设置下，将采样动作数从 1 增加到 5 可提升性能；超过 5 个动作后性能保持不变。
 
-<p align="center"><img src="assets/GAS Figure 2b - Number of Critics.png" width="520"></p>
+<p align="center"><img src="assets/GAS%20Figure%202b%20-%20Number%20of%20Critics.png" width="520"></p>
 
 > **Figure 2(b)：critic 数量。** 搜索范围固定为 $\pm10\%$，选择 5 个随机动作进行价值评估。论文报告，将 QT 数量从 1 增加到更多可显著改善性能，最优点为 7 个 critic；同时原文写道，从 3 个 critic 继续增加没有显著改善，因此 3 个 critic 足以用于当前自动出价任务。
 
-<p align="center"><img src="assets/GAS Figure 2c - Range of Search.png" width="520"></p>
+<p align="center"><img src="assets/GAS%20Figure%202c%20-%20Range%20of%20Search.png" width="520"></p>
 
 > **Figure 2(c)：搜索范围。** 固定随机搜索 5 个动作时，AuctionNet 上 10% 搜索范围表现最好；超过 10% 后收益递减，min-max 方法在有限动作预算下效果最差。
 
-<p align="center"><img src="assets/GAS Figure 2d - Stability.png" width="520"></p>
+<p align="center"><img src="assets/GAS%20Figure%202d%20-%20Stability.png" width="520"></p>
 
 > **Figure 2(d)：稳定性比较。** 论文报告 GAS 比基础策略模型更稳定。
 
@@ -530,7 +530,7 @@ GAS-sft 的表现不及 GAS-infer。论文将其归因于 GAS-infer 在测试时
 
 论文还比较了不使用 Q-value 网络的搜索方式：Greedy 选择预测即时奖励最高的动作；Random 随机选择动作；Mean 对 5 个随机动作取平均值。
 
-<p align="center"><img src="assets/GAS Table 3 - Effectiveness of QT.png" width="760"></p>
+<p align="center"><img src="assets/GAS%20Table%203%20-%20Effectiveness%20of%20QT.png" width="760"></p>
 
 > **Table 3：QT 的有效性。** DT-score、Greedy、Mean、Random、GAS w/o QT 和 GAS-infer 的 Score 分别为 334、228、312、319、292 和 359。
 
@@ -551,7 +551,7 @@ $$
 
 在线 A/B 测试持续 6 个完整自然日。对每个 MCB 广告活动，25% 的预算和流量分配给基线竞价模型，25% 分配给 GAS。
 
-<p align="center"><img src="assets/GAS Table 4 - Online AB Test.png" width="700"></p>
+<p align="center"><img src="assets/GAS%20Table%204%20-%20Online%20AB%20Test.png" width="700"></p>
 
 > **Table 4：在线 A/B 测试结果。** GAS 的曝光量提升 1.65%，成本提升 0.94%，目标成本提升 4.60%，整体 ROI 提升 3.62%。论文报告所有指标均获得显著提升。
 
@@ -588,7 +588,7 @@ $$
 
 AuctionNet-sparse 是 AuctionNet 的稀疏版本，转化更少。每个数据集包含 21 个广告投放周期；每个周期约有 500,000 个曝光机会，并被划分为 48 个时间区间。每个广告主对全部曝光进行竞价。
 
-<p align="center"><img src="assets/GAS Table 5 - Dataset Parameters.png" width="760"></p>
+<p align="center"><img src="assets/GAS%20Table%205%20-%20Dataset%20Parameters.png" width="760"></p>
 
 > **Table 5：AuctionNet 与 AuctionNet-sparse 的参数。** 两个数据集均有 479,376 条轨迹、9,987 个投放周期、每条轨迹 48 个时间步、16 维状态、1 维动作和 1 维 return-to-go。
 
@@ -615,6 +615,6 @@ AuctionNet-sparse 是 AuctionNet 的稀疏版本，转化更少。每个数据�
 
 ### A.2 QT 超参数
 
-<p align="center"><img src="assets/GAS Table 6 - QT Hyperparameters.png" width="640"></p>
+<p align="center"><img src="assets/GAS%20Table%206%20-%20QT%20Hyperparameters.png" width="640"></p>
 
 > **Table 6：QT 网络的详细超参数。** 批大小 128，训练步数 400,000，序列长度 20，学习率 $1\mathrm e{-4}$，6 个注意力层，8 个注意力头，AdamW，optimizer epsilon $1\mathrm e{-8}$，权重衰减 $1\mathrm e{-2}$，scale 2000，episode 长度 48，隐藏维度 512，ReLU，$\gamma=0.99$，$\tau=0.01$，expectile 为 0.7。

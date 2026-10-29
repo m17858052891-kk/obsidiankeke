@@ -183,7 +183,7 @@ $$
 
 ### 4.3 Learning Framework：整体训练闭环
 
-<p align="center"><img src="DFCL Algorithm 1.png" alt="Algorithm 1：Decision Focused Causal Learning" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Algorithm%201.png" alt="Algorithm 1：Decision Focused Causal Learning" width="760"></p>
 
 Algorithm 1 的原始逻辑是：模型输出 $\hat r,\hat c$，用 RCT 事实列计算 $\mathcal L_{\mathrm{PL}}$，对多个预算 $B$ 求解 $z^*$ 并计算 $\mathcal L_{\mathrm{DL}}$，最后以组合损失更新模型参数 $\omega$。其最关键、也最困难的一步是估计 $\partial\mathcal L_{\mathrm{DFCL}}/\partial\omega$。
 
@@ -520,23 +520,23 @@ $$
 
 **Table 1：普通预测指标**
 
-<p align="center"><img src="DFCL Table 1.png" alt="Table 1：Logloss 与 MSE" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Table%201.png" alt="Table 1：Logloss 与 MSE" width="760"></p>
 
 TSM-SL 在普通预测指标上最好：CRITEO Logloss 为 $0.2165\pm0.0001$，Marketing MSE 为 $0.2625\pm0.0009$。DFCL 的预测误差略高，因为它还在为决策边界分配模型容量。
 
 **Table 2 与 Figure 1(a)：CRITEO AUCC**
 
-<p align="center"><img src="DFCL Table 2.png" alt="Table 2：CRITEO AUCC" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Table%202.png" alt="Table 2：CRITEO AUCC" width="760"></p>
 
-<p align="center"><img src="DFCL Figure 1a AUCC.png" alt="Figure 1(a)：AUCC" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Figure%201a%20AUCC.png" alt="Figure 1(a)：AUCC" width="760"></p>
 
 DFCL-IFD 的 AUCC 为 $0.7859\pm0.0021$，相对 TSM-SL 提升 $3.94\%$，是该数据集上的最优结果。DFCL-PL 和 DFCL-MER 与 DPM 接近，均好于两阶段基线。
 
 **Table 3 与 Figure 1(b)：Marketing EOM**
 
-<p align="center"><img src="DFCL Table 3.png" alt="Table 3：多预算 EOM" width="900"></p>
+<p align="center"><img src="assets/DFCL%20Table%203.png" alt="Table 3：多预算 EOM" width="900"></p>
 
-<p align="center"><img src="DFCL Figure 1b EOM.png" alt="Figure 1(b)：EOM" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Figure%201b%20EOM.png" alt="Figure 1(b)：EOM" width="760"></p>
 
 DFCL-IFD 在 1–6 的全部预算点上都取得最高 EOM，整体相对 TSM-SL 提升 $2.85\%$；DFCL-MER 和 DFCL-PL 分别提升 $2.06\%$ 和 $1.98\%$。CN+DFCL-PL 明显好于 CN，说明 DFCL 损失可以接入已有的结果模型。
 
@@ -546,13 +546,13 @@ DFCL-IFD 在 1–6 的全部预算点上都取得最高 EOM，整体相对 TSM-S
 
 论文设置 $\alpha\in\{0.1,0.5,1,2,3,4,5,10\}$。在一定范围内增大 $\alpha$ 不会明显降低决策收益；$\alpha$ 过大时，预测损失主导训练，模型逐渐退化为两阶段方法。
 
-<p align="center"><img src="DFCL Figure 2a Alpha.png" alt="Figure 2(a)：预测损失权重 alpha" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Figure%202a%20Alpha.png" alt="Figure 2(a)：预测损失权重 alpha" width="760"></p>
 
 #### 6.2.3 Impact of Lagrange Multiplier
 
 论文比较 $\{0.1\}$、$\{0.1,0.5\}$ 和 $\{0.1,0.5,1.0\}$ 三组 $\lambda$。小 $\lambda$ 更容易学习高预算区域，大 $\lambda$ 更偏向低预算、强成本惩罚区域；使用多个 $\lambda$ 训练可平衡不同预算下的表现。
 
-<p align="center"><img src="DFCL Figure 2b Lambda.png" alt="Figure 2(b)：Lagrange multiplier 的影响" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Figure%202b%20Lambda.png" alt="Figure 2(b)：Lagrange multiplier 的影响" width="760"></p>
 
 ### 6.3 Online A/B Testing：线上实验
 
@@ -562,13 +562,13 @@ DFCL-IFD 在 1–6 的全部预算点上都取得最高 EOM，整体相对 TSM-S
 
 部署链路是：每天活动开始前，DFCL 预测各商户在不同折扣档下的收益和成本，再根据当天预算与其他约束离线分配折扣；用户在线产生反馈；历史随机数据和分配器继续用于后续模型更新。
 
-<p align="center"><img src="DFCL Figure 3a Deployment.png" alt="Figure 3(a)：DFCL 线上部署" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Figure%203a%20Deployment.png" alt="Figure 3(a)：DFCL 线上部署" width="760"></p>
 
 #### 6.3.2 Results
 
 所有数值均除以 G-TSL 第一周订单数做归一化。G-DPM 相对 G-TSL 平均提升 $1.32\%$；G-DFCL 相对 G-TSL 提升 $2.17\%$，相对 G-DPM 再提升约 $0.85\%$。
 
-<p align="center"><img src="DFCL Figure 3b Online AB.png" alt="Figure 3(b)：四周线上订单" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Figure%203b%20Online%20AB.png" alt="Figure 3(b)：四周线上订单" width="760"></p>
 
 ## 7. Conclusion：结论
 
@@ -671,7 +671,7 @@ $$
 
 给定 RCT 样本、预测结果面和预算 $B$，Algorithm 3 用二分搜索找到使 EOM 人均成本接近 $B/N$ 的 $\lambda$，并返回该预算下的人均收益。
 
-<p align="center"><img src="DFCL Algorithm 3.png" alt="Algorithm 3：原始 MCKP 的人均收益估计" width="760"></p>
+<p align="center"><img src="assets/DFCL%20Algorithm%203.png" alt="Algorithm 3：原始 MCKP 的人均收益估计" width="760"></p>
 
 **直观理解：**算法不是用预测收益评价预测策略，而是先用预测选动作，再用与该动作一致的 RCT 事实结果做逆概率加权结算。
 
@@ -679,7 +679,7 @@ $$
 
 Algorithm 2 先计算 $a=\hat r-\lambda\hat c$ 和当前硬动作，再将样本分成“策略动作与 RCT 事实 treatment 一致”和“不一致”两类。对每类样本，它计算使动作跨过当前 $\arg\max$ 边界所需的最小收益/成本扰动，再构造对 $\hat r,\hat c$ 的梯度。
 
-<p align="center"><img src="DFCL Algorithm 2.png" alt="Algorithm 2：拉格朗日对偶梯度估计器" width="620"></p>
+<p align="center"><img src="assets/DFCL%20Algorithm%202.png" alt="Algorithm 2：拉格朗日对偶梯度估计器" width="620"></p>
 
 论文为了便于理解在伪代码中使用 for-loop，实际实现使用矩阵运算。
 
@@ -687,6 +687,6 @@ Algorithm 2 先计算 $a=\hat r-\lambda\hat c$ 和当前硬动作，再将样本
 
 表中数值均以 G-TSL 第一周订单数归一化；95% 置信区间由 t-test 计算，显著性水平 $\alpha=0.05$。
 
-<p align="center"><img src="DFCL Table 4.png" alt="Table 4：含置信区间的线上 A/B 结果" width="900"></p>
+<p align="center"><img src="assets/DFCL%20Table%204.png" alt="Table 4：含置信区间的线上 A/B 结果" width="900"></p>
 
 Table 4 给出四周细分结果：G-DPM 相对 G-TSL 提升 $1.32\%$，G-DFCL 提升 $2.17\%$，与正文 Figure 3(b) 的平均结论一致。

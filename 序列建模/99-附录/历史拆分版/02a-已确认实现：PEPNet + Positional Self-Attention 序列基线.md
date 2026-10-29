@@ -1,3 +1,12 @@
+---
+type: "项目"
+topics: ["序列建模"]
+status: "已归档"
+---
+
+> [!info] 历史拆分版
+> 本页保留原组织与当时口径，当前阅读从 [[序列建模/README|项目入口]] 开始；架构主文为 [[序列建模/PEPNet×OneTrans-主线架构|PEPNet×OneTrans-主线架构]]。
+
 # 已确认实现：PEPNet + Positional Self-Attention 序列基线
 
 > 定位：这是当前项目中可用于介绍的**主序列建模 baseline**。它不同于 OneTrans：先分别编码乘客/司机历史订单序列，再与静态特征融合进 PEPNet。
@@ -77,4 +86,4 @@ PLE 序列版本的通路为：`Scalar2Vec/Embed → Positional Self-Attention �
 | PEPNet + PosSA（baseline） | 乘客/司机序列先独立编码 | 序列表示与静态特征在 PEPNet 中融合、门控 |
 | PEPNet × OneTrans | 序列与静态特征共同 token 化 | Transformer 内统一进行序列内、跨序列、序列—静态交互 |
 
-因此汇报时可说“以 PEPNet + PosSA 为 baseline，探索 OneTrans 统一交互”，但 `pep-seq-onetrans` 的精确 pp 仍应相对 `pep-seq` 表述，见 [[03-实验基线与对照口径]]。
+因此汇报时可说“以 PEPNet + PosSA 为 baseline，探索 OneTrans 统一交互”，但 `pep-seq-onetrans` 的精确 pp 仍应相对 `pep-seq` 表述，见 [[序列建模/99-附录/历史拆分版/03-实验基线与对照口径|03-实验基线与对照口径]]。

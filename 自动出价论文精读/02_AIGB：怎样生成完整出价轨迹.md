@@ -48,7 +48,7 @@ $$
 
 论文通过统计分析发现，下一状态与更长历史状态序列之间存在明显相关性。也就是说，只看最近一个状态，可能无法解释当前预算节奏、流量变化和市场竞争状态。
 
-![[AIGB Figure 1 - History Next State Correlation-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 1 - History Next State Correlation-1.png|AIGB Figure 1 - History Next State Correlation-1.png]]
 
 **Figure 1：历史状态长度与下一状态之间的相关性。** 论文用它说明：自动出价环境中，历史长度增加后，下一状态的相关性仍可能增强，单纯的 Markov 化会丢失信息。
 
@@ -150,7 +150,7 @@ $$
 
 若环境转移只依赖 $(s_t,a_t)$，就是 MDP；如果还依赖更长的历史，就是非马尔可夫决策过程。论文的经验观察支持后一种情况。
 
-![[AIGB Figure 2 - Overall Framework.png]]
+![[自动出价论文精读/assets/AIGB Figure 2 - Overall Framework.png|AIGB Figure 2 - Overall Framework.png]]
 
 **Figure 2：Generative Auto-bidding 总体框架。** 论文中扩散模块生成状态轨迹，逆动力学模块再生成 bidding parameters；图中的 bid 不是扩散网络直接输出的。
 
@@ -587,9 +587,9 @@ USCBEx 通过随机探索扩大动作和状态覆盖，论文用它研究离线�
 
 论文比较了 USCB 和 DiffBid 一天内的剩余预算曲线：
 
-![[AIGB Figure 3 - State Transition - USCB.png]]
+![[自动出价论文精读/assets/AIGB Figure 3 - State Transition - USCB.png|AIGB Figure 3 - State Transition - USCB.png]]
 
-![[AIGB Figure 3 - State Transition - DiffBid.png]]
+![[自动出价论文精读/assets/AIGB Figure 3 - State Transition - DiffBid.png|AIGB Figure 3 - State Transition - DiffBid.png]]
 
 **Figure 3：单个 episode 的状态转移。** USCB 下不少广告主没有充分消耗预算；DiffBid 生成的轨迹更倾向于完成 80% 以上的预算。论文认为，高预算完成率轨迹通常与较高累计回报相关，扩散模型可以从数据中学习到这种轨迹形状。
 
@@ -597,29 +597,29 @@ USCBEx 通过随机探索扩大动作和状态覆盖，论文用它研究离线�
 
 论文设置不同 CPC 阈值，比较 IQL 和 DiffBid 控制约束超限比例、同时保持收益的能力：
 
-![[AIGB Figure 4 - CPC - IQL-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 4 - CPC - IQL-1.png|AIGB Figure 4 - CPC - IQL-1.png]]
 
-![[AIGB Figure 4 - CPC - DiffBid-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 4 - CPC - DiffBid-1.png|AIGB Figure 4 - CPC - DiffBid-1.png]]
 
 **Figure 4：CPC 约束下的表现。** DiffBid 能通过改变条件控制不同程度的 CPC 超限比例，并在控制约束的同时保持较好的 return。
 
 论文还把平滑和早花/晚花反馈编码成条件：
 
-![[AIGB Figure 5 - Smoothness-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 5 - Smoothness-1.png|AIGB Figure 5 - Smoothness-1.png]]
 
-![[AIGB Figure 5 - Early Spend-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 5 - Early Spend-1.png|AIGB Figure 5 - Early Spend-1.png]]
 
 **Figure 5：人类反馈条件。** 生成出的轨迹分布会随反馈条件改变，说明同一个模型可以组合多个过程偏好，而不必为每个偏好单独训练一个模型。
 
 #### 6.4.3 Impact of Diffusion Steps
 
-![[AIGB Figure 6 - Diffusion Steps-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 6 - Diffusion Steps-1.png|AIGB Figure 6 - Diffusion Steps-1.png]]
 
 **Figure 6(a)：扩散步数影响。** 小预算广告主对扩散步数更敏感；较大预算下，约 30 步通常已经能取得较好结果。
 
 #### 6.4.4 Stability
 
-![[AIGB Figure 6 - Stability-1.png]]
+![[自动出价论文精读/assets/AIGB Figure 6 - Stability-1.png|AIGB Figure 6 - Stability-1.png]]
 
 **Figure 6(b)：稳定性。** CQL 和 IQL 在不同随机种子下更容易出现性能波动，DiffBid 的失败次数更少，表现更稳定。
 
@@ -780,7 +780,7 @@ $$
 
 论文把 return 重新定义为：奇数时间步动作之和减去偶数时间步动作之和，用来直接测试模型能否根据条件控制动作轨迹。
 
-![[AIGB Appendix - Action Control-1.png]]
+![[自动出价论文精读/assets/AIGB Appendix - Action Control-1.png|AIGB Appendix - Action Control-1.png]]
 
 **附录图：动作控制能力。** DiffBid 比 IQL 更能按照目标条件控制长轨迹动作，论文将原因归结为：DiffBid 直接建模轨迹与 return 的关系，而 RL 在长时域动作控制中更容易受到误差传播影响。
 
@@ -790,13 +790,13 @@ $$
 
 论文观察到，随着 winning impressions 数量增加，cost-effectiveness 呈 power-law decline。不同时间步的衰减速度可能不同，但“可赢曝光数量”和成本效率之间存在稳定关系。
 
-![[AIGB Appendix - Cost Effectiveness.png]]
+![[自动出价论文精读/assets/AIGB Appendix - Cost Effectiveness.png|AIGB Appendix - Cost Effectiveness.png]]
 
 这支持了论文的关键转换：最优策略可以近似对应每个时间步应赢得多少曝光，从而对应一条目标状态轨迹。
 
 #### A.6.2 Impression cost fluctuation
 
-![[AIGB Appendix - Impression Cost Fluctuation.png]]
+![[自动出价论文精读/assets/AIGB Appendix - Impression Cost Fluctuation.png|AIGB Appendix - Impression Cost Fluctuation.png]]
 
 论文发现单次曝光成本在整个 episode 内相对稳定，波动小于 5%。因此可以用平均成本 $\bar c$ 近似单次成本：
 

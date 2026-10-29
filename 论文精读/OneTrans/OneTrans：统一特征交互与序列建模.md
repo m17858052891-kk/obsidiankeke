@@ -6,7 +6,13 @@ paper: "OneTrans: Unified Feature Interaction and Sequence Modeling with One Tra
 arxiv: "2510.26104v3"
 venue: "WWW 2026"
 created: 2026-08-27
+type: "论文"
+topics: ["推荐系统", "序列建模"]
+status: "维护中"
 ---
+
+> [!info] 本页定位
+> 原论文依据。原文结构、版本与实验在本页维护；快速解释见 [[序列建模/OneTrans：用一个 Transformer 统一序列建模与特征交互|OneTrans：用一个 Transformer 统一序列建模与特征交互]]，项目差异见 [[序列建模/PEPNet×OneTrans-主线架构|PEPNet×OneTrans-主线架构]]。
 
 # OneTrans：用一个 Transformer 统一特征交互与序列建模
 
@@ -251,4 +257,3 @@ OneTrans 的真正贡献不只是“把两类 token 拼起来”，而是把表�
 - 已覆盖正文公式 (1)–(14)、未编号复杂度与跨请求增量缓存关系。
 - 已覆盖 Figure 1–3、Table 1–6。
 - v3 无算法环境、无技术附录；参考文献未逐条翻译。
-

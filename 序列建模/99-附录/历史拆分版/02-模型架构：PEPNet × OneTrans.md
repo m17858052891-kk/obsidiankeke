@@ -1,12 +1,21 @@
+---
+type: "项目"
+topics: ["序列建模"]
+status: "已归档"
+---
+
+> [!info] 历史拆分版
+> 本页保留原组织与当时口径，当前阅读从 [[序列建模/README|项目入口]] 开始；架构主文为 [[序列建模/PEPNet×OneTrans-主线架构|PEPNet×OneTrans-主线架构]]。
+
 # 模型架构：PEPNet × OneTrans
 
 > 目标：解释已经构造好的“乘客历史序列 + 司机历史序列 + 用户/订单/上下文特征”如何进入 OneTrans，再如何通过 PEPNet 做个性化调节。
 
 > 任务口径：**D = 乘客履约，O = 司机履约，OD = 司乘履约率**。
 
-> 输入边界：事件、Attempt、宽表和预测锚点如何产出这些输入，见 [[01-特征底座与样本构建]]。本文不把“可能字段/推荐做法”误写成已确认的工程实现；精确 token 顺序、层数、loss 权重和 EPNet/Tokenizer 调用顺序须以代码为准。
+> 输入边界：事件、Attempt、宽表和预测锚点如何产出这些输入，见 [[序列建模/99-附录/历史拆分版/01-特征底座与样本构建|01-特征底座与样本构建]]。本文不把“可能字段/推荐做法”误写成已确认的工程实现；精确 token 顺序、层数、loss 权重和 EPNet/Tokenizer 调用顺序须以代码为准。
 
-> 模型边界：[[02a-已确认实现：PEPNet + Positional Self-Attention 序列基线]] 记录了已确认的传统双边序列 baseline；本文解释的是在其之后探索的 PEPNet × OneTrans 统一交互方案。两者不要混成同一套实现。
+> 模型边界：[[序列建模/99-附录/历史拆分版/02a-已确认实现：PEPNet + Positional Self-Attention 序列基线|02a-已确认实现：PEPNet + Positional Self-Attention 序列基线]] 记录了已确认的传统双边序列 baseline；本文解释的是在其之后探索的 PEPNet × OneTrans 统一交互方案。两者不要混成同一套实现。
 
 ---
 
@@ -1682,9 +1691,9 @@ D/O/OD Heads：输出乘客、司机和司乘联合预测
 
 ## 24. 关联文档
 
-- [[04-离线实验与消融]]
-- [[OneTrans：用一个 Transformer 统一序列建模与特征交互]]
-- [[司乘行为序列建设项目面试问答]]
+- [[序列建模/99-附录/历史拆分版/04-离线实验与消融|04-离线实验与消融]]
+- [[序列建模/OneTrans：用一个 Transformer 统一序列建模与特征交互|OneTrans：用一个 Transformer 统一序列建模与特征交互]]
+- [[序列建模/面试材料|当前面试材料]]
 - [PEPNet 论文](https://arxiv.org/abs/2302.01115)
 - [OneTrans 论文](https://arxiv.org/abs/2510.26104)
 - [EVE 实验链接](https://ether-nmg.intra.hongyibo.com.cn/labs/new/15171)

@@ -12,9 +12,9 @@ created: 2026-10-23
 论文：**TaQFormer: A Treatment-as-Query Transformer with Data-Fusion for Multidimensional Treatment Modeling in Coupon Allocation**  
 作者：Jiahong Li、Zeqin Yang、Yu Xiang、Zhifan Jiang、Jingqi Ma、Enzheng Hua、Jixing Xu、Jun Wu、Fei Wang、Enyun Yu、Jiecheng Guo；机构为滴滴出行。  
 版本：[arXiv:2610.26199v1](https://arxiv.org/abs/2610.26199v1)，2026-10-19 提交；本文按预印本 v1 解读，不推定会议录用。  
-原文：[HTML](https://arxiv.org/html/2610.26199v1) · [在线 PDF](https://arxiv.org/pdf/2610.26199v1) · [本地 PDF](./assets/source/paper.pdf) · [LaTeX 源码](./assets/source/draft.tex)  
+原文：[HTML](https://arxiv.org/html/2610.26199v1) · [在线 PDF](https://arxiv.org/pdf/2610.26199v1) · [本地 PDF](assets/source/paper.pdf) · [LaTeX 源码](assets/source/draft.tex)  
 代码：本版本未提供公开代码链接。  
-范围：覆盖摘要、正文全部章节和小节、公式（1）—（15）、全部 3 图和 3 表，以及方法性无编号表达式。原文没有技术附录、独立算法块或定理证明章节。逐项核对见 [覆盖清单](./coverage.md)。
+范围：覆盖摘要、正文全部章节和小节、公式（1）—（15）、全部 3 图和 3 表，以及方法性无编号表达式。原文没有技术附录、独立算法块或定理证明章节。逐项核对见 [覆盖清单](coverage.md)。
 
 > 本笔记按章节做中文归纳与技术解释，不是逐句译文。“论文明确说明”指原文陈述；“从图中可以看出”指图表观察；“直观理解”“阅读判断”和“解释性公式”属于辅助理解。未公开的信息不自行补全。原图与原表归原作者所有，来源许可标为 CC BY-NC-ND 4.0；这里保留原始内容和来源，用于个人精读。
 
@@ -183,7 +183,7 @@ $\lambda$ 离线基于日志校准，使实际补贴率接近 $\rho$；线上打
 
 ### 4.1 架构（原文 §4.1）
 
-<p align="center"><img src="./assets/TaQFormer-Figure-1.png" alt="Figure 1：TaQFormer 架构" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/TaQFormer-Figure-1.png" alt="Figure 1：TaQFormer 架构" width="900" style="max-width: 100%; height: auto;"></p>
 
 **Figure 1：TaQFormer 架构。** (a) 特征编码器、treatment decoder、独立的目标响应读出及辅助分支；(b) pre-norm 自注意力与 token-wise FFN；(c) treatment 状态查询请求 memory 的解码块。沿 (a) 从输入读到输出，再用 (b)(c) 查看模块内部；图支持“请求编码与动作解码分离”的计算结构。
 
@@ -269,7 +269,7 @@ $\mathrm{vec}$ 将所有 $M$ 个坐标展平，$f$ 做非线性联合映射。�
 
 ### 4.2 两阶段训练：观测预训练与随机适配（原文 §4.2）
 
-<p align="center"><img src="./assets/TaQFormer-Figure-2.png" alt="Figure 2：两阶段 OBS–RCT 训练" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/TaQFormer-Figure-2.png" alt="Figure 2：两阶段 OBS–RCT 训练" width="900" style="max-width: 100%; height: auto;"></p>
 
 **Figure 2：TaQFormer 的两阶段训练。** (a) OBS 上训练所有模块；(b) 保留冻结的 OBS 路线，共享冻结 encoder 前缀，并对后缀进行 LoRA 适配。仅更新 LoRA 因子、新初始化的 RCT prediction stack（包含 treatment encoder）和 gate；门控输入 stop-gradient，目标 logits 融合，直接辅助输出来自 RCT stack。读图时先区分共享前缀、两条后缀和两套预测头，再看 gate 的输入与输出。
 
@@ -448,7 +448,7 @@ Stage I 使用 OBS，Stage II 使用 RCT 上的融合预测；辅助损失与主
 
 ### 5.2 RQ1：整体效果（原文 §5.2）
 
-<p align="center"><img src="./assets/TaQFormer-Table-1.png" alt="Table 1：单阶段 RCT 效果、消融与替代 encoder" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/TaQFormer-Table-1.png" alt="Table 1：单阶段 RCT 效果、消融与替代 encoder" width="760" style="max-width: 100%; height: auto;"></p>
 
 **Table 1：随机数据上训练一个 epoch 的比较。** 所有模型使用同一 held-out RCT week，数据、seed、batch size、GPU 类别相同，学习率日程和辅助损失不同。Qini 与 AUC 越高越好，PCOC 越接近 1 越好；原表粗体只在排除替代 encoder 行之后评选。读表时需区分 Baseline、External、Ablation、Encoder 与 Ours 五组。
 
@@ -482,7 +482,7 @@ Stage I 使用 OBS，Stage II 使用 RCT 上的融合预测；辅助损失与主
 
 ### 5.4 RQ3：容量选择（原文 §5.4）
 
-<p align="center"><img src="./assets/TaQFormer-Figure-3.png" alt="Figure 3：宽度、深度与 BCE、Qini、AUC" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/TaQFormer-Figure-3.png" alt="Figure 3：宽度、深度与 BCE、Qini、AUC" width="900" style="max-width: 100%; height: auto;"></p>
 
 **Figure 3：一个 RCT epoch 后的单阶段容量比较。** 三个子图依次为主任务 BCE、Qini 和 AUC；横轴是参数量，对数刻度。蓝色为宽度扫描，橙色为深度扫描，空心点为部署配置。宽度为 $d_{\mathrm{model}}\in\{16,32,64,128\}$，固定 L2；深度扫描固定 $d_{\mathrm{model}}=64$，L1—L4 分别对应 encoder 2/4/6/8 层与 decoder 1/2/3/4 层。全部为单 seed、单 epoch，验证损失是主任务 BCE。
 
@@ -498,7 +498,7 @@ Stage I 使用 OBS，Stage II 使用 RCT 上的融合预测；辅助损失与主
 
 ### 5.5 RQ4：两阶段训练（原文 §5.5）
 
-<p align="center"><img src="./assets/TaQFormer-Table-2.png" alt="Table 2：OBS 与 RCT 的训练策略比较" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/TaQFormer-Table-2.png" alt="Table 2：OBS 与 RCT 的训练策略比较" width="760" style="max-width: 100%; height: auto;"></p>
 
 **Table 2：同一 held-out RCT week 上的训练策略比较。** 上半部分是相同响应架构的单分支训练；下半部分均保留冻结 OBS 参考。Encoder full fine-tuning 仅将 RCT 后缀改为直接全参数更新；direct residual 使用两支 logits 相加。Qini/AUC 越高越好，PCOC 越接近 1 越好；粗体在全部行中比较。
 
@@ -545,7 +545,7 @@ $$
 
 按 user ID hash 固定分组，确保同一用户在 14 天期间一直使用同一模型。三组分别是生产 PEPNet、单阶段 RCT-only 和双阶段模型，各占 5% 流量，各有百万级样本；共享分配器和补贴率目标。
 
-<p align="center"><img src="./assets/TaQFormer-Table-3.png" alt="Table 3：线上 A/B 测试" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/TaQFormer-Table-3.png" alt="Table 3：线上 A/B 测试" width="760" style="max-width: 100%; height: auto;"></p>
 
 **Table 3：线上 A/B 结果。** 人均业务价值以 PEPNet 为 100；上标 $*$ 表示优于 PEPNet，$\dagger$ 表示优于 RCT-only，显著性水平为 $p<0.05$。读表时同时检查业务价值和实际补贴率，避免把增加补贴带来的变化误当成模型收益。
 
@@ -599,9 +599,9 @@ $$
 
 3 张图由作者源码中的独立 PDF 图直接渲染并裁去外部留白；3 张表从原论文 PDF 做对象级裁剪，保留标题、数值、分组、加粗和显著性标记。Table 1 在 RQ1/RQ2 共享使用，正文引用而不重复嵌图。图内出现的简写公式与正文对应内容一起保留。
 
-参考文献不是额外技术章节，不逐篇翻译或声称已独立精读；原文完整 26 条文献保存在 [BibTeX](./assets/source/oneuplift_refs.bib) 和本地 PDF 第 9 页。本笔记的相关工作陈述依据本论文对相关文献的描述。
+参考文献不是额外技术章节，不逐篇翻译或声称已独立精读；原文完整 26 条文献保存在 [BibTeX](assets/source/oneuplift_refs.bib) 和本地 PDF 第 9 页。本笔记的相关工作陈述依据本论文对相关文献的描述。
 
-- [覆盖清单](./coverage.md)：章节、小节、公式、图表与无编号技术项的逐项核对。
-- [原始 LaTeX](./assets/source/draft.tex)：核对公式、版本与未公开细节。
-- [原始 PDF](./assets/source/paper.pdf)：核对图表与版面。
-- [浏览器预览](./TaQFormer-精读预览.html)：从本 Markdown 生成，附带本地数学渲染组件，可离线阅读。
+- [覆盖清单](coverage.md)：章节、小节、公式、图表与无编号技术项的逐项核对。
+- [原始 LaTeX](assets/source/draft.tex)：核对公式、版本与未公开细节。
+- [原始 PDF](assets/source/paper.pdf)：核对图表与版面。
+- [浏览器预览](TaQFormer-%E7%B2%BE%E8%AF%BB%E9%A2%84%E8%A7%88.html)：从本 Markdown 生成，附带本地数学渲染组件，可离线阅读。

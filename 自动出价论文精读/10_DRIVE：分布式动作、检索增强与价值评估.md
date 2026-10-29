@@ -43,13 +43,13 @@ date_read: 2026-09-01
 1. **平均动作陷阱（Average Action Trap）**：同一类状态下可能同时存在保守出价和激进出价，两者都有效，但用 MSE 回归单个动作会逼近条件均值。这个均值未必对应任何真实的高回报策略，甚至可能落在两个有效模态之间的低价值区域。
 2. **稀疏、长尾数据下的生成不可靠**：纯参数模型必须把所有历史经验压进权重；对少见状态或稀疏奖励状态，它容易产生缺乏数据支持的动作。
 
-<p align="center"><img src="./assets/DRIVE Figure 1 - Two Core Challenges.png" width="92%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%201%20-%20Two%20Core%20Challenges.png" width="92%"></p>
 
 *图 1：左侧是多峰动作被点预测压成均值；右侧是稀疏、长尾状态下纯参数策略缺乏可靠锚点。*
 
 图 2 给出 AuctionNet 中的真实例子。蓝线是 DT 的平均动作，红线是局部回报最好的动作，背景点表示离线数据中的动作，颜色越深代表 RTG 越高。高回报动作聚集在某个模态附近，而平均值会偏离它。
 
-<p align="center"><img src="./assets/DRIVE Figure 2 - AuctionNet Failure Cases.png" width="72%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%202%20-%20AuctionNet%20Failure%20Cases.png" width="72%"></p>
 
 *图 2：AuctionNet 中两个平均动作失败案例。*
 
@@ -130,7 +130,7 @@ DT 用轨迹前缀、当前状态和目标 RTG 预测动作。需要注意：RTG
 
 ## 4. Methodology：DRIVE 的三个模块
 
-<p align="center"><img src="./assets/DRIVE Figure 3 - Framework.png" width="98%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%203%20-%20Framework.png" width="98%"></p>
 
 *图 3：DRIVE 总体框架。左侧 GMM 与中间检索产生候选，右侧 critic 只负责评估和选择。*
 
@@ -220,7 +220,7 @@ $$
 ### 4.3 价值评估：IQL critic 统一裁决
 
 > [!info] 方法背景
-> IQL、CQL、BCQ、BEAR、TD3+BC、优势加权行为克隆与 ensemble critic 的统一对照，见 [[离线强化学习方法对照：IQL、CQL、BCQ与价值集成]]。
+> IQL、CQL、BCQ、BEAR、TD3+BC、优势加权行为克隆与 ensemble critic 的统一对照，见 [[知识体系/05-强化学习/专题/离线强化学习方法对照：IQL、CQL、BCQ与价值集成|离线强化学习方法对照：IQL、CQL、BCQ与价值集成]]。
 
 DRIVE 采用 IQL 训练两个 Q 网络和一个状态价值网络。状态价值通过上分位 expectile 回归逼近数据支持内的较高 Q 值：
 
@@ -291,7 +291,7 @@ $$
 
 ### 5.2 主结果：AuctionNet
 
-<p align="center"><img src="./assets/DRIVE Table 1 - AuctionNet Results.png" width="100%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%201%20-%20AuctionNet%20Results.png" width="100%"></p>
 
 *表 1：AuctionNet 与 AuctionNet-Sparse 在五档预算下的结果；10 个随机种子。*
 
@@ -301,7 +301,7 @@ $$
 
 ### 5.3 主结果：D4RL
 
-<p align="center"><img src="./assets/DRIVE Table 2 - D4RL Results.png" width="100%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%202%20-%20D4RL%20Results.png" width="100%"></p>
 
 *表 2：D4RL Gym-MuJoCo 与 Maze2D 结果；DRIVE 自身结果报告 5 个种子的均值与标准差。*
 
@@ -311,7 +311,7 @@ $$
 
 ### 5.4 组件消融：两个候选源缺一不可吗？
 
-<p align="center"><img src="./assets/DRIVE Table 3 - Component Ablation.png" width="72%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%203%20-%20Component%20Ablation.png" width="72%"></p>
 
 *表 3：Actor Only、仅检索+critic、仅生成+critic和完整 DRIVE。*
 
@@ -319,7 +319,7 @@ $$
 
 ### 5.5 GMM 与扩散动作头
 
-<p align="center"><img src="./assets/DRIVE Table 4 - GMM versus Diffusion.png" width="70%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%204%20-%20GMM%20versus%20Diffusion.png" width="70%"></p>
 
 *表 4：同一 Transformer 骨干和 IQL critic 下，GMM 与 100 步 DDPM 动作头对比。*
 
@@ -327,7 +327,7 @@ GMM 在四个预算档更好，125% 预算略低；更重要的是每步约 **11
 
 ### 5.6 Q 函数是否真的多峰？
 
-<p align="center"><img src="./assets/DRIVE Table 5 - Q Multimodality.png" width="70%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%205%20-%20Q%20Multimodality.png" width="70%"></p>
 
 *表 5：在 2,000 个状态上分析 Q 曲线形状与 DT 次优程度。*
 
@@ -341,7 +341,7 @@ GMM 在四个预算档更好，125% 预算略低；更重要的是每步约 **11
 
 ### 5.7 跨骨干泛化
 
-<p align="center"><img src="./assets/DRIVE Figure 4 - Backbone Generalization.png" width="68%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%204%20-%20Backbone%20Generalization.png" width="68%"></p>
 
 *图 4：把 DRIVE 组件接到 BC、PDiT、CDT 和 DT 后的预算平均值。*
 
@@ -351,13 +351,13 @@ GMM 在四个预算档更好，125% 预算略低；更重要的是每步约 **11
 
 ### A.1 记号表
 
-<p align="center"><img src="./assets/DRIVE Table 6 - Notation.png" width="82%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%206%20-%20Notation.png" width="82%"></p>
 
 *表 6：论文完整符号表。核心区分是 $L$ 个生成动作、$K_{\mathrm{pool}}$ 个初检邻居和最终保留的 $K$ 个检索动作。*
 
 ### A.2 完整算法
 
-<p align="center"><img src="./assets/DRIVE Algorithm 1 - Full Workflow.png" width="86%"></p>
+<p align="center"><img src="assets/DRIVE%20Algorithm%201%20-%20Full%20Workflow.png" width="86%"></p>
 
 *算法 1：三段离线准备加一段在线推理。*
 
@@ -380,25 +380,25 @@ GMM 在四个预算档更好，125% 预算略低；更重要的是每步约 **11
 
 ### A.4 网络和超参数
 
-<p align="center"><img src="./assets/DRIVE Table 7 - Model Configurations.png" width="88%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%207%20-%20Model%20Configurations.png" width="88%"></p>
 
 *表 7：AuctionNet 主策略、独立检索编码器与 D4RL 模型配置。*
 
 AuctionNet 主策略为 6 层、512 维、8 头 Transformer，窗口长度 20；检索编码器仅 3 层、64 维、4 头，但上下文长度为完整 48 步。D4RL 不使用独立编码器，直接检索策略骨干的上下文化表示。
 
-<p align="center"><img src="./assets/DRIVE Table 8 - Critic Hyperparameters.png" width="72%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%208%20-%20Critic%20Hyperparameters.png" width="72%"></p>
 
 *表 8：IQL critic 配置。两类任务均使用 $\eta=0.7$、$\gamma=0.99$；AuctionNet 的 Q/V 网络更窄。*
 
 ## 7. 附录 B：数据与环境细节
 
-<p align="center"><img src="./assets/DRIVE Figure 5 - Benchmark Environments.png" width="88%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%205%20-%20Benchmark%20Environments.png" width="88%"></p>
 
 *图 5：AuctionNet 出价仿真流程，以及 D4RL locomotion/Maze2D 环境。*
 
 ### B.1 AuctionNet 数据
 
-<p align="center"><img src="./assets/DRIVE Table 9 - AuctionNet Statistics.png" width="70%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%209%20-%20AuctionNet%20Statistics.png" width="70%"></p>
 
 *表 9：AuctionNet 和 Sparse 版本的数据统计。*
 
@@ -406,7 +406,7 @@ AuctionNet 主策略为 6 层、512 维、8 头 Transformer，窗口长度 20；
 
 16 个状态特征包括：剩余时间、剩余预算、历史/最近三步平均出价、历史/最近三步最低赢标价、pValue、转化、赢标率，当前平均 pValue 与流量数，以及最近三步和历史累计流量数。
 
-<p align="center"><img src="./assets/DRIVE Figure 6 - Dense and Sparse Action Distributions.png" width="94%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%206%20-%20Dense%20and%20Sparse%20Action%20Distributions.png" width="94%"></p>
 
 *图 6：普通与稀疏版本在动作频次和 RTG 着色下都呈现多峰与长尾。*
 
@@ -418,7 +418,7 @@ Gym-MuJoCo 的 medium-replay 混合了训练早期探索噪声与较好行为；
 
 ### C.1 六个平均动作案例
 
-<p align="center"><img src="./assets/DRIVE Figure 7 - Average Action Failure Cases.png" width="92%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%207%20-%20Average%20Action%20Failure%20Cases.png" width="92%"></p>
 
 *图 7：六个检索邻域中的经验动作分布、DT 均值动作与最高回报动作。*
 
@@ -432,7 +432,7 @@ $$
 
 ### C.2 Maze2D 轨迹
 
-<p align="center"><img src="./assets/DRIVE Figure 8 - Maze2D Trajectories.png" width="96%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%208%20-%20Maze2D%20Trajectories.png" width="96%"></p>
 
 *图 8：maze2d-medium 和 maze2d-large 各四个随机种子；论文称未手工筛选成功案例。*
 
@@ -440,7 +440,7 @@ $$
 
 ### C.3 分投放周期的 Q 多峰性
 
-<p align="center"><img src="./assets/DRIVE Figure 9 - Q Function Multimodality.png" width="96%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%209%20-%20Q%20Function%20Multimodality.png" width="96%"></p>
 
 *图 9：P7–P13 各周期中，多峰状态比例、DT 次优率和到最优动作距离。*
 
@@ -448,7 +448,7 @@ $$
 
 ### C.4 不同骨干的逐预算结果
 
-<p align="center"><img src="./assets/DRIVE Table 10 - Backbone Generalization.png" width="100%"></p>
+<p align="center"><img src="assets/DRIVE%20Table%2010%20-%20Backbone%20Generalization.png" width="100%"></p>
 
 *表 10：BC、PDiT、CDT、DT 接入 DRIVE 前后的逐预算数值。*
 
@@ -456,7 +456,7 @@ $$
 
 ### C.5 CPA 感知 critic
 
-<p align="center"><img src="./assets/DRIVE Figure 10 - Constraint Aware Critic.png" width="84%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%2010%20-%20Constraint%20Aware%20Critic.png" width="84%"></p>
 
 *图 10：加入 CPA 奖励塑形后，总分略降或接近，但 CPA 超标率下降。*
 
@@ -464,7 +464,7 @@ $$
 
 ### C.6 IQL 与 CQL critic
 
-<p align="center"><img src="./assets/DRIVE Figure 11 - IQL versus CQL Critic.png" width="68%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%2011%20-%20IQL%20versus%20CQL%20Critic.png" width="68%"></p>
 
 *图 11：低预算时两者接近；预算增大后 IQL critic 的优势扩大。*
 
@@ -472,7 +472,7 @@ $$
 
 ### C.7 生成采样数 $L$
 
-<p align="center"><img src="./assets/DRIVE Figure 12 - Sampling Size Sensitivity.png" width="68%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%2012%20-%20Sampling%20Size%20Sensitivity.png" width="68%"></p>
 
 *图 12：$L=1,4,8,16,32$ 时结果总体平稳；带检索版本始终更高。*
 
@@ -480,7 +480,7 @@ $$
 
 ### C.8 检索动作数 $K$
 
-<p align="center"><img src="./assets/DRIVE Figure 13 - Retrieval Count Sensitivity.png" width="68%"></p>
+<p align="center"><img src="assets/DRIVE%20Figure%2013%20-%20Retrieval%20Count%20Sensitivity.png" width="68%"></p>
 
 *图 13：只检索基线随 $K$ 增大明显变好，完整 DRIVE 对 $K$ 不敏感。*
 
@@ -529,8 +529,8 @@ DRIVE 可以抽象为一个通用离线决策模板：
 
 ## 11. 与自动出价研究脉络的关系
 
-- 相比 [[Decision Transformer]]：DRIVE 保留 RTG 条件序列建模，但把确定性动作头改为分布候选，并增加检索和价值重排。
-- 相比 [[GRAD：生成式预训练与多专家动作探索]]：两者都不满足于单点动作；DRIVE 更强调离线历史检索与 critic 选择，核心问题是多峰/稀疏支持，而不是专家路由本身。
+- 相比 [[自动出价论文精读/01_Decision Transformer：RL怎样改写成序列建模|Decision Transformer]]：DRIVE 保留 RTG 条件序列建模，但把确定性动作头改为分布候选，并增加检索和价值重排。
+- 相比 [[自动出价论文精读/09_GRAD：生成式预训练与多专家动作探索|GRAD：生成式预训练与多专家动作探索]]：两者都不满足于单点动作；DRIVE 更强调离线历史检索与 critic 选择，核心问题是多峰/稀疏支持，而不是专家路由本身。
 - 相比扩散式出价：DRIVE 选择表达力较受限但一步采样快的 GMM，以换取实时性。
 - 相比纯 CQL/IQL 策略：DRIVE 没让价值方法直接在整个连续动作空间输出动作，而是把 critic 限定为候选排序器。
 

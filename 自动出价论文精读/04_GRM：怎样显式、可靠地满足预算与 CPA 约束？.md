@@ -38,7 +38,7 @@ GRM 的关键变化是：**把学习目标从 action 改成 response。** 响应
 
 ### 1.3 核心思路与数据流
 
-<p align="center"><img src="./GRM Figure 1 - Framework.png" alt="Figure 1：GRM 整体框架" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Figure%201%20-%20Framework.png" alt="Figure 1：GRM 整体框架" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Figure 1：左侧 GRM 使用 causal Transformer 编码状态—动作历史，输出剩余流量、成本曲线和价值曲线；右侧 Min-Pacing Controller 分别求预算根与 CPA 根，再取更小的 multiplier。
 
@@ -510,13 +510,13 @@ $$
 
 ### 4.6 Algorithm 1：Future-Sampling Training
 
-<p align="center"><img src="./GRM Algorithm 1 - Training.png" alt="Algorithm 1：GRM Future-Sampling 训练流程" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Algorithm%201%20-%20Training.png" alt="Algorithm 1：GRM Future-Sampling 训练流程" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Algorithm 1：对每个 anchor tick 编码历史、预测流量与两条曲线参数，再从未来抽取 $M$ 个监督 tick，通过公式（19）联合更新模型。
 
 ### 4.7 Algorithm 2：Receding-Horizon Online Control
 
-<p align="center"><img src="./GRM Algorithm 2 - Online Control.png" alt="Algorithm 2：GRM 在线滚动控制流程" width="620" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Algorithm%202%20-%20Online%20Control.png" alt="Algorithm 2：GRM 在线滚动控制流程" width="620" style="max-width: 100%; height: auto;"></p>
 
 > Algorithm 2：每个 tick 都用真实累计成本和价值更新 $B_t$、$\Delta_t$，重新预测剩余响应并求两个根；只执行当前的 $\alpha_t$，观察反馈后再次规划。
 
@@ -775,7 +775,7 @@ $$
 
 ### 6.2 Overall Performance
 
-<p align="center"><img src="./GRM Table 1 - Overall Performance.png" alt="Table 1：AuctionNet 主实验结果" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Table%201%20-%20Overall%20Performance.png" alt="Table 1：AuctionNet 主实验结果" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Table 1：GRM 在 P14--P20 的平均 score 为 $33.88\pm2.40$，比最强基线 EBaReT 的 $31.43\pm1.86$ 高 $7.8\%$。
 
@@ -785,7 +785,7 @@ GRM-short 只预测当前 tick 的响应，平均 score 为 $31.14$，比完整 
 
 ### 6.3 Robustness to Distribution Shift
 
-<p align="center"><img src="./GRM Figure 2 - Robustness.png" alt="Figure 2：分布变化下的鲁棒性" width="900" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Figure%202%20-%20Robustness.png" alt="Figure 2：分布变化下的鲁棒性" width="900" style="max-width: 100%; height: auto;"></p>
 
 > Figure 2：左图将竞争者预算提高到 $1.1$ 倍，右图将目标 CPA 收紧到原来的 $0.8$ 倍；实色柱为正常环境，斜线柱为 shifted 环境。
 
@@ -805,7 +805,7 @@ GRM-short 只预测当前 tick 的响应，平均 score 为 $31.14$，比完整 
 
 ### 6.4 Prediction Quality and Performance
 
-<p align="center"><img src="./GRM Figure 3 - Validation Loss.png" alt="Figure 3：验证损失与决策表现" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Figure%203%20-%20Validation%20Loss.png" alt="Figure 3：验证损失与决策表现" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Figure 3：横轴是 held-out validation loss，纵轴是 test score；10 个不同收敛程度的 checkpoint 呈显著负相关 $r=-0.78$、$p<0.01$。
 
@@ -815,7 +815,7 @@ GRM-short 只预测当前 tick 的响应，平均 score 为 $31.14$，比完整 
 
 ### 6.5 Curve Family Ablation
 
-<p align="center"><img src="./GRM Table 2 - Curve Ablation.png" alt="Table 2：响应曲线族消融" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Table%202%20-%20Curve%20Ablation.png" alt="Table 2：响应曲线族消融" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Table 2：log-sigmoid 得分最高；linear、piecewise-linear、普通 sigmoid 和 monotone MLP 均有所下降。
 
@@ -1099,7 +1099,7 @@ CPA 情况对 $\Psi_t=C_t-\tau V_t$ 重复 Step 1--3，得到公式（30）。�
 
 ### 10.1 GRM Architecture and Hyperparameters
 
-<p align="center"><img src="./GRM Table 3 - Hyperparameters.png" alt="Table 3：GRM 网络和训练超参数" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Table%203%20-%20Hyperparameters.png" alt="Table 3：GRM 网络和训练超参数" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Table 3：causal Transformer 最长处理 $48$ 个 tick，decoder 为 hidden size $64$ 的 2 层 MLP，总参数量约 $850$K；controller 的 action range 为 $[0.01,300.0]$。
 
@@ -1107,7 +1107,7 @@ CPA 情况对 $\Psi_t=C_t-\tau V_t$ 重复 Step 1--3，得到公式（30）。�
 
 ### 10.2 Per-Horizon-Phase Prediction Quality
 
-<p align="center"><img src="./GRM Table 4 - Horizon Prediction.png" alt="Table 4：不同剩余周期阶段的预测质量" width="760" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Table%204%20-%20Horizon%20Prediction.png" alt="Table 4：不同剩余周期阶段的预测质量" width="760" style="max-width: 100%; height: auto;"></p>
 
 > Table 4：越接近周期末尾，成本与价值曲线 MSE 越低；但剩余流量分母变小，因此 traffic MAPE 从 early 的 $2.7\%$ 升至 late 的 $7.4\%$。
 
@@ -1115,7 +1115,7 @@ CPA 情况对 $\Psi_t=C_t-\tau V_t$ 重复 Step 1--3，得到公式（30）。�
 
 ### 10.3 Sensitivity to Traffic-Loss Weight
 
-<p align="center"><img src="./GRM Table 5 - Traffic Loss Weight.png" alt="Table 5：流量损失权重敏感性" width="620" style="max-width: 100%; height: auto;"></p>
+<p align="center"><img src="assets/GRM%20Table%205%20-%20Traffic%20Loss%20Weight.png" alt="Table 5：流量损失权重敏感性" width="620" style="max-width: 100%; height: auto;"></p>
 
 > Table 5：默认 $\lambda_I=0.1$ 得分最高；减到 $0.05$ 的损失大于增到 $0.5$，说明剩余流量预测对固定总成本和总价值的绝对尺度很重要。
 

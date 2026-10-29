@@ -1,3 +1,11 @@
+---
+type: "方法"
+topics: ["序列建模", "特征交互"]
+status: "维护中"
+---
+
+> [!info] 本页定位
+> 快速理解页。论文细节与原始证据见 [[论文精读/OneTrans/OneTrans：统一特征交互与序列建模|OneTrans：统一特征交互与序列建模]]；司乘项目实际方案见 [[序列建模/PEPNet×OneTrans-主线架构|PEPNet×OneTrans-主线架构]]。
 
 # 目录
 
