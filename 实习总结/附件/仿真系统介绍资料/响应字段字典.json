@@ -1,0 +1,1129 @@
+[
+  {
+    "family": "时间与输入",
+    "metric": "业务日期",
+    "field": "dt",
+    "type": "string",
+    "description": "本次城市日的日期，格式 YYYY-MM-DD。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "城市 ID",
+    "field": "city_id",
+    "type": "int64",
+    "description": "本次环境选定的城市。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "时间片序号",
+    "field": "slot_index",
+    "type": "int16",
+    "description": "本次刚执行的半小时序号，0—47；0 对应 00:00—00:30。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "时间片开始时间",
+    "field": "slot_start",
+    "type": "timestamp[ms, tz=Asia/Shanghai]",
+    "description": "上海时区的开始时间，包含左端点；时间精度为毫秒。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "时间片结束时间",
+    "field": "slot_end",
+    "type": "timestamp[ms, tz=Asia/Shanghai]",
+    "description": "上海时区的结束时间，不包含右端点；第 47 片结束于次日 00:00。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "补贴率约束 λc",
+    "field": "lambda_c",
+    "type": "double",
+    "description": "该时间片实际传入的补贴率惩罚系数；有限非负 float64，金额口径为分。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "水位下限约束 λr",
+    "field": "lambda_r",
+    "type": "double",
+    "description": "该时间片实际传入的水位下限惩罚系数；有限非负 float64。"
+  },
+  {
+    "family": "时间与输入",
+    "metric": "水位上限约束 λq",
+    "field": "lambda_q",
+    "type": "double",
+    "description": "该时间片实际传入的水位上限惩罚系数；有限非负 float64。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "冒泡数（样本）",
+    "field": "sample_input_bubbles",
+    "type": "int64",
+    "description": "样本原始量。当前统计范围内全部输入冒泡的条数；每条冒泡选出一个动作，不以呼叫或完单为条件。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "幸运盒子展现冒泡数（样本）",
+    "field": "sample_lucky_exposures",
+    "type": "int64",
+    "description": "样本原始量。选中动作的幸运折扣不是 100 的冒泡数；未呼叫、未完单也计入。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真呼叫数（样本）",
+    "field": "sample_sim_call",
+    "type": "int64",
+    "description": "样本原始量。累计选中动作的冻结呼叫标记。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真默勾接受呼叫数（样本）",
+    "field": "sample_sim_accept",
+    "type": "int64",
+    "description": "样本原始量。累计选中动作的冻结默勾接受标记；需已呼叫，不要求完单。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真完单数（样本）",
+    "field": "sample_sim_finish",
+    "type": "int64",
+    "description": "样本原始量。累计选中动作的冻结完单标记。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真一口价完单数（样本）",
+    "field": "sample_sim_fixed_price_finish",
+    "type": "int64",
+    "description": "样本原始量。幸运盒子与特价盒子的仿真完单数之和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子完单数（样本）",
+    "field": "sample_sim_finish_lucky",
+    "type": "int64",
+    "description": "样本原始量。冻结结果为完单且品类为幸运盒子的次数。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子完单数（样本）",
+    "field": "sample_sim_finish_special",
+    "type": "int64",
+    "description": "样本原始量。冻结结果为完单且品类为特价盒子的次数。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类完单数（样本）",
+    "field": "sample_sim_finish_other",
+    "type": "int64",
+    "description": "样本原始量。冻结结果为完单且品类为其他品类的次数。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "幸运盒子可展现冒泡数（样本）",
+    "field": "sample_lucky_available_bubbles",
+    "type": "int64",
+    "description": "样本原始量。可行空间中至少存在一个幸运折扣不是 100 的动作的冒泡数；不要求最终选中该动作。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "k 下边界冒泡数（样本）",
+    "field": "sample_k_lower_bound_bubbles",
+    "type": "int64",
+    "description": "样本原始量。选中折扣组合的上限 K>1，且实际选中 k=1 的冒泡数。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "k 上边界冒泡数（样本）",
+    "field": "sample_k_upper_bound_bubbles",
+    "type": "int64",
+    "description": "样本原始量。选中折扣组合的上限 K>1，且实际选中 k=K 的冒泡数。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真补贴金额（样本）",
+    "field": "sample_sim_cost_cents",
+    "type": "double",
+    "description": "样本原始量。仅对仿真特价完单计入 s，未完单或其他完单品类记零；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真假 GMV（样本）",
+    "field": "sample_sim_fake_gmv_cents",
+    "type": "double",
+    "description": "样本原始量。按冻结完单品类计入对应假 GMV；未完单记零；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真真 GMV（样本）",
+    "field": "sample_sim_true_gmv_cents",
+    "type": "double",
+    "description": "样本原始量。按冻结完单品类计入对应真 GMV；未完单记零；单位分。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期呼叫数（样本）",
+    "field": "sample_expected_call",
+    "type": "double",
+    "description": "样本原始量。对选中动作的 ECR 求和。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期默勾接受呼叫数（样本）",
+    "field": "sample_expected_accept",
+    "type": "double",
+    "description": "样本原始量。对选中动作的 ECR×DSAR 求和；接受以呼叫为条件。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期完单数（样本）",
+    "field": "sample_expected_finish",
+    "type": "double",
+    "description": "样本原始量。对选中动作的 BCR 求和。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期一口价完单数（样本）",
+    "field": "sample_expected_fixed_price_finish",
+    "type": "double",
+    "description": "样本原始量。对 BCR×(f_l+f_u) 求和，等于两类预期完单数之和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子完单数（样本）",
+    "field": "sample_expected_finish_lucky",
+    "type": "double",
+    "description": "样本原始量。对选中动作的 BCR×f_l 求和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子完单数（样本）",
+    "field": "sample_expected_finish_special",
+    "type": "double",
+    "description": "样本原始量。对选中动作的 BCR×f_u 求和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类完单数（样本）",
+    "field": "sample_expected_finish_other",
+    "type": "double",
+    "description": "样本原始量。对选中动作的 BCR×f_o 求和。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期补贴金额（样本）",
+    "field": "sample_expected_cost_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_u×s 求和；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期假 GMV（样本）",
+    "field": "sample_expected_fake_gmv_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×(f_l×Gl+f_u×Gu+f_o×g_o) 求和；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期真 GMV（样本）",
+    "field": "sample_expected_true_gmv_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×(f_l×P×Dl+f_u×Gu+f_o×g_o) 求和；单位分。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位幸运实付价格合计（样本）",
+    "field": "sample_water_lucky_pay_cents",
+    "type": "double",
+    "description": "样本原始量。对全部幸运展现冒泡累加 L=ceil(P×Dl)，单位分；水位分子，不要求完单。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位特价实付价格合计（样本）",
+    "field": "sample_water_special_pay_cents",
+    "type": "double",
+    "description": "样本原始量。在同一批幸运展现冒泡上累加 U=P−s，单位分；水位分母，不要求完单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子假 GMV（样本）",
+    "field": "sample_sim_fake_gmv_lucky_cents",
+    "type": "double",
+    "description": "样本原始量。只在冻结完单品类为幸运盒子时计入 Gl；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子假 GMV（样本）",
+    "field": "sample_sim_fake_gmv_special_cents",
+    "type": "double",
+    "description": "样本原始量。只在冻结完单品类为特价盒子时计入 Gu；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类假 GMV（样本）",
+    "field": "sample_sim_fake_gmv_other_cents",
+    "type": "double",
+    "description": "样本原始量。只在冻结完单品类为其他品类时计入 g_o（模型条件均值）；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子真 GMV（样本）",
+    "field": "sample_sim_true_gmv_lucky_cents",
+    "type": "double",
+    "description": "样本原始量。只在冻结完单品类为幸运盒子时计入 P×Dl（不取整）；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子真 GMV（样本）",
+    "field": "sample_sim_true_gmv_special_cents",
+    "type": "double",
+    "description": "样本原始量。只在冻结完单品类为特价盒子时计入 Gu；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类真 GMV（样本）",
+    "field": "sample_sim_true_gmv_other_cents",
+    "type": "double",
+    "description": "样本原始量。只在冻结完单品类为其他品类时计入 g_o（模型条件均值）；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子假 GMV（样本）",
+    "field": "sample_expected_fake_gmv_lucky_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_l×对应金额求和；对应金额为 Gl，单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子假 GMV（样本）",
+    "field": "sample_expected_fake_gmv_special_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_u×对应金额求和；对应金额为 Gu，单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类假 GMV（样本）",
+    "field": "sample_expected_fake_gmv_other_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_o×对应金额求和；对应金额为 g_o（模型条件均值），单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子真 GMV（样本）",
+    "field": "sample_expected_true_gmv_lucky_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_l×对应金额求和；对应金额为 P×Dl（不取整），单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子真 GMV（样本）",
+    "field": "sample_expected_true_gmv_special_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_u×对应金额求和；对应金额为 Gu，单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类真 GMV（样本）",
+    "field": "sample_expected_true_gmv_other_cents",
+    "type": "double",
+    "description": "样本原始量。对 BCR×f_o×对应金额求和；对应金额为 g_o（模型条件均值），单位分。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "冒泡数（十倍折算）",
+    "field": "scaled_input_bubbles",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。当前统计范围内全部输入冒泡的条数；每条冒泡选出一个动作，不以呼叫或完单为条件。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "幸运盒子展现冒泡数（十倍折算）",
+    "field": "scaled_lucky_exposures",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。选中动作的幸运折扣不是 100 的冒泡数；未呼叫、未完单也计入。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真呼叫数（十倍折算）",
+    "field": "scaled_sim_call",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。累计选中动作的冻结呼叫标记。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真默勾接受呼叫数（十倍折算）",
+    "field": "scaled_sim_accept",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。累计选中动作的冻结默勾接受标记；需已呼叫，不要求完单。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真完单数（十倍折算）",
+    "field": "scaled_sim_finish",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。累计选中动作的冻结完单标记。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "仿真一口价完单数（十倍折算）",
+    "field": "scaled_sim_fixed_price_finish",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。幸运盒子与特价盒子的仿真完单数之和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子完单数（十倍折算）",
+    "field": "scaled_sim_finish_lucky",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。冻结结果为完单且品类为幸运盒子的次数。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子完单数（十倍折算）",
+    "field": "scaled_sim_finish_special",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。冻结结果为完单且品类为特价盒子的次数。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类完单数（十倍折算）",
+    "field": "scaled_sim_finish_other",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。冻结结果为完单且品类为其他品类的次数。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "幸运盒子可展现冒泡数（十倍折算）",
+    "field": "scaled_lucky_available_bubbles",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。可行空间中至少存在一个幸运折扣不是 100 的动作的冒泡数；不要求最终选中该动作。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "k 下边界冒泡数（十倍折算）",
+    "field": "scaled_k_lower_bound_bubbles",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。选中折扣组合的上限 K>1，且实际选中 k=1 的冒泡数。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "k 上边界冒泡数（十倍折算）",
+    "field": "scaled_k_upper_bound_bubbles",
+    "type": "int64",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。选中折扣组合的上限 K>1，且实际选中 k=K 的冒泡数。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真补贴金额（十倍折算）",
+    "field": "scaled_sim_cost_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。仅对仿真特价完单计入 s，未完单或其他完单品类记零；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真假 GMV（十倍折算）",
+    "field": "scaled_sim_fake_gmv_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。按冻结完单品类计入对应假 GMV；未完单记零；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真真 GMV（十倍折算）",
+    "field": "scaled_sim_true_gmv_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。按冻结完单品类计入对应真 GMV；未完单记零；单位分。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期呼叫数（十倍折算）",
+    "field": "scaled_expected_call",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对选中动作的 ECR 求和。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期默勾接受呼叫数（十倍折算）",
+    "field": "scaled_expected_accept",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对选中动作的 ECR×DSAR 求和；接受以呼叫为条件。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期完单数（十倍折算）",
+    "field": "scaled_expected_finish",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对选中动作的 BCR 求和。"
+  },
+  {
+    "family": "规模与漏斗",
+    "metric": "预期一口价完单数（十倍折算）",
+    "field": "scaled_expected_fixed_price_finish",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×(f_l+f_u) 求和，等于两类预期完单数之和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子完单数（十倍折算）",
+    "field": "scaled_expected_finish_lucky",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对选中动作的 BCR×f_l 求和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子完单数（十倍折算）",
+    "field": "scaled_expected_finish_special",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对选中动作的 BCR×f_u 求和。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类完单数（十倍折算）",
+    "field": "scaled_expected_finish_other",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对选中动作的 BCR×f_o 求和。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期补贴金额（十倍折算）",
+    "field": "scaled_expected_cost_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_u×s 求和；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期假 GMV（十倍折算）",
+    "field": "scaled_expected_fake_gmv_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×(f_l×Gl+f_u×Gu+f_o×g_o) 求和；单位分。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期真 GMV（十倍折算）",
+    "field": "scaled_expected_true_gmv_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×(f_l×P×Dl+f_u×Gu+f_o×g_o) 求和；单位分。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位幸运实付价格合计（十倍折算）",
+    "field": "scaled_water_lucky_pay_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对全部幸运展现冒泡累加 L=ceil(P×Dl)，单位分；水位分子，不要求完单。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位特价实付价格合计（十倍折算）",
+    "field": "scaled_water_special_pay_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。在同一批幸运展现冒泡上累加 U=P−s，单位分；水位分母，不要求完单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子假 GMV（十倍折算）",
+    "field": "scaled_sim_fake_gmv_lucky_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。只在冻结完单品类为幸运盒子时计入 Gl；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子假 GMV（十倍折算）",
+    "field": "scaled_sim_fake_gmv_special_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。只在冻结完单品类为特价盒子时计入 Gu；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类假 GMV（十倍折算）",
+    "field": "scaled_sim_fake_gmv_other_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。只在冻结完单品类为其他品类时计入 g_o（模型条件均值）；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子真 GMV（十倍折算）",
+    "field": "scaled_sim_true_gmv_lucky_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。只在冻结完单品类为幸运盒子时计入 P×Dl（不取整）；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子真 GMV（十倍折算）",
+    "field": "scaled_sim_true_gmv_special_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。只在冻结完单品类为特价盒子时计入 Gu；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类真 GMV（十倍折算）",
+    "field": "scaled_sim_true_gmv_other_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。只在冻结完单品类为其他品类时计入 g_o（模型条件均值）；否则为零；单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子假 GMV（十倍折算）",
+    "field": "scaled_expected_fake_gmv_lucky_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_l×对应金额求和；对应金额为 Gl，单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子假 GMV（十倍折算）",
+    "field": "scaled_expected_fake_gmv_special_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_u×对应金额求和；对应金额为 Gu，单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类假 GMV（十倍折算）",
+    "field": "scaled_expected_fake_gmv_other_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_o×对应金额求和；对应金额为 g_o（模型条件均值），单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子真 GMV（十倍折算）",
+    "field": "scaled_expected_true_gmv_lucky_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_l×对应金额求和；对应金额为 P×Dl（不取整），单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子真 GMV（十倍折算）",
+    "field": "scaled_expected_true_gmv_special_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_u×对应金额求和；对应金额为 Gu，单位分。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类真 GMV（十倍折算）",
+    "field": "scaled_expected_true_gmv_other_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。对 BCR×f_o×对应金额求和；对应金额为 g_o（模型条件均值），单位分。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真完单价值贡献（样本）",
+    "field": "sample_sim_value_finish",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_finish × 仿真完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真一口价完单价值贡献（样本）",
+    "field": "sample_sim_value_fixed_price_finish",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_fixed_price_finish × 仿真一口价完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真真 GMV价值贡献（样本）",
+    "field": "sample_sim_value_gmv",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_gmv × 仿真真 GMV；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真呼叫价值贡献（样本）",
+    "field": "sample_sim_value_call",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_call × 仿真呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真默勾接受呼叫价值贡献（样本）",
+    "field": "sample_sim_value_default_accept_call",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_default_accept_call × 仿真默勾接受呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期完单价值贡献（样本）",
+    "field": "sample_expected_value_finish",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_finish × 预期完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期一口价完单价值贡献（样本）",
+    "field": "sample_expected_value_fixed_price_finish",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_fixed_price_finish × 预期一口价完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期真 GMV价值贡献（样本）",
+    "field": "sample_expected_value_gmv",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_gmv × 预期真 GMV；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期呼叫价值贡献（样本）",
+    "field": "sample_expected_value_call",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_call × 预期呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期默勾接受呼叫价值贡献（样本）",
+    "field": "sample_expected_value_default_accept_call",
+    "type": "double",
+    "description": "样本原始量。业务权重 weight_default_accept_call × 预期默勾接受呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真业务价值（样本）",
+    "field": "sample_sim_business_value",
+    "type": "double",
+    "description": "样本原始量。五项加权贡献之和：完单、一口价完单、真 GMV、呼叫、默勾接受呼叫；不含 λ 惩罚，不等于原始目标 F。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期业务价值（样本）",
+    "field": "sample_expected_business_value",
+    "type": "double",
+    "description": "样本原始量。五项加权贡献之和：完单、一口价完单、真 GMV、呼叫、默勾接受呼叫；不含 λ 惩罚，不等于原始目标 F。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "仿真补贴余量（样本）",
+    "field": "sample_sim_subsidy_headroom_cents",
+    "type": "double",
+    "description": "样本原始量。α×仿真假 GMV−仿真补贴，单位分。正值有余量，负值超过补贴率目标。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "预期补贴余量（样本）",
+    "field": "sample_expected_subsidy_headroom_cents",
+    "type": "double",
+    "description": "样本原始量。α×预期假 GMV−预期补贴，单位分。正值有余量，负值超过补贴率目标。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位下限余量（样本）",
+    "field": "sample_water_lower_headroom_cents",
+    "type": "double",
+    "description": "样本原始量。幸运实付价格合计−β×特价实付价格合计，单位分。正值有余量，负值低于下限。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位上限余量（样本）",
+    "field": "sample_water_upper_headroom_cents",
+    "type": "double",
+    "description": "样本原始量。γ×特价实付价格合计−幸运实付价格合计，单位分。正值有余量，负值超过上限。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真完单价值贡献（十倍折算）",
+    "field": "scaled_sim_value_finish",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_finish × 仿真完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真一口价完单价值贡献（十倍折算）",
+    "field": "scaled_sim_value_fixed_price_finish",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_fixed_price_finish × 仿真一口价完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真真 GMV价值贡献（十倍折算）",
+    "field": "scaled_sim_value_gmv",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_gmv × 仿真真 GMV；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真呼叫价值贡献（十倍折算）",
+    "field": "scaled_sim_value_call",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_call × 仿真呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真默勾接受呼叫价值贡献（十倍折算）",
+    "field": "scaled_sim_value_default_accept_call",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_default_accept_call × 仿真默勾接受呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期完单价值贡献（十倍折算）",
+    "field": "scaled_expected_value_finish",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_finish × 预期完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期一口价完单价值贡献（十倍折算）",
+    "field": "scaled_expected_value_fixed_price_finish",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_fixed_price_finish × 预期一口价完单数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期真 GMV价值贡献（十倍折算）",
+    "field": "scaled_expected_value_gmv",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_gmv × 预期真 GMV；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期呼叫价值贡献（十倍折算）",
+    "field": "scaled_expected_value_call",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_call × 预期呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期默勾接受呼叫价值贡献（十倍折算）",
+    "field": "scaled_expected_value_default_accept_call",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。业务权重 weight_default_accept_call × 预期默勾接受呼叫数；真 GMV 使用分。可为负值，不含 λ 约束惩罚。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真业务价值（十倍折算）",
+    "field": "scaled_sim_business_value",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。五项加权贡献之和：完单、一口价完单、真 GMV、呼叫、默勾接受呼叫；不含 λ 惩罚，不等于原始目标 F。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期业务价值（十倍折算）",
+    "field": "scaled_expected_business_value",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。五项加权贡献之和：完单、一口价完单、真 GMV、呼叫、默勾接受呼叫；不含 λ 惩罚，不等于原始目标 F。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "仿真补贴余量（十倍折算）",
+    "field": "scaled_sim_subsidy_headroom_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。α×仿真假 GMV−仿真补贴，单位分。正值有余量，负值超过补贴率目标。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "预期补贴余量（十倍折算）",
+    "field": "scaled_expected_subsidy_headroom_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。α×预期假 GMV−预期补贴，单位分。正值有余量，负值超过补贴率目标。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位下限余量（十倍折算）",
+    "field": "scaled_water_lower_headroom_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。幸运实付价格合计−β×特价实付价格合计，单位分。正值有余量，负值低于下限。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位上限余量（十倍折算）",
+    "field": "scaled_water_upper_headroom_cents",
+    "type": "double",
+    "description": "对应 sample_ 字段×10 的量级折算；不是全量观测。γ×特价实付价格合计−幸运实付价格合计，单位分。正值有余量，负值超过上限。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "仿真ECR / 冒泡呼叫率",
+    "field": "sim_ecr",
+    "type": "double",
+    "description": "仿真呼叫数 ÷ 冒泡数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "仿真BCR / 冒泡完单率",
+    "field": "sim_bcr",
+    "type": "double",
+    "description": "仿真完单数 ÷ 冒泡数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "仿真CR / 呼叫后完单率",
+    "field": "sim_cr",
+    "type": "double",
+    "description": "仿真完单数 ÷ 仿真呼叫数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "仿真DSAR / 默勾接受率",
+    "field": "sim_dsar",
+    "type": "double",
+    "description": "仿真默勾接受呼叫数 ÷ 仿真呼叫数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "仿真补贴率",
+    "field": "sim_subsidy_rate",
+    "type": "double",
+    "description": "仿真补贴金额 ÷ 仿真假 GMV；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "预期ECR / 冒泡呼叫率",
+    "field": "expected_ecr",
+    "type": "double",
+    "description": "预期呼叫数 ÷ 冒泡数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "预期BCR / 冒泡完单率",
+    "field": "expected_bcr",
+    "type": "double",
+    "description": "预期完单数 ÷ 冒泡数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "预期CR / 呼叫后完单率",
+    "field": "expected_cr",
+    "type": "double",
+    "description": "预期完单数 ÷ 预期呼叫数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "漏斗与占比",
+    "metric": "预期DSAR / 默勾接受率",
+    "field": "expected_dsar",
+    "type": "double",
+    "description": "预期默勾接受呼叫数 ÷ 预期呼叫数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "预期补贴率",
+    "field": "expected_subsidy_rate",
+    "type": "double",
+    "description": "预期补贴金额 ÷ 预期假 GMV；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "水位与约束",
+    "metric": "水位",
+    "field": "water_level",
+    "type": "double",
+    "description": "水位幸运实付价格合计 ÷ 水位特价实付价格合计；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "幸运盒子展现率",
+    "field": "lucky_exposure_rate",
+    "type": "double",
+    "description": "幸运盒子展现冒泡数 ÷ 冒泡数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真一口价完单份额",
+    "field": "sim_fixed_price_finish_share",
+    "type": "double",
+    "description": "仿真一口价完单数 ÷ 仿真完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "仿真单均真 GMV",
+    "field": "sim_avg_true_gmv_cents",
+    "type": "double",
+    "description": "仿真真 GMV ÷ 仿真完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子完单份额",
+    "field": "sim_finish_share_lucky",
+    "type": "double",
+    "description": "仿真幸运盒子完单数 ÷ 仿真完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真幸运盒子单均真 GMV",
+    "field": "sim_avg_true_gmv_lucky_cents",
+    "type": "double",
+    "description": "仿真幸运盒子真 GMV ÷ 仿真幸运盒子完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子完单份额",
+    "field": "sim_finish_share_special",
+    "type": "double",
+    "description": "仿真特价盒子完单数 ÷ 仿真完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真特价盒子单均真 GMV",
+    "field": "sim_avg_true_gmv_special_cents",
+    "type": "double",
+    "description": "仿真特价盒子真 GMV ÷ 仿真特价盒子完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类完单份额",
+    "field": "sim_finish_share_other",
+    "type": "double",
+    "description": "仿真其他品类完单数 ÷ 仿真完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "仿真其他品类单均真 GMV",
+    "field": "sim_avg_true_gmv_other_cents",
+    "type": "double",
+    "description": "仿真其他品类真 GMV ÷ 仿真其他品类完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期一口价完单份额",
+    "field": "expected_fixed_price_finish_share",
+    "type": "double",
+    "description": "预期一口价完单数 ÷ 预期完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "GMV与补贴",
+    "metric": "预期单均真 GMV",
+    "field": "expected_avg_true_gmv_cents",
+    "type": "double",
+    "description": "预期真 GMV ÷ 预期完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子完单份额",
+    "field": "expected_finish_share_lucky",
+    "type": "double",
+    "description": "预期幸运盒子完单数 ÷ 预期完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期幸运盒子单均真 GMV",
+    "field": "expected_avg_true_gmv_lucky_cents",
+    "type": "double",
+    "description": "预期幸运盒子真 GMV ÷ 预期幸运盒子完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子完单份额",
+    "field": "expected_finish_share_special",
+    "type": "double",
+    "description": "预期特价盒子完单数 ÷ 预期完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期特价盒子单均真 GMV",
+    "field": "expected_avg_true_gmv_special_cents",
+    "type": "double",
+    "description": "预期特价盒子真 GMV ÷ 预期特价盒子完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类完单份额",
+    "field": "expected_finish_share_other",
+    "type": "double",
+    "description": "预期其他品类完单数 ÷ 预期完单数；使用同一统计范围的总量重算，分母为零时为 null。存储为小数比值。"
+  },
+  {
+    "family": "品类响应",
+    "metric": "预期其他品类单均真 GMV",
+    "field": "expected_avg_true_gmv_other_cents",
+    "type": "double",
+    "description": "预期其他品类真 GMV ÷ 预期其他品类完单数；使用同一统计范围的总量重算，分母为零时为 null。单位分/单。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "幸运盒子可展现率",
+    "field": "lucky_available_rate",
+    "type": "double",
+    "description": "幸运可展现冒泡数÷全部冒泡数；反映可行空间是否允许幸运展现，不等于实际展现率。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "k 下边界比例",
+    "field": "k_lower_bound_rate",
+    "type": "double",
+    "description": "k 下边界冒泡数÷选中折扣组合 K>1 的冒泡数；分母为零时为 null。"
+  },
+  {
+    "family": "动作与可行域",
+    "metric": "k 上边界比例",
+    "field": "k_upper_bound_rate",
+    "type": "double",
+    "description": "k 上边界冒泡数÷选中折扣组合 K>1 的冒泡数；分母为零时为 null。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "幸运盒子折扣分布",
+    "field": "lubox_discount_distribution",
+    "type": "list<item: struct<value: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "按选中幸运折扣 value 分桶；97 表示 0.97 实付折扣率，100 表示不展现。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "特价盒子折扣分布",
+    "field": "uabox_discount_distribution",
+    "type": "list<item: struct<value: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "按选中特价折扣 value 分桶；97 表示 0.97 实付折扣率。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "选中 k 分布",
+    "field": "k_distribution",
+    "type": "list<item: struct<value: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "按实际选中的默勾 k 值 value 分桶，k 从 1 开始。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "联合动作分布",
+    "field": "joint_action_distribution",
+    "type": "list<item: struct<pair_index: int16, uabox_discount: int16, lubox_discount: int16, k: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "按 (pair_index,uabox_discount,lubox_discount,k) 联合分桶；pair_index 是 0—27 的折扣组合索引。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "可行动作数分布",
+    "field": "feasible_action_count_distribution",
+    "type": "list<item: struct<value: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "每个冒泡以其全部可行动作数作为 value；由各折扣组合的正 k 上限求和。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "可行折扣组合数分布",
+    "field": "feasible_pair_count_distribution",
+    "type": "list<item: struct<value: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "每个冒泡以 k 上限>0 的折扣组合个数作为 value，范围 1—28。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "动作分布",
+    "metric": "各折扣组合 k 上限分布",
+    "field": "pair_k_max_distribution",
+    "type": "list<item: struct<pair_index: int16, k_max: int16, sample_count: int64, scaled_count: int64, share: double>>",
+    "description": "按 (pair_index,k_max) 分桶，每个冒泡对 28 个组合各计一次；−1、0 表示该组合不可行。每个 pair 的 share 分别合计为 1，全部 pair 合计为 28。桶内 sample_count 为样本冒泡数，scaled_count 为其十倍，share=sample_count/全部冒泡数。空范围为 []。"
+  },
+  {
+    "family": "人数与人均",
+    "metric": "样本去重冒泡人数",
+    "field": "sample_passengers",
+    "type": "int64",
+    "description": "对全部输入冒泡按 passenger_id 去重。累计响应跨已执行时间片取人数并集，不按片相加，不进行十倍折算。"
+  },
+  {
+    "family": "人数与人均",
+    "metric": "仿真人均完单",
+    "field": "sim_finish_per_passenger",
+    "type": "double",
+    "description": "仿真样本完单数÷样本去重冒泡人数，单位单/人；人数为零时为 null，不按十倍放大。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "仿真原始目标 F",
+    "field": "sim_objective_f",
+    "type": "double",
+    "description": "按页面给出的 F 公式及同一配置 a0…a4 计算；真 GMV 单位为分。必要分母为零或缺少权重时为 null，即使对应系数为零也不跳过分母检查。使用本次冻结仿真的实际累计量代入。"
+  },
+  {
+    "family": "人数与人均",
+    "metric": "预期人均完单",
+    "field": "expected_finish_per_passenger",
+    "type": "double",
+    "description": "预期样本完单数÷样本去重冒泡人数，单位单/人；人数为零时为 null，不按十倍放大。"
+  },
+  {
+    "family": "业务目标",
+    "metric": "预期原始目标 F",
+    "field": "expected_objective_f",
+    "type": "double",
+    "description": "按页面给出的 F 公式及同一配置 a0…a4 计算；真 GMV 单位为分。必要分母为零或缺少权重时为 null，即使对应系数为零也不跳过分母检查。预期总量代入公式，非仿真 F 的数学期望。"
+  }
+]
