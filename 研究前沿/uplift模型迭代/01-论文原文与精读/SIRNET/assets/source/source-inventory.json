@@ -1,0 +1,1473 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "Background.",
+      "id": "S1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Contributions.",
+      "id": "S1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "2  Related Work",
+      "id": "S2"
+    },
+    {
+      "title": "Surrogate endpoints and the surrogate index.",
+      "id": "S2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Partially observed outcomes and missing-data methods.",
+      "id": "S2.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Deep learning for treatment-effect estimation.",
+      "id": "S2.SS0.SSS0.Px3"
+    },
+    {
+      "title": "3  Setup and Methodology Foundation",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Setup",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Methodological Foundation: Influence Function and Orthogonal Score",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "4  SIRNET Details",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Architecture",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Training Objective",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Estimation and Inference",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "Orthogonal Estimator and Inference.",
+      "id": "S4.SS3.SSS0.Px1"
+    },
+    {
+      "title": "Cross-fitting.",
+      "id": "S4.SS3.SSS0.Px2"
+    },
+    {
+      "title": "4.4  Theoretical Guarantees",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "5  Numerical Validation",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  Monte Carlo Validation",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "Data Generating Process",
+      "id": "S5.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Results on Estimation and Inference",
+      "id": "S5.SS1.SSS0.Px2"
+    },
+    {
+      "title": "5.2  Semisynthetic Validation",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "6  Empirical Application: A4 Study",
+      "id": "S6"
+    },
+    {
+      "title": "6.1  Study Overview",
+      "id": "S6.SS1"
+    },
+    {
+      "title": "6.2  Features and Surrogate Construction",
+      "id": "S6.SS2"
+    },
+    {
+      "title": "6.3  Results",
+      "id": "S6.SS3"
+    },
+    {
+      "title": "7  Discussion",
+      "id": "S7"
+    },
+    {
+      "title": "AI use statement",
+      "id": "S7.SSx1"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Checklist",
+      "id": "Sx1"
+    },
+    {
+      "title": "Appendix A  More on estimation",
+      "id": "A1"
+    },
+    {
+      "title": "A.1  Alternative Estimators",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "A.2  Cross-fitting procedure",
+      "id": "A1.SS2"
+    },
+    {
+      "title": "Appendix B  More details on numerical experiments",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Data generating processes",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2  Estimators compared in the Monte Carlo experiments",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "Complete case and imputation baselines.",
+      "id": "A2.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Missingness-only and surrogate-only scores.",
+      "id": "A2.SS2.SSS0.Px2"
+    },
+    {
+      "title": "Full orthogonal scores.",
+      "id": "A2.SS2.SSS0.Px3"
+    },
+    {
+      "title": "B.3  Architecture-ablation variants",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "Shared.",
+      "id": "A2.SS3.SSS0.Px1"
+    },
+    {
+      "title": "Partial.",
+      "id": "A2.SS3.SSS0.Px2"
+    },
+    {
+      "title": "Wide/deep.",
+      "id": "A2.SS3.SSS0.Px3"
+    },
+    {
+      "title": "Partial+wide/deep.",
+      "id": "A2.SS3.SSS0.Px4"
+    },
+    {
+      "title": "Separate.",
+      "id": "A2.SS3.SSS0.Px5"
+    },
+    {
+      "title": "B.4  Ablation on sharedness strength",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "Difficulty-matched design.",
+      "id": "A2.SS4.SSS0.Px1"
+    },
+    {
+      "title": "Response calibration.",
+      "id": "A2.SS4.SSS0.Px2"
+    },
+    {
+      "title": "Results.",
+      "id": "A2.SS4.SSS0.Px3"
+    },
+    {
+      "title": "Interpretation.",
+      "id": "A2.SS4.SSS0.Px4"
+    },
+    {
+      "title": "B.5  High-Dimensional Representation-Reuse Diagnostics",
+      "id": "A2.SS5"
+    },
+    {
+      "title": "B.6  Sample-Size Sensitivity",
+      "id": "A2.SS6"
+    },
+    {
+      "title": "B.7  Semisynthetic DGPs",
+      "id": "A2.SS7"
+    },
+    {
+      "title": "Nonlinear shared-plus-private DGP.",
+      "id": "A2.SS7.SSS0.Px1"
+    },
+    {
+      "title": "Deep bounded-latent shared-plus-private DGP.",
+      "id": "A2.SS7.SSS0.Px2"
+    },
+    {
+      "title": "Appendix C  Theoretical analysis",
+      "id": "A3"
+    },
+    {
+      "title": "C.1  Assumptions",
+      "id": "A3.SS1"
+    },
+    {
+      "title": "C.2  Theoretical Properties",
+      "id": "A3.SS2"
+    },
+    {
+      "title": "Appendix D  More on A4 study",
+      "id": "A4"
+    },
+    {
+      "title": "D.1  A4 study acknowledgement statement",
+      "id": "A4.SS1"
+    },
+    {
+      "title": "D.2  A4 Overlap and Missingness Sensitivity Diagnostics",
+      "id": "A4.SS2"
+    },
+    {
+      "title": "Missingness reasons and death.",
+      "id": "A4.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Appendix E  Computational aspects",
+      "id": "A5"
+    },
+    {
+      "title": "Time.",
+      "id": "A5.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Space and sample size.",
+      "id": "A5.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Computing infrastructure.",
+      "id": "A5.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Appendix F  Hyperparameter Tuning",
+      "id": "A6"
+    },
+    {
+      "title": "F.1  SIRNET",
+      "id": "A6.SS1"
+    },
+    {
+      "title": "Nested tuning for the full score.",
+      "id": "A6.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Final seed averaging and inference.",
+      "id": "A6.SS1.SSS0.Px2"
+    },
+    {
+      "title": "F.2  Baseline nuisance estimators and XGBoost selection",
+      "id": "A6.SS2"
+    },
+    {
+      "title": "Ridge (linear nuisances).",
+      "id": "A6.SS2.SSS0.Px1"
+    },
+    {
+      "title": "XGBoost.",
+      "id": "A6.SS2.SSS0.Px2"
+    },
+    {
+      "title": "Bootstrap standard errors.",
+      "id": "A6.SS2.SSS0.Px3"
+    },
+    {
+      "title": "Appendix G  Additional Technical Results and Proof",
+      "id": "A7"
+    },
+    {
+      "title": "G.1  Robustness of the efficient score",
+      "id": "A7.SS1"
+    },
+    {
+      "title": "G.2  Collection of technical lemmas and proofs",
+      "id": "A7.SS2"
+    },
+    {
+      "title": "Approximation and complexity for the learned joint sieve.",
+      "id": "A7.SS2.SSS0.Px1"
+    },
+    {
+      "title": "The Marginal Head: A Generated-Regressor Lemma. ",
+      "id": "A7.SS2.SSS0.Px2"
+    },
+    {
+      "title": "G.3  Proof of Proposition  3",
+      "id": "A7.SS3"
+    },
+    {
+      "title": "G.4  Proof of Theorem  2",
+      "id": "A7.SS4"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S1.Ex1",
+      "tex": [
+        "\\tau=\\mathbb{E}[Y(1)-Y(0)]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\tau=\\mathbb{E}[Y(1)-Y(0)]."
+      ]
+    },
+    {
+      "id": "S3.Ex2",
+      "tex": [
+        "O_{i}=(X_{i},W_{i},S_{i},R_{i},R_{i}Y_{i})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "O_{i}=(X_{i},W_{i},S_{i},R_{i},R_{i}Y_{i})"
+      ]
+    },
+    {
+      "id": "S3.Ex3",
+      "tex": [
+        "(Y_{i}(1),Y_{i}(0),S_{i}(1),S_{i}(0))\\perp W_{i}\\mid X_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(Y_{i}(1),Y_{i}(0),S_{i}(1),S_{i}(0))\\perp W_{i}\\mid X_{i},"
+      ]
+    },
+    {
+      "id": "S3.Ex4",
+      "tex": [
+        "R_{i}\\perp Y_{i}\\mid W_{i},X_{i},S_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{i}\\perp Y_{i}\\mid W_{i},X_{i},S_{i},"
+      ]
+    },
+    {
+      "id": "S3.EGx1",
+      "tex": [
+        "\\displaystyle\\tilde{\\mu}(w,x,s)",
+        "\\displaystyle=\\mathbb{E}[Y_{i}\\mid W_{i}=w,X_{i}=x,S_{i}=s,R_{i}=1],",
+        "\\displaystyle\\mu(w,x)",
+        "\\displaystyle=\\mathbb{E}[\\tilde{\\mu}(w,X_{i},S_{i})\\mid W_{i}=w,X_{i}=x],",
+        "\\displaystyle e(x)",
+        "\\displaystyle=\\mathbb{P}(W_{i}=1\\mid X_{i}=x),",
+        "\\displaystyle r(w,x,s)",
+        "\\displaystyle=\\mathbb{P}(R_{i}=1\\mid W_{i}=w,X_{i}=x,S_{i}=s)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\tilde{\\mu}(w,x,s)",
+        "\\displaystyle=\\mathbb{E}[Y_{i}\\mid W_{i}=w,X_{i}=x,S_{i}=s,R_{i}=1],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mu(w,x)",
+        "\\displaystyle=\\mathbb{E}[\\tilde{\\mu}(w,X_{i},S_{i})\\mid W_{i}=w,X_{i}=x],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle e(x)",
+        "\\displaystyle=\\mathbb{P}(W_{i}=1\\mid X_{i}=x),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle r(w,x,s)",
+        "\\displaystyle=\\mathbb{P}(R_{i}=1\\mid W_{i}=w,X_{i}=x,S_{i}=s)."
+      ]
+    },
+    {
+      "id": "S3.Ex9",
+      "tex": [
+        "\\tau=\\mathbb{E}\\!\\left[\\frac{WRY}{e(X)r(1,X,S)}-\\frac{(1-W)RY}{\\{1-e(X)\\}r(0,X,S)}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\tau=\\mathbb{E}\\!\\left[\\frac{WRY}{e(X)r(1,X,S)}-\\frac{(1-W)RY}{\\{1-e(X)\\}r(0,X,S)}\\right]."
+      ]
+    },
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\displaystyle\\psi(O_{i};\\tau,\\bm{\\eta})",
+        "\\displaystyle=\\mu(1,X_{i})-\\mu(0,X_{i})-\\tau",
+        "\\displaystyle+\\frac{W_{i}\\left\\{\\frac{R_{i}\\bigl(Y_{i}-\\tilde{\\mu}(1,X_{i},S_{i})\\bigr)}{r(1,X_{i},S_{i})}+\\tilde{\\mu}(1,X_{i},S_{i})-\\mu(1,X_{i})\\right\\}}{e(X_{i})}",
+        "\\displaystyle-\\frac{(1-W_{i})\\left\\{\\frac{R_{i}\\bigl(Y_{i}-\\tilde{\\mu}(0,X_{i},S_{i})\\bigr)}{r(0,X_{i},S_{i})}+\\tilde{\\mu}(0,X_{i},S_{i})-\\mu(0,X_{i})\\right\\}}{1-e(X_{i})}."
+      ]
+    },
+    {
+      "id": "S3.E1X",
+      "tex": [
+        "\\displaystyle\\psi(O_{i};\\tau,\\bm{\\eta})"
+      ]
+    },
+    {
+      "id": "S3.E1Xa",
+      "tex": [
+        "\\displaystyle=\\mu(1,X_{i})-\\mu(0,X_{i})-\\tau"
+      ]
+    },
+    {
+      "id": "S3.E1Xb",
+      "tex": [
+        "\\displaystyle+\\frac{W_{i}\\left\\{\\frac{R_{i}\\bigl(Y_{i}-\\tilde{\\mu}(1,X_{i},S_{i})\\bigr)}{r(1,X_{i},S_{i})}+\\tilde{\\mu}(1,X_{i},S_{i})-\\mu(1,X_{i})\\right\\}}{e(X_{i})}"
+      ]
+    },
+    {
+      "id": "S3.E1Xc",
+      "tex": [
+        "\\displaystyle-\\frac{(1-W_{i})\\left\\{\\frac{R_{i}\\bigl(Y_{i}-\\tilde{\\mu}(0,X_{i},S_{i})\\bigr)}{r(0,X_{i},S_{i})}+\\tilde{\\mu}(0,X_{i},S_{i})-\\mu(0,X_{i})\\right\\}}{1-e(X_{i})}."
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "V^{*}=\\operatorname{Var}\\!\\left\\{\\psi(O;\\tau_{0},\\bm{\\eta}_{0})\\right\\}=\\mathbb{E}\\!\\left[\\psi(O;\\tau_{0},\\bm{\\eta}_{0})^{2}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V^{*}=\\operatorname{Var}\\!\\left\\{\\psi(O;\\tau_{0},\\bm{\\eta}_{0})\\right\\}=\\mathbb{E}\\!\\left[\\psi(O;\\tau_{0},\\bm{\\eta}_{0})^{2}\\right]."
+      ]
+    },
+    {
+      "id": "S4.Ex11",
+      "tex": [
+        "\\displaystyle\\mathcal{L}(\\bm{\\theta})",
+        "\\displaystyle=\\lambda_{Y}\\frac{1}{\\sum_{i}R_{i}}\\sum_{i=1}^{n}R_{i}\\left\\{Y_{i}-\\hat{\\tilde{\\mu}}_{\\bm{\\theta}}(W_{i},B_{i},H_{i})\\right\\}^{2}",
+        "\\displaystyle+\\lambda_{R}\\frac{1}{n}\\sum_{i=1}^{n}\\ell_{\\mathrm{ce}}\\!\\left(R_{i},\\hat{r}_{\\bm{\\theta}}(W_{i},B_{i},H_{i})\\right)+\\lambda_{W}\\frac{1}{n}\\sum_{i=1}^{n}\\ell_{\\mathrm{ce}}\\!\\left(W_{i},\\hat{e}_{\\bm{\\theta}}(B_{i})\\right)",
+        "\\displaystyle+\\lambda_{M}\\sum_{w\\in\\{0,1\\}}\\frac{\\sum_{W_{i}=w}\\left\\{\\operatorname{sg}\\bigl(\\hat{\\tilde{\\mu}}_{\\bm{\\theta}}(w,B_{i},H_{i})\\bigr)-\\hat{\\mu}_{\\bm{\\theta}}(w,B_{i})\\right\\}^{2}}{\\sum_{i}\\mathbf{1}\\{W_{i}=w\\}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}(\\bm{\\theta})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\lambda_{Y}\\frac{1}{\\sum_{i}R_{i}}\\sum_{i=1}^{n}R_{i}\\left\\{Y_{i}-\\hat{\\tilde{\\mu}}_{\\bm{\\theta}}(W_{i},B_{i},H_{i})\\right\\}^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\lambda_{R}\\frac{1}{n}\\sum_{i=1}^{n}\\ell_{\\mathrm{ce}}\\!\\left(R_{i},\\hat{r}_{\\bm{\\theta}}(W_{i},B_{i},H_{i})\\right)+\\lambda_{W}\\frac{1}{n}\\sum_{i=1}^{n}\\ell_{\\mathrm{ce}}\\!\\left(W_{i},\\hat{e}_{\\bm{\\theta}}(B_{i})\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\lambda_{M}\\sum_{w\\in\\{0,1\\}}\\frac{\\sum_{W_{i}=w}\\left\\{\\operatorname{sg}\\bigl(\\hat{\\tilde{\\mu}}_{\\bm{\\theta}}(w,B_{i},H_{i})\\bigr)-\\hat{\\mu}_{\\bm{\\theta}}(w,B_{i})\\right\\}^{2}}{\\sum_{i}\\mathbf{1}\\{W_{i}=w\\}}"
+      ]
+    },
+    {
+      "id": "S4.Ex14",
+      "tex": [
+        "\\displaystyle\\hat{\\tau}_{\\mathrm{SIRNET}}",
+        "\\displaystyle=\\frac{1}{n}\\sum_{i=1}^{n}\\biggl[\\hat{\\mu}(1,\\hat{B}_{i})-\\hat{\\mu}(0,\\hat{B}_{i})",
+        "\\displaystyle+\\frac{W_{i}\\left\\{\\frac{R_{i}}{\\hat{r}(1,\\hat{B}_{i},\\hat{H}_{i})}\\bigl(Y_{i}-\\hat{\\tilde{\\mu}}(1,\\hat{B}_{i},\\hat{H}_{i})\\bigr)+\\hat{\\tilde{\\mu}}(1,\\hat{B}_{i},\\hat{H}_{i})-\\hat{\\mu}(1,\\hat{B}_{i})\\right\\}}{\\hat{e}(\\hat{B}_{i})}",
+        "\\displaystyle-\\frac{(1-W_{i})\\left\\{\\frac{R_{i}}{\\hat{r}(0,\\hat{B}_{i},\\hat{H}_{i})}\\bigl(Y_{i}-\\hat{\\tilde{\\mu}}(0,\\hat{B}_{i},\\hat{H}_{i})\\bigr)+\\hat{\\tilde{\\mu}}(0,\\hat{B}_{i},\\hat{H}_{i})-\\hat{\\mu}(0,\\hat{B}_{i})\\right\\}}{1-\\hat{e}(\\hat{B}_{i})}\\biggr]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\hat{\\tau}_{\\mathrm{SIRNET}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{1}{n}\\sum_{i=1}^{n}\\biggl[\\hat{\\mu}(1,\\hat{B}_{i})-\\hat{\\mu}(0,\\hat{B}_{i})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\frac{W_{i}\\left\\{\\frac{R_{i}}{\\hat{r}(1,\\hat{B}_{i},\\hat{H}_{i})}\\bigl(Y_{i}-\\hat{\\tilde{\\mu}}(1,\\hat{B}_{i},\\hat{H}_{i})\\bigr)+\\hat{\\tilde{\\mu}}(1,\\hat{B}_{i},\\hat{H}_{i})-\\hat{\\mu}(1,\\hat{B}_{i})\\right\\}}{\\hat{e}(\\hat{B}_{i})}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle-\\frac{(1-W_{i})\\left\\{\\frac{R_{i}}{\\hat{r}(0,\\hat{B}_{i},\\hat{H}_{i})}\\bigl(Y_{i}-\\hat{\\tilde{\\mu}}(0,\\hat{B}_{i},\\hat{H}_{i})\\bigr)+\\hat{\\tilde{\\mu}}(0,\\hat{B}_{i},\\hat{H}_{i})-\\hat{\\mu}(0,\\hat{B}_{i})\\right\\}}{1-\\hat{e}(\\hat{B}_{i})}\\biggr]."
+      ]
+    },
+    {
+      "id": "S4.E3",
+      "tex": [
+        "\\widehat{\\mathrm{se}}(\\hat{\\tau}_{\\mathrm{SIRNET}})=\\left\\{\\frac{1}{n(n-1)}\\sum_{i=1}^{n}(\\hat{\\psi}_{i}-\\bar{\\psi})^{2}\\right\\}^{1/2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\mathrm{se}}(\\hat{\\tau}_{\\mathrm{SIRNET}})=\\left\\{\\frac{1}{n(n-1)}\\sum_{i=1}^{n}(\\hat{\\psi}_{i}-\\bar{\\psi})^{2}\\right\\}^{1/2},"
+      ]
+    },
+    {
+      "id": "A1.EGx2",
+      "tex": [
+        "\\displaystyle\\psi^{\\mathrm{surr}}(O_{i};\\tau,\\bm{\\eta})",
+        "\\displaystyle=\\mu(1,X_{i})-\\mu(0,X_{i})-\\tau",
+        "\\displaystyle\\quad+\\frac{W_{i}}{e(X_{i})}\\bigl[\\tilde{\\mu}(1,X_{i},S_{i})-\\mu(1,X_{i})\\bigr]",
+        "\\displaystyle\\quad-\\frac{1-W_{i}}{1-e(X_{i})}\\bigl[\\tilde{\\mu}(0,X_{i},S_{i})-\\mu(0,X_{i})\\bigr]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\psi^{\\mathrm{surr}}(O_{i};\\tau,\\bm{\\eta})",
+        "\\displaystyle=\\mu(1,X_{i})-\\mu(0,X_{i})-\\tau"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\frac{W_{i}}{e(X_{i})}\\bigl[\\tilde{\\mu}(1,X_{i},S_{i})-\\mu(1,X_{i})\\bigr]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad-\\frac{1-W_{i}}{1-e(X_{i})}\\bigl[\\tilde{\\mu}(0,X_{i},S_{i})-\\mu(0,X_{i})\\bigr]."
+      ]
+    },
+    {
+      "id": "A1.EGx3",
+      "tex": [
+        "\\displaystyle\\psi^{\\mathrm{ipw}}(O_{i};\\tau,e,r)=\\frac{W_{i}R_{i}Y_{i}}{e(X_{i})r(1,X_{i},S_{i})}-\\frac{(1-W_{i})R_{i}Y_{i}}{\\{1-e(X_{i})\\}r(0,X_{i},S_{i})}-\\tau."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\psi^{\\mathrm{ipw}}(O_{i};\\tau,e,r)=\\frac{W_{i}R_{i}Y_{i}}{e(X_{i})r(1,X_{i},S_{i})}-\\frac{(1-W_{i})R_{i}Y_{i}}{\\{1-e(X_{i})\\}r(0,X_{i},S_{i})}-\\tau."
+      ]
+    },
+    {
+      "id": "A2.Ex17",
+      "tex": [
+        "X_{i}=Z_{i}B_{X}+A_{i}L_{X}+\\varepsilon_{Xi},\\qquad S_{i}=Z_{i}B_{S}+A_{i}L_{S}+W_{i}\\delta+e_{1}(2C_{i}+W_{i})+\\varepsilon_{Si},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "X_{i}=Z_{i}B_{X}+A_{i}L_{X}+\\varepsilon_{Xi},\\qquad S_{i}=Z_{i}B_{S}+A_{i}L_{S}+W_{i}\\delta+e_{1}(2C_{i}+W_{i})+\\varepsilon_{Si},"
+      ]
+    },
+    {
+      "id": "A2.EGx4",
+      "tex": [
+        "\\displaystyle e_{i}",
+        "\\displaystyle=0.15+0.70\\,\\sigma\\!\\left(0.75\\sin q^{e}_{i1}+0.55q^{e}_{i2}q^{e}_{i3}-0.30\\tanh q^{e}_{i4}+0.35\\sin A_{i}^{e}\\right),",
+        "\\displaystyle r_{i}",
+        "\\displaystyle=0.30+0.60\\,\\sigma\\!\\left(0.35+0.35\\{0.90\\sin q^{r}_{i1}+0.60q^{r}_{i2}q^{r}_{i3}-0.35\\tanh q^{r}_{i4}\\}+0.15\\tanh A_{i}^{r}-1.20S_{i1}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle e_{i}",
+        "\\displaystyle=0.15+0.70\\,\\sigma\\!\\left(0.75\\sin q^{e}_{i1}+0.55q^{e}_{i2}q^{e}_{i3}-0.30\\tanh q^{e}_{i4}+0.35\\sin A_{i}^{e}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle r_{i}",
+        "\\displaystyle=0.30+0.60\\,\\sigma\\!\\left(0.35+0.35\\{0.90\\sin q^{r}_{i1}+0.60q^{r}_{i2}q^{r}_{i3}-0.35\\tanh q^{r}_{i4}\\}+0.15\\tanh A_{i}^{r}-1.20S_{i1}\\right)."
+      ]
+    },
+    {
+      "id": "A2.EGx5",
+      "tex": [
+        "\\displaystyle Y_{i}={}",
+        "\\displaystyle 1.50\\sin(Z_{i1}+0.5Z_{i2})+Z_{i3}Z_{i4}+0.70(Z_{i5}^{2}-1)+0.55\\cos Z_{i6}",
+        "\\displaystyle+0.30X_{i1}-0.20X_{i2}+0.35\\{(A_{i}^{y})^{2}-1\\}+3\\tanh(1.5C_{i})+\\tau W_{i}+\\varepsilon_{Y,i},\\qquad\\varepsilon_{Y,i}\\sim N(0,0.5^{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle Y_{i}={}",
+        "\\displaystyle 1.50\\sin(Z_{i1}+0.5Z_{i2})+Z_{i3}Z_{i4}+0.70(Z_{i5}^{2}-1)+0.55\\cos Z_{i6}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+0.30X_{i1}-0.20X_{i2}+0.35\\{(A_{i}^{y})^{2}-1\\}+3\\tanh(1.5C_{i})+\\tau W_{i}+\\varepsilon_{Y,i},\\qquad\\varepsilon_{Y,i}\\sim N(0,0.5^{2})."
+      ]
+    },
+    {
+      "id": "A2.Ex22",
+      "tex": [
+        "1.05\\sin(q^{e}_{i1}+0.70\\sin q^{e}_{i2})+0.80\\sin(q^{e}_{i3}q^{e}_{i4})+0.45\\tanh(q^{e}_{i1}q^{e}_{i3})+0.35\\sin A_{i}^{e},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "1.05\\sin(q^{e}_{i1}+0.70\\sin q^{e}_{i2})+0.80\\sin(q^{e}_{i3}q^{e}_{i4})+0.45\\tanh(q^{e}_{i1}q^{e}_{i3})+0.35\\sin A_{i}^{e},"
+      ]
+    },
+    {
+      "id": "A2.Ex23",
+      "tex": [
+        "r_{i}=0.50+0.50\\sigma\\!\\left(0.30-0.80S_{i1}+0.85\\sin(q^{r}_{i1}+0.65q^{r}_{i2})+0.65\\sin(q^{r}_{i3}q^{r}_{i4})\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "r_{i}=0.50+0.50\\sigma\\!\\left(0.30-0.80S_{i1}+0.85\\sin(q^{r}_{i1}+0.65q^{r}_{i2})+0.65\\sin(q^{r}_{i3}q^{r}_{i4})\\right)."
+      ]
+    },
+    {
+      "id": "A2.Ex24",
+      "tex": [
+        "1.10\\sin\\{Z_{i1}+0.75\\sin(Z_{i2})\\}+0.85\\sin(Z_{i3}Z_{i4})+0.60\\tanh(Z_{i5}Z_{i6})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "1.10\\sin\\{Z_{i1}+0.75\\sin(Z_{i2})\\}+0.85\\sin(Z_{i3}Z_{i4})+0.60\\tanh(Z_{i5}Z_{i6})"
+      ]
+    },
+    {
+      "id": "A2.Ex25",
+      "tex": [
+        "V_{i}=\\operatorname{sign}\\{\\sin(3C_{i})+.70\\epsilon_{i}\\},\\qquad Y_{i}\\leftarrow Y_{i}+1.00V_{i}+1.35W_{i}V_{i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{i}=\\operatorname{sign}\\{\\sin(3C_{i})+.70\\epsilon_{i}\\},\\qquad Y_{i}\\leftarrow Y_{i}+1.00V_{i}+1.35W_{i}V_{i}."
+      ]
+    },
+    {
+      "id": "A2.Ex26",
+      "tex": [
+        "\\hat{\\tau}_{\\mathrm{DiM}}=\\frac{\\sum_{i}W_{i}R_{i}Y_{i}}{\\sum_{i}W_{i}R_{i}}-\\frac{\\sum_{i}(1-W_{i})R_{i}Y_{i}}{\\sum_{i}(1-W_{i})R_{i}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\tau}_{\\mathrm{DiM}}=\\frac{\\sum_{i}W_{i}R_{i}Y_{i}}{\\sum_{i}W_{i}R_{i}}-\\frac{\\sum_{i}(1-W_{i})R_{i}Y_{i}}{\\sum_{i}(1-W_{i})R_{i}}."
+      ]
+    },
+    {
+      "id": "A2.Ex27",
+      "tex": [
+        "\\hat{\\tau}_{\\mathrm{Pooled\\text{-}Surr}}=\\frac{1}{n_{1}}\\sum_{i}W_{i}\\hat{\\nu}(X_{i},S_{i})-\\frac{1}{n_{0}}\\sum_{i}(1-W_{i})\\hat{\\nu}(X_{i},S_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\tau}_{\\mathrm{Pooled\\text{-}Surr}}=\\frac{1}{n_{1}}\\sum_{i}W_{i}\\hat{\\nu}(X_{i},S_{i})-\\frac{1}{n_{0}}\\sum_{i}(1-W_{i})\\hat{\\nu}(X_{i},S_{i})."
+      ]
+    },
+    {
+      "id": "A2.Ex28",
+      "tex": [
+        "\\hat{\\tau}_{\\mathrm{IPCW}}=\\frac{1}{n_{1}}\\sum_{i}\\frac{W_{i}R_{i}Y_{i}}{\\hat{r}_{1}(X_{i})}-\\frac{1}{n_{0}}\\sum_{i}\\frac{(1-W_{i})R_{i}Y_{i}}{\\hat{r}_{0}(X_{i})}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\tau}_{\\mathrm{IPCW}}=\\frac{1}{n_{1}}\\sum_{i}\\frac{W_{i}R_{i}Y_{i}}{\\hat{r}_{1}(X_{i})}-\\frac{1}{n_{0}}\\sum_{i}\\frac{(1-W_{i})R_{i}Y_{i}}{\\hat{r}_{0}(X_{i})}."
+      ]
+    },
+    {
+      "id": "A2.Ex29",
+      "tex": [
+        "\\mathbb{P}_{n}\\!\\left[\\hat{\\mu}_{1}(X_{i})-\\hat{\\mu}_{0}(X_{i})+\\frac{W_{i}}{\\hat{e}(X_{i})}\\{\\hat{\\tilde{\\mu}}_{1}(X_{i},S_{i})-\\hat{\\mu}_{1}(X_{i})\\}-\\frac{1-W_{i}}{1-\\hat{e}(X_{i})}\\{\\hat{\\tilde{\\mu}}_{0}(X_{i},S_{i})-\\hat{\\mu}_{0}(X_{i})\\}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}_{n}\\!\\left[\\hat{\\mu}_{1}(X_{i})-\\hat{\\mu}_{0}(X_{i})+\\frac{W_{i}}{\\hat{e}(X_{i})}\\{\\hat{\\tilde{\\mu}}_{1}(X_{i},S_{i})-\\hat{\\mu}_{1}(X_{i})\\}-\\frac{1-W_{i}}{1-\\hat{e}(X_{i})}\\{\\hat{\\tilde{\\mu}}_{0}(X_{i},S_{i})-\\hat{\\mu}_{0}(X_{i})\\}\\right]."
+      ]
+    },
+    {
+      "id": "A2.Ex30",
+      "tex": [
+        "\\mathbb{P}_{n}\\!\\left[\\hat{m}^{X}_{1}(X_{i})-\\hat{m}^{X}_{0}(X_{i})+\\frac{W_{i}R_{i}}{\\hat{e}(X_{i})\\hat{r}^{X}_{1}(X_{i})}\\{Y_{i}-\\hat{m}^{X}_{1}(X_{i})\\}-\\frac{(1-W_{i})R_{i}}{\\{1-\\hat{e}(X_{i})\\}\\hat{r}^{X}_{0}(X_{i})}\\{Y_{i}-\\hat{m}^{X}_{0}(X_{i})\\}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}_{n}\\!\\left[\\hat{m}^{X}_{1}(X_{i})-\\hat{m}^{X}_{0}(X_{i})+\\frac{W_{i}R_{i}}{\\hat{e}(X_{i})\\hat{r}^{X}_{1}(X_{i})}\\{Y_{i}-\\hat{m}^{X}_{1}(X_{i})\\}-\\frac{(1-W_{i})R_{i}}{\\{1-\\hat{e}(X_{i})\\}\\hat{r}^{X}_{0}(X_{i})}\\{Y_{i}-\\hat{m}^{X}_{0}(X_{i})\\}\\right]."
+      ]
+    },
+    {
+      "id": "A2.EGx6",
+      "tex": [
+        "\\displaystyle f_{i}^{\\mathrm{SP}}={}",
+        "\\displaystyle 1.50\\sin(Z_{i1}+0.5Z_{i2})+Z_{i3}Z_{i4}+0.70(Z_{i5}^{2}-1)+0.55\\cos Z_{i6}",
+        "\\displaystyle+0.30b^{\\mathrm{MRI}}_{i1}-0.20b^{\\mathrm{MRI}}_{i2}+0.35\\{(A_{i}^{y})^{2}-1\\}+0.70\\tanh(1.5s_{i}^{\\mathrm{hid}}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle f_{i}^{\\mathrm{SP}}={}",
+        "\\displaystyle 1.50\\sin(Z_{i1}+0.5Z_{i2})+Z_{i3}Z_{i4}+0.70(Z_{i5}^{2}-1)+0.55\\cos Z_{i6}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+0.30b^{\\mathrm{MRI}}_{i1}-0.20b^{\\mathrm{MRI}}_{i2}+0.35\\{(A_{i}^{y})^{2}-1\\}+0.70\\tanh(1.5s_{i}^{\\mathrm{hid}}),"
+      ]
+    },
+    {
+      "id": "A2.Ex33",
+      "tex": [
+        "\\ell_{i}^{\\mathrm{SP}}=0.35+0.90\\sin Z_{i1}+0.60Z_{i2}Z_{i3}-0.35\\tanh Z_{i4}+0.35\\tanh A_{i}^{r}-1.20s_{i}^{\\mathrm{hid}}+0.20W_{i}\\sin(Z_{i5}+Z_{i6})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{i}^{\\mathrm{SP}}=0.35+0.90\\sin Z_{i1}+0.60Z_{i2}Z_{i3}-0.35\\tanh Z_{i4}+0.35\\tanh A_{i}^{r}-1.20s_{i}^{\\mathrm{hid}}+0.20W_{i}\\sin(Z_{i5}+Z_{i6})."
+      ]
+    },
+    {
+      "id": "A2.Ex34",
+      "tex": [
+        "V_{i}^{\\mathrm{deep}}=\\operatorname{sign}\\{\\sin(3s_{i}^{\\mathrm{hid}})+.70\\epsilon_{i}^{V}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{i}^{\\mathrm{deep}}=\\operatorname{sign}\\{\\sin(3s_{i}^{\\mathrm{hid}})+.70\\epsilon_{i}^{V}\\}."
+      ]
+    },
+    {
+      "id": "A2.Ex35",
+      "tex": [
+        "Y_{i}=f_{i}^{d}+\\tau W_{i}+\\sigma_{\\varepsilon}\\varepsilon_{i},\\qquad\\varepsilon_{i}\\overset{\\mathrm{iid}}{\\sim}N(0,1),\\qquad\\tau_{\\mathrm{true}}^{d}=\\tau+\\bar{f}_{1}^{d}-\\bar{f}_{0}^{d}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{i}=f_{i}^{d}+\\tau W_{i}+\\sigma_{\\varepsilon}\\varepsilon_{i},\\qquad\\varepsilon_{i}\\overset{\\mathrm{iid}}{\\sim}N(0,1),\\qquad\\tau_{\\mathrm{true}}^{d}=\\tau+\\bar{f}_{1}^{d}-\\bar{f}_{0}^{d}."
+      ]
+    },
+    {
+      "id": "A3.Ex36",
+      "tex": [
+        "e_{0}(X_{i})=\\bar{e}_{0}(B_{i}^{0}),\\quad\\mu_{0}(w,X_{i})=\\bar{\\mu}_{0}(w,B_{i}^{0}),\\quad r_{0}(w,X_{i},S_{i})=\\bar{r}_{0}(w,B_{i}^{0},H_{i}^{0}),\\quad\\tilde{\\mu}_{0}(w,X_{i},S_{i})=\\bar{\\tilde{\\mu}}_{0}(w,B_{i}^{0},H_{i}^{0})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "e_{0}(X_{i})=\\bar{e}_{0}(B_{i}^{0}),\\quad\\mu_{0}(w,X_{i})=\\bar{\\mu}_{0}(w,B_{i}^{0}),\\quad r_{0}(w,X_{i},S_{i})=\\bar{r}_{0}(w,B_{i}^{0},H_{i}^{0}),\\quad\\tilde{\\mu}_{0}(w,X_{i},S_{i})=\\bar{\\tilde{\\mu}}_{0}(w,B_{i}^{0},H_{i}^{0})"
+      ]
+    },
+    {
+      "id": "A3.Ex37",
+      "tex": [
+        "g\\in\\{\\tilde{\\mu}(1,\\cdot),\\tilde{\\mu}(0,\\cdot),\\mu(1,\\cdot),\\mu(0,\\cdot),e,r(1,\\cdot),r(0,\\cdot)\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "g\\in\\{\\tilde{\\mu}(1,\\cdot),\\tilde{\\mu}(0,\\cdot),\\mu(1,\\cdot),\\mu(0,\\cdot),e,r(1,\\cdot),r(0,\\cdot)\\},"
+      ]
+    },
+    {
+      "id": "A3.Ex38",
+      "tex": [
+        "\\|g_{0}\\|_{W^{p_{g},\\infty}}:=\\max_{|\\alpha|\\leq p_{g}}\\|D^{\\alpha}g_{0}\\|_{L^{\\infty}([-1,1]^{d_{g}})}\\leq K"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|g_{0}\\|_{W^{p_{g},\\infty}}:=\\max_{|\\alpha|\\leq p_{g}}\\|D^{\\alpha}g_{0}\\|_{L^{\\infty}([-1,1]^{d_{g}})}\\leq K"
+      ]
+    },
+    {
+      "id": "A3.Ex39",
+      "tex": [
+        "p_{g}>d_{g}/2."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "p_{g}>d_{g}/2."
+      ]
+    },
+    {
+      "id": "A3.Ex40",
+      "tex": [
+        "\\frac{p_{g}}{2p_{g}+d_{g}}>\\frac{1}{4},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{p_{g}}{2p_{g}+d_{g}}>\\frac{1}{4},"
+      ]
+    },
+    {
+      "id": "A3.Ex41",
+      "tex": [
+        "\\rho_{e},\\ \\rho_{\\mu(w)},\\ \\rho_{r(w)},\\ \\ \\rho_{\\tilde{\\mu}(w)}=o_{P}(1),\\qquad w\\in\\{0,1\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{e},\\ \\rho_{\\mu(w)},\\ \\rho_{r(w)},\\ \\ \\rho_{\\tilde{\\mu}(w)}=o_{P}(1),\\qquad w\\in\\{0,1\\}."
+      ]
+    },
+    {
+      "id": "A3.E6",
+      "tex": [
+        "\\max_{w\\in\\{0,1\\}}\\left\\{\\rho_{e}\\rho_{\\mu(w)},\\quad\\rho_{e}\\rho_{\\tilde{\\mu}(w)},\\quad\\rho_{r(w)}\\rho_{\\tilde{\\mu}(w)}\\right\\}=o_{P}(n^{-1/2}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\max_{w\\in\\{0,1\\}}\\left\\{\\rho_{e}\\rho_{\\mu(w)},\\quad\\rho_{e}\\rho_{\\tilde{\\mu}(w)},\\quad\\rho_{r(w)}\\rho_{\\tilde{\\mu}(w)}\\right\\}=o_{P}(n^{-1/2}),"
+      ]
+    },
+    {
+      "id": "A3.Ex42",
+      "tex": [
+        "\\sqrt{n}\\{\\hat{\\tau}-\\tau_{0}\\}\\ \\rightsquigarrow\\ N(0,V^{*}),\\qquad n\\,\\widehat{\\mathrm{se}}(\\hat{\\tau})^{2}\\ \\to_{P}\\ V^{*},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sqrt{n}\\{\\hat{\\tau}-\\tau_{0}\\}\\ \\rightsquigarrow\\ N(0,V^{*}),\\qquad n\\,\\widehat{\\mathrm{se}}(\\hat{\\tau})^{2}\\ \\to_{P}\\ V^{*},"
+      ]
+    },
+    {
+      "id": "A3.Ex43",
+      "tex": [
+        "\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\theta)=\\lambda_{Y}P_{n,R=1}\\{Y-\\tilde{\\mu}_{\\theta}(W,X,S)\\}^{2}+\\lambda_{R}P_{n}\\ell_{\\mathrm{ce}}\\{R,r_{\\theta}(W,X,S)\\}+\\lambda_{W}P_{n}\\ell_{\\mathrm{ce}}\\{W,e_{\\theta}(X)\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\theta)=\\lambda_{Y}P_{n,R=1}\\{Y-\\tilde{\\mu}_{\\theta}(W,X,S)\\}^{2}+\\lambda_{R}P_{n}\\ell_{\\mathrm{ce}}\\{R,r_{\\theta}(W,X,S)\\}+\\lambda_{W}P_{n}\\ell_{\\mathrm{ce}}\\{W,e_{\\theta}(X)\\},"
+      ]
+    },
+    {
+      "id": "A3.E7",
+      "tex": [
+        "\\delta_{\\mathrm{sup},n}:=\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\hat{\\theta})-\\inf_{\\theta\\in\\Theta_{n}}\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\theta)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\delta_{\\mathrm{sup},n}:=\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\hat{\\theta})-\\inf_{\\theta\\in\\Theta_{n}}\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\theta)."
+      ]
+    },
+    {
+      "id": "A3.E8",
+      "tex": [
+        "\\delta_{\\mu(w),n}:=P_{n,w}(\\hat{q}_{w}-\\hat{f}_{w})^{2}-\\inf_{f\\in\\mathcal{F}_{m,w}}P_{n,w}(\\hat{q}_{w}-f)^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\delta_{\\mu(w),n}:=P_{n,w}(\\hat{q}_{w}-\\hat{f}_{w})^{2}-\\inf_{f\\in\\mathcal{F}_{m,w}}P_{n,w}(\\hat{q}_{w}-f)^{2},"
+      ]
+    },
+    {
+      "id": "A3.Ex44",
+      "tex": [
+        "s_{\\mathrm{comp}}=\\min\\left\\{\\frac{p_{b}}{D_{X}},\\frac{p_{h}}{d_{B}+D_{S}},\\min_{g}\\frac{p_{g}}{d_{g}}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "s_{\\mathrm{comp}}=\\min\\left\\{\\frac{p_{b}}{D_{X}},\\frac{p_{h}}{d_{B}+D_{S}},\\min_{g}\\frac{p_{g}}{d_{g}}\\right\\},"
+      ]
+    },
+    {
+      "id": "A3.Ex45",
+      "tex": [
+        "\\sum_{g\\in\\mathcal{G}_{\\mathrm{sup}}}\\rho_{g}^{2}=O_{P}\\!\\left(m_{n}^{-2s_{\\mathrm{comp}}}+\\frac{\\mathcal{C}_{n}}{n}+\\delta_{\\mathrm{sup},n}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{g\\in\\mathcal{G}_{\\mathrm{sup}}}\\rho_{g}^{2}=O_{P}\\!\\left(m_{n}^{-2s_{\\mathrm{comp}}}+\\frac{\\mathcal{C}_{n}}{n}+\\delta_{\\mathrm{sup},n}\\right),"
+      ]
+    },
+    {
+      "id": "A3.Ex46",
+      "tex": [
+        "\\rho_{\\mu(w)}^{2}=O_{P}\\!\\left(m_{n}^{-2s_{\\mathrm{comp}}}+\\frac{\\mathcal{C}_{n}}{n}+\\delta_{\\mathrm{sup},n}+\\delta_{\\mu(w),n}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{\\mu(w)}^{2}=O_{P}\\!\\left(m_{n}^{-2s_{\\mathrm{comp}}}+\\frac{\\mathcal{C}_{n}}{n}+\\delta_{\\mathrm{sup},n}+\\delta_{\\mu(w),n}\\right)."
+      ]
+    },
+    {
+      "id": "A7.Ex47",
+      "tex": [
+        "e_{0w}(X)=\\Pr(W=w\\mid X),\\qquad e^{\\star}_{w}(X)=we^{\\star}(X)+(1-w)\\{1-e^{\\star}(X)\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "e_{0w}(X)=\\Pr(W=w\\mid X),\\qquad e^{\\star}_{w}(X)=we^{\\star}(X)+(1-w)\\{1-e^{\\star}(X)\\},"
+      ]
+    },
+    {
+      "id": "A7.Ex48",
+      "tex": [
+        "\\mu_{0w}(X)=\\mathbb{E}\\{\\tilde{\\mu}_{0}(w,X,S)\\mid W=w,X\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{0w}(X)=\\mathbb{E}\\{\\tilde{\\mu}_{0}(w,X,S)\\mid W=w,X\\}."
+      ]
+    },
+    {
+      "id": "A7.EGx7",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\{\\psi(O;\\tau_{0},\\bm{\\eta}^{\\star})\\}",
+        "\\displaystyle=\\sum_{w=0}^{1}(2w-1)\\mathbb{E}\\Bigg[\\left\\{1-\\frac{e_{0w}(X)}{e^{\\star}_{w}(X)}\\right\\}\\{\\mu^{\\star}(w,X)-\\mu_{0w}(X)\\}",
+        "\\displaystyle+\\frac{e_{0w}(X)}{e^{\\star}_{w}(X)}\\mathbb{E}\\left[\\left.\\left\\{\\frac{r_{0}(w,X,S)}{r^{\\star}(w,X,S)}-1\\right\\}\\{\\tilde{\\mu}_{0}(w,X,S)-\\tilde{\\mu}^{\\star}(w,X,S)\\}\\right|W=w,X\\right]\\Bigg]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\{\\psi(O;\\tau_{0},\\bm{\\eta}^{\\star})\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{w=0}^{1}(2w-1)\\mathbb{E}\\Bigg[\\left\\{1-\\frac{e_{0w}(X)}{e^{\\star}_{w}(X)}\\right\\}\\{\\mu^{\\star}(w,X)-\\mu_{0w}(X)\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\frac{e_{0w}(X)}{e^{\\star}_{w}(X)}\\mathbb{E}\\left[\\left.\\left\\{\\frac{r_{0}(w,X,S)}{r^{\\star}(w,X,S)}-1\\right\\}\\{\\tilde{\\mu}_{0}(w,X,S)-\\tilde{\\mu}^{\\star}(w,X,S)\\}\\right|W=w,X\\right]\\Bigg]."
+      ]
+    },
+    {
+      "id": "A7.Ex51",
+      "tex": [
+        "\\{e^{\\star}=e_{0}\\ \\text{or}\\ \\mu^{\\star}(w,\\cdot)=\\mu_{0w}\\}\\quad\\text{and}\\quad\\{r^{\\star}(w,\\cdot)=r_{0}(w,\\cdot)\\ \\text{or}\\ \\tilde{\\mu}^{\\star}(w,\\cdot)=\\tilde{\\mu}_{0}(w,\\cdot)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\{e^{\\star}=e_{0}\\ \\text{or}\\ \\mu^{\\star}(w,\\cdot)=\\mu_{0w}\\}\\quad\\text{and}\\quad\\{r^{\\star}(w,\\cdot)=r_{0}(w,\\cdot)\\ \\text{or}\\ \\tilde{\\mu}^{\\star}(w,\\cdot)=\\tilde{\\mu}_{0}(w,\\cdot)\\}."
+      ]
+    },
+    {
+      "id": "A7.Ex52",
+      "tex": [
+        "\\log\\mathcal{N}\\bigl(\\delta,\\mathcal{F}(L,W,B),\\|\\cdot\\|_{\\infty}\\bigr)\\;\\leq\\;W(L+4)\\log\\bigl(B(W+1)\\bigr)+W\\log(4B/\\delta)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\log\\mathcal{N}\\bigl(\\delta,\\mathcal{F}(L,W,B),\\|\\cdot\\|_{\\infty}\\bigr)\\;\\leq\\;W(L+4)\\log\\bigl(B(W+1)\\bigr)+W\\log(4B/\\delta)."
+      ]
+    },
+    {
+      "id": "A7.Ex53",
+      "tex": [
+        "\\log\\mathcal{N}\\bigl(\\delta,\\mathcal{F}_{s}(L,W,B),\\|\\cdot\\|_{\\infty}\\bigr)\\leq s\\log(eW/s)+s(L+4)\\log\\bigl(B(W+1)\\bigr)+s\\log(4B/\\delta)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\log\\mathcal{N}\\bigl(\\delta,\\mathcal{F}_{s}(L,W,B),\\|\\cdot\\|_{\\infty}\\bigr)\\leq s\\log(eW/s)+s(L+4)\\log\\bigl(B(W+1)\\bigr)+s\\log(4B/\\delta)."
+      ]
+    },
+    {
+      "id": "A7.Ex54",
+      "tex": [
+        "|z^{(\\ell)}_{k}-z^{\\prime(\\ell)}_{k}|\\;\\leq\\;BW\\eta_{\\ell-1}+W\\eta\\,\\Gamma^{\\ell}+\\eta\\;\\leq\\;\\Gamma\\,\\eta_{\\ell-1}+\\Gamma^{\\ell+1}\\eta,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|z^{(\\ell)}_{k}-z^{\\prime(\\ell)}_{k}|\\;\\leq\\;BW\\eta_{\\ell-1}+W\\eta\\,\\Gamma^{\\ell}+\\eta\\;\\leq\\;\\Gamma\\,\\eta_{\\ell-1}+\\Gamma^{\\ell+1}\\eta,"
+      ]
+    },
+    {
+      "id": "A7.Ex55",
+      "tex": [
+        "\\|f_{\\theta}-f_{\\theta^{\\prime}}\\|_{\\infty}\\;\\leq\\;\\Gamma\\,\\eta_{L}+\\Gamma^{L+2}\\eta\\;\\leq\\;\\Gamma\\cdot L\\Gamma^{L+1}\\eta+\\Gamma^{L+2}\\eta\\;\\leq\\;(L+1)\\Gamma^{L+2}\\eta\\;\\leq\\;\\Gamma^{L+4}\\eta,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|f_{\\theta}-f_{\\theta^{\\prime}}\\|_{\\infty}\\;\\leq\\;\\Gamma\\,\\eta_{L}+\\Gamma^{L+2}\\eta\\;\\leq\\;\\Gamma\\cdot L\\Gamma^{L+1}\\eta+\\Gamma^{L+2}\\eta\\;\\leq\\;(L+1)\\Gamma^{L+2}\\eta\\;\\leq\\;\\Gamma^{L+4}\\eta,"
+      ]
+    },
+    {
+      "id": "A7.Ex56",
+      "tex": [
+        "\\mathcal{N}(\\delta,\\mathcal{F}(L,W,B),\\|\\cdot\\|_{\\infty})\\;\\leq\\;\\Bigl(\\frac{4B\\Gamma^{L+4}}{\\delta}\\Bigr)^{W},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}(\\delta,\\mathcal{F}(L,W,B),\\|\\cdot\\|_{\\infty})\\;\\leq\\;\\Bigl(\\frac{4B\\Gamma^{L+4}}{\\delta}\\Bigr)^{W},"
+      ]
+    },
+    {
+      "id": "A7.Ex57",
+      "tex": [
+        "P_{n}(Y-\\hat{f})^{2}\\leq\\inf_{f\\in\\mathcal{F}}P_{n}(Y-f)^{2}+\\delta_{n}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{n}(Y-\\hat{f})^{2}\\leq\\inf_{f\\in\\mathcal{F}}P_{n}(Y-f)^{2}+\\delta_{n}"
+      ]
+    },
+    {
+      "id": "A7.Ex58",
+      "tex": [
+        "\\mathbb{E}\\|\\hat{f}-f_{0}\\|_{L^{2}(P)}^{2}\\leq C\\inf_{f\\in\\mathcal{F}}\\|f-f_{0}\\|_{\\infty}^{2}+C(M^{2}+\\sigma^{2})\\frac{A\\log(A_{0}n)}{n}+C\\mathbb{E}\\delta_{n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\|\\hat{f}-f_{0}\\|_{L^{2}(P)}^{2}\\leq C\\inf_{f\\in\\mathcal{F}}\\|f-f_{0}\\|_{\\infty}^{2}+C(M^{2}+\\sigma^{2})\\frac{A\\log(A_{0}n)}{n}+C\\mathbb{E}\\delta_{n}."
+      ]
+    },
+    {
+      "id": "A7.Ex59",
+      "tex": [
+        "\\mathbb{E}\\{\\ell_{\\rm ce}(Y,p(V))-\\ell_{\\rm ce}(Y,p_{0}(V))\\}=\\mathbb{E}\\!\\left[\\operatorname{KL}\\{\\operatorname{Bern}(p_{0}(V))\\|\\operatorname{Bern}(p(V))\\}\\right]\\geq 2\\|p-p_{0}\\|_{L^{2}(P)}^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\{\\ell_{\\rm ce}(Y,p(V))-\\ell_{\\rm ce}(Y,p_{0}(V))\\}=\\mathbb{E}\\!\\left[\\operatorname{KL}\\{\\operatorname{Bern}(p_{0}(V))\\|\\operatorname{Bern}(p(V))\\}\\right]\\geq 2\\|p-p_{0}\\|_{L^{2}(P)}^{2},"
+      ]
+    },
+    {
+      "id": "A7.Ex60",
+      "tex": [
+        "\\|\\hat{p}-p_{0}\\|_{L^{2}(P)}^{2}=O_{P}\\!\\left(\\inf_{p\\in\\mathcal{P}}\\|p-p_{0}\\|_{\\infty}^{2}+\\frac{A\\log(A_{0}n)}{n}+\\delta_{n}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\hat{p}-p_{0}\\|_{L^{2}(P)}^{2}=O_{P}\\!\\left(\\inf_{p\\in\\mathcal{P}}\\|p-p_{0}\\|_{\\infty}^{2}+\\frac{A\\log(A_{0}n)}{n}+\\delta_{n}\\right),"
+      ]
+    },
+    {
+      "id": "A7.E10",
+      "tex": [
+        "\\rho_{\\mu(w,\\cdot)}^{2}=O_{P}\\!\\left(\\inf_{f\\in\\mathcal{F}_{m,w}}\\|f-\\mu_{0}(w,\\cdot)\\|_{\\infty}^{2}+\\frac{T_{n}}{n}+\\delta_{\\mu(w),n}+\\rho_{\\tilde{\\mu}(w,\\cdot)}^{2}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{\\mu(w,\\cdot)}^{2}=O_{P}\\!\\left(\\inf_{f\\in\\mathcal{F}_{m,w}}\\|f-\\mu_{0}(w,\\cdot)\\|_{\\infty}^{2}+\\frac{T_{n}}{n}+\\delta_{\\mu(w),n}+\\rho_{\\tilde{\\mu}(w,\\cdot)}^{2}\\right)."
+      ]
+    },
+    {
+      "id": "A7.Ex61",
+      "tex": [
+        "D_{q,f}:=(q-f)^{2}-(q-f^{*})^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{q,f}:=(q-f)^{2}-(q-f^{*})^{2}."
+      ]
+    },
+    {
+      "id": "A7.Ex62",
+      "tex": [
+        "|(P_{w}-P_{n,w})D_{q,f}|\\leq C\\sqrt{P_{w}(f-f^{*})^{2}\\,T_{n}/n}+CT_{n}/n."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|(P_{w}-P_{n,w})D_{q,f}|\\leq C\\sqrt{P_{w}(f-f^{*})^{2}\\,T_{n}/n}+CT_{n}/n."
+      ]
+    },
+    {
+      "id": "A7.E11",
+      "tex": [
+        "\\left|(P_{w}-P_{n,w})D_{q,f}\\right|\\leq\\tfrac{1}{8}P_{w}(f-f^{*})^{2}+C\\frac{T_{n}}{n}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left|(P_{w}-P_{n,w})D_{q,f}\\right|\\leq\\tfrac{1}{8}P_{w}(f-f^{*})^{2}+C\\frac{T_{n}}{n}"
+      ]
+    },
+    {
+      "id": "A7.Ex63",
+      "tex": [
+        "P_{w}\\{(\\hat{q}-\\hat{f})^{2}-(\\hat{q}-f^{*})^{2}\\}=P_{w}(\\hat{f}-\\mu_{0})^{2}-a^{2}+2P_{w}\\{e(f^{*}-\\hat{f})\\}\\geq\\tfrac{3}{4}P_{w}(\\hat{f}-\\mu_{0})^{2}-Ca^{2}-C\\|e\\|_{L^{2}(P_{w})}^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{w}\\{(\\hat{q}-\\hat{f})^{2}-(\\hat{q}-f^{*})^{2}\\}=P_{w}(\\hat{f}-\\mu_{0})^{2}-a^{2}+2P_{w}\\{e(f^{*}-\\hat{f})\\}\\geq\\tfrac{3}{4}P_{w}(\\hat{f}-\\mu_{0})^{2}-Ca^{2}-C\\|e\\|_{L^{2}(P_{w})}^{2},"
+      ]
+    },
+    {
+      "id": "A7.Ex64",
+      "tex": [
+        "\\mathbb{E}\\{R(Y-q_{w}^{\\star})\\mid W=w,X,S\\}=r_{0}(w,X,S)(q_{0w}-q_{w}^{\\star})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\{R(Y-q_{w}^{\\star})\\mid W=w,X,S\\}=r_{0}(w,X,S)(q_{0w}-q_{w}^{\\star})."
+      ]
+    },
+    {
+      "id": "A7.EGx8",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\left.\\frac{\\mathbf{1}\\{W=w\\}}{e_{w}^{\\star}(X)}\\left\\{\\frac{R(Y-q_{w}^{\\star})}{r^{\\star}(w,X,S)}+q_{w}^{\\star}-\\mu^{\\star}(w,X)\\right\\}\\right|X\\right]",
+        "\\displaystyle\\quad=\\frac{e_{0w}(X)}{e_{w}^{\\star}(X)}\\mathbb{E}\\left[\\left.\\frac{r_{0}(w,X,S)}{r^{\\star}(w,X,S)}(q_{0w}-q_{w}^{\\star})+q_{w}^{\\star}-\\mu^{\\star}(w,X)\\right|W=w,X\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\left.\\frac{\\mathbf{1}\\{W=w\\}}{e_{w}^{\\star}(X)}\\left\\{\\frac{R(Y-q_{w}^{\\star})}{r^{\\star}(w,X,S)}+q_{w}^{\\star}-\\mu^{\\star}(w,X)\\right\\}\\right|X\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad=\\frac{e_{0w}(X)}{e_{w}^{\\star}(X)}\\mathbb{E}\\left[\\left.\\frac{r_{0}(w,X,S)}{r^{\\star}(w,X,S)}(q_{0w}-q_{w}^{\\star})+q_{w}^{\\star}-\\mu^{\\star}(w,X)\\right|W=w,X\\right]."
+      ]
+    },
+    {
+      "id": "A7.EGx9",
+      "tex": [
+        "\\displaystyle\\mu^{\\star}(w,X)-\\mu_{0w}(X)+a_{w}\\mathbb{E}\\left[\\left.\\frac{r_{0}}{r^{\\star}}(q_{0w}-q_{w}^{\\star})+q_{w}^{\\star}-\\mu^{\\star}(w,X)\\right|W=w,X\\right]",
+        "\\displaystyle\\quad=(1-a_{w})\\{\\mu^{\\star}(w,X)-\\mu_{0w}(X)\\}+a_{w}\\mathbb{E}\\left[\\left.\\left(\\frac{r_{0}}{r^{\\star}}-1\\right)(q_{0w}-q_{w}^{\\star})\\right|W=w,X\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mu^{\\star}(w,X)-\\mu_{0w}(X)+a_{w}\\mathbb{E}\\left[\\left.\\frac{r_{0}}{r^{\\star}}(q_{0w}-q_{w}^{\\star})+q_{w}^{\\star}-\\mu^{\\star}(w,X)\\right|W=w,X\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad=(1-a_{w})\\{\\mu^{\\star}(w,X)-\\mu_{0w}(X)\\}+a_{w}\\mathbb{E}\\left[\\left.\\left(\\frac{r_{0}}{r^{\\star}}-1\\right)(q_{0w}-q_{w}^{\\star})\\right|W=w,X\\right]."
+      ]
+    },
+    {
+      "id": "A7.Ex69",
+      "tex": [
+        "C\\{m2^{-t}+m^{-p_{v}/D_{v}}\\}=O(m^{-s})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C\\{m2^{-t}+m^{-p_{v}/D_{v}}\\}=O(m^{-s})"
+      ]
+    },
+    {
+      "id": "A7.EGx10",
+      "tex": [
+        "\\displaystyle\\|\\hat{q}_{w,m}(\\hat{b}_{m}(X),\\hat{g}_{m}(\\hat{b}_{m}(X),S))-\\tilde{\\mu}_{0}(w,X,S)\\|_{\\infty}",
+        "\\displaystyle\\quad\\leq\\|\\hat{q}_{w,m}-\\bar{\\tilde{\\mu}}_{0}(w,\\cdot)\\|_{\\infty}+C\\|\\hat{g}_{m}-g_{0}\\|_{\\infty}+C\\|\\hat{b}_{m}-b_{0}\\|_{\\infty}=O(m^{-s})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\hat{q}_{w,m}(\\hat{b}_{m}(X),\\hat{g}_{m}(\\hat{b}_{m}(X),S))-\\tilde{\\mu}_{0}(w,X,S)\\|_{\\infty}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad\\leq\\|\\hat{q}_{w,m}-\\bar{\\tilde{\\mu}}_{0}(w,\\cdot)\\|_{\\infty}+C\\|\\hat{g}_{m}-g_{0}\\|_{\\infty}+C\\|\\hat{b}_{m}-b_{0}\\|_{\\infty}=O(m^{-s})."
+      ]
+    },
+    {
+      "id": "A7.EGx11",
+      "tex": [
+        "\\displaystyle\\mathcal{R}_{\\mathrm{sup}}(\\theta)-\\mathcal{R}_{\\mathrm{sup}}(\\bm{\\eta}_{0})",
+        "\\displaystyle=\\lambda_{Y}\\mathbb{E}[(\\tilde{\\mu}_{\\theta}(W,X,S)-\\tilde{\\mu}_{0}(W,X,S))^{2}\\mid R=1]",
+        "\\displaystyle\\quad+\\lambda_{R}\\mathbb{E}\\!\\left[\\operatorname{KL}\\{\\operatorname{Bern}(r_{0}(W,X,S))\\|\\operatorname{Bern}(r_{\\theta}(W,X,S))\\}\\right]",
+        "\\displaystyle\\quad+\\lambda_{W}\\mathbb{E}\\!\\left[\\operatorname{KL}\\{\\operatorname{Bern}(e_{0}(X))\\|\\operatorname{Bern}(e_{\\theta}(X))\\}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{R}_{\\mathrm{sup}}(\\theta)-\\mathcal{R}_{\\mathrm{sup}}(\\bm{\\eta}_{0})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\lambda_{Y}\\mathbb{E}[(\\tilde{\\mu}_{\\theta}(W,X,S)-\\tilde{\\mu}_{0}(W,X,S))^{2}\\mid R=1]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\lambda_{R}\\mathbb{E}\\!\\left[\\operatorname{KL}\\{\\operatorname{Bern}(r_{0}(W,X,S))\\|\\operatorname{Bern}(r_{\\theta}(W,X,S))\\}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\lambda_{W}\\mathbb{E}\\!\\left[\\operatorname{KL}\\{\\operatorname{Bern}(e_{0}(X))\\|\\operatorname{Bern}(e_{\\theta}(X))\\}\\right]."
+      ]
+    },
+    {
+      "id": "A7.Ex76",
+      "tex": [
+        "\\|e_{\\theta}-e_{0}\\|_{L^{2}(P)}^{2}+\\sum_{w=0}^{1}\\left\\{\\|r_{\\theta}(w)-r_{0}(w)\\|_{L^{2}(P_{w})}^{2}+\\|\\tilde{\\mu}_{\\theta}(w)-\\tilde{\\mu}_{0}(w)\\|_{L^{2}(P_{w})}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|e_{\\theta}-e_{0}\\|_{L^{2}(P)}^{2}+\\sum_{w=0}^{1}\\left\\{\\|r_{\\theta}(w)-r_{0}(w)\\|_{L^{2}(P_{w})}^{2}+\\|\\tilde{\\mu}_{\\theta}(w)-\\tilde{\\mu}_{0}(w)\\|_{L^{2}(P_{w})}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "A7.Ex77",
+      "tex": [
+        "\\left|\\{\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\theta)-\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\bm{\\eta}_{0})\\}-\\Delta(\\theta)\\right|\\leq\\tfrac{1}{4}\\Delta(\\theta)+C\\frac{m(\\log n)^{3}}{n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left|\\{\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\theta)-\\widehat{\\mathcal{R}}_{\\mathrm{sup}}(\\bm{\\eta}_{0})\\}-\\Delta(\\theta)\\right|\\leq\\tfrac{1}{4}\\Delta(\\theta)+C\\frac{m(\\log n)^{3}}{n}."
+      ]
+    },
+    {
+      "id": "A7.Ex78",
+      "tex": [
+        "\\mathcal{R}_{\\mathrm{sup}}(\\hat{\\theta})-\\mathcal{R}_{\\mathrm{sup}}(\\bm{\\eta}_{0})=O_{P}\\!\\left(m^{-2s}+\\frac{m(\\log n)^{3}}{n}+\\delta_{\\mathrm{sup},n}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{R}_{\\mathrm{sup}}(\\hat{\\theta})-\\mathcal{R}_{\\mathrm{sup}}(\\bm{\\eta}_{0})=O_{P}\\!\\left(m^{-2s}+\\frac{m(\\log n)^{3}}{n}+\\delta_{\\mathrm{sup},n}\\right)."
+      ]
+    },
+    {
+      "id": "A7.Ex79",
+      "tex": [
+        "\\rho_{\\mu(w,\\cdot)}^{2}=O_{P}\\!\\left(m^{-2s}+\\frac{m(\\log n)^{3}}{n}+\\delta_{\\mu(w),n}+\\delta_{\\mathrm{sup},n}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{\\mu(w,\\cdot)}^{2}=O_{P}\\!\\left(m^{-2s}+\\frac{m(\\log n)^{3}}{n}+\\delta_{\\mu(w),n}+\\delta_{\\mathrm{sup},n}\\right)."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S4.F1",
+      "caption": "Figure 1:  SIRNET architecture.\nA shared surrogate adapter feeds\nthe observed-outcome and labeling-propensity heads, while a baseline encoder\nfeeds the treatment and marginal-outcome heads. The orthogonal ATE\nlayer implements equation ( 4.3 ).",
+      "images": []
+    },
+    {
+      "id": "S5.T1",
+      "caption": "Table 1:  Monte Carlo results. Bias, empirical SD, and RMSE are shown as\nestimate ( ± \\pm  one Monte Carlo standard error). Cov. is nominal 95%\ncoverage; Pwr. is power at the design-specific evaluation point.",
+      "images": []
+    },
+    {
+      "id": "S5.T2",
+      "caption": "Table 2:  Semisynthetic validation. Bias, empirical SD, and RMSE are shown as\nestimate ( ± \\pm  one Monte Carlo standard error). Cov. is nominal 95%\ncoverage; Pwr. is power at the design-specific evaluation point. ",
+      "images": []
+    },
+    {
+      "id": "S6.T3",
+      "caption": "Table 3:  Estimated ATE of solanezumab on  log ⁡ ( WMH + 1 ) \\log(\\text{WMH}+1)  at month 66.\n",
+      "images": []
+    },
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Cross-fitted SIRNET estimation",
+      "images": []
+    },
+    {
+      "id": "A2.T4",
+      "caption": "Table 4:  Central test of shared nuisance learning ( n = 1000 n=1000 ,  K = 5 K=5 ,\n n sim = 150 n_{\\mathrm{sim}}=150  per panel). All rows use the same full orthogonal\nscore, input restrictions, and generated marginalization target.\n Separate  trains four independent neural nuisance models with no\nshared parameters, compute/parameter-matched to full-score SIRNET.",
+      "images": []
+    },
+    {
+      "id": "A2.F2",
+      "caption": "Figure 2:  Difficulty-matched sharedness continuum ( τ = .7 \\tau=.7 ,  n = 8000 n=8000 ,\n n sim = 120 n_{\\mathrm{sim}}=120 ,  5 5  folds). Bias, empirical SD, and RMSE of the full\northogonal score for the shared (SIRNET), partial, and capacity-matched\nseparate architectures as a function of the sharedness parameter  γ \\gamma ,\nwhere  γ = 1 \\gamma=1  makes the response and outcome nuisances a common latent\nindex and  γ = 0 \\gamma=0  makes them independent. ",
+      "images": [
+        "2610.14011v1/figures/mc-negative-transfer-continuum.png"
+      ]
+    },
+    {
+      "id": "A2.T5",
+      "caption": "Table 5:  High-dimensional representation-reuse diagnostic ( n = 1000 n=1000 ,  K = 5 K=5 ,\n p noise = 40 p_{\\mathrm{noise}}=40 ,  n sim = 300 n_{\\mathrm{sim}}=300  per panel). All rows use\nthe double-robust score; only point-estimation metrics are reported.",
+      "images": []
+    },
+    {
+      "id": "A2.F3",
+      "caption": "Figure 3:  Sample-size sensitivity for the first DGP. Four full-score or SIRNET-based estimators are evaluated at\nsix sample sizes with  n sim = 300 n_{\\mathrm{sim}}=300  per cell.",
+      "images": [
+        "2610.14011v1/figures/mc-nsizes-strengthened.png"
+      ]
+    },
+    {
+      "id": "A2.F4",
+      "caption": "Figure 4:  Sample-size sensitivity for the deep bounded-latent DGP, using the same four estimators,\nsix sample sizes, and  n sim = 300 n_{\\mathrm{sim}}=300  per cell.",
+      "images": [
+        "2610.14011v1/figures/mc-nsizes-deep.png"
+      ]
+    },
+    {
+      "id": "A4.T6",
+      "caption": "Table 6:  Reason for study discontinuation among\nthe 332 A4 analysis participants missing month 66 WMH.",
+      "images": []
+    },
+    {
+      "id": "A4.F5",
+      "caption": "Figure 5:  Out-of-fold overlap diagnostics from the five-fold A4 refit.\nLeft: estimated treatment propensity. Centre: estimated probability that\nthe month 66 outcome is observed under the received arm. Right:\nobserved-case treatment–labeling weights.",
+      "images": [
+        "2610.14011v1/figures/a4_overlap_weights.png"
+      ]
+    },
+    {
+      "id": "A4.T7",
+      "caption": "Table 7:  Sensitivity of a five-fold SIRNET diagnostic refit to the floor\nimposed on the estimated labeling propensity.",
+      "images": []
+    },
+    {
+      "id": "A6.T8",
+      "caption": "Table 8:  Fixed candidate configurations for nested tuning of the A4\nfull SIRNET score. Each outer fold is scored only after selecting one row\nusing inner-fold predictions from its outer training partition. The final\ncolumn reports selections across five repeated  K = 5 K=5  outer splits.",
+      "images": []
+    },
+    {
+      "id": "A6.T9",
+      "caption": "Table 9:  Fixed XGBoost candidate profiles used for fold-local selection in\nthe Table  1  and Table  2  DML-XS rows.\nAll profiles use  subsample = colsample_bytree =0.8 and\n n_jobs =1.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

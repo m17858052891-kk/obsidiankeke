@@ -1,0 +1,2635 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Contextual Decision Making: Predictive or Generative",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "1.1  Related Literature",
+      "id": "S1.SS1"
+    },
+    {
+      "title": "2  Problem Formulation",
+      "id": "S2"
+    },
+    {
+      "title": "3  Predict-then-Optimize",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Local Methods: Convexity Preservation at the Cost of Statistical Efficiency",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Global Methods: Statistical Efficiency at the Cost of Convexity Preservation",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  The Convexity–Efficiency Dilemma",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "4  Generate-then-Optimize",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Convexity Preservation",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Conditional Generative Models for GtO",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Statistical Efficiency of GtO",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.3.1  The SAA Error.",
+      "id": "S4.SS3.SSS1"
+    },
+    {
+      "title": "4.3.2  The Model Error.",
+      "id": "S4.SS3.SSS2"
+    },
+    {
+      "title": "4.3.3  Regret Bound for GtO.",
+      "id": "S4.SS3.SSS3"
+    },
+    {
+      "title": "5  Choosing Between Predictive and Generative Approaches",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  Learning Less Is Not Always Easier",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Statistical Flexibility Has an Optimization Consequence",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  The Appropriate Learning Target Depends on the Scope of Reuse",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "5.4  Practical Rules of Thumb",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "6  Numerical Study",
+      "id": "S6"
+    },
+    {
+      "title": "6.1  General Setup",
+      "id": "S6.SS1"
+    },
+    {
+      "title": "6.2  Contextual Newsvendor Problem",
+      "id": "S6.SS2"
+    },
+    {
+      "title": "6.2.1  Experimental Design.",
+      "id": "S6.SS2.SSS1"
+    },
+    {
+      "title": "6.2.2  Decision Quality and Computation.",
+      "id": "S6.SS2.SSS2"
+    },
+    {
+      "title": "6.3  Product Placement Problem",
+      "id": "S6.SS3"
+    },
+    {
+      "title": "6.3.1  Experimental Design.",
+      "id": "S6.SS3.SSS1"
+    },
+    {
+      "title": "6.3.2  Decision Quality and Solution Time.",
+      "id": "S6.SS3.SSS2"
+    },
+    {
+      "title": "6.4  Real Case Study: Fresh Retail Inventory",
+      "id": "S6.SS4"
+    },
+    {
+      "title": "6.4.1  Data and Experimental Design.",
+      "id": "S6.SS4.SSS1"
+    },
+    {
+      "title": "6.4.2  Decision Quality and Online Computation.",
+      "id": "S6.SS4.SSS2"
+    },
+    {
+      "title": "7  Conclusion",
+      "id": "S7"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "8  Proofs in Section  3",
+      "id": "S8"
+    },
+    {
+      "title": "8.1  Proof of Proposition  3.1",
+      "id": "S8.SS1"
+    },
+    {
+      "title": "8.2  Proof of Theorem  3.2",
+      "id": "S8.SS2"
+    },
+    {
+      "title": "9  Proofs in Section  4",
+      "id": "S9"
+    },
+    {
+      "title": "9.1  Proof of Lemma  4.2",
+      "id": "S9.SS1"
+    },
+    {
+      "title": "9.2  Proof of Lemma  4.4",
+      "id": "S9.SS2"
+    },
+    {
+      "title": "9.3  Proof of Theorem  4.6",
+      "id": "S9.SS3"
+    },
+    {
+      "title": "9.4  Proof of Remark  4.7",
+      "id": "S9.SS4"
+    },
+    {
+      "title": "9.4.1  The SAA Error.",
+      "id": "S9.SS4.SSS1"
+    },
+    {
+      "title": "9.4.2  The Model Error.",
+      "id": "S9.SS4.SSS2"
+    },
+    {
+      "title": "9.4.3  Decision Error Bound for GtO.",
+      "id": "S9.SS4.SSS3"
+    },
+    {
+      "title": "10  Numerical Study: Implementation and Supplementary Results",
+      "id": "S10"
+    },
+    {
+      "title": "10.1  Contextual Newsvendor Problem",
+      "id": "S10.SS1"
+    },
+    {
+      "title": "10.1.1  Demand and Shortage-Cost Construction.",
+      "id": "S10.SS1.SSS1"
+    },
+    {
+      "title": "10.1.2  Detailed Performance and Online Time.",
+      "id": "S10.SS1.SSS2"
+    },
+    {
+      "title": "10.2  Product Placement Problem",
+      "id": "S10.SS2"
+    },
+    {
+      "title": "10.2.1  Network and Demand Construction.",
+      "id": "S10.SS2.SSS1"
+    },
+    {
+      "title": "10.2.2  Optimization with Nonnegative and Signed Weights.",
+      "id": "S10.SS2.SSS2"
+    },
+    {
+      "title": "10.3  Real Case Study: KRR with Categorical Covariates",
+      "id": "S10.SS3"
+    },
+    {
+      "title": "References",
+      "id": "biba"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S1.Ex1",
+      "tex": [
+        "h(z;x_{0})=\\mathbb{E}[c(z;X,Y)\\mid X=x_{0}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h(z;x_{0})=\\mathbb{E}[c(z;X,Y)\\mid X=x_{0}]."
+      ]
+    },
+    {
+      "id": "S1.Ex2",
+      "tex": [
+        "\\hat{h}_{n}(z;x)=\\sum_{i=1}^{n}\\omega_{n,i}(x)c(z;x_{i},y_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{n}(z;x)=\\sum_{i=1}^{n}\\omega_{n,i}(x)c(z;x_{i},y_{i}),"
+      ]
+    },
+    {
+      "id": "S2.E1",
+      "tex": [
+        "z^{\\ast}(x)\\in\\arg\\min_{z\\in\\mathcal{Z}}\\Big\\{h(z;x):=\\E\\big[c(z;X,Y)\\,|\\,X=x\\big]\\Big\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z^{\\ast}(x)\\in\\arg\\min_{z\\in\\mathcal{Z}}\\Big\\{h(z;x):=\\E\\big[c(z;X,Y)\\,|\\,X=x\\big]\\Big\\},"
+      ]
+    },
+    {
+      "id": "S2.Ex3",
+      "tex": [
+        "\\mathcal{R}_{n}(x_{0}):=h\\left(\\hat{z}_{n}(x_{0});x_{0}\\right)-h\\left(z^{\\ast}(x_{0});x_{0}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{R}_{n}(x_{0}):=h\\left(\\hat{z}_{n}(x_{0});x_{0}\\right)-h\\left(z^{\\ast}(x_{0});x_{0}\\right),"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "\\mathrm{RC}_{n}:=1-\\frac{\\mathcal{R}_{n}}{\\mathcal{R}_{\\mathrm{B}}}\\,=\\,\\frac{\\E_{X}[h(\\hat{z}_{\\mathrm{B}}(X);X)]-\\E_{X}[h(\\hat{z}_{n}(X);X)]}{\\E_{X}[h(\\hat{z}_{\\mathrm{B}}(X);X)]-\\E_{X}[h(z^{\\ast}(X);X)]}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{RC}_{n}:=1-\\frac{\\mathcal{R}_{n}}{\\mathcal{R}_{\\mathrm{B}}}\\,=\\,\\frac{\\E_{X}[h(\\hat{z}_{\\mathrm{B}}(X);X)]-\\E_{X}[h(\\hat{z}_{n}(X);X)]}{\\E_{X}[h(\\hat{z}_{\\mathrm{B}}(X);X)]-\\E_{X}[h(z^{\\ast}(X);X)]}."
+      ]
+    },
+    {
+      "id": "S2.Ex4",
+      "tex": [
+        "h(z;x)=\\int_{\\mathcal{Y}}c(z;x,y)\\,\\mathrm{d}F_{Y|X}(y|x)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h(z;x)=\\int_{\\mathcal{Y}}c(z;x,y)\\,\\mathrm{d}F_{Y|X}(y|x)."
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\hat{h}_{n}(z;x):=\\sum_{i=1}^{n}\\omega_{n,i}(x)\\,c(z;x_{i},y_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{n}(z;x):=\\sum_{i=1}^{n}\\omega_{n,i}(x)\\,c(z;x_{i},y_{i}),"
+      ]
+    },
+    {
+      "id": "S3.Ex5",
+      "tex": [
+        "\\E\\Big[\\E\\big[h(\\hat{z}_{n}(X);X)-h(z^{*}(X);X)\\mid\\mathcal{D}_{n}\\big]\\Big]\\,=\\,\\widetilde{\\mathcal{O}}\\!\\left(n^{-\\frac{1}{d_{x}+2}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\big[h(\\hat{z}_{n}(X);X)-h(z^{*}(X);X)\\mid\\mathcal{D}_{n}\\big]\\Big]\\,=\\,\\widetilde{\\mathcal{O}}\\!\\left(n^{-\\frac{1}{d_{x}+2}}\\right),"
+      ]
+    },
+    {
+      "id": "S3.Ex6",
+      "tex": [
+        "\\hat{h}_{n}(z;\\cdot)\\in\\arg\\min_{f\\in\\mathcal{H}}\\left\\{\\frac{1}{n}\\sum_{i=1}^{n}\\big(f(x_{i})-c(z;x_{i},y_{i})\\big)^{2}+\\lambda_{n}\\|f\\|_{\\mathcal{H}}^{2}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{n}(z;\\cdot)\\in\\arg\\min_{f\\in\\mathcal{H}}\\left\\{\\frac{1}{n}\\sum_{i=1}^{n}\\big(f(x_{i})-c(z;x_{i},y_{i})\\big)^{2}+\\lambda_{n}\\|f\\|_{\\mathcal{H}}^{2}\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\hat{h}_{n}(z;x_{0})=\\sum_{i=1}^{n}\\omega^{\\mathrm{KRR}}_{n,i}(x_{0})c(z;x_{i},y_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{n}(z;x_{0})=\\sum_{i=1}^{n}\\omega^{\\mathrm{KRR}}_{n,i}(x_{0})c(z;x_{i},y_{i}),"
+      ]
+    },
+    {
+      "id": "S3.Ex7",
+      "tex": [
+        "\\|f\\|_{H^{s}(\\mathcal{X})}=\\left(\\sum_{|\\alpha|\\leq s}\\int_{\\mathcal{X}}|\\partial^{\\alpha}f(x)|^{2}\\,\\mathrm{d}x\\right)^{1/2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|f\\|_{H^{s}(\\mathcal{X})}=\\left(\\sum_{|\\alpha|\\leq s}\\int_{\\mathcal{X}}|\\partial^{\\alpha}f(x)|^{2}\\,\\mathrm{d}x\\right)^{1/2},"
+      ]
+    },
+    {
+      "id": "S3.Ex8",
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\mathbb{E}\\!\\left[h(\\hat{z}_{n}(X);X)-h(z^{\\ast}(X);X)\\,\\Big|\\,\\mathcal{D}_{n}\\right]\\right]\\,=\\,\\mathcal{O}\\!\\left(n^{-\\frac{\\nu}{2\\nu+d_{x}}}(\\log n)^{\\frac{1}{2}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\mathbb{E}\\!\\left[h(\\hat{z}_{n}(X);X)-h(z^{\\ast}(X);X)\\,\\Big|\\,\\mathcal{D}_{n}\\right]\\right]\\,=\\,\\mathcal{O}\\!\\left(n^{-\\frac{\\nu}{2\\nu+d_{x}}}(\\log n)^{\\frac{1}{2}}\\right)."
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\E\\left[\\E\\left[h(\\hat{z}_{n}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\right]\\right]\\ \\geq\\ c_{0}\\,n^{-\\frac{4}{d_{x}+4}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\E\\left[\\E\\left[h(\\hat{z}_{n}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\right]\\right]\\ \\geq\\ c_{0}\\,n^{-\\frac{4}{d_{x}+4}}."
+      ]
+    },
+    {
+      "id": "S4.E6",
+      "tex": [
+        "\\hat{z}_{n,m}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\left\\{\\hat{h}(z;x_{0}):=\\frac{1}{m}\\sum_{j=1}^{m}c\\big(z;x_{0},\\hat{Y}_{j}\\big)\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{z}_{n,m}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\left\\{\\hat{h}(z;x_{0}):=\\frac{1}{m}\\sum_{j=1}^{m}c\\big(z;x_{0},\\hat{Y}_{j}\\big)\\right\\}."
+      ]
+    },
+    {
+      "id": "S4.Ex9",
+      "tex": [
+        "\\mathrm{d}Y_{t}=-\\frac{1}{2}Y_{t}\\,\\mathrm{d}t+\\mathrm{d}B_{t},\\quad\\mbox{with $Y_{0}\\sim F_{Y|X}(\\cdot|x)$ and $t\\in(0,T]$},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{d}Y_{t}=-\\frac{1}{2}Y_{t}\\,\\mathrm{d}t+\\mathrm{d}B_{t},\\quad\\mbox{with $Y_{0}\\sim F_{Y|X}(\\cdot|x)$ and $t\\in(0,T]$},"
+      ]
+    },
+    {
+      "id": "S4.Ex10",
+      "tex": [
+        "\\ell(x_{i},y_{i};s):=\\frac{1}{T-t_{0}}\\int_{t_{0}}^{T}\\E_{\\begin{subarray}{c}\\tau,\\tilde{Y}_{t}\\end{subarray}}\\left[\\left\\|s\\big(\\tilde{Y}_{t},\\tau(x_{i}),t\\big)-\\nabla_{\\tilde{y}}\\log\\varphi_{t}(\\tilde{Y}_{t}\\mid y_{i})\\right\\|_{2}^{2}\\right]\\mathrm{d}t,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell(x_{i},y_{i};s):=\\frac{1}{T-t_{0}}\\int_{t_{0}}^{T}\\E_{\\begin{subarray}{c}\\tau,\\tilde{Y}_{t}\\end{subarray}}\\left[\\left\\|s\\big(\\tilde{Y}_{t},\\tau(x_{i}),t\\big)-\\nabla_{\\tilde{y}}\\log\\varphi_{t}(\\tilde{Y}_{t}\\mid y_{i})\\right\\|_{2}^{2}\\right]\\mathrm{d}t,"
+      ]
+    },
+    {
+      "id": "S4.E7",
+      "tex": [
+        "\\mathrm{d}\\bar{Y}_{t}=\\left[\\frac{1}{2}\\bar{Y}_{t}+\\tilde{s}\\big(\\bar{Y}_{t},x,T-t\\big)\\right]\\mathrm{d}t+\\mathrm{d}\\bar{B}_{t},\\quad\\mbox{with $\\bar{Y}_{0}\\sim\\mathcal{N}(0,I)$ and $t\\in(0,T-t_{0}]$},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{d}\\bar{Y}_{t}=\\left[\\frac{1}{2}\\bar{Y}_{t}+\\tilde{s}\\big(\\bar{Y}_{t},x,T-t\\big)\\right]\\mathrm{d}t+\\mathrm{d}\\bar{B}_{t},\\quad\\mbox{with $\\bar{Y}_{0}\\sim\\mathcal{N}(0,I)$ and $t\\in(0,T-t_{0}]$},"
+      ]
+    },
+    {
+      "id": "S4.Ex11",
+      "tex": [
+        "\\mathcal{R}(x_{0}):=h\\left(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0}\\right)-h\\left(z^{\\ast}(x_{0});x_{0}\\right)\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{R}(x_{0}):=h\\left(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0}\\right)-h\\left(z^{\\ast}(x_{0});x_{0}\\right)\\geq 0."
+      ]
+    },
+    {
+      "id": "S4.E8",
+      "tex": [
+        "\\bar{z}_{n}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\Big\\{\\bar{h}(z;x_{0}):=\\E\\big[c(z;X,\\hat{Y})\\,|\\,X=x_{0}\\big]\\Big\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{z}_{n}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\Big\\{\\bar{h}(z;x_{0}):=\\E\\big[c(z;X,\\hat{Y})\\,|\\,X=x_{0}\\big]\\Big\\},"
+      ]
+    },
+    {
+      "id": "S4.EGx1",
+      "tex": [
+        "\\displaystyle\\mathcal{R}(x_{0})",
+        "\\displaystyle\\,=\\,\\left[h(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})\\right]+\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\right]+\\left[\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})-h(z^{\\ast}(x_{0});x_{0})\\right]",
+        "\\displaystyle\\,\\leq\\,\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\right]+2\\sup_{z\\in\\mathcal{Z}}\\big|h(z;x_{0})-\\bar{h}(z;x_{0})\\big|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{R}(x_{0})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\,=\\,\\left[h(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})\\right]+\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\right]+\\left[\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})-h(z^{\\ast}(x_{0});x_{0})\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\,\\leq\\,\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\right]+2\\sup_{z\\in\\mathcal{Z}}\\big|h(z;x_{0})-\\bar{h}(z;x_{0})\\big|."
+      ]
+    },
+    {
+      "id": "S4.E10",
+      "tex": [
+        "\\E\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\,\\big|\\,\\mathcal{D}_{n},X=x_{0}\\right]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\,\\big|\\,\\mathcal{D}_{n},X=x_{0}\\right]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}."
+      ]
+    },
+    {
+      "id": "S4.E11",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\mathrm{TV}\\Big(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X)\\Big)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\mathrm{TV}\\Big(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X)\\Big)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": "S4.Ex14",
+      "tex": [
+        "\\alpha_{0}=\\frac{\\beta}{4(d_{x}+d_{y}+\\beta)}\\quad\\text{and}\\quad\\alpha_{1}=\\max\\left\\{9,\\,\\frac{d_{y}}{2}+\\frac{\\beta}{4}+1\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\alpha_{0}=\\frac{\\beta}{4(d_{x}+d_{y}+\\beta)}\\quad\\text{and}\\quad\\alpha_{1}=\\max\\left\\{9,\\,\\frac{d_{y}}{2}+\\frac{\\beta}{4}+1\\right\\}."
+      ]
+    },
+    {
+      "id": "S4.Ex15",
+      "tex": [
+        "\\alpha_{0}=\\frac{\\beta}{d_{x}+d_{y}+2\\beta}\\quad\\text{and}\\quad\\alpha_{1}=\\max\\left\\{\\frac{19}{2},\\,\\frac{\\beta+2}{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\alpha_{0}=\\frac{\\beta}{d_{x}+d_{y}+2\\beta}\\quad\\text{and}\\quad\\alpha_{1}=\\max\\left\\{\\frac{19}{2},\\,\\frac{\\beta+2}{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\sup_{z\\in\\mathcal{Z}}|h(z;X)-\\bar{h}(z;X)|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;2M\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\sup_{z\\in\\mathcal{Z}}|h(z;X)-\\bar{h}(z;X)|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;2M\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": "S4.E13",
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}\\left|\\E_{Y\\sim P}[c(z;x,Y)]-\\E_{Y\\sim Q}[c(z;x,Y)]\\right|\\,\\leq\\,L_{\\rho}\\rho(P,Q)^{\\gamma}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}\\left|\\E_{Y\\sim P}[c(z;x,Y)]-\\E_{Y\\sim Q}[c(z;x,Y)]\\right|\\,\\leq\\,L_{\\rho}\\rho(P,Q)^{\\gamma}"
+      ]
+    },
+    {
+      "id": "S4.E14",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\rho\\Big(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X)\\Big)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,\\leq\\,C_{\\mathrm{M}}n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\rho\\Big(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X)\\Big)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,\\leq\\,C_{\\mathrm{M}}n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": "S4.Ex16",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\sup_{z\\in\\mathcal{Z}}|h(z;X)-\\bar{h}(z;X)|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,\\leq\\,L_{\\rho}C_{\\mathrm{M}}^{\\gamma}n^{-\\gamma\\alpha_{0}}(\\log n)^{\\gamma\\alpha_{1}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\sup_{z\\in\\mathcal{Z}}|h(z;X)-\\bar{h}(z;X)|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,\\leq\\,L_{\\rho}C_{\\mathrm{M}}^{\\gamma}n^{-\\gamma\\alpha_{0}}(\\log n)^{\\gamma\\alpha_{1}}."
+      ]
+    },
+    {
+      "id": "S4.E15",
+      "tex": [
+        "\\E\\Big[\\E\\Big[h(\\hat{z}_{n,m}^{\\ast}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C\\left(n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[h(\\hat{z}_{n,m}^{\\ast}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C\\left(n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": "S4.Ex17",
+      "tex": [
+        "\\E\\Big[\\E\\Big[h(\\hat{z}_{n,m}^{\\ast}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,=\\,\\mathcal{O}\\Big(n^{-1/2}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\Big)\\,=\\,\\widetilde{\\mathcal{O}}\\Big(n^{-1/2}+m^{-1/2}\\Big)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[h(\\hat{z}_{n,m}^{\\ast}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,=\\,\\mathcal{O}\\Big(n^{-1/2}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\Big)\\,=\\,\\widetilde{\\mathcal{O}}\\Big(n^{-1/2}+m^{-1/2}\\Big)."
+      ]
+    },
+    {
+      "id": "S4.E16",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C\\left(n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C\\left(n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": "S5.EGx2",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\mathcal{R}_{\\mathrm{PtO}}\\right]\\lesssim n^{-\\alpha_{P}}\\quad",
+        "\\displaystyle\\quad\\alpha_{P}=\\beta_{h}/(2\\beta_{h}+d_{x}),",
+        "\\displaystyle\\mathbb{E}\\left[\\mathcal{R}_{\\mathrm{GtO}}\\right]\\lesssim n^{-\\alpha_{G}}\\quad",
+        "\\displaystyle\\quad\\alpha_{G}=\\beta_{F}/(2\\beta_{F}+d_{x}+d_{y})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\mathcal{R}_{\\mathrm{PtO}}\\right]\\lesssim n^{-\\alpha_{P}}\\quad",
+        "\\displaystyle\\quad\\alpha_{P}=\\beta_{h}/(2\\beta_{h}+d_{x}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\mathcal{R}_{\\mathrm{GtO}}\\right]\\lesssim n^{-\\alpha_{G}}\\quad",
+        "\\displaystyle\\quad\\alpha_{G}=\\beta_{F}/(2\\beta_{F}+d_{x}+d_{y})."
+      ]
+    },
+    {
+      "id": "S5.Ex20",
+      "tex": [
+        "\\hat{h}_{P}(z;x)=\\sum_{i=1}^{n}\\omega_{n,i}(x)\\,c(z;X_{i},Y_{i}),\\qquad\\hat{h}_{G}(z;x)=\\frac{1}{m}\\sum_{j=1}^{m}c(z;x_{0},\\tilde{Y}_{j})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{P}(z;x)=\\sum_{i=1}^{n}\\omega_{n,i}(x)\\,c(z;X_{i},Y_{i}),\\qquad\\hat{h}_{G}(z;x)=\\frac{1}{m}\\sum_{j=1}^{m}c(z;x_{0},\\tilde{Y}_{j})."
+      ]
+    },
+    {
+      "id": "S5.Ex21",
+      "tex": [
+        "\\min_{z\\in\\mathcal{Z}_{k}}h_{k}(z;x),\\qquad h_{k}(z;x)=\\mathbb{E}[c_{k}(z;X,Y)\\mid X=x],\\qquad k=1,\\ldots,K."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\min_{z\\in\\mathcal{Z}_{k}}h_{k}(z;x),\\qquad h_{k}(z;x)=\\mathbb{E}[c_{k}(z;X,Y)\\mid X=x],\\qquad k=1,\\ldots,K."
+      ]
+    },
+    {
+      "id": "S6.E17",
+      "tex": [
+        "\\min_{z\\geq 0}\\;\\mathbb{E}\\left[c_{h}(z-Y)^{+}+b(X)(Y-z)^{+}\\mid X=x_{0}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\min_{z\\geq 0}\\;\\mathbb{E}\\left[c_{h}(z-Y)^{+}+b(X)(Y-z)^{+}\\mid X=x_{0}\\right],"
+      ]
+    },
+    {
+      "id": "S6.Ex22",
+      "tex": [
+        "\\displaystyle\\hat{h}_{n}^{\\mathrm{direct}}(z;x_{0})",
+        "\\displaystyle=\\sum_{i=1}^{n}\\omega_{n,i}(x_{0})\\left[c_{h}(z-y_{i})^{+}+b(x_{i})(y_{i}-z)^{+}\\right],",
+        "\\displaystyle\\hat{h}_{n}^{\\mathrm{struct}}(z;x_{0})",
+        "\\displaystyle=\\sum_{i=1}^{n}\\omega_{n,i}(x_{0})\\left[c_{h}(z-y_{i})^{+}+b(x_{0})(y_{i}-z)^{+}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\hat{h}_{n}^{\\mathrm{direct}}(z;x_{0})",
+        "\\displaystyle=\\sum_{i=1}^{n}\\omega_{n,i}(x_{0})\\left[c_{h}(z-y_{i})^{+}+b(x_{i})(y_{i}-z)^{+}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\hat{h}_{n}^{\\mathrm{struct}}(z;x_{0})",
+        "\\displaystyle=\\sum_{i=1}^{n}\\omega_{n,i}(x_{0})\\left[c_{h}(z-y_{i})^{+}+b(x_{0})(y_{i}-z)^{+}\\right]."
+      ]
+    },
+    {
+      "id": "S6.Ex23",
+      "tex": [
+        "Q(z,y)=\\min_{f,p}\\left\\{g^{\\top}f+r^{\\top}p:\\ z-Af+p\\geq y,\\ f\\geq 0,\\ p\\geq 0\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q(z,y)=\\min_{f,p}\\left\\{g^{\\top}f+r^{\\top}p:\\ z-Af+p\\geq y,\\ f\\geq 0,\\ p\\geq 0\\right\\},"
+      ]
+    },
+    {
+      "id": "S6.Ex24",
+      "tex": [
+        "\\min_{z\\geq 0}\\;\\mathbb{E}\\left[(z-Y)^{+}+b(X)(Y-z)^{+}\\mid X=x_{0}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\min_{z\\geq 0}\\;\\mathbb{E}\\left[(z-Y)^{+}+b(X)(Y-z)^{+}\\mid X=x_{0}\\right]."
+      ]
+    },
+    {
+      "id": "S8.EGx3",
+      "tex": [
+        "\\displaystyle\\mathcal{R}_{n}(x_{0})",
+        "\\displaystyle\\,=\\,\\left[h(\\hat{z}_{n}(x_{0});x_{0})-\\hat{h}_{n}(\\hat{z}_{n}(x_{0});x_{0})\\right]+\\left[\\hat{h}_{n}(\\hat{z}_{n}(x_{0});x_{0})-\\hat{h}_{n}(z^{\\ast}(x_{0});x_{0})\\right]+\\left[\\hat{h}_{n}(z^{\\ast}(x_{0});x_{0})-h(z^{\\ast}(x_{0});x_{0})\\right]",
+        "\\displaystyle\\,\\leq\\,2\\sup_{z\\in\\mathcal{Z}}\\absolutevalue{h(z;x_0) -\\hat{h}_n(z;x_0)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{R}_{n}(x_{0})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\,=\\,\\left[h(\\hat{z}_{n}(x_{0});x_{0})-\\hat{h}_{n}(\\hat{z}_{n}(x_{0});x_{0})\\right]+\\left[\\hat{h}_{n}(\\hat{z}_{n}(x_{0});x_{0})-\\hat{h}_{n}(z^{\\ast}(x_{0});x_{0})\\right]+\\left[\\hat{h}_{n}(z^{\\ast}(x_{0});x_{0})-h(z^{\\ast}(x_{0});x_{0})\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\,\\leq\\,2\\sup_{z\\in\\mathcal{Z}}\\absolutevalue{h(z;x_0) -\\hat{h}_n(z;x_0)}."
+      ]
+    },
+    {
+      "id": "S8.Ex27",
+      "tex": [
+        "U_{z,i}:=c(z;X_{i},Y_{i}),\\qquad h_{z}(x):=h(z;x)=\\mathbb{E}\\left[U_{z,i}\\mid X_{i}=x\\right],\\qquad\\xi_{z,i}:=U_{z,i}-h_{z}(X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "U_{z,i}:=c(z;X_{i},Y_{i}),\\qquad h_{z}(x):=h(z;x)=\\mathbb{E}\\left[U_{z,i}\\mid X_{i}=x\\right],\\qquad\\xi_{z,i}:=U_{z,i}-h_{z}(X_{i})."
+      ]
+    },
+    {
+      "id": "S8.E19",
+      "tex": [
+        "\\mathbb{E}\\left[\\exp(t\\xi_{z,i})\\,\\middle|\\,X_{i}\\right]\\leq\\exp(2M^2t^2),\\quad t\\in\\mathbb{R}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\exp(t\\xi_{z,i})\\,\\middle|\\,X_{i}\\right]\\leq\\exp(2M^2t^2),\\quad t\\in\\mathbb{R}."
+      ]
+    },
+    {
+      "id": "S8.Ex28",
+      "tex": [
+        "\\hat{h}_{n}(z;x)=k_{n}(x)^{\\top}(K_{n}+n\\lambda_{n}I_{n})^{-1}\\mathbf{c}(z,X_{1:n},Y_{1:n})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{n}(z;x)=k_{n}(x)^{\\top}(K_{n}+n\\lambda_{n}I_{n})^{-1}\\mathbf{c}(z,X_{1:n},Y_{1:n})."
+      ]
+    },
+    {
+      "id": "S8.Ex29",
+      "tex": [
+        "\\bar{h}_{n,z}(x)=k_{n}(x)^{\\top}(K_{n}+n\\lambda_{n}I_{n})^{-1}(h_{z}(X_{1}),\\ldots,h_{z}(X_{n}))^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{h}_{n,z}(x)=k_{n}(x)^{\\top}(K_{n}+n\\lambda_{n}I_{n})^{-1}(h_{z}(X_{1}),\\ldots,h_{z}(X_{n}))^{\\top}."
+      ]
+    },
+    {
+      "id": "S8.E20",
+      "tex": [
+        "\\left\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\right\\|_{\\infty}\\leq\\underbrace{\\left\\|\\hat{h}_{n}(z;\\cdot)-\\bar{h}_{n,z}\\right\\|_{\\infty}}_{=:S_{n,z}}+\\underbrace{\\left\\|\\bar{h}_{n,z}-h_{z}\\right\\|_{\\infty}}_{=:B_{n,z}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\right\\|_{\\infty}\\leq\\underbrace{\\left\\|\\hat{h}_{n}(z;\\cdot)-\\bar{h}_{n,z}\\right\\|_{\\infty}}_{=:S_{n,z}}+\\underbrace{\\left\\|\\bar{h}_{n,z}-h_{z}\\right\\|_{\\infty}}_{=:B_{n,z}}."
+      ]
+    },
+    {
+      "id": "S8.Ex30",
+      "tex": [
+        "\\mathcal{E}_{n}(t):=\\left\\{\\|f\\|_{L^{2}}\\leq\\max\\left\\{C_{1}\\|f\\|_{n},\\,C_{2}tn^{-s/d}\\|f\\|_{H^{s}}\\right\\}\\text{ for all }f\\in H^{s}(\\mathcal{X})\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{E}_{n}(t):=\\left\\{\\|f\\|_{L^{2}}\\leq\\max\\left\\{C_{1}\\|f\\|_{n},\\,C_{2}tn^{-s/d}\\|f\\|_{H^{s}}\\right\\}\\text{ for all }f\\in H^{s}(\\mathcal{X})\\right\\},"
+      ]
+    },
+    {
+      "id": "S8.E21",
+      "tex": [
+        "\\mathbb{P}\\bigl(\\mathcal{E}_{n}(t_{n})^{c}\\bigr)\\,\\leq\\,\\frac{1}{2}n^{-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\bigl(\\mathcal{E}_{n}(t_{n})^{c}\\bigr)\\,\\leq\\,\\frac{1}{2}n^{-A}."
+      ]
+    },
+    {
+      "id": "S8.E22",
+      "tex": [
+        "\\mathbb{P}\\left(S_{n,z}>C_{A}n^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log n}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\frac{1}{2}n^{-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(S_{n,z}>C_{A}n^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log n}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\frac{1}{2}n^{-A}."
+      ]
+    },
+    {
+      "id": "S8.E23",
+      "tex": [
+        "|\\langle g,f\\rangle_{\\mathcal{H}_{\\nu}}|\\,\\leq\\,C_{g}\\|f\\|_{L^{2}}^{\\delta}\\|f\\|_{\\mathcal{H}_{\\nu}}^{1-\\delta}\\quad\\text{for all }f\\in\\mathcal{H}_{\\nu}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|\\langle g,f\\rangle_{\\mathcal{H}_{\\nu}}|\\,\\leq\\,C_{g}\\|f\\|_{L^{2}}^{\\delta}\\|f\\|_{\\mathcal{H}_{\\nu}}^{1-\\delta}\\quad\\text{for all }f\\in\\mathcal{H}_{\\nu}."
+      ]
+    },
+    {
+      "id": "S8.E24",
+      "tex": [
+        "\\|\\hat{g}-g\\|_{n}\\,\\leq\\,2C_{g}a^{\\delta}\\lambda_{n}^{(1+\\delta)/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\hat{g}-g\\|_{n}\\,\\leq\\,2C_{g}a^{\\delta}\\lambda_{n}^{(1+\\delta)/2}."
+      ]
+    },
+    {
+      "id": "S8.E25",
+      "tex": [
+        "S_{n,z}\\,\\leq\\,\\sup_{x\\in\\mathcal{X}}|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x_{0})|+|\\mathbb{G}_{n,z}(x_{0})|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "S_{n,z}\\,\\leq\\,\\sup_{x\\in\\mathcal{X}}|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x_{0})|+|\\mathbb{G}_{n,z}(x_{0})|."
+      ]
+    },
+    {
+      "id": "S8.Ex31",
+      "tex": [
+        "(\\hat{\\phi}_{x}-\\phi_{x})(X_{1:n})\\,=\\,\\left[K_{n}(K_{n}+n\\lambda_{n}I_{n})^{-1}-I_{n}\\right]k_{n}(x)\\,=\\,-n\\lambda_{n}(K_{n}+n\\lambda_{n}I_{n})^{-1}k_{n}(x)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(\\hat{\\phi}_{x}-\\phi_{x})(X_{1:n})\\,=\\,\\left[K_{n}(K_{n}+n\\lambda_{n}I_{n})^{-1}-I_{n}\\right]k_{n}(x)\\,=\\,-n\\lambda_{n}(K_{n}+n\\lambda_{n}I_{n})^{-1}k_{n}(x)."
+      ]
+    },
+    {
+      "id": "S8.E26",
+      "tex": [
+        "\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x^{\\prime})\\,=\\,-\\frac{1}{n\\lambda_{n}}\\sum_{i=1}^{n}(\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}})(X_{i})\\xi_{z,i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x^{\\prime})\\,=\\,-\\frac{1}{n\\lambda_{n}}\\sum_{i=1}^{n}(\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}})(X_{i})\\xi_{z,i}."
+      ]
+    },
+    {
+      "id": "S8.E27",
+      "tex": [
+        "\\mathfrak{d}_{n}(x,x^{\\prime})\\,:=\\,2\\sqrt{2}M\\lambda_{n}^{-1}n^{-1/2}\\|\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}}\\|_{n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathfrak{d}_{n}(x,x^{\\prime})\\,:=\\,2\\sqrt{2}M\\lambda_{n}^{-1}n^{-1/2}\\|\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}}\\|_{n}."
+      ]
+    },
+    {
+      "id": "S8.Ex32",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\exp\\left\\{\\theta\\bigl(\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x^{\\prime})\\bigr)\\right\\}\\,\\middle|\\,X_{1:n}\\right]\\,\\leq\\,\\exp\\left\\{\\frac{2M^{2}\\theta^{2}}{n\\lambda_{n}^{2}}\\left\\|\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}}\\right\\|_{n}^{2}\\right\\}\\,=\\,\\exp\\left\\{\\frac{\\theta^{2}\\mathfrak{d}_{n}^{2}(x,x^{\\prime})}{4}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\exp\\left\\{\\theta\\bigl(\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x^{\\prime})\\bigr)\\right\\}\\,\\middle|\\,X_{1:n}\\right]\\,\\leq\\,\\exp\\left\\{\\frac{2M^{2}\\theta^{2}}{n\\lambda_{n}^{2}}\\left\\|\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}}\\right\\|_{n}^{2}\\right\\}\\,=\\,\\exp\\left\\{\\frac{\\theta^{2}\\mathfrak{d}_{n}^{2}(x,x^{\\prime})}{4}\\right\\}."
+      ]
+    },
+    {
+      "id": "S8.Ex33",
+      "tex": [
+        "\\mathbb{P}\\left(\\left|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x^{\\prime})\\right|\\geq u\\,\\mathfrak{d}_{n}(x,x^{\\prime})\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,2e^{-u^{2}},\\quad u\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(\\left|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x^{\\prime})\\right|\\geq u\\,\\mathfrak{d}_{n}(x,x^{\\prime})\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,2e^{-u^{2}},\\quad u\\geq 0."
+      ]
+    },
+    {
+      "id": "S8.E28",
+      "tex": [
+        "\\mathbb{P}\\left(\\sup_{x\\in\\mathcal{X}}\\left|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x_{0})\\right|\\geq e^{1/2}\\left\\{C_{D}\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})+uD_{D}\\Delta_{\\mathfrak{d}_{n}}(\\mathcal{X})\\right\\}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\exp(-u^2/2),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(\\sup_{x\\in\\mathcal{X}}\\left|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x_{0})\\right|\\geq e^{1/2}\\left\\{C_{D}\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})+uD_{D}\\Delta_{\\mathfrak{d}_{n}}(\\mathcal{X})\\right\\}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\exp(-u^2/2),"
+      ]
+    },
+    {
+      "id": "S8.E29",
+      "tex": [
+        "\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})\\,\\leq\\,C\\int_{0}^{\\Delta_{\\mathfrak{d}_{n}}(\\mathcal{X})}\\sqrt{\\log N(\\mathcal{X},\\mathfrak{d}_{n},\\varepsilon)}\\,\\mathrm{d}\\varepsilon,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})\\,\\leq\\,C\\int_{0}^{\\Delta_{\\mathfrak{d}_{n}}(\\mathcal{X})}\\sqrt{\\log N(\\mathcal{X},\\mathfrak{d}_{n},\\varepsilon)}\\,\\mathrm{d}\\varepsilon,"
+      ]
+    },
+    {
+      "id": "S8.Ex34",
+      "tex": [
+        "|\\langle\\phi_{x},f\\rangle_{\\mathcal{H}_{\\nu}}|\\,\\leq\\,C\\|f\\|_{L^{2}}^{1-\\frac{d}{2s}}\\|f\\|_{\\mathcal{H}_{\\nu}}^{\\frac{d}{2s}}\\quad\\text{for all }f\\in\\mathcal{H}_{\\nu},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|\\langle\\phi_{x},f\\rangle_{\\mathcal{H}_{\\nu}}|\\,\\leq\\,C\\|f\\|_{L^{2}}^{1-\\frac{d}{2s}}\\|f\\|_{\\mathcal{H}_{\\nu}}^{\\frac{d}{2s}}\\quad\\text{for all }f\\in\\mathcal{H}_{\\nu},"
+      ]
+    },
+    {
+      "id": "S8.Ex35",
+      "tex": [
+        "\\|f\\|_{L^{2}}\\,\\leq\\,\\max\\left\\{C_{1}\\|f\\|_{n},\\,\\widetilde{C}_{2}t_{n}n^{-s/d}\\|f\\|_{\\mathcal{H}_{\\nu}}\\right\\},\\quad f\\in\\mathcal{H}_{\\nu},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|f\\|_{L^{2}}\\,\\leq\\,\\max\\left\\{C_{1}\\|f\\|_{n},\\,\\widetilde{C}_{2}t_{n}n^{-s/d}\\|f\\|_{\\mathcal{H}_{\\nu}}\\right\\},\\quad f\\in\\mathcal{H}_{\\nu},"
+      ]
+    },
+    {
+      "id": "S8.E30",
+      "tex": [
+        "\\|\\hat{\\phi}_{x}-\\phi_{x}\\|_{n}\\,\\leq\\,C\\lambda_{n}^{1-\\frac{d}{4s}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\hat{\\phi}_{x}-\\phi_{x}\\|_{n}\\,\\leq\\,C\\lambda_{n}^{1-\\frac{d}{4s}}"
+      ]
+    },
+    {
+      "id": "S8.E31",
+      "tex": [
+        "\\left\\|\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}}\\right\\|_{n}\\,\\leq\\,C\\lambda_{n}^{1-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\hat{\\phi}_{x,x^{\\prime}}-\\phi_{x,x^{\\prime}}\\right\\|_{n}\\,\\leq\\,C\\lambda_{n}^{1-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": "S8.E32",
+      "tex": [
+        "\\Delta_{\\mathfrak{d}_{n}}(\\mathcal{X})\\,\\leq\\,Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta_{\\mathfrak{d}_{n}}(\\mathcal{X})\\,\\leq\\,Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": "S8.Ex36",
+      "tex": [
+        "|f(x)-f(x^{\\prime})|\\,\\leq\\,C\\|f\\|_{\\mathcal{H}_{\\nu}}\\|x-x^{\\prime}\\|^{\\tau},\\quad f\\in\\mathcal{H}_{\\nu},~x,x^{\\prime}\\in\\mathcal{X}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|f(x)-f(x^{\\prime})|\\,\\leq\\,C\\|f\\|_{\\mathcal{H}_{\\nu}}\\|x-x^{\\prime}\\|^{\\tau},\\quad f\\in\\mathcal{H}_{\\nu},~x,x^{\\prime}\\in\\mathcal{X}."
+      ]
+    },
+    {
+      "id": "S8.Ex37",
+      "tex": [
+        "\\|\\phi_{x,x^{\\prime}}\\|_{\\mathcal{H}_{\\nu}}\\,=\\,\\sup_{\\|f\\|_{\\mathcal{H}_{\\nu}}\\leq 1}|\\langle\\phi_{x,x^{\\prime}},f\\rangle_{\\mathcal{H}_{\\nu}}|\\,=\\,\\sup_{\\|f\\|_{\\mathcal{H}_{\\nu}}\\leq 1}|f(x)-f(x^{\\prime})|\\,\\leq\\,C\\|x-x^{\\prime}\\|^{\\tau}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\phi_{x,x^{\\prime}}\\|_{\\mathcal{H}_{\\nu}}\\,=\\,\\sup_{\\|f\\|_{\\mathcal{H}_{\\nu}}\\leq 1}|\\langle\\phi_{x,x^{\\prime}},f\\rangle_{\\mathcal{H}_{\\nu}}|\\,=\\,\\sup_{\\|f\\|_{\\mathcal{H}_{\\nu}}\\leq 1}|f(x)-f(x^{\\prime})|\\,\\leq\\,C\\|x-x^{\\prime}\\|^{\\tau}."
+      ]
+    },
+    {
+      "id": "S8.E33",
+      "tex": [
+        "\\mathfrak{d}_{n}(x,x^{\\prime})\\,\\leq\\,Cn^{-1/2}\\lambda_{n}^{-1/2}\\|x-x^{\\prime}\\|^{\\tau},\\quad x,x^{\\prime}\\in\\mathcal{X}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathfrak{d}_{n}(x,x^{\\prime})\\,\\leq\\,Cn^{-1/2}\\lambda_{n}^{-1/2}\\|x-x^{\\prime}\\|^{\\tau},\\quad x,x^{\\prime}\\in\\mathcal{X}."
+      ]
+    },
+    {
+      "id": "S8.E34",
+      "tex": [
+        "\\log N(\\mathcal{X},\\mathfrak{d}_{n},\\varepsilon)\\,\\leq\\,d\\log\\left[1+C\\left((n^{-1/2}\\lambda_{n}^{-1/2})/\\varepsilon\\right)^{1/\\tau}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\log N(\\mathcal{X},\\mathfrak{d}_{n},\\varepsilon)\\,\\leq\\,d\\log\\left[1+C\\left((n^{-1/2}\\lambda_{n}^{-1/2})/\\varepsilon\\right)^{1/\\tau}\\right]."
+      ]
+    },
+    {
+      "id": "S8.Ex38",
+      "tex": [
+        "\\displaystyle\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})",
+        "\\displaystyle\\leq\\,C\\int_{0}^{Ca_{n}}\\left({\\log\\left[1+C\\left({b_{n}}/{\\varepsilon}\\right)^{1/\\tau}\\right]}\\right)^{1/2}\\,\\mathrm{d}\\varepsilon\\,\\leq\\,Ca_{n}\\int_{0}^{1}\\left({\\log\\left[1+C\\left({b_{n}}/({a_{n}v})\\right)^{1/\\tau}\\right]}\\right)^{1/2}\\,\\mathrm{d}v",
+        "\\displaystyle\\leq\\,Ca_{n}\\int_{0}^{1}\\left({\\log\\left[1+C\\left({b_{n}}/{a_{n}}\\right)^{1/\\tau}\\right]+\\frac{1}{\\tau}\\log(1/v)}\\right)^{1/2}\\,\\mathrm{d}v",
+        "\\displaystyle\\leq\\,Ca_{n}\\int_{0}^{1}\\left[\\left({\\log\\left[1+C\\left({b_{n}}/{a_{n}}\\right)^{1/\\tau}\\right]}\\right)^{1/2}+\\left(\\frac{1}{{\\tau}}{\\log(1/v)}\\right)^{1/2}\\right]\\mathrm{d}v",
+        "\\displaystyle=\\,Ca_{n}\\left[\\left({\\log\\left(1+C\\lambda_{n}^{-\\frac{\\nu}{2s\\tau}}\\right)}\\right)^{1/2}+\\frac{\\sqrt{\\pi}}{2\\sqrt{\\tau}}\\right]",
+        "\\displaystyle\\leq\\,Ca_{n}\\left[\\sqrt{\\log(1+C)+\\frac{\\nu}{2s\\tau}\\log(1/\\lambda_n)}+\\frac{\\sqrt{\\pi}}{2\\sqrt{\\tau}}\\right]\\,\\leq\\,Ca_{n}\\sqrt{\\log(C'/\\lambda_n)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})",
+        "\\displaystyle\\leq\\,C\\int_{0}^{Ca_{n}}\\left({\\log\\left[1+C\\left({b_{n}}/{\\varepsilon}\\right)^{1/\\tau}\\right]}\\right)^{1/2}\\,\\mathrm{d}\\varepsilon\\,\\leq\\,Ca_{n}\\int_{0}^{1}\\left({\\log\\left[1+C\\left({b_{n}}/({a_{n}v})\\right)^{1/\\tau}\\right]}\\right)^{1/2}\\,\\mathrm{d}v"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,Ca_{n}\\int_{0}^{1}\\left({\\log\\left[1+C\\left({b_{n}}/{a_{n}}\\right)^{1/\\tau}\\right]+\\frac{1}{\\tau}\\log(1/v)}\\right)^{1/2}\\,\\mathrm{d}v"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,Ca_{n}\\int_{0}^{1}\\left[\\left({\\log\\left[1+C\\left({b_{n}}/{a_{n}}\\right)^{1/\\tau}\\right]}\\right)^{1/2}+\\left(\\frac{1}{{\\tau}}{\\log(1/v)}\\right)^{1/2}\\right]\\mathrm{d}v"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\,Ca_{n}\\left[\\left({\\log\\left(1+C\\lambda_{n}^{-\\frac{\\nu}{2s\\tau}}\\right)}\\right)^{1/2}+\\frac{\\sqrt{\\pi}}{2\\sqrt{\\tau}}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,Ca_{n}\\left[\\sqrt{\\log(1+C)+\\frac{\\nu}{2s\\tau}\\log(1/\\lambda_n)}+\\frac{\\sqrt{\\pi}}{2\\sqrt{\\tau}}\\right]\\,\\leq\\,Ca_{n}\\sqrt{\\log(C'/\\lambda_n)}."
+      ]
+    },
+    {
+      "id": "S8.E35",
+      "tex": [
+        "\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})\\,\\leq\\,Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log(C'/\\lambda_n)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma_{2}(\\mathcal{X},\\mathfrak{d}_{n})\\,\\leq\\,Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log(C'/\\lambda_n)}."
+      ]
+    },
+    {
+      "id": "S8.E36",
+      "tex": [
+        "\\mathbb{P}\\left(\\sup_{x\\in\\mathcal{X}}\\left|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x_{0})\\right|>Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\left[\\sqrt{\\log(C'/\\lambda_n)}+u\\right]\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,e^{-cu^{2}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(\\sup_{x\\in\\mathcal{X}}\\left|\\mathbb{G}_{n,z}(x)-\\mathbb{G}_{n,z}(x_{0})\\right|>Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\left[\\sqrt{\\log(C'/\\lambda_n)}+u\\right]\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,e^{-cu^{2}},"
+      ]
+    },
+    {
+      "id": "S8.Ex39",
+      "tex": [
+        "\\mathbb{E}\\left[\\exp\\left\\{\\theta\\mathbb{G}_{n,z}(x_{0})\\right\\}\\,\\middle|\\,X_{1:n}\\right]\\,\\leq\\,\\exp\\left\\{\\frac{2M^{2}\\theta^{2}}{n\\lambda_{n}^{2}}\\|\\hat{\\phi}_{x_{0}}-\\phi_{x_{0}}\\|_{n}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\exp\\left\\{\\theta\\mathbb{G}_{n,z}(x_{0})\\right\\}\\,\\middle|\\,X_{1:n}\\right]\\,\\leq\\,\\exp\\left\\{\\frac{2M^{2}\\theta^{2}}{n\\lambda_{n}^{2}}\\|\\hat{\\phi}_{x_{0}}-\\phi_{x_{0}}\\|_{n}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "S8.E37",
+      "tex": [
+        "\\mathbb{P}\\left(|\\mathbb{G}_{n,z}(x_{0})|>Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}u\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,2e^{-cu^{2}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(|\\mathbb{G}_{n,z}(x_{0})|>Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}u\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,2e^{-cu^{2}}."
+      ]
+    },
+    {
+      "id": "S8.E38",
+      "tex": [
+        "\\mathbb{P}\\left(S_{n,z}>Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\left[\\sqrt{\\log(C'/\\lambda_n)}+u\\right]\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,3e^{-cu^{2}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(S_{n,z}>Cn^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\left[\\sqrt{\\log(C'/\\lambda_n)}+u\\right]\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,3e^{-cu^{2}}."
+      ]
+    },
+    {
+      "id": "S8.Ex40",
+      "tex": [
+        "\\mathbb{P}\\left(S_{n,z}>C_{A}n^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log n}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\frac{1}{2}n^{-A}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(S_{n,z}>C_{A}n^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log n}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\frac{1}{2}n^{-A}"
+      ]
+    },
+    {
+      "id": "S8.E39",
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\left\\|\\hat{h}_{n}(z;\\cdot)-h(z;\\cdot)\\right\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)\\,\\leq\\,n^{-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\left\\|\\hat{h}_{n}(z;\\cdot)-h(z;\\cdot)\\right\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)\\,\\leq\\,n^{-A}."
+      ]
+    },
+    {
+      "id": "S8.E40",
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}\\,\\leq\\,B_{\\mathcal{H}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}\\,\\leq\\,B_{\\mathcal{H}}."
+      ]
+    },
+    {
+      "id": "S8.E41",
+      "tex": [
+        "\\|\\bar{h}_{n,z}-h_{z}\\|_{n}^{2}+\\lambda_{n}\\|\\bar{h}_{n,z}\\|_{\\mathcal{H}_{\\nu}}^{2}\\,\\leq\\,\\lambda_{n}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\bar{h}_{n,z}-h_{z}\\|_{n}^{2}+\\lambda_{n}\\|\\bar{h}_{n,z}\\|_{\\mathcal{H}_{\\nu}}^{2}\\,\\leq\\,\\lambda_{n}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}^{2},"
+      ]
+    },
+    {
+      "id": "S8.Ex41",
+      "tex": [
+        "\\|\\bar{h}_{n,z}-h_{z}\\|_{L^{2}}\\,\\leq\\,C\\lambda_{n}^{1/2}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\bar{h}_{n,z}-h_{z}\\|_{L^{2}}\\,\\leq\\,C\\lambda_{n}^{1/2}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}."
+      ]
+    },
+    {
+      "id": "S8.E42",
+      "tex": [
+        "\\displaystyle\\|\\bar{h}_{n,z}-h_{z}\\|_{\\infty}\\,\\leq\\,C\\|\\bar{h}_{n,z}-h_{z}\\|_{L^{2}}^{1-\\frac{d}{2s}}\\|\\bar{h}_{n,z}-h_{z}\\|_{H^{s}}^{\\frac{d}{2s}}\\,\\leq\\,C\\lambda_{n}^{\\frac{1}{2}-\\frac{d}{4s}}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}\\,\\leq\\,C\\lambda_{n}^{\\frac{1}{2}-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": "S8.E42X",
+      "tex": [
+        "\\displaystyle\\|\\bar{h}_{n,z}-h_{z}\\|_{\\infty}\\,\\leq\\,C\\|\\bar{h}_{n,z}-h_{z}\\|_{L^{2}}^{1-\\frac{d}{2s}}\\|\\bar{h}_{n,z}-h_{z}\\|_{H^{s}}^{\\frac{d}{2s}}\\,\\leq\\,C\\lambda_{n}^{\\frac{1}{2}-\\frac{d}{4s}}\\|h_{z}\\|_{\\mathcal{H}_{\\nu}}\\,\\leq\\,C\\lambda_{n}^{\\frac{1}{2}-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": "S8.Ex42",
+      "tex": [
+        "\\lambda_{n}^{\\frac{1}{2}-\\frac{d}{4s}}\\,\\asymp\\,\\left(\\frac{\\log n}{n}\\right)^{\\frac{1}{2}-\\frac{d}{4s}}\\quad\\text{and}\\quad n^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log n}\\,\\asymp\\,\\left(\\frac{\\log n}{n}\\right)^{\\frac{1}{2}-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{n}^{\\frac{1}{2}-\\frac{d}{4s}}\\,\\asymp\\,\\left(\\frac{\\log n}{n}\\right)^{\\frac{1}{2}-\\frac{d}{4s}}\\quad\\text{and}\\quad n^{-1/2}\\lambda_{n}^{-\\frac{d}{4s}}\\sqrt{\\log n}\\,\\asymp\\,\\left(\\frac{\\log n}{n}\\right)^{\\frac{1}{2}-\\frac{d}{4s}}."
+      ]
+    },
+    {
+      "id": "S8.E43",
+      "tex": [
+        "\\frac{1}{2}-\\frac{d}{4s}\\,=\\,\\frac{\\nu}{2\\nu+d}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{1}{2}-\\frac{d}{4s}\\,=\\,\\frac{\\nu}{2\\nu+d}."
+      ]
+    },
+    {
+      "id": "S8.E44",
+      "tex": [
+        "\\mathbb{P}\\left(\\left\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\right\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d}}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\frac{1}{2}n^{-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(\\left\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\right\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d}}\\,\\middle|\\,X_{1:n}\\right)\\,\\leq\\,\\frac{1}{2}n^{-A}."
+      ]
+    },
+    {
+      "id": "S8.E45",
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\left\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\right\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d}}\\right)\\,\\leq\\,n^{-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\left\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\right\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d}}\\right)\\,\\leq\\,n^{-A}."
+      ]
+    },
+    {
+      "id": "S8.E46",
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n},X}\\left[\\sup_{z\\in\\mathcal{Z}}\\Big|\\hat{h}_{n}(z;X)-h(z;X)\\Big|\\right]=\\mathcal{O}\\left(n^{-\\frac{\\nu}{2\\nu+d_{x}}}\\sqrt{\\log n}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n},X}\\left[\\sup_{z\\in\\mathcal{Z}}\\Big|\\hat{h}_{n}(z;X)-h(z;X)\\Big|\\right]=\\mathcal{O}\\left(n^{-\\frac{\\nu}{2\\nu+d_{x}}}\\sqrt{\\log n}\\right)."
+      ]
+    },
+    {
+      "id": "S8.Ex43",
+      "tex": [
+        "|\\hat{h}_{n}(z;x)-\\hat{h}_{n}(v;x)|\\,=\\,\\left|\\sum_{i=1}^{n}\\omega_{n,i}^{\\rm KRR}(x)\\big\\{c(z;X_{i},Y_{i})-c(v;X_{i},Y_{i})\\big\\}\\right|\\,\\leq\\,G\\varepsilon\\sum_{i=1}^{n}|\\omega_{n,i}^{\\rm KRR}(x)|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|\\hat{h}_{n}(z;x)-\\hat{h}_{n}(v;x)|\\,=\\,\\left|\\sum_{i=1}^{n}\\omega_{n,i}^{\\rm KRR}(x)\\big\\{c(z;X_{i},Y_{i})-c(v;X_{i},Y_{i})\\big\\}\\right|\\,\\leq\\,G\\varepsilon\\sum_{i=1}^{n}|\\omega_{n,i}^{\\rm KRR}(x)|."
+      ]
+    },
+    {
+      "id": "S8.Ex44",
+      "tex": [
+        "\\displaystyle\\sup_{x\\in\\mathcal{X}}\\sum_{i=1}^{n}|\\omega_{n,i}^{\\rm KRR}(x)|",
+        "\\displaystyle\\leq\\,\\sqrt{n}\\sup_{x\\in\\mathcal{X}}\\|\\omega^{\\rm KRR}(x)\\|_{2}\\,=\\,\\sqrt{n}\\sup_{x\\in\\mathcal{X}}\\|(K_{n}+n\\lambda_{n}I_{n})^{-1}k_{n}(x)\\|_{2}",
+        "\\displaystyle\\leq\\,\\sqrt{n}\\|(K_{n}+n\\lambda_{n}I_{n})^{-1}\\|_{\\rm op}\\sup_{x\\in\\mathcal{X}}\\|k_{n}(x)\\|_{2}\\,\\leq\\,\\sqrt{n}\\cdot\\frac{1}{n\\lambda_{n}}\\cdot C\\sqrt{n}\\,=\\,\\frac{C}{\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sup_{x\\in\\mathcal{X}}\\sum_{i=1}^{n}|\\omega_{n,i}^{\\rm KRR}(x)|",
+        "\\displaystyle\\leq\\,\\sqrt{n}\\sup_{x\\in\\mathcal{X}}\\|\\omega^{\\rm KRR}(x)\\|_{2}\\,=\\,\\sqrt{n}\\sup_{x\\in\\mathcal{X}}\\|(K_{n}+n\\lambda_{n}I_{n})^{-1}k_{n}(x)\\|_{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,\\sqrt{n}\\|(K_{n}+n\\lambda_{n}I_{n})^{-1}\\|_{\\rm op}\\sup_{x\\in\\mathcal{X}}\\|k_{n}(x)\\|_{2}\\,\\leq\\,\\sqrt{n}\\cdot\\frac{1}{n\\lambda_{n}}\\cdot C\\sqrt{n}\\,=\\,\\frac{C}{\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": "S8.Ex45",
+      "tex": [
+        "\\displaystyle|\\hat{h}_{n}(z;x)-h_{z}(x)|",
+        "\\displaystyle\\leq\\,|\\hat{h}_{n}(v;x)-h_{v}(x)|+|\\hat{h}_{n}(z;x)-\\hat{h}_{n}(v;x)|+|h_{v}(x)-h_{z}(x)|",
+        "\\displaystyle\\leq\\,|\\hat{h}_{n}(v;x)-h_{v}(x)|+G\\varepsilon\\left(1+\\frac{C}{\\lambda_{n}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle|\\hat{h}_{n}(z;x)-h_{z}(x)|",
+        "\\displaystyle\\leq\\,|\\hat{h}_{n}(v;x)-h_{v}(x)|+|\\hat{h}_{n}(z;x)-\\hat{h}_{n}(v;x)|+|h_{v}(x)-h_{z}(x)|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,|\\hat{h}_{n}(v;x)-h_{v}(x)|+G\\varepsilon\\left(1+\\frac{C}{\\lambda_{n}}\\right)."
+      ]
+    },
+    {
+      "id": "S8.E47",
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\|_{\\infty}\\,\\leq\\,\\max_{v\\in V_{\\varepsilon}}\\|\\hat{h}_{n}(v;\\cdot)-h_{v}\\|_{\\infty}+G\\varepsilon\\left(1+\\frac{C}{\\lambda_{n}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\|_{\\infty}\\,\\leq\\,\\max_{v\\in V_{\\varepsilon}}\\|\\hat{h}_{n}(v;\\cdot)-h_{v}\\|_{\\infty}+G\\varepsilon\\left(1+\\frac{C}{\\lambda_{n}}\\right)."
+      ]
+    },
+    {
+      "id": "S8.Ex46",
+      "tex": [
+        "\\varepsilon_{n}^{-1}\\,=\\,\\mathcal{O}\\left(\\left({n}/{\\log n}\\right)^{1+\\frac{\\nu}{2\\nu+d_{x}}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon_{n}^{-1}\\,=\\,\\mathcal{O}\\left(\\left({n}/{\\log n}\\right)^{1+\\frac{\\nu}{2\\nu+d_{x}}}\\right)."
+      ]
+    },
+    {
+      "id": "S8.Ex47",
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\max_{v\\in V_{\\varepsilon_{n}}}\\|\\hat{h}_{n}(v;\\cdot)-h_{v}\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)\\,\\leq\\,|V_{\\varepsilon_{n}}|n^{-A}\\,\\leq\\,Cn^{d_{z}\\left(1+\\frac{\\nu}{2\\nu+d_{x}}\\right)-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\max_{v\\in V_{\\varepsilon_{n}}}\\|\\hat{h}_{n}(v;\\cdot)-h_{v}\\|_{\\infty}>C_{A}\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)\\,\\leq\\,|V_{\\varepsilon_{n}}|n^{-A}\\,\\leq\\,Cn^{d_{z}\\left(1+\\frac{\\nu}{2\\nu+d_{x}}\\right)-A}."
+      ]
+    },
+    {
+      "id": "S8.E48",
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\sup_{z\\in\\mathcal{Z}}\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\|_{\\infty}>(C_{A}+C)\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)\\,\\leq\\,Cn^{d_{z}\\left(1+\\frac{\\nu}{2\\nu+d_{x}}\\right)-A}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}_{\\mathcal{D}_{n}}\\left(\\sup_{z\\in\\mathcal{Z}}\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\|_{\\infty}>(C_{A}+C)\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)\\,\\leq\\,Cn^{d_{z}\\left(1+\\frac{\\nu}{2\\nu+d_{x}}\\right)-A}."
+      ]
+    },
+    {
+      "id": "S8.Ex48",
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n}}\\left[\\sup_{z\\in\\mathcal{Z}}\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\|_{\\infty}\\right]\\,\\leq\\,(C_{A}+C)\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}+CM(1+\\lambda_{n}^{-1})n^{-2-\\delta}\\,=\\,\\mathcal{O}\\left(\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n}}\\left[\\sup_{z\\in\\mathcal{Z}}\\|\\hat{h}_{n}(z;\\cdot)-h_{z}\\|_{\\infty}\\right]\\,\\leq\\,(C_{A}+C)\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}+CM(1+\\lambda_{n}^{-1})n^{-2-\\delta}\\,=\\,\\mathcal{O}\\left(\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right),"
+      ]
+    },
+    {
+      "id": "S8.Ex49",
+      "tex": [
+        "(1+\\lambda_{n}^{-1})n^{-2-\\delta}\\,=\\,\\mathcal{O}\\left(\\frac{n^{-1-\\delta}}{\\log n}\\right)\\,=\\,o\\left(\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(1+\\lambda_{n}^{-1})n^{-2-\\delta}\\,=\\,\\mathcal{O}\\left(\\frac{n^{-1-\\delta}}{\\log n}\\right)\\,=\\,o\\left(\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)."
+      ]
+    },
+    {
+      "id": "S8.Ex50",
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n},X}\\left[\\sup_{z\\in\\mathcal{Z}}|\\hat{h}_{n}(z;X)-h(z;X)|\\right]\\,=\\,\\mathcal{O}\\left(\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n},X}\\left[\\sup_{z\\in\\mathcal{Z}}|\\hat{h}_{n}(z;X)-h(z;X)|\\right]\\,=\\,\\mathcal{O}\\left(\\left(\\frac{\\log n}{n}\\right)^{\\frac{\\nu}{2\\nu+d_{x}}}\\right)."
+      ]
+    },
+    {
+      "id": "S8.Ex51",
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n},X}\\Big[h(\\hat{z}_{n}(X);X)-h(z^{*}(X);X)\\Big]\\,\\leq\\,2\\,\\mathbb{E}_{\\mathcal{D}_{n},X}\\left[\\sup_{z\\in\\mathcal{Z}}|\\hat{h}_{n}(z,X)-h(z;X)|\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{\\mathcal{D}_{n},X}\\Big[h(\\hat{z}_{n}(X);X)-h(z^{*}(X);X)\\Big]\\,\\leq\\,2\\,\\mathbb{E}_{\\mathcal{D}_{n},X}\\left[\\sup_{z\\in\\mathcal{Z}}|\\hat{h}_{n}(z,X)-h(z;X)|\\right]."
+      ]
+    },
+    {
+      "id": "S8.Ex52",
+      "tex": [
+        "\\mathbb{E}_{f}\\left[Y\\mid X=x\\right]\\,=\\,f(x),\\qquad\\operatorname{Var}_{f}\\left(Y\\mid X=x\\right)\\,=\\,\\sigma^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{f}\\left[Y\\mid X=x\\right]\\,=\\,f(x),\\qquad\\operatorname{Var}_{f}\\left(Y\\mid X=x\\right)\\,=\\,\\sigma^{2}"
+      ]
+    },
+    {
+      "id": "S8.Ex53",
+      "tex": [
+        "c(z;x,y)\\,=\\,\\frac{1}{2}z^{2}-zy,\\quad\\text{for all }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "c(z;x,y)\\,=\\,\\frac{1}{2}z^{2}-zy,\\quad\\text{for all }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": "S8.Ex54",
+      "tex": [
+        "|c(z_{2};x,y)-c(z_{1};x,y)|\\,=\\,|z_{2}-z_{1}|\\left|\\frac{z_{1}+z_{2}}{2}-y\\right|\\,\\leq\\,2R|z_{2}-z_{1}|,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|c(z_{2};x,y)-c(z_{1};x,y)|\\,=\\,|z_{2}-z_{1}|\\left|\\frac{z_{1}+z_{2}}{2}-y\\right|\\,\\leq\\,2R|z_{2}-z_{1}|,"
+      ]
+    },
+    {
+      "id": "S8.EGx4",
+      "tex": [
+        "\\displaystyle\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\mathbb{E}\\left[\\mathbb{E}\\left[h(\\hat{z}_{n}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\right]\\right]",
+        "\\displaystyle\\geq",
+        "\\displaystyle\\max_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}(\\hat{z}_{n}(X);X)-\\min_{z\\in\\mathcal{Z}}h_{f}(z;X)\\right]\\,\\geq\\,\\frac{1}{|\\mathcal{F}_{0}|}\\sum_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}(\\hat{z}_{n}(X);X)-\\min_{z\\in\\mathcal{Z}}h_{f}(z;X)\\right].~~~~~"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\mathbb{E}\\left[\\mathbb{E}\\left[h(\\hat{z}_{n}(X);X)-h(z^{\\ast}(X);X)\\,\\big|\\,\\mathcal{D}_{n}\\right]\\right]"
+      ]
+    },
+    {
+      "id": "S8.Ex56",
+      "tex": [
+        "\\hat{h}_{n,f}(z;x)\\,=\\,\\sum_{i=1}^{n}\\omega_{n,i}(x)\\left(\\frac{1}{2}z^{2}-zy_{i}\\right)\\,=\\,\\Bigg(\\sum_{i=1}^{n}\\omega_{n,i}(x)\\Bigg)\\Bigg[\\frac{1}{2}z^{2}-z\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)y_{i}\\Bigg]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{h}_{n,f}(z;x)\\,=\\,\\sum_{i=1}^{n}\\omega_{n,i}(x)\\left(\\frac{1}{2}z^{2}-zy_{i}\\right)\\,=\\,\\Bigg(\\sum_{i=1}^{n}\\omega_{n,i}(x)\\Bigg)\\Bigg[\\frac{1}{2}z^{2}-z\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)y_{i}\\Bigg]."
+      ]
+    },
+    {
+      "id": "S8.Ex57",
+      "tex": [
+        "h_{f}(\\hat{z}_{n}(x);x)-h_{f}(z_{f}^{*}(x);x)\\,=\\,\\frac{1}{2}\\left[\\hat{z}_{n}(x)-f(x)\\right]^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{f}(\\hat{z}_{n}(x);x)-h_{f}(z_{f}^{*}(x);x)\\,=\\,\\frac{1}{2}\\left[\\hat{z}_{n}(x)-f(x)\\right]^{2}."
+      ]
+    },
+    {
+      "id": "S8.E50",
+      "tex": [
+        "B_{f}(x)\\,:=\\,\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)f(X_{i})-f(x)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "B_{f}(x)\\,:=\\,\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)f(X_{i})-f(x)"
+      ]
+    },
+    {
+      "id": "S8.EGx5",
+      "tex": [
+        "\\displaystyle\\mathbb{E}_{f}\\left[h_{f}\\big(\\hat{z}_{n}(x);x\\big)-h_{f}\\big(z_{f}^{*}(x);x\\big)\\,\\big|\\,X_{1:n}\\right]\\,=\\,\\frac{1}{2}\\mathbb{E}_{f}\\Bigg[\\Big(B_{f}(x)+\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)\\varepsilon_{i}\\Big)^{2}\\,\\Big|\\,X_{1:n}\\Bigg]\\,=\\,\\frac{1}{2}B_{f}(x)^{2}+\\frac{\\sigma^{2}}{2}S(x)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}_{f}\\left[h_{f}\\big(\\hat{z}_{n}(x);x\\big)-h_{f}\\big(z_{f}^{*}(x);x\\big)\\,\\big|\\,X_{1:n}\\right]\\,=\\,\\frac{1}{2}\\mathbb{E}_{f}\\Bigg[\\Big(B_{f}(x)+\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)\\varepsilon_{i}\\Big)^{2}\\,\\Big|\\,X_{1:n}\\Bigg]\\,=\\,\\frac{1}{2}B_{f}(x)^{2}+\\frac{\\sigma^{2}}{2}S(x)."
+      ]
+    },
+    {
+      "id": "S8.Ex58",
+      "tex": [
+        "V(x)\\,:=\\,\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)\\|X_{i}-x\\|^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V(x)\\,:=\\,\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)\\|X_{i}-x\\|^{2}."
+      ]
+    },
+    {
+      "id": "S8.Ex59",
+      "tex": [
+        "\\Bigg(|B_{\\mathrm{q}}(x)|+\\sum_{j=1}^{d}|B_{j}(x)|\\Bigg)^{2}\\,\\leq\\,(d+1)\\Bigg(B_{\\mathrm{q}}(x)^{2}+\\sum_{j=1}^{d}B_{j}(x)^{2}\\Bigg)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Bigg(|B_{\\mathrm{q}}(x)|+\\sum_{j=1}^{d}|B_{j}(x)|\\Bigg)^{2}\\,\\leq\\,(d+1)\\Bigg(B_{\\mathrm{q}}(x)^{2}+\\sum_{j=1}^{d}B_{j}(x)^{2}\\Bigg)."
+      ]
+    },
+    {
+      "id": "S8.E52",
+      "tex": [
+        "\\frac{1}{d+1}\\sum_{f\\in\\mathcal{F}_{0}}B_{f}(x)^{2}\\,\\geq\\,\\frac{1}{4(d+1)^{2}}V(x)^{2}\\,=:\\,C_{1}V(x)^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{1}{d+1}\\sum_{f\\in\\mathcal{F}_{0}}B_{f}(x)^{2}\\,\\geq\\,\\frac{1}{4(d+1)^{2}}V(x)^{2}\\,=:\\,C_{1}V(x)^{2}."
+      ]
+    },
+    {
+      "id": "S8.Ex60",
+      "tex": [
+        "\\overline{R}_{n}(x)\\,:=\\,\\frac{1}{d+1}\\sum_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}(\\hat{z}_{n}(x);x)-h_{f}(z_{f}^{*}(x);x)\\mid X_{1:n}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{R}_{n}(x)\\,:=\\,\\frac{1}{d+1}\\sum_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}(\\hat{z}_{n}(x);x)-h_{f}(z_{f}^{*}(x);x)\\mid X_{1:n}\\right]."
+      ]
+    },
+    {
+      "id": "S8.E53",
+      "tex": [
+        "\\overline{R}_{n}(x)\\,\\geq\\,\\frac{C_{1}}{2}V(x)^{2}+\\frac{\\sigma^{2}}{2}S(x)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{R}_{n}(x)\\,\\geq\\,\\frac{C_{1}}{2}V(x)^{2}+\\frac{\\sigma^{2}}{2}S(x)."
+      ]
+    },
+    {
+      "id": "S8.Ex61",
+      "tex": [
+        "\\mathbb{P}\\bigl(N_{n}(x,r_{k})\\geq k\\bigr)\\,\\leq\\,\\mathbb{P}(Z_{k}\\geq k)\\,\\leq\\,\\left(\\frac{e\\mu_{k}}{k}\\right)^{k}\\,=\\,4^{-k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\bigl(N_{n}(x,r_{k})\\geq k\\bigr)\\,\\leq\\,\\mathbb{P}(Z_{k}\\geq k)\\,\\leq\\,\\left(\\frac{e\\mu_{k}}{k}\\right)^{k}\\,=\\,4^{-k}."
+      ]
+    },
+    {
+      "id": "S8.E54",
+      "tex": [
+        "\\mathbb{P}(\\mathcal{E}(x))\\,\\geq\\,\\frac{2}{3}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(\\mathcal{E}(x))\\,\\geq\\,\\frac{2}{3}."
+      ]
+    },
+    {
+      "id": "S8.E55",
+      "tex": [
+        "W_{\\mathrm{in}}\\,:=\\,\\sum_{i\\in I_{K}}\\widetilde{\\omega}_{n,i}(x)\\,\\leq\\,\\sqrt{K\\sum_{i\\in I_{K}}\\widetilde{\\omega}_{n,i}^{2}(x)}\\,\\leq\\,\\sqrt{KS(x)}\\,\\leq\\,\\frac{1}{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{\\mathrm{in}}\\,:=\\,\\sum_{i\\in I_{K}}\\widetilde{\\omega}_{n,i}(x)\\,\\leq\\,\\sqrt{K\\sum_{i\\in I_{K}}\\widetilde{\\omega}_{n,i}^{2}(x)}\\,\\leq\\,\\sqrt{KS(x)}\\,\\leq\\,\\frac{1}{2}."
+      ]
+    },
+    {
+      "id": "S8.E56",
+      "tex": [
+        "V(x)\\,=\\,\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)\\|X_{i}-x\\|^{2}\\,\\geq\\,W_{\\mathrm{out}}r_{K}^{2}\\,\\geq\\,\\frac{1}{2}\\left(\\frac{K}{4ev_{d}n}\\right)^{2/d}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V(x)\\,=\\,\\sum_{i=1}^{n}\\widetilde{\\omega}_{n,i}(x)\\|X_{i}-x\\|^{2}\\,\\geq\\,W_{\\mathrm{out}}r_{K}^{2}\\,\\geq\\,\\frac{1}{2}\\left(\\frac{K}{4ev_{d}n}\\right)^{2/d}."
+      ]
+    },
+    {
+      "id": "S8.E57",
+      "tex": [
+        "V(x)^{2}\\,\\geq\\,c_{2}\\bigl(nS(x)\\bigr)^{-4/d},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V(x)^{2}\\,\\geq\\,c_{2}\\bigl(nS(x)\\bigr)^{-4/d},"
+      ]
+    },
+    {
+      "id": "S8.Ex62",
+      "tex": [
+        "\\overline{R}_{n}(x)\\,\\geq\\,An^{-4/d}S(x)^{-4/d}+BS(x),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{R}_{n}(x)\\,\\geq\\,An^{-4/d}S(x)^{-4/d}+BS(x),"
+      ]
+    },
+    {
+      "id": "S8.E58",
+      "tex": [
+        "\\inf_{s>0}g_{n}(s)\\,=\\,c_{3}n^{-q/(q+1)}\\,=\\,c_{3}n^{-4/(d+4)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\inf_{s>0}g_{n}(s)\\,=\\,c_{3}n^{-q/(q+1)}\\,=\\,c_{3}n^{-4/(d+4)},"
+      ]
+    },
+    {
+      "id": "S8.E59",
+      "tex": [
+        "\\mathbb{E}_{X_{1:n}}[\\overline{R}_{n}(x)]\\,\\geq\\,\\mathbb{E}_{X_{1:n}}\\left[\\overline{R}_{n}(x)\\mathbb{I}_{\\mathcal{E}(x)}\\right]\\,\\geq\\,c_{4}n^{-4/(d+4)}\\mathbb{P}(\\mathcal{E}(x))\\,\\geq\\,\\frac{2}{3}c_{4}n^{-4/(d+4)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{X_{1:n}}[\\overline{R}_{n}(x)]\\,\\geq\\,\\mathbb{E}_{X_{1:n}}\\left[\\overline{R}_{n}(x)\\mathbb{I}_{\\mathcal{E}(x)}\\right]\\,\\geq\\,c_{4}n^{-4/(d+4)}\\mathbb{P}(\\mathcal{E}(x))\\,\\geq\\,\\frac{2}{3}c_{4}n^{-4/(d+4)}."
+      ]
+    },
+    {
+      "id": "S8.Ex63",
+      "tex": [
+        "\\frac{1}{d+1}\\sum_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}\\big(\\hat{z}_{n}(X);X\\big)-h_{f}\\big(z_{f}^{*}(X);X\\big)\\right]\\,\\geq\\,\\frac{2}{3}c_{4}n^{-4/(d+4)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{1}{d+1}\\sum_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}\\big(\\hat{z}_{n}(X);X\\big)-h_{f}\\big(z_{f}^{*}(X);X\\big)\\right]\\,\\geq\\,\\frac{2}{3}c_{4}n^{-4/(d+4)}."
+      ]
+    },
+    {
+      "id": "S8.Ex64",
+      "tex": [
+        "\\max_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}\\big(\\hat{z}_{n}(X);X\\big)-h_{f}\\big(z_{f}^{*}(X);X\\big)\\right]\\,\\geq\\,\\frac{2}{3}c_{4}n^{-4/(d+4)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\max_{f\\in\\mathcal{F}_{0}}\\mathbb{E}_{f}\\left[h_{f}\\big(\\hat{z}_{n}(X);X\\big)-h_{f}\\big(z_{f}^{*}(X);X\\big)\\right]\\,\\geq\\,\\frac{2}{3}c_{4}n^{-4/(d+4)}."
+      ]
+    },
+    {
+      "id": "S8.Ex65",
+      "tex": [
+        "\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\right]\\,\\geq\\,c_{0}n^{-4/(d+4)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\right]\\,\\geq\\,c_{0}n^{-4/(d+4)},"
+      ]
+    },
+    {
+      "id": "S8.Ex66",
+      "tex": [
+        "\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\right]\\,=\\,\\mathbb{E}\\left[\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\mid D_{n}\\right]\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\right]\\,=\\,\\mathbb{E}\\left[\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\mid D_{n}\\right]\\right]."
+      ]
+    },
+    {
+      "id": "S8.Ex67",
+      "tex": [
+        "\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\mathbb{E}\\left[\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\mid D_{n}\\right]\\right]\\,\\geq\\,c_{0}n^{-4/(d_{x}+4)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{(P,c)\\in\\mathcal{P}_{\\beta}}\\mathbb{E}\\left[\\mathbb{E}\\left[h\\big(\\hat{z}_{n}(X);X\\big)-h\\big(z^{*}(X);X\\big)\\mid D_{n}\\right]\\right]\\,\\geq\\,c_{0}n^{-4/(d_{x}+4)}."
+      ]
+    },
+    {
+      "id": "S9.Ex68",
+      "tex": [
+        "\\displaystyle\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})",
+        "\\displaystyle\\leq\\,\\hat{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})+\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|",
+        "\\displaystyle\\leq\\,\\hat{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})+\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|\\ \\leq\\ \\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})+2\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})",
+        "\\displaystyle\\leq\\,\\hat{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})+\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,\\hat{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})+\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|\\ \\leq\\ \\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})+2\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|"
+      ]
+    },
+    {
+      "id": "S9.E60",
+      "tex": [
+        "\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\;\\leq\\;2\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\;\\leq\\;2\\sup_{z\\in\\mathcal{Z}}|\\hat{h}(z;x_{0})-\\bar{h}(z;x_{0})|."
+      ]
+    },
+    {
+      "id": "S9.E61",
+      "tex": [
+        "\\E\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\right]\\;\\leq\\;2\\;\\E\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\left[\\bar{h}(\\hat{z}_{n,m}^{\\ast}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{\\ast}(x_{0});x_{0})\\right]\\;\\leq\\;2\\;\\E\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]."
+      ]
+    },
+    {
+      "id": "S9.Ex69",
+      "tex": [
+        "N_{k}\\,\\leq\\,\\left(1+\\frac{2D}{r_{k}}\\right)^{d_{z}}\\,=\\,\\left(1+2^{k+1}\\right)^{d_{z}}\\,\\leq\\,2^{(k+2)d_{z}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "N_{k}\\,\\leq\\,\\left(1+\\frac{2D}{r_{k}}\\right)^{d_{z}}\\,=\\,\\left(1+2^{k+1}\\right)^{d_{z}}\\,\\leq\\,2^{(k+2)d_{z}}."
+      ]
+    },
+    {
+      "id": "S9.Ex70",
+      "tex": [
+        "\\|\\pi_{k}(z)-\\pi_{k-1}(z)\\|\\,\\leq\\,r_{k}+r_{k-1}\\,=\\,3r_{k},\\quad k\\geq 1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\pi_{k}(z)-\\pi_{k-1}(z)\\|\\,\\leq\\,r_{k}+r_{k-1}\\,=\\,3r_{k},\\quad k\\geq 1."
+      ]
+    },
+    {
+      "id": "S9.Ex71",
+      "tex": [
+        "H_{m}(u)-H_{m}(v)\\,=\\,\\frac{1}{m}\\sum_{j=1}^{m}\\bigl(W_{j}(u,v)-\\mathbb{E}[W_{j}(u,v)]\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{m}(u)-H_{m}(v)\\,=\\,\\frac{1}{m}\\sum_{j=1}^{m}\\bigl(W_{j}(u,v)-\\mathbb{E}[W_{j}(u,v)]\\bigr)."
+      ]
+    },
+    {
+      "id": "S9.Ex72",
+      "tex": [
+        "\\mathbb{E}\\left[\\exp\\!\\left\\{\\lambda\\bigl(H_{m}(u)-H_{m}(v)\\bigr)\\right\\}\\right]\\,\\leq\\,\\exp\\!\\left\\{\\frac{\\lambda^{2}}{2}\\left(\\frac{3Gr_{k}}{\\sqrt{m}}\\right)^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\exp\\!\\left\\{\\lambda\\bigl(H_{m}(u)-H_{m}(v)\\bigr)\\right\\}\\right]\\,\\leq\\,\\exp\\!\\left\\{\\frac{\\lambda^{2}}{2}\\left(\\frac{3Gr_{k}}{\\sqrt{m}}\\right)^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "S9.Ex73",
+      "tex": [
+        "\\mathbb{E}\\left[\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right]\\,\\leq\\,\\frac{1}{\\lambda}\\log\\mathbb{E}\\left[\\exp\\!\\left\\{\\lambda\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right\\}\\right]\\,\\leq\\,\\frac{\\log(2|\\mathcal A_k|)}{\\lambda}+\\frac{\\lambda\\sigma_{k}^{2}}{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right]\\,\\leq\\,\\frac{1}{\\lambda}\\log\\mathbb{E}\\left[\\exp\\!\\left\\{\\lambda\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right\\}\\right]\\,\\leq\\,\\frac{\\log(2|\\mathcal A_k|)}{\\lambda}+\\frac{\\lambda\\sigma_{k}^{2}}{2},"
+      ]
+    },
+    {
+      "id": "S9.Ex74",
+      "tex": [
+        "\\mathbb{E}\\left[\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right]\\,\\leq\\,\\sigma_{k}\\sqrt{2\\log(2|\\mathcal A_k|)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right]\\,\\leq\\,\\sigma_{k}\\sqrt{2\\log(2|\\mathcal A_k|)}."
+      ]
+    },
+    {
+      "id": "S9.Ex75",
+      "tex": [
+        "\\mathbb{E}\\left[\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right]\\,\\leq\\,\\frac{6GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}2^{-k}\\sqrt{k+2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|\\right]\\,\\leq\\,\\frac{6GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}2^{-k}\\sqrt{k+2}."
+      ]
+    },
+    {
+      "id": "S9.Ex76",
+      "tex": [
+        "H_{m}(z)\\,=\\,H_{m}(z_{\\mathrm{ref}})+\\sum_{k=1}^{K}\\bigl(H_{m}(\\pi_{k}(z))-H_{m}(\\pi_{k-1}(z))\\bigr)+H_{m}(z)-H_{m}(\\pi_{K}(z))"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{m}(z)\\,=\\,H_{m}(z_{\\mathrm{ref}})+\\sum_{k=1}^{K}\\bigl(H_{m}(\\pi_{k}(z))-H_{m}(\\pi_{k-1}(z))\\bigr)+H_{m}(z)-H_{m}(\\pi_{K}(z))"
+      ]
+    },
+    {
+      "id": "S9.Ex77",
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\,\\leq\\,|H_{m}(z_{\\mathrm{ref}})|+\\sum_{k=1}^{K}\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|+2Gr_{K}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\,\\leq\\,|H_{m}(z_{\\mathrm{ref}})|+\\sum_{k=1}^{K}\\max_{(u,v)\\in\\mathcal{A}_{k}}|H_{m}(u)-H_{m}(v)|+2Gr_{K}."
+      ]
+    },
+    {
+      "id": "S9.Ex78",
+      "tex": [
+        "\\mathbb{E}\\left[|H_{m}(z_{\\mathrm{ref}})|\\right]\\,\\leq\\,\\sqrt{\\mathbb{E}\\left[|H_{m}(z_{\\mathrm{ref}})|^{2}\\right]}\\,=\\,\\sqrt{\\frac{\\operatorname{Var}\\left(c(z_{\\mathrm{ref}};x_{0},\\hat{Y})\\right)}{m}}\\,\\leq\\,\\frac{M}{\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[|H_{m}(z_{\\mathrm{ref}})|\\right]\\,\\leq\\,\\sqrt{\\mathbb{E}\\left[|H_{m}(z_{\\mathrm{ref}})|^{2}\\right]}\\,=\\,\\sqrt{\\frac{\\operatorname{Var}\\left(c(z_{\\mathrm{ref}};x_{0},\\hat{Y})\\right)}{m}}\\,\\leq\\,\\frac{M}{\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": "S9.Ex79",
+      "tex": [
+        "\\mathbb{E}\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]\\,\\leq\\,\\frac{M}{\\sqrt{m}}+\\frac{6GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}\\sum_{k=1}^{K}2^{-k}\\sqrt{k+2}+2GD2^{-K}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]\\,\\leq\\,\\frac{M}{\\sqrt{m}}+\\frac{6GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}\\sum_{k=1}^{K}2^{-k}\\sqrt{k+2}+2GD2^{-K}."
+      ]
+    },
+    {
+      "id": "S9.Ex80",
+      "tex": [
+        "\\mathbb{E}\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]\\,\\leq\\,\\frac{M+18GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]\\,\\leq\\,\\frac{M+18GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": "S9.Ex81",
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\bar{h}(\\hat{z}_{n,m}^{*}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{*}(x_{0});x_{0})\\right]\\,\\leq\\,2\\mathbb{E}\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]\\,\\leq\\,\\frac{2M+36GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\bar{h}(\\hat{z}_{n,m}^{*}(x_{0});x_{0})-\\bar{h}(\\bar{z}_{n}^{*}(x_{0});x_{0})\\right]\\,\\leq\\,2\\mathbb{E}\\left[\\sup_{z\\in\\mathcal{Z}}|H_{m}(z)|\\right]\\,\\leq\\,\\frac{2M+36GD\\sqrt{d_{z}\\log 2}}{\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": "S9.E62",
+      "tex": [
+        "\\big|h(z;x_{0})-\\bar{h}(z;x_{0})\\big|\\,\\leq\\,2M\\,\\mathrm{TV}(F_{Y|X}(\\cdot|x_{0}),\\hat{F}_{Y|X}(\\cdot|x_{0}))\\quad\\text{for all }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\big|h(z;x_{0})-\\bar{h}(z;x_{0})\\big|\\,\\leq\\,2M\\,\\mathrm{TV}(F_{Y|X}(\\cdot|x_{0}),\\hat{F}_{Y|X}(\\cdot|x_{0}))\\quad\\text{for all }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": "S9.Ex82",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\sup_{z\\in\\mathcal{Z}}|h(z;X)-\\bar{h}(z;X)|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,\\leq\\,2M\\,\\E\\Big[\\E\\big[\\mathrm{TV}(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X))\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\sup_{z\\in\\mathcal{Z}}|h(z;X)-\\bar{h}(z;X)|\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\,\\leq\\,2M\\,\\E\\Big[\\E\\big[\\mathrm{TV}(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X))\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]."
+      ]
+    },
+    {
+      "id": "S9.Ex83",
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\mathcal{R}(X)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}+4M\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\Big[\\mathcal{R}(X)\\,\\big|\\,\\mathcal{D}_{n}\\Big]\\Big]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}+4M\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}."
+      ]
+    },
+    {
+      "id": "S9.E63",
+      "tex": [
+        "\\hat{z}_{n,m}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\left\\{\\hat{h}(z;x_{0}):=\\frac{1}{m}\\sum_{j=1}^{m}c\\big(z;x_{0},\\hat{Y}_{j}\\big)\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{z}_{n,m}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\left\\{\\hat{h}(z;x_{0}):=\\frac{1}{m}\\sum_{j=1}^{m}c\\big(z;x_{0},\\hat{Y}_{j}\\big)\\right\\}."
+      ]
+    },
+    {
+      "id": "S9.E64",
+      "tex": [
+        "\\bar{z}_{n}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\Big\\{\\bar{h}(z;x_{0}):=\\E\\big[c(z;X,\\hat{Y})\\,|\\,X=x_{0}\\big]\\Big\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{z}_{n}^{\\ast}(x_{0})\\in\\arg\\min_{z\\in\\mathcal{Z}}\\Big\\{\\bar{h}(z;x_{0}):=\\E\\big[c(z;X,\\hat{Y})\\,|\\,X=x_{0}\\big]\\Big\\},"
+      ]
+    },
+    {
+      "id": "S9.E65",
+      "tex": [
+        "\\underbrace{\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|}_{\\text{decision error}}\\,\\leq\\,\\underbrace{\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-\\bar{z}_{n}^{\\ast}(x_{0})\\|}_{\\text{SAA error}}\\,+\\,\\underbrace{\\|\\bar{z}_{n}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|}_{\\text{model error}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\underbrace{\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|}_{\\text{decision error}}\\,\\leq\\,\\underbrace{\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-\\bar{z}_{n}^{\\ast}(x_{0})\\|}_{\\text{SAA error}}\\,+\\,\\underbrace{\\|\\bar{z}_{n}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|}_{\\text{model error}}."
+      ]
+    },
+    {
+      "id": "S9.Ex84",
+      "tex": [
+        "\\mathrm{diam}(\\mathcal{Z}):=\\sup\\big\\{\\|z_{1}-z_{2}\\|:z_{1},z_{2}\\in\\mathcal{Z}\\big\\}\\leq D<\\infty."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{diam}(\\mathcal{Z}):=\\sup\\big\\{\\|z_{1}-z_{2}\\|:z_{1},z_{2}\\in\\mathcal{Z}\\big\\}\\leq D<\\infty."
+      ]
+    },
+    {
+      "id": "S9.Ex85",
+      "tex": [
+        "\\|\\nabla_{z}c(z;x,y)\\|\\leq G."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\nabla_{z}c(z;x,y)\\|\\leq G."
+      ]
+    },
+    {
+      "id": "S9.EGx6",
+      "tex": [
+        "\\displaystyle c(z_{2};x,y)-c(z_{1};x,y)",
+        "\\displaystyle\\geq\\nabla_{z}c(z_{1};x,y)^{\\top}(z_{2}-z_{1})+\\frac{\\mu}{2}\\|z_{2}-z_{1}\\|^{2},",
+        "\\displaystyle\\|\\nabla_{z}c(z_{2};x,y)-\\nabla_{z}c(z_{1};x,y)\\|",
+        "\\displaystyle\\leq L\\|z_{2}-z_{1}\\|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle c(z_{2};x,y)-c(z_{1};x,y)",
+        "\\displaystyle\\geq\\nabla_{z}c(z_{1};x,y)^{\\top}(z_{2}-z_{1})+\\frac{\\mu}{2}\\|z_{2}-z_{1}\\|^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\nabla_{z}c(z_{2};x,y)-\\nabla_{z}c(z_{1};x,y)\\|",
+        "\\displaystyle\\leq L\\|z_{2}-z_{1}\\|."
+      ]
+    },
+    {
+      "id": "S9.E66",
+      "tex": [
+        "\\E\\left[\\|\\hat{z}_{n,m}^{\\ast}-\\bar{z}_{n}^{\\ast}\\|\\,\\big|\\,\\mathcal{D}_{n},X=x_{0}\\right]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\left[\\|\\hat{z}_{n,m}^{\\ast}-\\bar{z}_{n}^{\\ast}\\|\\,\\big|\\,\\mathcal{D}_{n},X=x_{0}\\right]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}."
+      ]
+    },
+    {
+      "id": "S9.Ex88",
+      "tex": [
+        "\\left\\langle\\nabla\\bar{h}(\\bar{z};x_{0}),z-\\bar{z}\\right\\rangle\\geq 0\\quad\\text{and}\\quad\\left\\langle\\nabla\\hat{h}(\\hat{z};x_{0}),z-\\hat{z}\\right\\rangle\\geq 0,\\qquad\\text{for }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\langle\\nabla\\bar{h}(\\bar{z};x_{0}),z-\\bar{z}\\right\\rangle\\geq 0\\quad\\text{and}\\quad\\left\\langle\\nabla\\hat{h}(\\hat{z};x_{0}),z-\\hat{z}\\right\\rangle\\geq 0,\\qquad\\text{for }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": "S9.Ex89",
+      "tex": [
+        "\\left\\langle\\nabla\\bar{h}(\\bar{z};x_{0}),d\\right\\rangle\\geq 0\\quad\\text{and}\\quad\\left\\langle\\nabla\\hat{h}(\\hat{z};x_{0}),d\\right\\rangle\\leq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\langle\\nabla\\bar{h}(\\bar{z};x_{0}),d\\right\\rangle\\geq 0\\quad\\text{and}\\quad\\left\\langle\\nabla\\hat{h}(\\hat{z};x_{0}),d\\right\\rangle\\leq 0."
+      ]
+    },
+    {
+      "id": "S9.EGx7",
+      "tex": [
+        "\\displaystyle\\mu\\|d\\|^{2}\\,\\leq\\,\\left\\langle\\nabla\\hat{h}(\\hat{z};x_{0})-\\nabla\\hat{h}(\\bar{z};x_{0}),d\\right\\rangle",
+        "\\displaystyle\\leq",
+        "\\displaystyle-\\left\\langle\\nabla\\hat{h}(\\bar{z};x_{0}),d\\right\\rangle\\,\\leq\\,\\left\\langle\\nabla\\bar{h}(\\bar{z};x_{0})-\\nabla\\hat{h}(\\bar{z};x_{0}),d\\right\\rangle\\,\\leq\\,\\left\\|\\nabla\\bar{h}(\\bar{z};x_{0})-\\nabla\\hat{h}(\\bar{z};x_{0})\\right\\|\\|d\\|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mu\\|d\\|^{2}\\,\\leq\\,\\left\\langle\\nabla\\hat{h}(\\hat{z};x_{0})-\\nabla\\hat{h}(\\bar{z};x_{0}),d\\right\\rangle"
+      ]
+    },
+    {
+      "id": "S9.Ex92",
+      "tex": [
+        "\\|\\hat{z}-\\bar{z}\\|\\,\\leq\\,\\frac{1}{\\mu}\\left\\|\\nabla\\hat{h}(\\bar{z};x_{0})-\\nabla\\bar{h}(\\bar{z};x_{0})\\right\\|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\hat{z}-\\bar{z}\\|\\,\\leq\\,\\frac{1}{\\mu}\\left\\|\\nabla\\hat{h}(\\bar{z};x_{0})-\\nabla\\bar{h}(\\bar{z};x_{0})\\right\\|."
+      ]
+    },
+    {
+      "id": "S9.Ex93",
+      "tex": [
+        "\\nabla\\hat{h}(\\bar{z};x_{0})-\\nabla\\bar{h}(\\bar{z};x_{0})\\,=\\,\\frac{1}{m}\\sum_{j=1}^{m}(V_{j}-a)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nabla\\hat{h}(\\bar{z};x_{0})-\\nabla\\bar{h}(\\bar{z};x_{0})\\,=\\,\\frac{1}{m}\\sum_{j=1}^{m}(V_{j}-a)."
+      ]
+    },
+    {
+      "id": "S9.EGx8",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\left\\|\\nabla\\hat{h}(\\bar{z};x_{0})-\\nabla\\bar{h}(\\bar{z};x_{0})\\right\\|^{2}\\right]",
+        "\\displaystyle=",
+        "\\displaystyle\\frac{1}{m^{2}}\\sum_{i=1}^{m}\\sum_{j=1}^{m}\\mathbb{E}\\left[\\langle V_{i}-a,V_{j}-a\\rangle\\right]\\,=\\,\\frac{1}{m}\\mathbb{E}\\left[\\|V_{1}-a\\|^{2}\\right]\\,=\\,\\frac{1}{m}\\left(\\mathbb{E}\\left[\\|V_{1}\\|^{2}\\right]-\\|a\\|^{2}\\right)\\,\\leq\\,\\frac{G^{2}}{m}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\left\\|\\nabla\\hat{h}(\\bar{z};x_{0})-\\nabla\\bar{h}(\\bar{z};x_{0})\\right\\|^{2}\\right]"
+      ]
+    },
+    {
+      "id": "S9.Ex96",
+      "tex": [
+        "\\mathbb{E}\\left[\\|\\hat{z}-\\bar{z}\\|\\right]\\leq\\left(\\mathbb{E}\\left[\\|\\hat{z}-\\bar{z}\\|^{2}\\right]\\right)^{1/2}\\leq\\frac{G}{\\mu\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\|\\hat{z}-\\bar{z}\\|\\right]\\leq\\left(\\mathbb{E}\\left[\\|\\hat{z}-\\bar{z}\\|^{2}\\right]\\right)^{1/2}\\leq\\frac{G}{\\mu\\sqrt{m}}."
+      ]
+    },
+    {
+      "id": "S9.Ex97",
+      "tex": [
+        "h_{\\mathbb{P}}(z;x_{0}):=\\E_{Y\\sim\\mathbb{P}}[c(z;x_{0},Y)],\\qquad h_{\\mathbb{Q}}(z;x_{0}):=\\E_{Y\\sim\\mathbb{Q}}[c(z;x_{0},Y)],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{\\mathbb{P}}(z;x_{0}):=\\E_{Y\\sim\\mathbb{P}}[c(z;x_{0},Y)],\\qquad h_{\\mathbb{Q}}(z;x_{0}):=\\E_{Y\\sim\\mathbb{Q}}[c(z;x_{0},Y)],"
+      ]
+    },
+    {
+      "id": "S9.Ex98",
+      "tex": [
+        "z_{\\mathbb{P}}^{\\ast}(x_{0}):=\\arg\\min_{z\\in\\mathcal{Z}}h_{\\mathbb{P}}(z;x_{0}),\\qquad z_{\\mathbb{Q}}^{\\ast}(x_{0}):=\\arg\\min_{z\\in\\mathcal{Z}}h_{\\mathbb{Q}}(z;x_{0})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{\\mathbb{P}}^{\\ast}(x_{0}):=\\arg\\min_{z\\in\\mathcal{Z}}h_{\\mathbb{P}}(z;x_{0}),\\qquad z_{\\mathbb{Q}}^{\\ast}(x_{0}):=\\arg\\min_{z\\in\\mathcal{Z}}h_{\\mathbb{Q}}(z;x_{0})."
+      ]
+    },
+    {
+      "id": "S9.E67",
+      "tex": [
+        "\\big\\|z_{\\mathbb{Q}}^{\\ast}(x_{0})-z_{\\mathbb{P}}^{\\ast}(x_{0})\\big\\|\\;\\leq\\;\\frac{2G}{\\mu}\\,\\mathrm{TV}(\\mathbb{Q},\\mathbb{P}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\big\\|z_{\\mathbb{Q}}^{\\ast}(x_{0})-z_{\\mathbb{P}}^{\\ast}(x_{0})\\big\\|\\;\\leq\\;\\frac{2G}{\\mu}\\,\\mathrm{TV}(\\mathbb{Q},\\mathbb{P}),"
+      ]
+    },
+    {
+      "id": "S9.Ex99",
+      "tex": [
+        "\\big\\|\\bar{z}_{n}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\big\\|\\;\\leq\\;\\frac{2G}{\\mu}\\,\\mathrm{TV}\\left(\\hat{F}_{Y|X}(\\cdot|x_{0}),F_{Y|X}(\\cdot|x_{0})\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\big\\|\\bar{z}_{n}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\big\\|\\;\\leq\\;\\frac{2G}{\\mu}\\,\\mathrm{TV}\\left(\\hat{F}_{Y|X}(\\cdot|x_{0}),F_{Y|X}(\\cdot|x_{0})\\right)."
+      ]
+    },
+    {
+      "id": "S9.Ex100",
+      "tex": [
+        "c(\\lambda z_{1}+(1-\\lambda)z_{2};x_{0},y)\\,\\leq\\,\\lambda c(z_{1};x_{0},y)+(1-\\lambda)c(z_{2};x_{0},y)-\\frac{\\mu}{2}\\lambda(1-\\lambda)\\|z_{1}-z_{2}\\|^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "c(\\lambda z_{1}+(1-\\lambda)z_{2};x_{0},y)\\,\\leq\\,\\lambda c(z_{1};x_{0},y)+(1-\\lambda)c(z_{2};x_{0},y)-\\frac{\\mu}{2}\\lambda(1-\\lambda)\\|z_{1}-z_{2}\\|^{2}."
+      ]
+    },
+    {
+      "id": "S9.Ex101",
+      "tex": [
+        "h_{\\mathbb{P}}(\\lambda z_{1}+(1-\\lambda)z_{2})\\,\\leq\\,\\lambda h_{\\mathbb{P}}(z_{1})+(1-\\lambda)h_{\\mathbb{P}}(z_{2})-\\frac{\\mu}{2}\\lambda(1-\\lambda)\\|z_{1}-z_{2}\\|^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{\\mathbb{P}}(\\lambda z_{1}+(1-\\lambda)z_{2})\\,\\leq\\,\\lambda h_{\\mathbb{P}}(z_{1})+(1-\\lambda)h_{\\mathbb{P}}(z_{2})-\\frac{\\mu}{2}\\lambda(1-\\lambda)\\|z_{1}-z_{2}\\|^{2},"
+      ]
+    },
+    {
+      "id": "S9.Ex102",
+      "tex": [
+        "\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*}),z-z_{\\mathbb{P}}^{*}\\big\\rangle\\geq 0\\quad\\text{and}\\quad\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{Q}}^{*}),z-z_{\\mathbb{Q}}^{*}\\big\\rangle\\geq 0,\\qquad\\text{for all }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*}),z-z_{\\mathbb{P}}^{*}\\big\\rangle\\geq 0\\quad\\text{and}\\quad\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{Q}}^{*}),z-z_{\\mathbb{Q}}^{*}\\big\\rangle\\geq 0,\\qquad\\text{for all }z\\in\\mathcal{Z}."
+      ]
+    },
+    {
+      "id": "S9.Ex103",
+      "tex": [
+        "\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*}),z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\big\\rangle\\geq 0\\quad\\text{and}\\quad\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{Q}}^{*}),z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\big\\rangle\\leq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*}),z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\big\\rangle\\geq 0\\quad\\text{and}\\quad\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{Q}}^{*}),z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\big\\rangle\\leq 0."
+      ]
+    },
+    {
+      "id": "S9.Ex104",
+      "tex": [
+        "\\displaystyle\\mu\\|d\\|^{2}",
+        "\\displaystyle\\leq\\,\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{Q}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle\\,\\leq\\,-\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle\\,=\\,\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle-\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle",
+        "\\displaystyle\\leq\\,\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle\\,\\leq\\,\\big\\|\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})\\big\\|\\|d\\|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mu\\|d\\|^{2}",
+        "\\displaystyle\\leq\\,\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{Q}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle\\,\\leq\\,-\\big\\langle\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle\\,=\\,\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle-\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\,\\big\\langle\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*}),d\\big\\rangle\\,\\leq\\,\\big\\|\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})\\big\\|\\|d\\|."
+      ]
+    },
+    {
+      "id": "S9.E68",
+      "tex": [
+        "\\|z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\|\\,\\leq\\,\\frac{1}{\\mu}\\left\\|\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})\\right\\|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\|\\,\\leq\\,\\frac{1}{\\mu}\\left\\|\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})\\right\\|."
+      ]
+    },
+    {
+      "id": "S9.Ex105",
+      "tex": [
+        "\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})\\,=\\,\\mathbb{E}_{Y\\sim\\mathbb{Q}}\\left[\\nabla_{z}c(z_{\\mathbb{P}}^{*};x_{0},Y)\\right]-\\mathbb{E}_{Y\\sim\\mathbb{P}}\\left[\\nabla_{z}c(z_{\\mathbb{P}}^{*};x_{0},Y)\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})\\,=\\,\\mathbb{E}_{Y\\sim\\mathbb{Q}}\\left[\\nabla_{z}c(z_{\\mathbb{P}}^{*};x_{0},Y)\\right]-\\mathbb{E}_{Y\\sim\\mathbb{P}}\\left[\\nabla_{z}c(z_{\\mathbb{P}}^{*};x_{0},Y)\\right]."
+      ]
+    },
+    {
+      "id": "S9.Ex106",
+      "tex": [
+        "\\left\\|\\mathbb{E}_{\\mathbb{Q}}[f(Y)]-\\mathbb{E}_{\\mathbb{P}}[f(Y)]\\right\\|\\,=\\,\\sup_{\\|u\\|\\leq 1}\\left|\\mathbb{E}_{\\mathbb{Q}}[u^{\\top}f(Y)]-\\mathbb{E}_{\\mathbb{P}}[u^{\\top}f(Y)]\\right|\\,\\leq\\,2B\\,\\operatorname{TV}(\\mathbb{Q},\\mathbb{P})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\mathbb{E}_{\\mathbb{Q}}[f(Y)]-\\mathbb{E}_{\\mathbb{P}}[f(Y)]\\right\\|\\,=\\,\\sup_{\\|u\\|\\leq 1}\\left|\\mathbb{E}_{\\mathbb{Q}}[u^{\\top}f(Y)]-\\mathbb{E}_{\\mathbb{P}}[u^{\\top}f(Y)]\\right|\\,\\leq\\,2B\\,\\operatorname{TV}(\\mathbb{Q},\\mathbb{P})."
+      ]
+    },
+    {
+      "id": "S9.Ex107",
+      "tex": [
+        "\\left\\|\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})\\right\\|\\,\\leq\\,2G\\,\\operatorname{TV}(\\mathbb{Q},\\mathbb{P})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\nabla h_{\\mathbb{Q}}(z_{\\mathbb{P}}^{*})-\\nabla h_{\\mathbb{P}}(z_{\\mathbb{P}}^{*})\\right\\|\\,\\leq\\,2G\\,\\operatorname{TV}(\\mathbb{Q},\\mathbb{P})."
+      ]
+    },
+    {
+      "id": "S9.Ex108",
+      "tex": [
+        "\\|z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\|\\,\\leq\\,\\frac{2G}{\\mu}\\operatorname{TV}(\\mathbb{Q},\\mathbb{P}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|z_{\\mathbb{Q}}^{*}-z_{\\mathbb{P}}^{*}\\|\\,\\leq\\,\\frac{2G}{\\mu}\\operatorname{TV}(\\mathbb{Q},\\mathbb{P}),"
+      ]
+    },
+    {
+      "id": "S9.E69",
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\bar{z}_{n}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\;\\leq\\;\\frac{2G}{\\mu}\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\bar{z}_{n}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\;\\leq\\;\\frac{2G}{\\mu}\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}},"
+      ]
+    },
+    {
+      "id": "S9.Ex109",
+      "tex": [
+        "\\|\\bar{z}_{n}^{\\ast}(x)-z^{\\ast}(x)\\|\\;\\leq\\;\\frac{2G}{\\mu}\\,\\mathrm{TV}\\big(\\hat{F}_{Y|X}(\\cdot|x),F_{Y|X}(\\cdot|x)\\big)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\bar{z}_{n}^{\\ast}(x)-z^{\\ast}(x)\\|\\;\\leq\\;\\frac{2G}{\\mu}\\,\\mathrm{TV}\\big(\\hat{F}_{Y|X}(\\cdot|x),F_{Y|X}(\\cdot|x)\\big)."
+      ]
+    },
+    {
+      "id": "S9.Ex110",
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\bar{z}_{n}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\,\\leq\\,\\frac{2G}{\\mu}\\,\\E\\Big[\\E\\big[\\mathrm{TV}(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X))\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\bar{z}_{n}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\,\\leq\\,\\frac{2G}{\\mu}\\,\\E\\Big[\\E\\big[\\mathrm{TV}(\\hat{F}_{Y|X}(\\cdot|X),F_{Y|X}(\\cdot|X))\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]."
+      ]
+    },
+    {
+      "id": "S9.Ex111",
+      "tex": [
+        "\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|\\,\\leq\\,\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-\\bar{z}_{n}^{\\ast}(x_{0})\\|+\\|\\bar{z}_{n}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|\\,\\leq\\,\\|\\hat{z}_{n,m}^{\\ast}(x_{0})-\\bar{z}_{n}^{\\ast}(x_{0})\\|+\\|\\bar{z}_{n}^{\\ast}(x_{0})-z^{\\ast}(x_{0})\\|."
+      ]
+    },
+    {
+      "id": "S9.E70",
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\;\\leq\\;C\\left(n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\;\\leq\\;C\\left(n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": "S9.Ex112",
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\,=\\,\\mathcal{O}\\Big(n^{-1/2}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\Big)\\,=\\,\\widetilde{\\mathcal{O}}\\Big(n^{-1/2}+m^{-1/2}\\Big)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\,=\\,\\mathcal{O}\\Big(n^{-1/2}(\\log n)^{\\alpha_{1}}+m^{-1/2}\\Big)\\,=\\,\\widetilde{\\mathcal{O}}\\Big(n^{-1/2}+m^{-1/2}\\Big)."
+      ]
+    },
+    {
+      "id": "S9.E71",
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-\\bar{z}_{n}^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-\\bar{z}_{n}^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]\\;\\leq\\;C_{\\mathrm{SAA}}\\,m^{-1/2}."
+      ]
+    },
+    {
+      "id": "S9.EGx9",
+      "tex": [
+        "\\displaystyle\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]",
+        "\\displaystyle\\,\\leq\\,\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-\\bar{z}_{n}^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]+\\E\\Big[\\E\\big[\\|\\bar{z}_{n}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]",
+        "\\displaystyle\\,\\leq\\,C_{\\mathrm{SAA}}\\,m^{-1/2}+\\frac{2G}{\\mu}\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]",
+        "\\displaystyle\\,\\leq\\,\\E\\Big[\\E\\big[\\|\\hat{z}_{n,m}^{\\ast}(X)-\\bar{z}_{n}^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]+\\E\\Big[\\E\\big[\\|\\bar{z}_{n}^{\\ast}(X)-z^{\\ast}(X)\\|\\,\\big|\\,\\mathcal{D}_{n}\\big]\\Big]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\,\\leq\\,C_{\\mathrm{SAA}}\\,m^{-1/2}+\\frac{2G}{\\mu}\\,C_{\\mathrm{M}}\\,n^{-\\alpha_{0}}(\\log n)^{\\alpha_{1}}."
+      ]
+    },
+    {
+      "id": "S10.Ex115",
+      "tex": [
+        "b(x)=\\begin{cases}b_{1},&s(x)<\\tau_{1},\\\\\nb_{k},&\\tau_{k-1}\\leq s(x)<\\tau_{k},\\quad k=2,\\ldots,10,\\\\\nb_{11},&s(x)\\geq\\tau_{10}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "b(x)=\\begin{cases}b_{1},&s(x)<\\tau_{1},\\\\\nb_{k},&\\tau_{k-1}\\leq s(x)<\\tau_{k},\\quad k=2,\\ldots,10,\\\\\nb_{11},&s(x)\\geq\\tau_{10}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S10.Ex116",
+      "tex": [
+        "Q(z,y)=\\min_{f,p}\\left\\{g^{\\top}f+r^{\\top}p:\\ z-Af+p\\geq y,\\ f\\geq 0,\\ p\\geq 0\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q(z,y)=\\min_{f,p}\\left\\{g^{\\top}f+r^{\\top}p:\\ z-Af+p\\geq y,\\ f\\geq 0,\\ p\\geq 0\\right\\},"
+      ]
+    },
+    {
+      "id": "S10.Ex117",
+      "tex": [
+        "\\displaystyle\\min_{z,\\{f^{s},p^{s}\\}_{s=1}^{S}}",
+        "\\displaystyle\\alpha^{\\top}z+\\sum_{s=1}^{S}\\omega_{s}\\left(g^{\\top}f^{s}+r^{\\top}p^{s}\\right)",
+        "\\displaystyle\\mathrm{s.t.}",
+        "\\displaystyle z-Af^{s}+p^{s}\\geq y^{s},\\quad s=1,\\ldots,S,",
+        "\\displaystyle 0\\leq z\\leq U,",
+        "\\displaystyle f^{s}\\geq 0,\\quad p^{s}\\geq 0,\\quad s=1,\\ldots,S."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\min_{z,\\{f^{s},p^{s}\\}_{s=1}^{S}}",
+        "\\displaystyle\\alpha^{\\top}z+\\sum_{s=1}^{S}\\omega_{s}\\left(g^{\\top}f^{s}+r^{\\top}p^{s}\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathrm{s.t.}",
+        "\\displaystyle z-Af^{s}+p^{s}\\geq y^{s},\\quad s=1,\\ldots,S,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle 0\\leq z\\leq U,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle f^{s}\\geq 0,\\quad p^{s}\\geq 0,\\quad s=1,\\ldots,S."
+      ]
+    },
+    {
+      "id": "S10.Ex119",
+      "tex": [
+        "{\\begin{array}[]{r@{\\quad}l@{\\quad}l}\\displaystyle\\min_{\\begin{subarray}{c}z,\\{f^{s},p^{s}\\}_{s\\in\\mathcal{S}_{+}},\\\\\n\\{\\lambda^{s}\\}_{s\\in\\mathcal{S}_{-}}\\end{subarray}}&\\lx@intercol\\displaystyle\\alpha^{\\top}z+\\sum_{s\\in\\mathcal{S}_{+}}\\omega_{s}\\left(g^{\\top}f^{s}+r^{\\top}p^{s}\\right)+\\sum_{s\\in\\mathcal{S}_{-}}\\omega_{s}(y^{s}-z)^{\\top}\\lambda^{s}\\hfil\\lx@intercol\\\\\n\\mathrm{s.t.}&z-Af^{s}+p^{s}\\geq y^{s},&s\\in\\mathcal{S}_{+},\\\\\n&f^{s}\\geq 0,\\quad p^{s}\\geq 0,&s\\in\\mathcal{S}_{+},\\\\\n&-A^{\\top}\\lambda^{s}\\leq g,&s\\in\\mathcal{S}_{-},\\\\\n&0\\leq\\lambda^{s}\\leq r,&s\\in\\mathcal{S}_{-},\\\\\n&0\\leq z\\leq U.&\\end{array}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "{\\begin{array}[]{r@{\\quad}l@{\\quad}l}\\displaystyle\\min_{\\begin{subarray}{c}z,\\{f^{s},p^{s}\\}_{s\\in\\mathcal{S}_{+}},\\\\\n\\{\\lambda^{s}\\}_{s\\in\\mathcal{S}_{-}}\\end{subarray}}&\\lx@intercol\\displaystyle\\alpha^{\\top}z+\\sum_{s\\in\\mathcal{S}_{+}}\\omega_{s}\\left(g^{\\top}f^{s}+r^{\\top}p^{s}\\right)+\\sum_{s\\in\\mathcal{S}_{-}}\\omega_{s}(y^{s}-z)^{\\top}\\lambda^{s}\\hfil\\lx@intercol\\\\\n\\mathrm{s.t.}&z-Af^{s}+p^{s}\\geq y^{s},&s\\in\\mathcal{S}_{+},\\\\\n&f^{s}\\geq 0,\\quad p^{s}\\geq 0,&s\\in\\mathcal{S}_{+},\\\\\n&-A^{\\top}\\lambda^{s}\\leq g,&s\\in\\mathcal{S}_{-},\\\\\n&0\\leq\\lambda^{s}\\leq r,&s\\in\\mathcal{S}_{-},\\\\\n&0\\leq z\\leq U.&\\end{array}}"
+      ]
+    },
+    {
+      "id": "S10.Ex120",
+      "tex": [
+        "\\alpha^{\\top}z+\\sum_{s=1}^{S}\\omega_{s}Q(z,y^{s})\\,=\\,\\underbrace{\\alpha^{\\top}z+\\sum_{s\\in\\mathcal{S}_{+}}\\omega_{s}Q(z,y^{s})}_{C(z)}-\\underbrace{\\sum_{s\\in\\mathcal{S}_{-}}|\\omega_{s}|Q(z,y^{s})}_{H(z)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\alpha^{\\top}z+\\sum_{s=1}^{S}\\omega_{s}Q(z,y^{s})\\,=\\,\\underbrace{\\alpha^{\\top}z+\\sum_{s\\in\\mathcal{S}_{+}}\\omega_{s}Q(z,y^{s})}_{C(z)}-\\underbrace{\\sum_{s\\in\\mathcal{S}_{-}}|\\omega_{s}|Q(z,y^{s})}_{H(z)}."
+      ]
+    },
+    {
+      "id": "S10.Ex121",
+      "tex": [
+        "K(x,x^{\\prime})=\\exp(-\\frac{\\|x-x'\\|^2}{\\ell}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "K(x,x^{\\prime})=\\exp(-\\frac{\\|x-x'\\|^2}{\\ell}),"
+      ]
+    },
+    {
+      "id": "S10.Ex122",
+      "tex": [
+        "\\exp\\Bigg(-\\frac{\\big(x_j-x_j'\\big)^2}{\\ell}\\Bigg)\\,=\\,\\begin{cases}1,&x_{j}=x_{j}^{\\prime},\\\\\n\\exp(-1/\\ell),&x_{j}\\neq x_{j}^{\\prime}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\exp\\Bigg(-\\frac{\\big(x_j-x_j'\\big)^2}{\\ell}\\Bigg)\\,=\\,\\begin{cases}1,&x_{j}=x_{j}^{\\prime},\\\\\n\\exp(-1/\\ell),&x_{j}\\neq x_{j}^{\\prime}.\\end{cases}"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S3.SS3.fig1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S5.T1",
+      "caption": "Table 1 :  Practical guidance for choosing between PtO and GtO.",
+      "images": []
+    },
+    {
+      "id": "S6.SS2.SSS2.fig1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S6.SS2.SSS2.tab1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S6.SS3.SSS2.tab1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S6.SS4.SSS2.tab1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S10.SS1.SSS2.tab1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S10.SS1.SSS2.tab2",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S10.SS1.SSS2.tab3",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S10.SS1.SSS2.tab4",
+      "caption": "",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML",
+    "https://huggingface.co/datasets/Dingdong-Inc/FreshRetailNet-LT"
+  ]
+}

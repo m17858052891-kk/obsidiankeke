@@ -1,0 +1,2431 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Longest-Queue Policies in Dynamic Matching with Abandonments",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Model Setup",
+      "id": "S2"
+    },
+    {
+      "title": "3  Fluid Benchmark and Regret",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Fluid Relaxation",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  High-Volume Setting",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  Performance Measure",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "4  Main Results",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Reduced Formulation and Dual",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  General Position Gap",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  The Longest-Queue Policy",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "5  Analysis of the Longest-Queue Policy",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  Bounding Regret Using Critical Queue Lengths",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Negative Drift Analysis of  ‖ q ⁡ ( t ) ‖ ℐ + 2 \\left\\|{q(t)}\\right\\|_{\\mathcal{I}^{+}}^{2}",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  Bound on  ‖ q ⁡ ( t ) ‖ ℐ + \\left\\|q(t)\\right\\|_{\\mathcal{I}^{+}}",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "5.4  Proof of the Main Result",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "6  Numerical Results",
+      "id": "S6"
+    },
+    {
+      "title": "7  Conclusion",
+      "id": "S7"
+    },
+    {
+      "title": "8  Methods",
+      "id": "S8"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Fluid Upper Bound",
+      "id": "A1"
+    },
+    {
+      "title": "A.1  Proof of Lemma  1",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "Appendix B  Supplementary Proofs for Section  5",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Proofs for Section  5.1",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.1.1  Proof of Lemma  2",
+      "id": "A2.SS1.SSS1"
+    },
+    {
+      "title": "B.2  Proofs for Section  5.2",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.2.1  Proof of Lemma  3",
+      "id": "A2.SS2.SSS1"
+    },
+    {
+      "title": "B.2.2  Proof of Lemma  4",
+      "id": "A2.SS2.SSS2"
+    },
+    {
+      "title": "B.2.3  Proof of Lemma  5",
+      "id": "A2.SS2.SSS3"
+    },
+    {
+      "title": "B.3  Proofs for Section  5.3",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "B.3.1  Proof of Lemma  6",
+      "id": "A2.SS3.SSS1"
+    },
+    {
+      "title": "B.3.2  Proof of Lemma  7",
+      "id": "A2.SS3.SSS2"
+    },
+    {
+      "title": "B.3.3  Proof of Lemma  8",
+      "id": "A2.SS3.SSS3"
+    },
+    {
+      "title": "B.4  Bounded Dual Solutions",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "Appendix C  Proof of Proposition  1",
+      "id": "A3"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "q_{i}^{\\pi}(t)=A_{i}(t)-\\sum_{m=1}^{d}M_{im}X_{m}^{\\pi}(t)-B_{i}^{\\pi}(t),\\qquad i\\in\\mathcal{N},\\quad t\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q_{i}^{\\pi}(t)=A_{i}(t)-\\sum_{m=1}^{d}M_{im}X_{m}^{\\pi}(t)-B_{i}^{\\pi}(t),\\qquad i\\in\\mathcal{N},\\quad t\\geq 0."
+      ]
+    },
+    {
+      "id": "S2.Ex1",
+      "tex": [
+        "C^{\\mathrm{term}}(q)\\coloneqq\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)q_{i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C^{\\mathrm{term}}(q)\\coloneqq\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)q_{i}."
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "F^{\\pi}(T)\\coloneqq\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)-\\sum_{i=1}^{n}c_{i}\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt-\\sum_{i=1}^{n}\\gamma_{i}B_{i}^{\\pi}(T)-C^{\\mathrm{term}}\\!\\left(q^{\\pi}(T)\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F^{\\pi}(T)\\coloneqq\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)-\\sum_{i=1}^{n}c_{i}\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt-\\sum_{i=1}^{n}\\gamma_{i}B_{i}^{\\pi}(T)-C^{\\mathrm{term}}\\!\\left(q^{\\pi}(T)\\right)."
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\dot{q}(t)=\\lambda-Mx(t)-\\Theta q(t),\\qquad\\Theta=\\operatorname{diag}(\\theta_{1},\\ldots,\\theta_{n}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\dot{q}(t)=\\lambda-Mx(t)-\\Theta q(t),\\qquad\\Theta=\\operatorname{diag}(\\theta_{1},\\ldots,\\theta_{n}),"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "Mx+\\Theta q=\\lambda."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Mx+\\Theta q=\\lambda."
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\overline{c}_{i}=c_{i}+\\theta_{i}\\gamma_{i},\\qquad i\\in[n],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{c}_{i}=c_{i}+\\theta_{i}\\gamma_{i},\\qquad i\\in[n],"
+      ]
+    },
+    {
+      "id": "S3.EGx1",
+      "tex": [
+        "\\displaystyle F^{*}(\\lambda)=\\begin{bmatrix}\\max_{x,q}\\quad&\\displaystyle\\sum_{m=1}^{d}r_{m}x_{m}-\\sum_{i=1}^{n}\\overline{c}_{i}q_{i}\\\\\n\\text{s.t.}\\quad&\\theta_{i}q_{i}+(Mx)_{i}=\\lambda_{i},\\qquad i\\in[n],\\\\\n&x\\in{\\mathbb{R}}_{\\geq 0}^{d},\\quad q\\in{\\mathbb{R}}_{\\geq 0}^{n}\\end{bmatrix}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle F^{*}(\\lambda)=\\begin{bmatrix}\\max_{x,q}\\quad&\\displaystyle\\sum_{m=1}^{d}r_{m}x_{m}-\\sum_{i=1}^{n}\\overline{c}_{i}q_{i}\\\\\n\\text{s.t.}\\quad&\\theta_{i}q_{i}+(Mx)_{i}=\\lambda_{i},\\qquad i\\in[n],\\\\\n&x\\in{\\mathbb{R}}_{\\geq 0}^{d},\\quad q\\in{\\mathbb{R}}_{\\geq 0}^{n}\\end{bmatrix}."
+      ]
+    },
+    {
+      "id": "S3.Ex2",
+      "tex": [
+        "\\frac{\\mathbb{E}[F^{\\pi}(T)]}{T}\\leq F^{*}(\\lambda)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\mathbb{E}[F^{\\pi}(T)]}{T}\\leq F^{*}(\\lambda)."
+      ]
+    },
+    {
+      "id": "S3.E7",
+      "tex": [
+        "\\lambda_{i}^{s}=s\\lambda_{i}^{b}\\quad\\text{for all }i\\in\\mathcal{N},\\qquad\\text{or equivalently}\\qquad\\lambda^{s}=s\\lambda^{b}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{i}^{s}=s\\lambda_{i}^{b}\\quad\\text{for all }i\\in\\mathcal{N},\\qquad\\text{or equivalently}\\qquad\\lambda^{s}=s\\lambda^{b}."
+      ]
+    },
+    {
+      "id": "S3.Ex3",
+      "tex": [
+        "F_{s}^{*}\\coloneqq F^{*}(\\lambda^{s})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F_{s}^{*}\\coloneqq F^{*}(\\lambda^{s})."
+      ]
+    },
+    {
+      "id": "S3.Ex4",
+      "tex": [
+        "\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{T}\\leq F_{s}^{*},\\qquad s\\in\\mathbb{N},\\quad T>0,\\quad\\pi\\in\\Pi."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{T}\\leq F_{s}^{*},\\qquad s\\in\\mathbb{N},\\quad T>0,\\quad\\pi\\in\\Pi."
+      ]
+    },
+    {
+      "id": "S3.Ex5",
+      "tex": [
+        "\\mathcal{R}_{T,s}^{\\pi}\\coloneqq F_{s}^{*}-\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{T}\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{R}_{T,s}^{\\pi}\\coloneqq F_{s}^{*}-\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{T}\\geq 0."
+      ]
+    },
+    {
+      "id": "S3.Ex6",
+      "tex": [
+        "\\rho_{T,s}^{\\pi}\\coloneqq\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{TF_{s}^{*}}\\leq 1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{T,s}^{\\pi}\\coloneqq\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{TF_{s}^{*}}\\leq 1,"
+      ]
+    },
+    {
+      "id": "S3.Ex7",
+      "tex": [
+        "\\rho_{T,s}^{\\pi}=1-\\frac{\\mathcal{R}_{T,s}^{\\pi}}{F_{s}^{*}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{T,s}^{\\pi}=1-\\frac{\\mathcal{R}_{T,s}^{\\pi}}{F_{s}^{*}},"
+      ]
+    },
+    {
+      "id": "S4.EGx2",
+      "tex": [
+        "\\displaystyle r^{\\top}x-\\overline{c}^{\\top}q",
+        "\\displaystyle=r^{\\top}x-\\overline{c}^{\\top}\\Theta^{-1}(\\lambda-Mx)",
+        "\\displaystyle=-\\lambda^{\\top}\\Theta^{-1}\\overline{c}+\\bigl(r+M^{\\top}\\Theta^{-1}\\overline{c}\\bigr)^{\\top}x."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle r^{\\top}x-\\overline{c}^{\\top}q",
+        "\\displaystyle=r^{\\top}x-\\overline{c}^{\\top}\\Theta^{-1}(\\lambda-Mx)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=-\\lambda^{\\top}\\Theta^{-1}\\overline{c}+\\bigl(r+M^{\\top}\\Theta^{-1}\\overline{c}\\bigr)^{\\top}x."
+      ]
+    },
+    {
+      "id": "S4.E8",
+      "tex": [
+        "\\widetilde{r}=r+M^{\\top}\\Theta^{-1}\\overline{c},\\qquad\\widetilde{r}_{m}=r_{m}+\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}M_{im}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{r}=r+M^{\\top}\\Theta^{-1}\\overline{c},\\qquad\\widetilde{r}_{m}=r_{m}+\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}M_{im}."
+      ]
+    },
+    {
+      "id": "S4.EGx3",
+      "tex": [
+        "\\displaystyle F^{*}(\\lambda)=\\begin{bmatrix}\\max_{x}\\quad&\\displaystyle\\sum_{m=1}^{d}\\widetilde{r}_{m}x_{m}-\\sum_{i=1}^{n}\\overline{c}_{i}\\frac{\\lambda_{i}}{\\theta_{i}}\\\\\n\\text{s.t.}\\quad&(Mx)_{i}\\leq\\lambda_{i},\\qquad i\\in[n],\\\\\n&x\\in{\\mathbb{R}}_{\\geq 0}^{d}\\end{bmatrix}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle F^{*}(\\lambda)=\\begin{bmatrix}\\max_{x}\\quad&\\displaystyle\\sum_{m=1}^{d}\\widetilde{r}_{m}x_{m}-\\sum_{i=1}^{n}\\overline{c}_{i}\\frac{\\lambda_{i}}{\\theta_{i}}\\\\\n\\text{s.t.}\\quad&(Mx)_{i}\\leq\\lambda_{i},\\qquad i\\in[n],\\\\\n&x\\in{\\mathbb{R}}_{\\geq 0}^{d}\\end{bmatrix}."
+      ]
+    },
+    {
+      "id": "S4.EGx4",
+      "tex": [
+        "\\displaystyle F^{*}(\\lambda)=\\begin{bmatrix}\\min_{U}\\quad&\\displaystyle U^{\\top}\\lambda-\\sum_{i=1}^{n}\\overline{c}_{i}\\frac{\\lambda_{i}}{\\theta_{i}}\\\\\n\\text{s.t.}\\quad&\\sum_{i=1}^{n}U_{i}M_{im}\\geq\\widetilde{r}_{m},\\qquad m\\in[d],\\\\\n&U\\in{\\mathbb{R}}_{\\geq 0}^{n}\\end{bmatrix}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle F^{*}(\\lambda)=\\begin{bmatrix}\\min_{U}\\quad&\\displaystyle U^{\\top}\\lambda-\\sum_{i=1}^{n}\\overline{c}_{i}\\frac{\\lambda_{i}}{\\theta_{i}}\\\\\n\\text{s.t.}\\quad&\\sum_{i=1}^{n}U_{i}M_{im}\\geq\\widetilde{r}_{m},\\qquad m\\in[d],\\\\\n&U\\in{\\mathbb{R}}_{\\geq 0}^{n}\\end{bmatrix}."
+      ]
+    },
+    {
+      "id": "S4.E11",
+      "tex": [
+        "F^{*}(\\lambda)=\\langle\\widetilde{r},x^{*}\\rangle-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}}{\\theta_{i}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F^{*}(\\lambda)=\\langle\\widetilde{r},x^{*}\\rangle-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}}{\\theta_{i}},"
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "\\mathcal{I}^{+}\\coloneqq\\{i\\in\\mathcal{N}:U_{i}^{*}>0\\},\\qquad\\mathcal{M}^{g}\\coloneqq\\{m\\in\\mathcal{M}:\\sum_{i=1}^{n}U_{i}^{*}M_{im}=\\widetilde{r}_{m}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{I}^{+}\\coloneqq\\{i\\in\\mathcal{N}:U_{i}^{*}>0\\},\\qquad\\mathcal{M}^{g}\\coloneqq\\{m\\in\\mathcal{M}:\\sum_{i=1}^{n}U_{i}^{*}M_{im}=\\widetilde{r}_{m}\\}."
+      ]
+    },
+    {
+      "id": "S4.EGx5",
+      "tex": [
+        "\\displaystyle\\mathcal{N}_{i}^{+}(t)",
+        "\\displaystyle\\coloneqq\\{j\\in\\mathcal{I}^{+}:q_{j}(t)>0,\\ (i,j)\\in\\mathcal{M}^{g}\\},",
+        "\\displaystyle\\mathcal{N}_{i}^{0}(t)",
+        "\\displaystyle\\coloneqq\\{j\\in\\mathcal{N}\\setminus\\mathcal{I}^{+}:q_{j}(t)>0,\\ (i,j)\\in\\mathcal{M}^{g}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{N}_{i}^{+}(t)",
+        "\\displaystyle\\coloneqq\\{j\\in\\mathcal{I}^{+}:q_{j}(t)>0,\\ (i,j)\\in\\mathcal{M}^{g}\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{N}_{i}^{0}(t)",
+        "\\displaystyle\\coloneqq\\{j\\in\\mathcal{N}\\setminus\\mathcal{I}^{+}:q_{j}(t)>0,\\ (i,j)\\in\\mathcal{M}^{g}\\}."
+      ]
+    },
+    {
+      "id": "S4.Ex10",
+      "tex": [
+        "0\\;\\leq\\;\\mathcal{R}_{T,s}^{\\pi}\\;\\leq\\;C\\,\\frac{n}{\\varepsilon}\\,\\log\\frac{n}{\\varepsilon},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0\\;\\leq\\;\\mathcal{R}_{T,s}^{\\pi}\\;\\leq\\;C\\,\\frac{n}{\\varepsilon}\\,\\log\\frac{n}{\\varepsilon},"
+      ]
+    },
+    {
+      "id": "S4.Ex11",
+      "tex": [
+        "\\mathcal{R}_{T,s}^{\\pi}=F_{s}^{*}-\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{T}\\leq\\left(\\frac{1}{T}+\\theta_{\\max}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{R}_{T,s}^{\\pi}=F_{s}^{*}-\\frac{\\mathbb{E}[F_{s}^{\\pi}(T)]}{T}\\leq\\left(\\frac{1}{T}+\\theta_{\\max}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s),"
+      ]
+    },
+    {
+      "id": "S4.Ex12",
+      "tex": [
+        "\\displaystyle\\mathcal{B}_{q}(s)=",
+        "\\displaystyle\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{4\\sqrt{n}\\left(\\mathrm{e}-\\frac{3}{2}\\right)}{\\varepsilon}\\right)\\times\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n}{s\\varepsilon^{2}}\\sqrt{\\sum_{i\\in{\\mathcal{I}}^{+}}\\theta^{2}_{i}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{B}_{q}(s)=",
+        "\\displaystyle\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{4\\sqrt{n}\\left(\\mathrm{e}-\\frac{3}{2}\\right)}{\\varepsilon}\\right)\\times\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n}{s\\varepsilon^{2}}\\sqrt{\\sum_{i\\in{\\mathcal{I}}^{+}}\\theta^{2}_{i}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.Ex13",
+      "tex": [
+        "\\sup_{s\\geq 1}\\mathcal{B}_{q}(s)=\\mathcal{B}_{q}(1)=O\\left(\\frac{\\sqrt{n}}{\\varepsilon}\\log\\frac{\\sqrt{n}}{\\varepsilon}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{s\\geq 1}\\mathcal{B}_{q}(s)=\\mathcal{B}_{q}(1)=O\\left(\\frac{\\sqrt{n}}{\\varepsilon}\\log\\frac{\\sqrt{n}}{\\varepsilon}\\right)."
+      ]
+    },
+    {
+      "id": "S4.Ex14",
+      "tex": [
+        "\\rho_{T,s}^{\\pi^{\\mathrm{LQ}}}\\geq 1-\\frac{C}{s},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{T,s}^{\\pi^{\\mathrm{LQ}}}\\geq 1-\\frac{C}{s},"
+      ]
+    },
+    {
+      "id": "S4.E17",
+      "tex": [
+        "0\\leq\\mathcal{R}_{T,s}^{\\pi}\\leq\\left(\\frac{1}{T}+\\|\\theta\\|_{\\infty}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\sqrt{\\frac{s}{\\theta_{\\min}}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0\\leq\\mathcal{R}_{T,s}^{\\pi}\\leq\\left(\\frac{1}{T}+\\|\\theta\\|_{\\infty}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\sqrt{\\frac{s}{\\theta_{\\min}}},"
+      ]
+    },
+    {
+      "id": "S4.E18",
+      "tex": [
+        "\\rho_{T,s}^{\\pi}\\geq 1-\\frac{C}{\\sqrt{s}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{T,s}^{\\pi}\\geq 1-\\frac{C}{\\sqrt{s}},"
+      ]
+    },
+    {
+      "id": "S4.Ex15",
+      "tex": [
+        "\\lim_{T\\to\\infty}\\lim_{s\\to\\infty}\\rho_{T,s}^{\\pi^{\\mathrm{r}}}=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lim_{T\\to\\infty}\\lim_{s\\to\\infty}\\rho_{T,s}^{\\pi^{\\mathrm{r}}}=1."
+      ]
+    },
+    {
+      "id": "S5.Ex16",
+      "tex": [
+        "\\langle u,v\\rangle_{\\mathcal{I}^{+}}\\coloneqq\\sum_{i\\in\\mathcal{I}^{+}}u_{i}v_{i}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\langle u,v\\rangle_{\\mathcal{I}^{+}}\\coloneqq\\sum_{i\\in\\mathcal{I}^{+}}u_{i}v_{i}"
+      ]
+    },
+    {
+      "id": "S5.Ex17",
+      "tex": [
+        "\\|u\\|_{\\mathcal{I}^{+}}\\coloneqq\\left(\\sum_{i\\in\\mathcal{I}^{+}}u_{i}^{2}\\right)^{1/2},\\qquad\\|u\\|_{1,\\mathcal{I}^{+}}\\coloneqq\\sum_{i\\in\\mathcal{I}^{+}}|u_{i}|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|u\\|_{\\mathcal{I}^{+}}\\coloneqq\\left(\\sum_{i\\in\\mathcal{I}^{+}}u_{i}^{2}\\right)^{1/2},\\qquad\\|u\\|_{1,\\mathcal{I}^{+}}\\coloneqq\\sum_{i\\in\\mathcal{I}^{+}}|u_{i}|"
+      ]
+    },
+    {
+      "id": "S5.EGx6",
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]=T\\langle\\widetilde{r},x^{*}\\rangle-\\mathbb{E}\\!\\left[\\sum_{m=1}^{d}\\widetilde{r}_{m}X_{m}^{\\pi}(T)\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]=T\\langle\\widetilde{r},x^{*}\\rangle-\\mathbb{E}\\!\\left[\\sum_{m=1}^{d}\\widetilde{r}_{m}X_{m}^{\\pi}(T)\\right],"
+      ]
+    },
+    {
+      "id": "S5.EGx7",
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\langle U^{*},\\mathbb{E}[q(T)]\\rangle_{\\mathcal{I}^{+}}+\\int_{0}^{T}\\mathbb{E}\\left[\\langle U^{*},\\theta q(t)\\rangle_{\\mathcal{I}^{+}}\\right]dt."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\langle U^{*},\\mathbb{E}[q(T)]\\rangle_{\\mathcal{I}^{+}}+\\int_{0}^{T}\\mathbb{E}\\left[\\langle U^{*},\\theta q(t)\\rangle_{\\mathcal{I}^{+}}\\right]dt."
+      ]
+    },
+    {
+      "id": "S5.EGx8",
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\langle\\widetilde{r},Tx^{*}-\\mathbb{E}\\left[X(T)\\right]\\rangle",
+        "\\displaystyle=\\langle M^{\\top}U^{*},Tx^{*}-\\mathbb{E}\\left[X(T)\\right]\\rangle=\\langle U^{*},TMx^{*}-\\mathbb{E}\\left[MX(T)\\right]\\rangle,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\langle\\widetilde{r},Tx^{*}-\\mathbb{E}\\left[X(T)\\right]\\rangle"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\langle M^{\\top}U^{*},Tx^{*}-\\mathbb{E}\\left[X(T)\\right]\\rangle=\\langle U^{*},TMx^{*}-\\mathbb{E}\\left[MX(T)\\right]\\rangle,"
+      ]
+    },
+    {
+      "id": "S5.Ex20",
+      "tex": [
+        "\\mathbb{E}[B(T)]=\\int_{0}^{T}\\mathbb{E}[\\theta q(t)]\\,dt,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[B(T)]=\\int_{0}^{T}\\mathbb{E}[\\theta q(t)]\\,dt,"
+      ]
+    },
+    {
+      "id": "S5.E21",
+      "tex": [
+        "\\mathbb{E}[MX(T)]=\\mathbb{E}[A(T)-B(T)-q(T)]=\\lambda T-\\int_{0}^{T}\\mathbb{E}[\\theta q(t)]\\,dt-\\mathbb{E}[q(T)]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[MX(T)]=\\mathbb{E}[A(T)-B(T)-q(T)]=\\lambda T-\\int_{0}^{T}\\mathbb{E}[\\theta q(t)]\\,dt-\\mathbb{E}[q(T)]."
+      ]
+    },
+    {
+      "id": "S5.EGx9",
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\left\\langle U^{*},\\int_{0}^{T}\\mathbb{E}\\left[\\theta q(t)\\right]dt-\\theta q^{*}T+\\mathbb{E}\\left[q(T)\\right]\\right\\rangle",
+        "\\displaystyle=\\left\\langle U^{*},\\int_{0}^{T}\\mathbb{E}\\left[\\theta q(t)\\right]dt-\\theta q^{*}T+\\mathbb{E}\\left[q(T)\\right]\\right\\rangle_{{\\mathcal{I}}^{+}}",
+        "\\displaystyle=\\left\\langle U^{*},\\int_{0}^{T}\\mathbb{E}\\left[\\theta q(t)\\right]dt\\right\\rangle_{{\\mathcal{I}}^{+}}+\\left\\langle U^{*},\\mathbb{E}\\left[q(T)\\right]\\right\\rangle_{{\\mathcal{I}}^{+}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\left\\langle U^{*},\\int_{0}^{T}\\mathbb{E}\\left[\\theta q(t)\\right]dt-\\theta q^{*}T+\\mathbb{E}\\left[q(T)\\right]\\right\\rangle"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\left\\langle U^{*},\\int_{0}^{T}\\mathbb{E}\\left[\\theta q(t)\\right]dt-\\theta q^{*}T+\\mathbb{E}\\left[q(T)\\right]\\right\\rangle_{{\\mathcal{I}}^{+}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\left\\langle U^{*},\\int_{0}^{T}\\mathbb{E}\\left[\\theta q(t)\\right]dt\\right\\rangle_{{\\mathcal{I}}^{+}}+\\left\\langle U^{*},\\mathbb{E}\\left[q(T)\\right]\\right\\rangle_{{\\mathcal{I}}^{+}},"
+      ]
+    },
+    {
+      "id": "S5.EGx10",
+      "tex": [
+        "\\displaystyle\\mathcal{L}f(y):=\\lim_{t\\downarrow 0}\\frac{\\mathbb{E}[f(Y(t))\\mid Y(0)=y]-f(y)}{t},\\quad y\\in\\mathbf{Y},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}f(y):=\\lim_{t\\downarrow 0}\\frac{\\mathbb{E}[f(Y(t))\\mid Y(0)=y]-f(y)}{t},\\quad y\\in\\mathbf{Y},"
+      ]
+    },
+    {
+      "id": "S5.EGx11",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2s\\left(-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}\\right)+s."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2s\\left(-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}\\right)+s."
+      ]
+    },
+    {
+      "id": "S5.E22",
+      "tex": [
+        "\\overline{x}(t)\\coloneqq\\sum_{i=1}^{n}\\lambda_{i}^{s}x^{i}(t),\\qquad\\overline{x}^{b}(t)\\coloneqq\\sum_{i=1}^{n}\\lambda_{i}^{b}x^{i}(t),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{x}(t)\\coloneqq\\sum_{i=1}^{n}\\lambda_{i}^{s}x^{i}(t),\\qquad\\overline{x}^{b}(t)\\coloneqq\\sum_{i=1}^{n}\\lambda_{i}^{b}x^{i}(t),"
+      ]
+    },
+    {
+      "id": "S5.EGx12",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s."
+      ]
+    },
+    {
+      "id": "S5.EGx13",
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\varepsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\varepsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "S5.EGx14",
+      "tex": [
+        "\\displaystyle\\mathcal{Q}^{+}(t):=\\{i\\in\\mathcal{N}:q_{i}(t)>0\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{Q}^{+}(t):=\\{i\\in\\mathcal{N}:q_{i}(t)>0\\}"
+      ]
+    },
+    {
+      "id": "S5.EGx15",
+      "tex": [
+        "\\displaystyle\\mathcal{M}^{+}(t):=\\{m=(i,j)\\in\\mathcal{M}^{g}:\\{i,j\\}\\cap\\mathcal{Q}^{+}(t)\\neq\\emptyset\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{M}^{+}(t):=\\{m=(i,j)\\in\\mathcal{M}^{g}:\\{i,j\\}\\cap\\mathcal{Q}^{+}(t)\\neq\\emptyset\\}"
+      ]
+    },
+    {
+      "id": "S5.E24",
+      "tex": [
+        "\\mathcal{X}(t):=\\left\\{x\\in\\mathbb{R}_{+}^{d}:\\begin{array}[]{l}x_{m}=0\\text{ for all }m\\notin\\mathcal{M}^{+}(t)\\text{ and}\\\\[2.15277pt]\n(Mx)_{i}\\leq\\lambda_{i}^{b}\\text{ for all }i\\in[n]\\setminus\\mathcal{Q}^{+}(t)\\end{array}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{X}(t):=\\left\\{x\\in\\mathbb{R}_{+}^{d}:\\begin{array}[]{l}x_{m}=0\\text{ for all }m\\notin\\mathcal{M}^{+}(t)\\text{ and}\\\\[2.15277pt]\n(Mx)_{i}\\leq\\lambda_{i}^{b}\\text{ for all }i\\in[n]\\setminus\\mathcal{Q}^{+}(t)\\end{array}\\right\\}."
+      ]
+    },
+    {
+      "id": "S5.EGx16",
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}"
+      ]
+    },
+    {
+      "id": "S5.EGx17",
+      "tex": [
+        "\\displaystyle\\max_{x\\in\\mathcal{X}(t)}\\langle q(t),Mx\\rangle_{\\mathcal{I}^{+}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\max_{x\\in\\mathcal{X}(t)}\\langle q(t),Mx\\rangle_{\\mathcal{I}^{+}},"
+      ]
+    },
+    {
+      "id": "S5.EGx18",
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\varepsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\varepsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "S5.EGx19",
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "S5.EGx20",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}",
+        "\\displaystyle\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s",
+        "\\displaystyle\\leq 2s\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}+s",
+        "\\displaystyle\\leq-\\frac{2s\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}+s,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}",
+        "\\displaystyle\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq 2s\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}+s"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq-\\frac{2s\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}+s,"
+      ]
+    },
+    {
+      "id": "S5.EGx21",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\big[\\|q(t)\\|_{\\mathcal{I}^{+}}\\big]\\leq\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}\\right)\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\big[\\|q(t)\\|_{\\mathcal{I}^{+}}\\big]\\leq\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}\\right)\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}\\right)."
+      ]
+    },
+    {
+      "id": "S5.EGx22",
+      "tex": [
+        "\\displaystyle\\left|\\|q(t+)\\|_{\\mathcal{I}^{+}}-\\|q(t)\\|_{\\mathcal{I}^{+}}\\right|\\leq 1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left|\\|q(t+)\\|_{\\mathcal{I}^{+}}-\\|q(t)\\|_{\\mathcal{I}^{+}}\\right|\\leq 1."
+      ]
+    },
+    {
+      "id": "S5.EGx23",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}\\leq\\begin{cases}-\\dfrac{s\\varepsilon}{2\\sqrt{n}}&\\text{if }\\|q(t)\\|_{\\mathcal{I}^{+}}\\geq\\dfrac{\\sqrt{n}}{\\varepsilon},\\\\[10.0pt]\ns+\\dfrac{\\sqrt{n}\\|\\theta\\|_{\\mathcal{I}^{+}}}{\\varepsilon}&\\text{if }\\|q(t)\\|_{\\mathcal{I}^{+}}<\\dfrac{\\sqrt{n}}{\\varepsilon}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}\\leq\\begin{cases}-\\dfrac{s\\varepsilon}{2\\sqrt{n}}&\\text{if }\\|q(t)\\|_{\\mathcal{I}^{+}}\\geq\\dfrac{\\sqrt{n}}{\\varepsilon},\\\\[10.0pt]\ns+\\dfrac{\\sqrt{n}\\|\\theta\\|_{\\mathcal{I}^{+}}}{\\varepsilon}&\\text{if }\\|q(t)\\|_{\\mathcal{I}^{+}}<\\dfrac{\\sqrt{n}}{\\varepsilon}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S5.EGx24",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\varphi(y)=\\sum_{j\\in\\mathcal{J}}\\lambda_{j}(y)\\Delta_{j}\\varphi(y)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\varphi(y)=\\sum_{j\\in\\mathcal{J}}\\lambda_{j}(y)\\Delta_{j}\\varphi(y)"
+      ]
+    },
+    {
+      "id": "S5.EGx25",
+      "tex": [
+        "\\displaystyle\\mathcal{L}f(y)\\leq-\\delta\\quad\\text{if }f(y)\\geq D,\\quad\\text{and}\\quad\\mathcal{L}f(y)\\leq B\\quad\\text{if }f(y)<D."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}f(y)\\leq-\\delta\\quad\\text{if }f(y)\\geq D,\\quad\\text{and}\\quad\\mathcal{L}f(y)\\leq B\\quad\\text{if }f(y)<D."
+      ]
+    },
+    {
+      "id": "S5.EGx26",
+      "tex": [
+        "\\displaystyle\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)\\leq\\Lambda,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)\\leq\\Lambda,"
+      ]
+    },
+    {
+      "id": "S5.EGx27",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[f(Y_{t})]\\leq\\frac{1}{\\alpha^{*}}\\max\\left\\{\\alpha^{*}f(Y_{0}),\\,\\ln\\frac{B+\\delta}{\\delta-\\alpha^{*}C_{1}}+\\alpha^{*}D\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[f(Y_{t})]\\leq\\frac{1}{\\alpha^{*}}\\max\\left\\{\\alpha^{*}f(Y_{0}),\\,\\ln\\frac{B+\\delta}{\\delta-\\alpha^{*}C_{1}}+\\alpha^{*}D\\right\\},"
+      ]
+    },
+    {
+      "id": "S5.EGx28",
+      "tex": [
+        "\\displaystyle\\Delta_{\\mathrm{arr},i}f(q)=\\|q+e_{i}-Mx^{i}\\|_{\\mathcal{I}^{+}}-\\|q\\|_{\\mathcal{I}^{+}},\\qquad\\Delta_{\\mathrm{abd},i}f(q)=\\|q-e_{i}\\|_{\\mathcal{I}^{+}}-\\|q\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Delta_{\\mathrm{arr},i}f(q)=\\|q+e_{i}-Mx^{i}\\|_{\\mathcal{I}^{+}}-\\|q\\|_{\\mathcal{I}^{+}},\\qquad\\Delta_{\\mathrm{abd},i}f(q)=\\|q-e_{i}\\|_{\\mathcal{I}^{+}}-\\|q\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "S5.EGx29",
+      "tex": [
+        "\\displaystyle\\delta=\\frac{s\\varepsilon}{2\\sqrt{n}},\\qquad D=\\frac{\\sqrt{n}}{\\varepsilon},\\qquad B=s+\\frac{\\sqrt{n}\\|\\theta\\|_{\\mathcal{I}^{+}}}{\\varepsilon}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\delta=\\frac{s\\varepsilon}{2\\sqrt{n}},\\qquad D=\\frac{\\sqrt{n}}{\\varepsilon},\\qquad B=s+\\frac{\\sqrt{n}\\|\\theta\\|_{\\mathcal{I}^{+}}}{\\varepsilon}."
+      ]
+    },
+    {
+      "id": "S5.EGx30",
+      "tex": [
+        "\\displaystyle C_{1}=\\frac{K\\delta}{2}+(e-\\frac{3}{2})\\Lambda K^{2}=\\frac{s\\varepsilon}{4\\sqrt{n}}+s(e-\\frac{3}{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle C_{1}=\\frac{K\\delta}{2}+(e-\\frac{3}{2})\\Lambda K^{2}=\\frac{s\\varepsilon}{4\\sqrt{n}}+s(e-\\frac{3}{2})."
+      ]
+    },
+    {
+      "id": "S5.EGx31",
+      "tex": [
+        "\\displaystyle\\frac{\\delta}{2C_{1}}=\\frac{\\frac{s\\varepsilon}{2\\sqrt{n}}}{\\frac{s\\varepsilon}{2\\sqrt{n}}+2s(e-\\frac{3}{2})}<1=\\frac{1}{K},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\delta}{2C_{1}}=\\frac{\\frac{s\\varepsilon}{2\\sqrt{n}}}{\\frac{s\\varepsilon}{2\\sqrt{n}}+2s(e-\\frac{3}{2})}<1=\\frac{1}{K},"
+      ]
+    },
+    {
+      "id": "S5.EGx32",
+      "tex": [
+        "\\displaystyle\\frac{1}{\\alpha^{*}}=\\frac{2C_{1}}{\\delta}=1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{1}{\\alpha^{*}}=\\frac{2C_{1}}{\\delta}=1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}."
+      ]
+    },
+    {
+      "id": "S5.EGx33",
+      "tex": [
+        "\\displaystyle\\frac{B+\\delta}{\\delta-\\alpha^{*}C_{1}}=\\frac{B+\\delta}{\\delta/2}=2\\left(\\frac{B}{\\delta}+1\\right)=2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{B+\\delta}{\\delta-\\alpha^{*}C_{1}}=\\frac{B+\\delta}{\\delta/2}=2\\left(\\frac{B}{\\delta}+1\\right)=2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}."
+      ]
+    },
+    {
+      "id": "S5.EGx34",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\leq\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}\\right)\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\leq\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}\\right)\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}\\right)."
+      ]
+    },
+    {
+      "id": "S5.EGx35",
+      "tex": [
+        "\\displaystyle TF_{s}^{*}-\\mathbb{E}[F_{s}^{\\pi}(T)]=\\langle U^{*},\\mathbb{E}[q(T)]\\rangle_{\\mathcal{I}^{+}}+\\int_{0}^{T}\\mathbb{E}\\left[\\langle U^{*},\\theta q(t)\\rangle_{\\mathcal{I}^{+}}\\right]{\\rm d}t."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF_{s}^{*}-\\mathbb{E}[F_{s}^{\\pi}(T)]=\\langle U^{*},\\mathbb{E}[q(T)]\\rangle_{\\mathcal{I}^{+}}+\\int_{0}^{T}\\mathbb{E}\\left[\\langle U^{*},\\theta q(t)\\rangle_{\\mathcal{I}^{+}}\\right]{\\rm d}t."
+      ]
+    },
+    {
+      "id": "S5.EGx36",
+      "tex": [
+        "\\displaystyle TF_{s}^{*}-\\mathbb{E}[F_{s}^{\\pi}(T)]",
+        "\\displaystyle\\leq\\|U^{*}\\|_{\\mathcal{I}^{+}}\\mathbb{E}\\bigl[\\|q(T)\\|_{\\mathcal{I}^{+}}\\bigr]+\\int_{0}^{T}\\|\\theta\\|_{\\infty}\\|U^{*}\\|_{\\mathcal{I}^{+}}\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]{\\rm d}t",
+        "\\displaystyle\\leq\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s)+T\\|\\theta\\|_{\\infty}\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF_{s}^{*}-\\mathbb{E}[F_{s}^{\\pi}(T)]",
+        "\\displaystyle\\leq\\|U^{*}\\|_{\\mathcal{I}^{+}}\\mathbb{E}\\bigl[\\|q(T)\\|_{\\mathcal{I}^{+}}\\bigr]+\\int_{0}^{T}\\|\\theta\\|_{\\infty}\\|U^{*}\\|_{\\mathcal{I}^{+}}\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]{\\rm d}t"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s)+T\\|\\theta\\|_{\\infty}\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s),"
+      ]
+    },
+    {
+      "id": "S5.EGx37",
+      "tex": [
+        "\\displaystyle\\mathcal{B}_{q}(s)=\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}\\right)\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{B}_{q}(s)=\\frac{\\sqrt{n}}{\\varepsilon}+\\left(1+\\frac{2\\sqrt{n}(2e-3)}{\\varepsilon}\\right)\\ln\\left(2+\\frac{4\\sqrt{n}}{\\varepsilon}+\\frac{4n\\|\\theta\\|_{\\mathcal{I}^{+}}}{s\\varepsilon^{2}}\\right)."
+      ]
+    },
+    {
+      "id": "S5.EGx38",
+      "tex": [
+        "\\displaystyle F_{s}^{*}-\\frac{1}{T}\\mathbb{E}[F_{s}^{\\pi}(T)]\\leq\\left(\\frac{1}{T}+\\|\\theta\\|_{\\infty}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle F_{s}^{*}-\\frac{1}{T}\\mathbb{E}[F_{s}^{\\pi}(T)]\\leq\\left(\\frac{1}{T}+\\|\\theta\\|_{\\infty}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\,\\mathcal{B}_{q}(s)."
+      ]
+    },
+    {
+      "id": "S6.Ex52",
+      "tex": [
+        "\\log\\bigl(1-\\rho(s)\\bigr)\\approx\\log C-\\alpha\\log s."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\log\\bigl(1-\\rho(s)\\bigr)\\approx\\log C-\\alpha\\log s."
+      ]
+    },
+    {
+      "id": "S6.Ex53",
+      "tex": [
+        "\\begin{array}[]{c|l}r_{ij}&\\text{Compatible pairs }\\{i,j\\}\\\\\n\\hline\\cr 1&\\{1,7\\},\\ \\{4,5\\},\\ \\{5,6\\}\\\\\n2&\\{1,8\\},\\ \\{6,10\\}\\\\\n3&\\{1,2\\},\\ \\{2,6\\},\\ \\{4,7\\},\\ \\{4,8\\},\\ \\{7,9\\},\\ \\{8,10\\},\\ \\{9,10\\}\\\\\n4&\\{1,3\\},\\ \\{2,4\\},\\ \\{2,7\\},\\ \\{5,9\\},\\ \\{6,9\\},\\ \\{7,8\\}\\\\\n5&\\{2,3\\},\\ \\{2,5\\},\\ \\{3,5\\},\\ \\{3,6\\},\\ \\{3,9\\},\\ \\{5,8\\}\\end{array}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{array}[]{c|l}r_{ij}&\\text{Compatible pairs }\\{i,j\\}\\\\\n\\hline\\cr 1&\\{1,7\\},\\ \\{4,5\\},\\ \\{5,6\\}\\\\\n2&\\{1,8\\},\\ \\{6,10\\}\\\\\n3&\\{1,2\\},\\ \\{2,6\\},\\ \\{4,7\\},\\ \\{4,8\\},\\ \\{7,9\\},\\ \\{8,10\\},\\ \\{9,10\\}\\\\\n4&\\{1,3\\},\\ \\{2,4\\},\\ \\{2,7\\},\\ \\{5,9\\},\\ \\{6,9\\},\\ \\{7,8\\}\\\\\n5&\\{2,3\\},\\ \\{2,5\\},\\ \\{3,5\\},\\ \\{3,6\\},\\ \\{3,9\\},\\ \\{5,8\\}\\end{array}"
+      ]
+    },
+    {
+      "id": "A1.E28",
+      "tex": [
+        "\\frac{\\sum_{m=1}^{d}M_{im}\\mathbb{E}[X_{m}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}=\\frac{\\mathbb{E}[A_{i}(T)]}{T}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\sum_{m=1}^{d}M_{im}\\mathbb{E}[X_{m}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}=\\frac{\\mathbb{E}[A_{i}(T)]}{T}."
+      ]
+    },
+    {
+      "id": "A1.E29",
+      "tex": [
+        "\\frac{\\mathbb{E}[A_{i}(T)]}{T}=\\lambda_{i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\mathbb{E}[A_{i}(T)]}{T}=\\lambda_{i}."
+      ]
+    },
+    {
+      "id": "A1.Ex54",
+      "tex": [
+        "B_{i}^{\\pi}(t)=Y_{i}\\!\\left(\\theta_{i}\\int_{0}^{t}q_{i}^{\\pi}(s)\\,ds\\right),\\qquad t\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "B_{i}^{\\pi}(t)=Y_{i}\\!\\left(\\theta_{i}\\int_{0}^{t}q_{i}^{\\pi}(s)\\,ds\\right),\\qquad t\\geq 0."
+      ]
+    },
+    {
+      "id": "A1.E30",
+      "tex": [
+        "M_{i}^{B}(t)\\coloneqq B_{i}^{\\pi}(t)-\\theta_{i}\\int_{0}^{t}q_{i}^{\\pi}(s)\\,ds"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "M_{i}^{B}(t)\\coloneqq B_{i}^{\\pi}(t)-\\theta_{i}\\int_{0}^{t}q_{i}^{\\pi}(s)\\,ds"
+      ]
+    },
+    {
+      "id": "A1.E31",
+      "tex": [
+        "\\mathbb{E}[B_{i}^{\\pi}(T)]=\\theta_{i}\\mathbb{E}\\!\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]=\\theta_{i}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[B_{i}^{\\pi}(T)]=\\theta_{i}\\mathbb{E}\\!\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]=\\theta_{i}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt,"
+      ]
+    },
+    {
+      "id": "A1.E32",
+      "tex": [
+        "\\overline{q}_{i}\\triangleq\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T\\theta_{i}},\\qquad\\overline{x}_{m}\\triangleq\\frac{\\mathbb{E}[X_{m}^{\\pi}(T)]}{T}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{q}_{i}\\triangleq\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T\\theta_{i}},\\qquad\\overline{x}_{m}\\triangleq\\frac{\\mathbb{E}[X_{m}^{\\pi}(T)]}{T}."
+      ]
+    },
+    {
+      "id": "A1.E33",
+      "tex": [
+        "\\theta_{i}\\overline{q}_{i}=\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\theta_{i}\\overline{q}_{i}=\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}."
+      ]
+    },
+    {
+      "id": "A1.Ex55",
+      "tex": [
+        "[M\\overline{x}]_{i}+\\theta_{i}\\overline{q}_{i}=\\lambda_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "[M\\overline{x}]_{i}+\\theta_{i}\\overline{q}_{i}=\\lambda_{i},"
+      ]
+    },
+    {
+      "id": "A1.EGx39",
+      "tex": [
+        "\\displaystyle\\frac{\\mathbb{E}[F^{\\pi}(T)]}{T}",
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\frac{\\mathbb{E}[X_{m}^{\\pi}(T)]}{T}-\\sum_{i=1}^{n}c_{i}\\cdot\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt",
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}-\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}",
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\overline{x}_{m}-\\sum_{i=1}^{n}c_{i}\\underbrace{\\left(\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T\\theta_{i}}\\right)}_{=\\overline{q}_{i}}",
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\underbrace{\\left(\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}\\right)}_{=\\theta_{i}\\overline{q}_{i}}",
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\overline{x}_{m}-\\sum_{i=1}^{n}(c_{i}+\\theta_{i}\\gamma_{i})\\overline{q}_{i}",
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\overline{x}_{m}-\\sum_{i=1}^{n}\\overline{c}_{i}\\overline{q}_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\mathbb{E}[F^{\\pi}(T)]}{T}",
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\frac{\\mathbb{E}[X_{m}^{\\pi}(T)]}{T}-\\sum_{i=1}^{n}c_{i}\\cdot\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}-\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\overline{x}_{m}-\\sum_{i=1}^{n}c_{i}\\underbrace{\\left(\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}[q_{i}^{\\pi}(t)]\\,dt+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T\\theta_{i}}\\right)}_{=\\overline{q}_{i}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\underbrace{\\left(\\frac{\\mathbb{E}[B_{i}^{\\pi}(T)]}{T}+\\frac{\\mathbb{E}[q_{i}^{\\pi}(T)]}{T}\\right)}_{=\\theta_{i}\\overline{q}_{i}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\overline{x}_{m}-\\sum_{i=1}^{n}(c_{i}+\\theta_{i}\\gamma_{i})\\overline{q}_{i}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{m=1}^{d}r_{m}\\overline{x}_{m}-\\sum_{i=1}^{n}\\overline{c}_{i}\\overline{q}_{i},"
+      ]
+    },
+    {
+      "id": "A1.Ex62",
+      "tex": [
+        "\\frac{\\mathbb{E}[F^{\\pi}(T)]}{T}\\leq F^{*}(\\lambda)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\mathbb{E}[F^{\\pi}(T)]}{T}\\leq F^{*}(\\lambda)."
+      ]
+    },
+    {
+      "id": "A2.EGx40",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}c_{i}\\mathbb{E}\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]",
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\mathbb{E}[B_{i}^{\\pi}(T)]-\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)\\mathbb{E}[q_{i}^{\\pi}(T)]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}c_{i}\\mathbb{E}\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\mathbb{E}[B_{i}^{\\pi}(T)]-\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)\\mathbb{E}[q_{i}^{\\pi}(T)]."
+      ]
+    },
+    {
+      "id": "A2.Ex64",
+      "tex": [
+        "\\mathbb{E}[B_{i}^{\\pi}(T)]=\\theta_{i}\\mathbb{E}\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[B_{i}^{\\pi}(T)]=\\theta_{i}\\mathbb{E}\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]."
+      ]
+    },
+    {
+      "id": "A2.EGx41",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]=\\frac{1}{\\theta_{i}}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\int_{0}^{T}q_{i}^{\\pi}(t)\\,dt\\right]=\\frac{1}{\\theta_{i}}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right),"
+      ]
+    },
+    {
+      "id": "A2.EGx42",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{c_{i}}{\\theta_{i}}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right)",
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right)-\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)\\mathbb{E}[q_{i}^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right)-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}\\mathbb{E}[q_{i}^{\\pi}(T)],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{c_{i}}{\\theta_{i}}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad-\\sum_{i=1}^{n}\\gamma_{i}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right)-\\sum_{i=1}^{n}\\left(\\frac{c_{i}}{\\theta_{i}}+\\gamma_{i}\\right)\\mathbb{E}[q_{i}^{\\pi}(T)]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}\\left(\\lambda_{i}T-\\mathbb{E}[q_{i}^{\\pi}(T)]-\\mathbb{E}[(MX^{\\pi}(T))_{i}]\\right)-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}\\mathbb{E}[q_{i}^{\\pi}(T)],"
+      ]
+    },
+    {
+      "id": "A2.EGx43",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]+\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}\\mathbb{E}[(MX^{\\pi}(T))_{i}]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}}",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}\\left(r_{m}+\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}M_{im}\\right)X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}}",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}\\widetilde{r}_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[F^{\\pi}(T)]",
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}r_{m}X_{m}^{\\pi}(T)\\right]+\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}\\mathbb{E}[(MX^{\\pi}(T))_{i}]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}\\left(r_{m}+\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}}{\\theta_{i}}M_{im}\\right)X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\mathbb{E}\\left[\\sum_{m=1}^{d}\\widetilde{r}_{m}X_{m}^{\\pi}(T)\\right]-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}},"
+      ]
+    },
+    {
+      "id": "A2.Ex71",
+      "tex": [
+        "TF^{*}=T\\langle\\widetilde{r},x^{*}\\rangle-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "TF^{*}=T\\langle\\widetilde{r},x^{*}\\rangle-\\sum_{i=1}^{n}\\frac{\\overline{c}_{i}\\lambda_{i}T}{\\theta_{i}}."
+      ]
+    },
+    {
+      "id": "A2.EGx44",
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]=T\\langle\\widetilde{r},x^{*}\\rangle-\\mathbb{E}\\left[\\sum_{m=1}^{d}\\widetilde{r}_{m}X_{m}^{\\pi}(T)\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle TF^{*}-\\mathbb{E}[F^{\\pi}(T)]=T\\langle\\widetilde{r},x^{*}\\rangle-\\mathbb{E}\\left[\\sum_{m=1}^{d}\\widetilde{r}_{m}X_{m}^{\\pi}(T)\\right]."
+      ]
+    },
+    {
+      "id": "A2.EGx45",
+      "tex": [
+        "\\displaystyle\\mathcal{L}f(q)=\\sum_{i=1}^{n}\\lambda_{i}\\bigl[f(q+e_{i}-Mx^{i}(t))-f(q)\\bigr]+\\sum_{i=1}^{n}\\theta_{i}q_{i}\\bigl[f(q-e_{i})-f(q)\\bigr]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}f(q)=\\sum_{i=1}^{n}\\lambda_{i}\\bigl[f(q+e_{i}-Mx^{i}(t))-f(q)\\bigr]+\\sum_{i=1}^{n}\\theta_{i}q_{i}\\bigl[f(q-e_{i})-f(q)\\bigr]."
+      ]
+    },
+    {
+      "id": "A2.E37",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(\\text{one type-}i\\text{ arrival in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=\\lambda_{i}h+o(h),",
+        "\\displaystyle\\mathbb{P}(\\text{one type-}i\\text{ abandonment in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=\\theta_{i}q_{i}h+o(h),",
+        "\\displaystyle\\mathbb{P}(\\text{two or more events in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=o(h),",
+        "\\displaystyle\\mathbb{P}(\\text{no event in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=1-\\Lambda(q)h+o(h),"
+      ]
+    },
+    {
+      "id": "A2.E37X",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(\\text{one type-}i\\text{ arrival in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=\\lambda_{i}h+o(h),"
+      ]
+    },
+    {
+      "id": "A2.E37Xa",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(\\text{one type-}i\\text{ abandonment in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=\\theta_{i}q_{i}h+o(h),"
+      ]
+    },
+    {
+      "id": "A2.E37Xb",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(\\text{two or more events in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=o(h),"
+      ]
+    },
+    {
+      "id": "A2.E37Xc",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(\\text{no event in }[t,t+h)\\mid q(t)=q)",
+        "\\displaystyle=1-\\Lambda(q)h+o(h),"
+      ]
+    },
+    {
+      "id": "A2.EGx46",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[f(q(t+h))\\mid q(t)=q]",
+        "\\displaystyle=f(q)(1-\\Lambda(q)h)+\\sum_{i=1}^{n}\\lambda_{i}h\\cdot f(q+e_{i}-Mx^{i}(t))",
+        "\\displaystyle\\quad+\\sum_{i=1}^{n}\\theta_{i}q_{i}h\\cdot f(q-e_{i})+o(h)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[f(q(t+h))\\mid q(t)=q]",
+        "\\displaystyle=f(q)(1-\\Lambda(q)h)+\\sum_{i=1}^{n}\\lambda_{i}h\\cdot f(q+e_{i}-Mx^{i}(t))"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\sum_{i=1}^{n}\\theta_{i}q_{i}h\\cdot f(q-e_{i})+o(h)."
+      ]
+    },
+    {
+      "id": "A2.EGx47",
+      "tex": [
+        "\\displaystyle\\frac{\\mathbb{E}[f(q(t+h))\\mid q(t)=q]-f(q)}{h}=\\sum_{i=1}^{n}\\lambda_{i}\\bigl[f(q+e_{i}-Mx^{i}(t))-f(q)\\bigr]+\\sum_{i=1}^{n}\\theta_{i}q_{i}\\bigl[f(q-e_{i})-f(q)\\bigr]+\\frac{o(h)}{h}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\mathbb{E}[f(q(t+h))\\mid q(t)=q]-f(q)}{h}=\\sum_{i=1}^{n}\\lambda_{i}\\bigl[f(q+e_{i}-Mx^{i}(t))-f(q)\\bigr]+\\sum_{i=1}^{n}\\theta_{i}q_{i}\\bigl[f(q-e_{i})-f(q)\\bigr]+\\frac{o(h)}{h}."
+      ]
+    },
+    {
+      "id": "A2.EGx48",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[\\left(q_{i}(t)+1-[Mx^{i}(t)]_{i}\\right)^{2}+\\sum_{j\\neq i,j\\in\\mathcal{I}^{+}}\\left(q_{j}(t)-[Mx^{i}(t)]_{j}\\right)^{2}-\\sum_{j\\in\\mathcal{I}^{+}}q_{j}(t)^{2}\\right]",
+        "\\displaystyle\\quad+\\sum_{i\\in[n]\\setminus\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[\\sum_{j\\in\\mathcal{I}^{+}}\\left(q_{j}(t)-[Mx^{i}(t)]_{j}\\right)^{2}-\\sum_{j\\in\\mathcal{I}^{+}}q_{j}(t)^{2}\\right]",
+        "\\displaystyle\\quad+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\left[\\left(q_{i}(t)-1\\right)^{2}-q_{i}(t)^{2}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[\\left(q_{i}(t)+1-[Mx^{i}(t)]_{i}\\right)^{2}+\\sum_{j\\neq i,j\\in\\mathcal{I}^{+}}\\left(q_{j}(t)-[Mx^{i}(t)]_{j}\\right)^{2}-\\sum_{j\\in\\mathcal{I}^{+}}q_{j}(t)^{2}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\sum_{i\\in[n]\\setminus\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[\\sum_{j\\in\\mathcal{I}^{+}}\\left(q_{j}(t)-[Mx^{i}(t)]_{j}\\right)^{2}-\\sum_{j\\in\\mathcal{I}^{+}}q_{j}(t)^{2}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\left[\\left(q_{i}(t)-1\\right)^{2}-q_{i}(t)^{2}\\right],"
+      ]
+    },
+    {
+      "id": "A2.EGx49",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[2q_{i}(t)-2\\langle q(t),Mx^{i}(t)\\rangle_{\\mathcal{I}^{+}}+1-2[Mx^{i}(t)]_{i}+\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}\\right]",
+        "\\displaystyle\\quad+\\sum_{i\\in[n]\\setminus\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[-2\\langle q(t),Mx^{i}(t)\\rangle_{\\mathcal{I}^{+}}+\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}\\right]",
+        "\\displaystyle\\quad+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\left[-2q_{i}(t)+1\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[2q_{i}(t)-2\\langle q(t),Mx^{i}(t)\\rangle_{\\mathcal{I}^{+}}+1-2[Mx^{i}(t)]_{i}+\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\sum_{i\\in[n]\\setminus\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left[-2\\langle q(t),Mx^{i}(t)\\rangle_{\\mathcal{I}^{+}}+\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\left[-2q_{i}(t)+1\\right]."
+      ]
+    },
+    {
+      "id": "A2.EGx50",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2\\langle q(t),\\lambda^{s}-M\\overline{x}(t)\\rangle_{\\mathcal{I}^{+}}+\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\sum_{i=1}^{n}\\lambda_{i}^{s}\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2\\langle q(t),\\lambda^{s}-M\\overline{x}(t)\\rangle_{\\mathcal{I}^{+}}+\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\sum_{i=1}^{n}\\lambda_{i}^{s}\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "A2.EGx51",
+      "tex": [
+        "\\displaystyle\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\sum_{i=1}^{n}\\lambda_{i}^{s}\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}=\\sum_{i=1}^{n}\\lambda_{i}^{s}\\kappa_{i}(t),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\sum_{i=1}^{n}\\lambda_{i}^{s}\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}=\\sum_{i=1}^{n}\\lambda_{i}^{s}\\kappa_{i}(t),"
+      ]
+    },
+    {
+      "id": "A2.EGx52",
+      "tex": [
+        "\\displaystyle\\kappa_{i}(t)\\coloneqq\\mathbf{1}\\{i\\in\\mathcal{I}^{+}\\}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\kappa_{i}(t)\\coloneqq\\mathbf{1}\\{i\\in\\mathcal{I}^{+}\\}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "A2.EGx53",
+      "tex": [
+        "\\displaystyle\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}=\\sum_{k\\in\\mathcal{I}^{+}}\\left([Mx^{i}(t)]_{k}\\right)^{2}=\\sum_{k\\in\\mathcal{I}^{+}}[Mx^{i}(t)]_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}=\\sum_{k\\in\\mathcal{I}^{+}}\\left([Mx^{i}(t)]_{k}\\right)^{2}=\\sum_{k\\in\\mathcal{I}^{+}}[Mx^{i}(t)]_{k}."
+      ]
+    },
+    {
+      "id": "A2.EGx54",
+      "tex": [
+        "\\displaystyle\\kappa_{i}(t)=-\\mathbf{1}\\{i\\in\\mathcal{I}^{+}\\}+\\mathbf{1}\\{i\\in\\mathcal{I}^{+}\\}+\\mathbf{1}\\{j\\in\\mathcal{I}^{+}\\}=\\mathbf{1}\\{j\\in\\mathcal{I}^{+}\\}\\leq 1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\kappa_{i}(t)=-\\mathbf{1}\\{i\\in\\mathcal{I}^{+}\\}+\\mathbf{1}\\{i\\in\\mathcal{I}^{+}\\}+\\mathbf{1}\\{j\\in\\mathcal{I}^{+}\\}=\\mathbf{1}\\{j\\in\\mathcal{I}^{+}\\}\\leq 1."
+      ]
+    },
+    {
+      "id": "A2.EGx55",
+      "tex": [
+        "\\displaystyle\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\sum_{i=1}^{n}\\lambda_{i}^{s}\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq\\sum_{i=1}^{n}\\lambda_{i}^{s}=\\|\\lambda^{s}\\|_{1}=s,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{i\\in\\mathcal{I}^{+}}\\lambda_{i}^{s}\\left(1-2[Mx^{i}(t)]_{i}\\right)+\\sum_{i=1}^{n}\\lambda_{i}^{s}\\|Mx^{i}(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq\\sum_{i=1}^{n}\\lambda_{i}^{s}=\\|\\lambda^{s}\\|_{1}=s,"
+      ]
+    },
+    {
+      "id": "A2.EGx56",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|^{2}_{\\mathcal{I}^{+}}\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s."
+      ]
+    },
+    {
+      "id": "A2.EGx57",
+      "tex": [
+        "\\displaystyle q_{i}(t)\\,q_{j}(t)=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle q_{i}(t)\\,q_{j}(t)=0."
+      ]
+    },
+    {
+      "id": "A2.EGx58",
+      "tex": [
+        "\\displaystyle\\langle q(t),Mx\\rangle_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i\\in[n]}\\sum_{j\\in\\delta(i)\\cap\\mathcal{I}^{+}}q_{j}(t)x_{(i,j)}",
+        "\\displaystyle=\\sum_{i\\in[n]\\setminus\\mathcal{Q}^{+}(t)}\\sum_{j\\in\\mathcal{N}_{i}^{+}(t)}q_{j}(t)x_{(i,j)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\langle q(t),Mx\\rangle_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i\\in[n]}\\sum_{j\\in\\delta(i)\\cap\\mathcal{I}^{+}}q_{j}(t)x_{(i,j)}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{i\\in[n]\\setminus\\mathcal{Q}^{+}(t)}\\sum_{j\\in\\mathcal{N}_{i}^{+}(t)}q_{j}(t)x_{(i,j)}."
+      ]
+    },
+    {
+      "id": "A2.E42",
+      "tex": [
+        "\\mathcal{P}_{i}(t):\\quad\\begin{aligned} \\max_{x_{(i,j)},\\,j\\in\\mathcal{N}_{i}^{+}(t)}\\quad&\\sum_{j\\in\\mathcal{N}_{i}^{+}(t)}q_{j}(t)x_{(i,j)}\\\\\n\\text{s.t.}\\quad&\\sum_{j\\in\\mathcal{N}_{i}^{+}(t)}x_{(i,j)}\\leq\\lambda^{b}_{i},\\quad x_{(i,j)}\\geq 0\\quad\\forall j\\in\\mathcal{N}_{i}^{+}(t).\\end{aligned}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{P}_{i}(t):\\quad\\begin{aligned} \\max_{x_{(i,j)},\\,j\\in\\mathcal{N}_{i}^{+}(t)}\\quad&\\sum_{j\\in\\mathcal{N}_{i}^{+}(t)}q_{j}(t)x_{(i,j)}\\\\\n\\text{s.t.}\\quad&\\sum_{j\\in\\mathcal{N}_{i}^{+}(t)}x_{(i,j)}\\leq\\lambda^{b}_{i},\\quad x_{(i,j)}\\geq 0\\quad\\forall j\\in\\mathcal{N}_{i}^{+}(t).\\end{aligned}"
+      ]
+    },
+    {
+      "id": "A2.EGx59",
+      "tex": [
+        "\\displaystyle\\overline{x}^{b}_{(i,j)}(t)=\\lambda^{b}_{i}x^{i}_{(i,j)}(t)+\\lambda^{b}_{j}x^{j}_{(i,j)}(t)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\overline{x}^{b}_{(i,j)}(t)=\\lambda^{b}_{i}x^{i}_{(i,j)}(t)+\\lambda^{b}_{j}x^{j}_{(i,j)}(t)."
+      ]
+    },
+    {
+      "id": "A2.EGx60",
+      "tex": [
+        "\\displaystyle\\overline{x}^{b}_{(i,j)}(t)=\\lambda^{b}_{i}x^{i}_{(i,j)}(t)\\quad\\text{for all }j\\in\\delta(i),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\overline{x}^{b}_{(i,j)}(t)=\\lambda^{b}_{i}x^{i}_{(i,j)}(t)\\quad\\text{for all }j\\in\\delta(i),"
+      ]
+    },
+    {
+      "id": "A2.EGx61",
+      "tex": [
+        "\\displaystyle(M\\overline{x}^{b}(t))_{i}=\\sum_{j\\in\\delta(i)}\\overline{x}^{b}_{(i,j)}(t)=\\lambda^{b}_{i}\\sum_{j\\in\\delta(i)}x^{i}_{(i,j)}(t)\\leq\\lambda^{b}_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(M\\overline{x}^{b}(t))_{i}=\\sum_{j\\in\\delta(i)}\\overline{x}^{b}_{(i,j)}(t)=\\lambda^{b}_{i}\\sum_{j\\in\\delta(i)}x^{i}_{(i,j)}(t)\\leq\\lambda^{b}_{i},"
+      ]
+    },
+    {
+      "id": "A2.Ex90",
+      "tex": [
+        "\\widehat{\\lambda}_{i}(t)=\\begin{cases}\\lambda_{i}^{b},&\\text{if }i\\notin\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t),\\\\[4.0pt]\n\\lambda_{i}^{b}+\\epsilon/\\sqrt{n},&\\text{if }i\\in\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t).\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\lambda}_{i}(t)=\\begin{cases}\\lambda_{i}^{b},&\\text{if }i\\notin\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t),\\\\[4.0pt]\n\\lambda_{i}^{b}+\\epsilon/\\sqrt{n},&\\text{if }i\\in\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t).\\end{cases}"
+      ]
+    },
+    {
+      "id": "A2.Ex91",
+      "tex": [
+        "\\|\\widehat{\\lambda}(t)-\\lambda^{b}\\|_{2}=\\frac{\\epsilon}{\\sqrt{n}}\\sqrt{|\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t)|}\\leq\\epsilon."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\widehat{\\lambda}(t)-\\lambda^{b}\\|_{2}=\\frac{\\epsilon}{\\sqrt{n}}\\sqrt{|\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t)|}\\leq\\epsilon."
+      ]
+    },
+    {
+      "id": "A2.EGx62",
+      "tex": [
+        "\\displaystyle\\xi_{m}=\\begin{cases}\\widehat{x}_{m},&\\text{if }m\\in\\mathcal{M}^{+}(t),\\\\[4.0pt]\n0,&\\text{otherwise}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\xi_{m}=\\begin{cases}\\widehat{x}_{m},&\\text{if }m\\in\\mathcal{M}^{+}(t),\\\\[4.0pt]\n0,&\\text{otherwise}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "A2.EGx63",
+      "tex": [
+        "\\displaystyle[M\\xi]_{i}\\leq[M\\widehat{x}]_{i}\\leq\\widehat{\\lambda}_{i}(t)=\\lambda^{b}_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle[M\\xi]_{i}\\leq[M\\widehat{x}]_{i}\\leq\\widehat{\\lambda}_{i}(t)=\\lambda^{b}_{i},"
+      ]
+    },
+    {
+      "id": "A2.EGx64",
+      "tex": [
+        "\\displaystyle[M\\xi]_{i}=\\sum_{j\\in\\delta(i)}\\xi_{(i,j)}=\\sum_{j\\in\\delta(i)}\\widehat{x}_{(i,j)}=\\widehat{\\lambda}_{i}(t)=\\lambda_{i}^{b}+\\frac{\\epsilon}{\\sqrt{n}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle[M\\xi]_{i}=\\sum_{j\\in\\delta(i)}\\xi_{(i,j)}=\\sum_{j\\in\\delta(i)}\\widehat{x}_{(i,j)}=\\widehat{\\lambda}_{i}(t)=\\lambda_{i}^{b}+\\frac{\\epsilon}{\\sqrt{n}}."
+      ]
+    },
+    {
+      "id": "A2.EGx65",
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}",
+        "\\displaystyle=-\\frac{\\epsilon}{\\sqrt{n}}\\sum_{i\\in\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t)}q_{i}(t)",
+        "\\displaystyle=-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{1,\\mathcal{I}^{+}}",
+        "\\displaystyle\\leq-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\langle q(t),\\lambda^{b}-M\\xi\\rangle_{\\mathcal{I}^{+}}",
+        "\\displaystyle=-\\frac{\\epsilon}{\\sqrt{n}}\\sum_{i\\in\\mathcal{I}^{+}\\cap\\mathcal{Q}^{+}(t)}q_{i}(t)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{1,\\mathcal{I}^{+}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq-\\frac{\\epsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}}."
+      ]
+    },
+    {
+      "id": "A2.EGx66",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i=1}^{n}\\lambda_{i}^{s}\\bigl[\\|q(t)+e_{i}-Mx^{i}(t)\\|_{\\mathcal{I}^{+}}-\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\bigl[\\|q(t)-e_{i}\\|_{\\mathcal{I}^{+}}-\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}",
+        "\\displaystyle=\\sum_{i=1}^{n}\\lambda_{i}^{s}\\bigl[\\|q(t)+e_{i}-Mx^{i}(t)\\|_{\\mathcal{I}^{+}}-\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\bigl[\\|q(t)-e_{i}\\|_{\\mathcal{I}^{+}}-\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr],"
+      ]
+    },
+    {
+      "id": "A2.EGx67",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}\\leq s+\\|\\theta\\|_{\\mathcal{I}^{+}}\\|q(t)\\|_{\\mathcal{I}^{+}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}\\leq s+\\|\\theta\\|_{\\mathcal{I}^{+}}\\|q(t)\\|_{\\mathcal{I}^{+}},"
+      ]
+    },
+    {
+      "id": "A2.EGx68",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}",
+        "\\displaystyle\\leq\\sum_{i=1}^{n}\\lambda_{i}^{s}\\frac{\\|q(t)+e_{i}-Mx^{i}(t)\\|_{\\mathcal{I}^{+}}^{2}-\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}}{2\\|q(t)\\|_{\\mathcal{I}^{+}}}+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\frac{\\|q(t)-e_{i}\\|_{\\mathcal{I}^{+}}^{2}-\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}}{2\\|q(t)\\|_{\\mathcal{I}^{+}}}",
+        "\\displaystyle=\\frac{\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}}{2\\|q(t)\\|_{\\mathcal{I}^{+}}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}",
+        "\\displaystyle\\leq\\sum_{i=1}^{n}\\lambda_{i}^{s}\\frac{\\|q(t)+e_{i}-Mx^{i}(t)\\|_{\\mathcal{I}^{+}}^{2}-\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}}{2\\|q(t)\\|_{\\mathcal{I}^{+}}}+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\frac{\\|q(t)-e_{i}\\|_{\\mathcal{I}^{+}}^{2}-\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}}{2\\|q(t)\\|_{\\mathcal{I}^{+}}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}}{2\\|q(t)\\|_{\\mathcal{I}^{+}}},"
+      ]
+    },
+    {
+      "id": "A2.EGx69",
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}\\leq s\\left(-\\frac{\\varepsilon}{\\sqrt{n}}+\\frac{1}{2\\|q(t)\\|_{\\mathcal{I}^{+}}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}\\|q(t)\\|_{\\mathcal{I}^{+}}\\leq s\\left(-\\frac{\\varepsilon}{\\sqrt{n}}+\\frac{1}{2\\|q(t)\\|_{\\mathcal{I}^{+}}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.EGx70",
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(y)=\\sum_{j\\in\\mathcal{J}}\\lambda_{j}(y)\\left(e^{\\alpha(f(y)+\\Delta_{j}f(y))}-e^{\\alpha f(y)}\\right)=V(y)\\sum_{j\\in\\mathcal{J}}\\lambda_{j}(y)\\left(e^{\\alpha\\Delta_{j}f(y)}-1\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(y)=\\sum_{j\\in\\mathcal{J}}\\lambda_{j}(y)\\left(e^{\\alpha(f(y)+\\Delta_{j}f(y))}-e^{\\alpha f(y)}\\right)=V(y)\\sum_{j\\in\\mathcal{J}}\\lambda_{j}(y)\\left(e^{\\alpha\\Delta_{j}f(y)}-1\\right)."
+      ]
+    },
+    {
+      "id": "A2.EGx71",
+      "tex": [
+        "\\displaystyle e^{\\alpha z}-1\\leq\\alpha z+\\frac{\\alpha^{2}z^{2}}{2}\\leq\\alpha z-\\frac{\\alpha^{2}Kz}{2}=\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)z."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle e^{\\alpha z}-1\\leq\\alpha z+\\frac{\\alpha^{2}z^{2}}{2}\\leq\\alpha z-\\frac{\\alpha^{2}Kz}{2}=\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)z."
+      ]
+    },
+    {
+      "id": "A2.EGx72",
+      "tex": [
+        "\\displaystyle e^{\\alpha z}-1\\leq\\alpha z+(e-2)\\alpha^{2}z^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle e^{\\alpha z}-1\\leq\\alpha z+(e-2)\\alpha^{2}z^{2}."
+      ]
+    },
+    {
+      "id": "A2.EGx73",
+      "tex": [
+        "\\displaystyle\\frac{\\mathcal{L}V(y)}{V(y)}",
+        "\\displaystyle\\leq\\sum_{j\\in\\mathcal{J}^{-}(y)}\\lambda_{j}(y)\\cdot\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)\\Delta_{j}f(y)+\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)\\left(\\alpha\\Delta_{j}f(y)+(e-2)\\alpha^{2}(\\Delta_{j}f(y))^{2}\\right)",
+        "\\displaystyle=\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)\\mathcal{L}f(y)+\\frac{\\alpha^{2}K}{2}\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)\\Delta_{j}f(y)+(e-2)\\alpha^{2}\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)(\\Delta_{j}f(y))^{2}",
+        "\\displaystyle\\leq\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)\\mathcal{L}f(y)+(e-\\frac{3}{2})\\Lambda K^{2}\\alpha^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\mathcal{L}V(y)}{V(y)}",
+        "\\displaystyle\\leq\\sum_{j\\in\\mathcal{J}^{-}(y)}\\lambda_{j}(y)\\cdot\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)\\Delta_{j}f(y)+\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)\\left(\\alpha\\Delta_{j}f(y)+(e-2)\\alpha^{2}(\\Delta_{j}f(y))^{2}\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)\\mathcal{L}f(y)+\\frac{\\alpha^{2}K}{2}\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)\\Delta_{j}f(y)+(e-2)\\alpha^{2}\\sum_{j\\in\\mathcal{J}^{+}(y)}\\lambda_{j}(y)(\\Delta_{j}f(y))^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\alpha\\left(1-\\frac{\\alpha K}{2}\\right)\\mathcal{L}f(y)+(e-\\frac{3}{2})\\Lambda K^{2}\\alpha^{2},"
+      ]
+    },
+    {
+      "id": "A2.EGx74",
+      "tex": [
+        "\\displaystyle\\frac{\\mathcal{L}V(y)}{V(y)}\\leq-\\alpha\\delta+\\alpha^{2}C_{1},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\mathcal{L}V(y)}{V(y)}\\leq-\\alpha\\delta+\\alpha^{2}C_{1},"
+      ]
+    },
+    {
+      "id": "A2.EGx75",
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(y)\\leq-\\gamma V(y)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(y)\\leq-\\gamma V(y)"
+      ]
+    },
+    {
+      "id": "A2.EGx76",
+      "tex": [
+        "\\displaystyle\\frac{\\mathcal{L}V(y)}{V(y)}",
+        "\\displaystyle\\leq\\alpha^{*}B+\\left(-\\frac{KB}{2}+(e-1.5)\\Lambda K^{2}\\right)(\\alpha^{*})^{2}",
+        "\\displaystyle\\leq\\alpha^{*}B+C_{1}(\\alpha^{*})^{2}",
+        "\\displaystyle=-\\gamma+\\alpha^{*}(B+\\delta),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\mathcal{L}V(y)}{V(y)}",
+        "\\displaystyle\\leq\\alpha^{*}B+\\left(-\\frac{KB}{2}+(e-1.5)\\Lambda K^{2}\\right)(\\alpha^{*})^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\alpha^{*}B+C_{1}(\\alpha^{*})^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=-\\gamma+\\alpha^{*}(B+\\delta),"
+      ]
+    },
+    {
+      "id": "A2.EGx77",
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(y)\\leq-\\gamma V(y)+C_{\\mathrm{const}},\\quad\\text{where }C_{\\mathrm{const}}=\\alpha^{*}(B+\\delta)e^{\\alpha^{*}D}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(y)\\leq-\\gamma V(y)+C_{\\mathrm{const}},\\quad\\text{where }C_{\\mathrm{const}}=\\alpha^{*}(B+\\delta)e^{\\alpha^{*}D}."
+      ]
+    },
+    {
+      "id": "A2.EGx78",
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\mathbb{E}[V(Y_{t})]=\\mathbb{E}[\\mathcal{L}V(Y_{t})]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\mathbb{E}[V(Y_{t})]=\\mathbb{E}[\\mathcal{L}V(Y_{t})]."
+      ]
+    },
+    {
+      "id": "A2.EGx79",
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\mathbb{E}[V(Y_{t})]\\leq-\\gamma\\mathbb{E}[V(Y_{t})]+C_{\\mathrm{const}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\mathbb{E}[V(Y_{t})]\\leq-\\gamma\\mathbb{E}[V(Y_{t})]+C_{\\mathrm{const}}."
+      ]
+    },
+    {
+      "id": "A2.EGx80",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[V(Y_{t})]",
+        "\\displaystyle\\leq e^{-\\gamma t}\\mathbb{E}[V(Y_{0})]+\\frac{C_{\\mathrm{const}}}{\\gamma}(1-e^{-\\gamma t})",
+        "\\displaystyle\\leq\\max\\left\\{\\mathbb{E}[V(Y_{0})],\\frac{C_{\\mathrm{const}}}{\\gamma}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[V(Y_{t})]",
+        "\\displaystyle\\leq e^{-\\gamma t}\\mathbb{E}[V(Y_{0})]+\\frac{C_{\\mathrm{const}}}{\\gamma}(1-e^{-\\gamma t})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\max\\left\\{\\mathbb{E}[V(Y_{0})],\\frac{C_{\\mathrm{const}}}{\\gamma}\\right\\},"
+      ]
+    },
+    {
+      "id": "A2.EGx81",
+      "tex": [
+        "\\displaystyle e^{\\alpha^{*}\\mathbb{E}[f(Y_{t})]}\\leq\\mathbb{E}[e^{\\alpha^{*}f(Y_{t})}]=\\mathbb{E}[V(Y_{t})]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle e^{\\alpha^{*}\\mathbb{E}[f(Y_{t})]}\\leq\\mathbb{E}[e^{\\alpha^{*}f(Y_{t})}]=\\mathbb{E}[V(Y_{t})]."
+      ]
+    },
+    {
+      "id": "A2.EGx82",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[f(Y_{t})]\\leq\\frac{1}{\\alpha^{*}}\\max\\left\\{\\alpha^{*}f(Y_{0}),\\,\\ln\\left(\\frac{B+\\delta}{\\delta-\\alpha^{*}C_{1}}\\right)+\\alpha^{*}D\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[f(Y_{t})]\\leq\\frac{1}{\\alpha^{*}}\\max\\left\\{\\alpha^{*}f(Y_{0}),\\,\\ln\\left(\\frac{B+\\delta}{\\delta-\\alpha^{*}C_{1}}\\right)+\\alpha^{*}D\\right\\}."
+      ]
+    },
+    {
+      "id": "A2.Ex111",
+      "tex": [
+        "\\|U^{*}\\|_{\\infty}\\leq\\widetilde{r}_{\\max},\\qquad\\|U^{*}\\|\\leq\\sqrt{n}\\,\\widetilde{r}_{\\max}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|U^{*}\\|_{\\infty}\\leq\\widetilde{r}_{\\max},\\qquad\\|U^{*}\\|\\leq\\sqrt{n}\\,\\widetilde{r}_{\\max}."
+      ]
+    },
+    {
+      "id": "A2.Ex112",
+      "tex": [
+        "U^{\\prime}=U^{*}-(U_{k}^{*}-\\widetilde{r}_{\\max})e_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "U^{\\prime}=U^{*}-(U_{k}^{*}-\\widetilde{r}_{\\max})e_{k}."
+      ]
+    },
+    {
+      "id": "A2.Ex113",
+      "tex": [
+        "U^{\\prime}_{k}+U^{\\prime}_{j}=\\widetilde{r}_{\\max}+U_{j}^{*}\\geq\\widetilde{r}_{m}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "U^{\\prime}_{k}+U^{\\prime}_{j}=\\widetilde{r}_{\\max}+U_{j}^{*}\\geq\\widetilde{r}_{m}."
+      ]
+    },
+    {
+      "id": "A2.Ex114",
+      "tex": [
+        "(\\lambda^{b})^{\\top}U^{\\prime}-(\\lambda^{b})^{\\top}U^{*}=-\\lambda_{k}^{b}(U_{k}^{*}-\\widetilde{r}_{\\max})<0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(\\lambda^{b})^{\\top}U^{\\prime}-(\\lambda^{b})^{\\top}U^{*}=-\\lambda_{k}^{b}(U_{k}^{*}-\\widetilde{r}_{\\max})<0,"
+      ]
+    },
+    {
+      "id": "A2.Ex115",
+      "tex": [
+        "\\|U^{*}\\|_{\\infty}\\leq\\widetilde{r}_{\\max},\\qquad\\|U^{*}\\|^{2}\\leq n\\|U^{*}\\|_{\\infty}^{2}\\leq n\\widetilde{r}_{\\max}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|U^{*}\\|_{\\infty}\\leq\\widetilde{r}_{\\max},\\qquad\\|U^{*}\\|^{2}\\leq n\\|U^{*}\\|_{\\infty}^{2}\\leq n\\widetilde{r}_{\\max}^{2}."
+      ]
+    },
+    {
+      "id": "A3.Ex116",
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\varepsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq-\\frac{\\varepsilon}{\\sqrt{n}}\\|q(t)\\|_{\\mathcal{I}^{+}},"
+      ]
+    },
+    {
+      "id": "A3.Ex117",
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq 0."
+      ]
+    },
+    {
+      "id": "A3.Ex118",
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq 0."
+      ]
+    },
+    {
+      "id": "A3.Ex119",
+      "tex": [
+        "x_{m}^{*}=0\\quad\\text{for }m\\notin\\mathcal{M}^{g},\\qquad(Mx^{*})_{i}=\\lambda_{i}^{b}\\quad\\text{for }i\\in\\mathcal{I}^{+}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "x_{m}^{*}=0\\quad\\text{for }m\\notin\\mathcal{M}^{g},\\qquad(Mx^{*})_{i}=\\lambda_{i}^{b}\\quad\\text{for }i\\in\\mathcal{I}^{+}."
+      ]
+    },
+    {
+      "id": "A3.Ex120",
+      "tex": [
+        "\\xi_{m}(t)=\\begin{cases}x_{m}^{*},&m\\in\\mathcal{M}^{+}(t),\\\\\n0,&m\\notin\\mathcal{M}^{+}(t).\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\xi_{m}(t)=\\begin{cases}x_{m}^{*},&m\\in\\mathcal{M}^{+}(t),\\\\\n0,&m\\notin\\mathcal{M}^{+}(t).\\end{cases}"
+      ]
+    },
+    {
+      "id": "A3.Ex121",
+      "tex": [
+        "(M\\xi(t))_{i}\\leq(Mx^{*})_{i}\\leq\\lambda_{i}^{b}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(M\\xi(t))_{i}\\leq(Mx^{*})_{i}\\leq\\lambda_{i}^{b}."
+      ]
+    },
+    {
+      "id": "A3.Ex122",
+      "tex": [
+        "(Mx^{*})_{i}=\\sum_{\\begin{subarray}{c}j\\in\\delta(i)\\\\\n(i,j)\\in\\mathcal{M}^{g}\\end{subarray}}x^{*}_{(i,j)}=\\sum_{\\begin{subarray}{c}j\\in\\delta(i)\\\\\n(i,j)\\in\\mathcal{M}^{g}\\end{subarray}}\\xi_{(i,j)}(t)=(M\\xi(t))_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(Mx^{*})_{i}=\\sum_{\\begin{subarray}{c}j\\in\\delta(i)\\\\\n(i,j)\\in\\mathcal{M}^{g}\\end{subarray}}x^{*}_{(i,j)}=\\sum_{\\begin{subarray}{c}j\\in\\delta(i)\\\\\n(i,j)\\in\\mathcal{M}^{g}\\end{subarray}}\\xi_{(i,j)}(t)=(M\\xi(t))_{i},"
+      ]
+    },
+    {
+      "id": "A3.Ex123",
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\xi(t)\\rangle_{\\mathcal{I}^{+}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\xi(t)\\rangle_{\\mathcal{I}^{+}}=0."
+      ]
+    },
+    {
+      "id": "A3.Ex124",
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq\\langle q(t),\\lambda^{b}-M\\xi(t)\\rangle_{\\mathcal{I}^{+}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}\\leq\\langle q(t),\\lambda^{b}-M\\xi(t)\\rangle_{\\mathcal{I}^{+}}=0."
+      ]
+    },
+    {
+      "id": "A3.Ex125",
+      "tex": [
+        "\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}\\bigr]\\leq\\frac{s}{\\theta_{\\min}}\\bigl(1-e^{-\\theta_{\\min}t}\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}\\bigr]\\leq\\frac{s}{\\theta_{\\min}}\\bigl(1-e^{-\\theta_{\\min}t}\\bigr)."
+      ]
+    },
+    {
+      "id": "A3.Ex126",
+      "tex": [
+        "\\sup_{t\\geq 0}\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\leq\\sqrt{\\frac{s}{\\theta_{\\min}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{t\\geq 0}\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\leq\\sqrt{\\frac{s}{\\theta_{\\min}}}."
+      ]
+    },
+    {
+      "id": "A3.EGx83",
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(q(t))",
+        "\\displaystyle\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\bigl[-2q_{i}(t)+1\\bigr]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}V(q(t))",
+        "\\displaystyle\\leq 2s\\langle q(t),\\lambda^{b}-M\\overline{x}^{b}(t)\\rangle_{\\mathcal{I}^{+}}+s+\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)\\bigl[-2q_{i}(t)+1\\bigr]."
+      ]
+    },
+    {
+      "id": "A3.E54",
+      "tex": [
+        "\\mathcal{L}V(q(t))\\leq s-\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)^{2}\\leq s-\\theta_{\\min}V(q(t))."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}V(q(t))\\leq s-\\sum_{i\\in\\mathcal{I}^{+}}\\theta_{i}q_{i}(t)^{2}\\leq s-\\theta_{\\min}V(q(t))."
+      ]
+    },
+    {
+      "id": "A3.Ex128",
+      "tex": [
+        "\\frac{{\\rm d}}{{\\rm d}t}\\mathbb{E}[V(q(t))]=\\mathbb{E}[\\mathcal{L}V(q(t))]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{{\\rm d}}{{\\rm d}t}\\mathbb{E}[V(q(t))]=\\mathbb{E}[\\mathcal{L}V(q(t))]."
+      ]
+    },
+    {
+      "id": "A3.Ex129",
+      "tex": [
+        "\\frac{{\\rm d}}{{\\rm d}t}\\mathbb{E}[V(q(t))]\\leq s-\\theta_{\\min}\\mathbb{E}[V(q(t))]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{{\\rm d}}{{\\rm d}t}\\mathbb{E}[V(q(t))]\\leq s-\\theta_{\\min}\\mathbb{E}[V(q(t))]."
+      ]
+    },
+    {
+      "id": "A3.Ex130",
+      "tex": [
+        "\\mathbb{E}[V(q(t))]\\leq\\frac{s}{\\theta_{\\min}}\\bigl(1-e^{-\\theta_{\\min}t}\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[V(q(t))]\\leq\\frac{s}{\\theta_{\\min}}\\bigl(1-e^{-\\theta_{\\min}t}\\bigr)."
+      ]
+    },
+    {
+      "id": "A3.Ex131",
+      "tex": [
+        "\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\leq\\sqrt{\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}\\bigr]}\\leq\\sqrt{\\frac{s}{\\theta_{\\min}}},\\qquad t\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\leq\\sqrt{\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}^{2}\\bigr]}\\leq\\sqrt{\\frac{s}{\\theta_{\\min}}},\\qquad t\\geq 0."
+      ]
+    },
+    {
+      "id": "A3.EGx84",
+      "tex": [
+        "\\displaystyle\\mathcal{R}_{T,s}^{\\pi}",
+        "\\displaystyle={}\\frac{1}{T}\\langle U^{*},\\mathbb{E}[q(T)]\\rangle_{\\mathcal{I}^{+}}+\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}\\bigl[\\langle U^{*},\\theta q(t)\\rangle_{\\mathcal{I}^{+}}\\bigr]\\,{\\rm d}t",
+        "\\displaystyle\\leq\\frac{\\sqrt{n}\\,\\widetilde{r}_{\\max}}{T}\\mathbb{E}\\bigl[\\|q(T)\\|_{\\mathcal{I}^{+}}\\bigr]+\\frac{\\|\\theta\\|_{\\infty}\\sqrt{n}\\,\\widetilde{r}_{\\max}}{T}\\int_{0}^{T}\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\,{\\rm d}t",
+        "\\displaystyle\\leq\\left(\\frac{1}{T}+\\|\\theta\\|_{\\infty}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\sqrt{\\frac{s}{\\theta_{\\min}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{R}_{T,s}^{\\pi}",
+        "\\displaystyle={}\\frac{1}{T}\\langle U^{*},\\mathbb{E}[q(T)]\\rangle_{\\mathcal{I}^{+}}+\\frac{1}{T}\\int_{0}^{T}\\mathbb{E}\\bigl[\\langle U^{*},\\theta q(t)\\rangle_{\\mathcal{I}^{+}}\\bigr]\\,{\\rm d}t"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{\\sqrt{n}\\,\\widetilde{r}_{\\max}}{T}\\mathbb{E}\\bigl[\\|q(T)\\|_{\\mathcal{I}^{+}}\\bigr]+\\frac{\\|\\theta\\|_{\\infty}\\sqrt{n}\\,\\widetilde{r}_{\\max}}{T}\\int_{0}^{T}\\mathbb{E}\\bigl[\\|q(t)\\|_{\\mathcal{I}^{+}}\\bigr]\\,{\\rm d}t"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\left(\\frac{1}{T}+\\|\\theta\\|_{\\infty}\\right)\\sqrt{n}\\,\\widetilde{r}_{\\max}\\sqrt{\\frac{s}{\\theta_{\\min}}}."
+      ]
+    },
+    {
+      "id": "A3.Ex135",
+      "tex": [
+        "\\rho_{T,s}^{\\pi}=1-\\frac{\\mathcal{R}_{T,s}^{\\pi}}{sF^{*}(\\lambda^{b})}\\geq 1-\\frac{(T^{-1}+\\|\\theta\\|_{\\infty})\\sqrt{n}\\,\\widetilde{r}_{\\max}}{F^{*}(\\lambda^{b})\\sqrt{\\theta_{\\min}}}\\,\\frac{1}{\\sqrt{s}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{T,s}^{\\pi}=1-\\frac{\\mathcal{R}_{T,s}^{\\pi}}{sF^{*}(\\lambda^{b})}\\geq 1-\\frac{(T^{-1}+\\|\\theta\\|_{\\infty})\\sqrt{n}\\,\\widetilde{r}_{\\max}}{F^{*}(\\lambda^{b})\\sqrt{\\theta_{\\min}}}\\,\\frac{1}{\\sqrt{s}}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Longest-Queue Policy",
+      "images": []
+    },
+    {
+      "id": "S6.F1",
+      "caption": "(a)   ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3} (b)   ℓ s = 0.1 \\ell_{s}=0.1 (c)   ℓ s = 0.3 \\ell_{s}=0.3 Figure 1 :  The first instance is a bipartite matching network\nwith four types on each side, adapted from\n Aveklouris et al. (2025) . This instance does not satisfy GPG.",
+      "images": [
+        "2611.01431v1/04_bipartite_non_gpg_scaled.png",
+        "2611.01431v1/05_bipartite_non_gpg_fixed_0.1.png",
+        "2611.01431v1/06_bipartite_non_gpg_fixed_0.3.png"
+      ]
+    },
+    {
+      "id": "S6.F1.sf1",
+      "caption": "(a)   ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3}",
+      "images": [
+        "2611.01431v1/04_bipartite_non_gpg_scaled.png"
+      ]
+    },
+    {
+      "id": "S6.F1.sf2",
+      "caption": "(b)   ℓ s = 0.1 \\ell_{s}=0.1",
+      "images": [
+        "2611.01431v1/05_bipartite_non_gpg_fixed_0.1.png"
+      ]
+    },
+    {
+      "id": "S6.F1.sf3",
+      "caption": "(c)   ℓ s = 0.3 \\ell_{s}=0.3",
+      "images": [
+        "2611.01431v1/06_bipartite_non_gpg_fixed_0.3.png"
+      ]
+    },
+    {
+      "id": "S6.F2",
+      "caption": "(a)   ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3} (b)   ℓ s = 0.1 \\ell_{s}=0.1 (c)   ℓ s = 0.3 \\ell_{s}=0.3 Figure 2 :  The second instance is obtained from the first by increasing\nthe arrival rate of demand type  D 1 D_{1}  from  3 3  to  4 4  and\nsatisfies GPG.",
+      "images": [
+        "2611.01431v1/01_bipartite_gpg_scaled.png",
+        "2611.01431v1/02_bipartite_gpg_fixed_0.1.png",
+        "2611.01431v1/03_bipartite_gpg_fixed_0.3.png"
+      ]
+    },
+    {
+      "id": "S6.F2.sf1",
+      "caption": "(a)   ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3}",
+      "images": [
+        "2611.01431v1/01_bipartite_gpg_scaled.png"
+      ]
+    },
+    {
+      "id": "S6.F2.sf2",
+      "caption": "(b)   ℓ s = 0.1 \\ell_{s}=0.1",
+      "images": [
+        "2611.01431v1/02_bipartite_gpg_fixed_0.1.png"
+      ]
+    },
+    {
+      "id": "S6.F2.sf3",
+      "caption": "(c)   ℓ s = 0.3 \\ell_{s}=0.3",
+      "images": [
+        "2611.01431v1/03_bipartite_gpg_fixed_0.3.png"
+      ]
+    },
+    {
+      "id": "S6.F3",
+      "caption": "(a)   First instance: non-GPG. (b)   Second instance: GPG. Figure 3 :  log ⁡ ( 1 − ρ ⁡ ( s ) ) \\log(1-\\rho(s))  versus  log ⁡ s \\log s  for the two bipartite\ninstances, where  ρ ⁡ ( s ) \\rho(s)  denotes the approximation ratio.\nThe two benchmark policies use  ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3} .",
+      "images": [
+        "2611.01431v1/08_loglog_bipartite_non_gpg_scaled.png",
+        "2611.01431v1/07_loglog_bipartite_gpg_scaled.png"
+      ]
+    },
+    {
+      "id": "S6.F3.sf1",
+      "caption": "(a)   First instance: non-GPG.",
+      "images": [
+        "2611.01431v1/08_loglog_bipartite_non_gpg_scaled.png"
+      ]
+    },
+    {
+      "id": "S6.F3.sf2",
+      "caption": "(b)   Second instance: GPG.",
+      "images": [
+        "2611.01431v1/07_loglog_bipartite_gpg_scaled.png"
+      ]
+    },
+    {
+      "id": "S6.F4",
+      "caption": "(a)   ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3} (b)   ℓ s = 0.1 \\ell_{s}=0.1 (c)   ℓ s = 0.3 \\ell_{s}=0.3 Figure 4 :  The third instance is a non-bipartite two-way matching\nnetwork with ten agent types and  24 24  compatible pairs.",
+      "images": [
+        "2611.01431v1/09_ten_node_tree_scaled.png",
+        "2611.01431v1/10_ten_node_tree_fixed_0.1.png",
+        "2611.01431v1/11_ten_node_tree_fixed_0.3.png"
+      ]
+    },
+    {
+      "id": "S6.F4.sf1",
+      "caption": "(a)   ℓ s = s − 2 / 3 \\ell_{s}=s^{-2/3}",
+      "images": [
+        "2611.01431v1/09_ten_node_tree_scaled.png"
+      ]
+    },
+    {
+      "id": "S6.F4.sf2",
+      "caption": "(b)   ℓ s = 0.1 \\ell_{s}=0.1",
+      "images": [
+        "2611.01431v1/10_ten_node_tree_fixed_0.1.png"
+      ]
+    },
+    {
+      "id": "S6.F4.sf3",
+      "caption": "(c)   ℓ s = 0.3 \\ell_{s}=0.3",
+      "images": [
+        "2611.01431v1/11_ten_node_tree_fixed_0.3.png"
+      ]
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

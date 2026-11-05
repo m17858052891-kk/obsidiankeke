@@ -1,0 +1,832 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "ActTime: Action-Conditioned World Modeling for Time Series",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Related Work",
+      "id": "S2"
+    },
+    {
+      "title": "Time-Series Forecasting with Covariates",
+      "id": "S2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Action-Conditioned Time-Series Modeling",
+      "id": "S2.SS0.SSS0.Px2"
+    },
+    {
+      "title": "World Models for Decision Making",
+      "id": "S2.SS0.SSS0.Px3"
+    },
+    {
+      "title": "3  Methodology",
+      "id": "S3"
+    },
+    {
+      "title": "Problem Formulation.",
+      "id": "S3.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Overview.",
+      "id": "S3.SS0.SSS0.Px2"
+    },
+    {
+      "title": "3.1  Action-Conditioned State Dynamics",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "Action-conditioned transition.",
+      "id": "S3.SS1.SSS0.Px1"
+    },
+    {
+      "title": "State correction.",
+      "id": "S3.SS1.SSS0.Px2"
+    },
+    {
+      "title": "3.2  Temporal Prior and Future Rollout",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "Temporal prior.",
+      "id": "S3.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Future rollout and prediction.",
+      "id": "S3.SS2.SSS0.Px2"
+    },
+    {
+      "title": "3.3  Model Training",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "4  Experiments",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Experimental Setup",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "Environments and data.",
+      "id": "S4.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Evaluation.",
+      "id": "S4.SS1.SSS0.Px2"
+    },
+    {
+      "title": "Baselines.",
+      "id": "S4.SS1.SSS0.Px3"
+    },
+    {
+      "title": "4.2  Main Results",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Alignment Across Evaluation Levels",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.4  Candidate-Action Ranking Fidelity",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "4.5  Ablation Study",
+      "id": "S4.SS5"
+    },
+    {
+      "title": "5  Conclusion",
+      "id": "S5"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Experimental Details",
+      "id": "A1"
+    },
+    {
+      "title": "A.1  Environments and Data Generation",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "Shared protocol.",
+      "id": "A1.SS1.SSS0.Px1"
+    },
+    {
+      "title": "CityLearn.",
+      "id": "A1.SS1.SSS0.Px2"
+    },
+    {
+      "title": "SUMO.",
+      "id": "A1.SS1.SSS0.Px3"
+    },
+    {
+      "title": "GreenLight.",
+      "id": "A1.SS1.SSS0.Px4"
+    },
+    {
+      "title": "Inventory management.",
+      "id": "A1.SS1.SSS0.Px5"
+    },
+    {
+      "title": "A.2  Evaluation Protocols and Metrics",
+      "id": "A1.SS2"
+    },
+    {
+      "title": "Factual prediction.",
+      "id": "A1.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Intervention-effect prediction.",
+      "id": "A1.SS2.SSS0.Px2"
+    },
+    {
+      "title": "Offline decision making.",
+      "id": "A1.SS2.SSS0.Px3"
+    },
+    {
+      "title": "Decision objectives.",
+      "id": "A1.SS2.SSS0.Px4"
+    },
+    {
+      "title": "Closed-loop planning.",
+      "id": "A1.SS2.SSS0.Px5"
+    },
+    {
+      "title": "Cross-level alignment.",
+      "id": "A1.SS2.SSS0.Px6"
+    },
+    {
+      "title": "A.3  Implementation Details",
+      "id": "A1.SS3"
+    },
+    {
+      "title": "Model configuration.",
+      "id": "A1.SS3.SSS0.Px1"
+    },
+    {
+      "title": "Temporal prior.",
+      "id": "A1.SS3.SSS0.Px2"
+    },
+    {
+      "title": "Training and model selection.",
+      "id": "A1.SS3.SSS0.Px3"
+    },
+    {
+      "title": "A.4  Baseline Adaptations",
+      "id": "A1.SS4"
+    },
+    {
+      "title": "Forecasting baselines.",
+      "id": "A1.SS4.SSS0.Px1"
+    },
+    {
+      "title": "World-model baselines.",
+      "id": "A1.SS4.SSS0.Px2"
+    },
+    {
+      "title": "Appendix B  Detailed Experimental Results",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Task-Level Results",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "Factual prediction.",
+      "id": "A2.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Intervention-effect prediction.",
+      "id": "A2.SS1.SSS0.Px2"
+    },
+    {
+      "title": "Offline decision making.",
+      "id": "A2.SS1.SSS0.Px3"
+    },
+    {
+      "title": "Closed-loop planning.",
+      "id": "A2.SS1.SSS0.Px4"
+    },
+    {
+      "title": "B.2  Cross-Level Alignment",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.3  Candidate-Action Ranking Fidelity",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "B.4  Per-Domain Ablations and Temporal Prior Analysis",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "Temporal prior.",
+      "id": "A2.SS4.SSS0.Px1"
+    },
+    {
+      "title": "Appendix C  Limitations",
+      "id": "A3"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\hat{\\mathbf{y}}_{T+1:T+H}=f_{\\Theta}\\!\\left(\\mathbf{o}_{1:T},\\mathbf{a}_{1:T},\\mathbf{a}_{T+1:T+H}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\mathbf{y}}_{T+1:T+H}=f_{\\Theta}\\!\\left(\\mathbf{o}_{1:T},\\mathbf{a}_{1:T},\\mathbf{a}_{T+1:T+H}\\right)."
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "\\mathbf{x}_{t}=\\mathcal{E}_{o}([\\mathbf{o}_{t},\\Delta\\mathbf{o}_{t}]),\\qquad\\mathbf{c}_{t}=\\mathcal{E}_{a}([\\mathbf{a}_{t},\\Delta\\mathbf{a}_{t}]),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{x}_{t}=\\mathcal{E}_{o}([\\mathbf{o}_{t},\\Delta\\mathbf{o}_{t}]),\\qquad\\mathbf{c}_{t}=\\mathcal{E}_{a}([\\mathbf{a}_{t},\\Delta\\mathbf{a}_{t}]),"
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\mathbf{S}_{1}=\\mathcal{E}_{\\mathrm{init}}\\left(\\mathbf{x}_{1}+\\mathbf{c}_{1}+\\mathbf{V}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{S}_{1}=\\mathcal{E}_{\\mathrm{init}}\\left(\\mathbf{x}_{1}+\\mathbf{c}_{1}+\\mathbf{V}\\right),"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\bar{\\mathbf{S}}_{t-1}=\\operatorname{LN}(\\mathbf{S}_{t-1}),\\qquad\\mathbf{m}_{t}=\\sigma(\\alpha)\\,\\operatorname{MHA}\\left(\\bar{\\mathbf{S}}_{t-1},\\bar{\\mathbf{S}}_{t-1},\\bar{\\mathbf{S}}_{t-1}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{\\mathbf{S}}_{t-1}=\\operatorname{LN}(\\mathbf{S}_{t-1}),\\qquad\\mathbf{m}_{t}=\\sigma(\\alpha)\\,\\operatorname{MHA}\\left(\\bar{\\mathbf{S}}_{t-1},\\bar{\\mathbf{S}}_{t-1},\\bar{\\mathbf{S}}_{t-1}\\right),"
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\mathbf{r}_{t}=g_{r}(\\mathbf{h}_{t}),\\qquad\\bm{\\Delta}_{t}=\\operatorname{SwiGLU}\\left(\\operatorname{SiLU}(W_{\\Delta}\\mathbf{h}_{t}+b_{\\Delta})\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{r}_{t}=g_{r}(\\mathbf{h}_{t}),\\qquad\\bm{\\Delta}_{t}=\\operatorname{SwiGLU}\\left(\\operatorname{SiLU}(W_{\\Delta}\\mathbf{h}_{t}+b_{\\Delta})\\right),"
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "\\mathcal{T}(\\mathbf{S}_{t-1},\\mathbf{c}_{t})=\\operatorname{LN}\\!\\left(\\mathbf{S}_{t-1}+(1-\\mathbf{r}_{t})\\odot\\bm{\\Delta}_{t}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{T}(\\mathbf{S}_{t-1},\\mathbf{c}_{t})=\\operatorname{LN}\\!\\left(\\mathbf{S}_{t-1}+(1-\\mathbf{r}_{t})\\odot\\bm{\\Delta}_{t}\\right)."
+      ]
+    },
+    {
+      "id": "S3.E7",
+      "tex": [
+        "\\bm{\\epsilon}_{t}=\\tanh(W_{\\epsilon}\\mathbf{z}_{t}+b_{\\epsilon}),\\qquad\\mathbf{k}_{t}=\\sigma(W_{k}\\mathbf{z}_{t}+b_{k}),\\qquad\\mathbf{S}_{t}=\\tilde{\\mathbf{S}}_{t}+\\mathbf{k}_{t}\\odot\\bm{\\epsilon}_{t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bm{\\epsilon}_{t}=\\tanh(W_{\\epsilon}\\mathbf{z}_{t}+b_{\\epsilon}),\\qquad\\mathbf{k}_{t}=\\sigma(W_{k}\\mathbf{z}_{t}+b_{k}),\\qquad\\mathbf{S}_{t}=\\tilde{\\mathbf{S}}_{t}+\\mathbf{k}_{t}\\odot\\bm{\\epsilon}_{t}."
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "\\Delta\\mathbf{S}_{T}=\\gamma\\,\\tanh\\!\\left(\\operatorname{MLP}[\\operatorname{RMSNorm}(\\mathbf{p}_{T}),\\mathbf{V}]\\right),\\qquad\\mathbf{S}^{\\prime}_{T}=\\mathbf{S}_{T}+\\Delta\\mathbf{S}_{T}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta\\mathbf{S}_{T}=\\gamma\\,\\tanh\\!\\left(\\operatorname{MLP}[\\operatorname{RMSNorm}(\\mathbf{p}_{T}),\\mathbf{V}]\\right),\\qquad\\mathbf{S}^{\\prime}_{T}=\\mathbf{S}_{T}+\\Delta\\mathbf{S}_{T}."
+      ]
+    },
+    {
+      "id": "S3.E9",
+      "tex": [
+        "\\mathbf{S}_{T+1}=F_{\\theta}(\\mathbf{S}^{\\prime}_{T},\\mathbf{c}_{T+1}),\\qquad\\mathbf{S}_{T+h}=F_{\\theta}(\\mathbf{S}_{T+h-1},\\mathbf{c}_{T+h}),\\quad h=2,\\ldots,H."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{S}_{T+1}=F_{\\theta}(\\mathbf{S}^{\\prime}_{T},\\mathbf{c}_{T+1}),\\qquad\\mathbf{S}_{T+h}=F_{\\theta}(\\mathbf{S}_{T+h-1},\\mathbf{c}_{T+h}),\\quad h=2,\\ldots,H."
+      ]
+    },
+    {
+      "id": "S3.E10",
+      "tex": [
+        "\\mathbf{Z}_{T+h}=\\mathbf{S}_{T+h}[\\mathcal{I}]\\in\\mathbb{R}^{P\\times d_{s}},\\qquad\\bar{\\mathbf{s}}_{T+h}=\\operatorname{Mean}_{D}(\\mathbf{S}_{T+h})\\in\\mathbb{R}^{d_{s}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{Z}_{T+h}=\\mathbf{S}_{T+h}[\\mathcal{I}]\\in\\mathbb{R}^{P\\times d_{s}},\\qquad\\bar{\\mathbf{s}}_{T+h}=\\operatorname{Mean}_{D}(\\mathbf{S}_{T+h})\\in\\mathbb{R}^{d_{s}}."
+      ]
+    },
+    {
+      "id": "S3.E11",
+      "tex": [
+        "\\displaystyle\\hat{\\mathbf{y}}^{\\,0.5}_{T+h}",
+        "\\displaystyle=\\mathbf{y}_{T}+\\bm{\\delta}_{T+h},",
+        "\\displaystyle\\hat{\\mathbf{y}}^{\\,0.1}_{T+h}",
+        "\\displaystyle=\\hat{\\mathbf{y}}^{\\,0.5}_{T+h}-\\operatorname{softplus}(\\bm{\\ell}_{T+h}),\\qquad\\hat{\\mathbf{y}}^{\\,0.9}_{T+h}=\\hat{\\mathbf{y}}^{\\,0.5}_{T+h}+\\operatorname{softplus}(\\bm{u}_{T+h})."
+      ]
+    },
+    {
+      "id": "S3.E11X",
+      "tex": [
+        "\\displaystyle\\hat{\\mathbf{y}}^{\\,0.5}_{T+h}",
+        "\\displaystyle=\\mathbf{y}_{T}+\\bm{\\delta}_{T+h},"
+      ]
+    },
+    {
+      "id": "S3.E11Xa",
+      "tex": [
+        "\\displaystyle\\hat{\\mathbf{y}}^{\\,0.1}_{T+h}",
+        "\\displaystyle=\\hat{\\mathbf{y}}^{\\,0.5}_{T+h}-\\operatorname{softplus}(\\bm{\\ell}_{T+h}),\\qquad\\hat{\\mathbf{y}}^{\\,0.9}_{T+h}=\\hat{\\mathbf{y}}^{\\,0.5}_{T+h}+\\operatorname{softplus}(\\bm{u}_{T+h})."
+      ]
+    },
+    {
+      "id": "S3.E12",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{pred}}=\\frac{1}{HP|\\mathcal{Q}|}\\sum_{h=1}^{H}\\sum_{j=1}^{P}\\sum_{q\\in\\mathcal{Q}}\\rho_{q}\\left(y_{T+h}^{(j)}-\\hat{y}_{T+h}^{\\,q,(j)}\\right),\\qquad\\rho_{q}(u)=\\max\\{qu,(q-1)u\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{pred}}=\\frac{1}{HP|\\mathcal{Q}|}\\sum_{h=1}^{H}\\sum_{j=1}^{P}\\sum_{q\\in\\mathcal{Q}}\\rho_{q}\\left(y_{T+h}^{(j)}-\\hat{y}_{T+h}^{\\,q,(j)}\\right),\\qquad\\rho_{q}(u)=\\max\\{qu,(q-1)u\\}."
+      ]
+    },
+    {
+      "id": "S3.E13",
+      "tex": [
+        "\\gamma=0\\quad\\Longrightarrow\\quad\\Delta\\mathbf{S}_{T}=\\mathbf{0},\\qquad\\mathbf{S}^{\\prime}_{T}=\\mathbf{S}_{T},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma=0\\quad\\Longrightarrow\\quad\\Delta\\mathbf{S}_{T}=\\mathbf{0},\\qquad\\mathbf{S}^{\\prime}_{T}=\\mathbf{S}_{T},"
+      ]
+    },
+    {
+      "id": "A1.Ex1",
+      "tex": [
+        "e_{ihp}=\\frac{\\hat{y}_{ihp}-y_{ihp}}{\\sigma_{p}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "e_{ihp}=\\frac{\\hat{y}_{ihp}-y_{ihp}}{\\sigma_{p}},"
+      ]
+    },
+    {
+      "id": "A1.Ex2",
+      "tex": [
+        "\\mathrm{MAE}=\\operatorname{mean}_{i,h,p}|e_{ihp}|,\\qquad\\mathrm{MSE}=\\operatorname{mean}_{i,h,p}e_{ihp}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{MAE}=\\operatorname{mean}_{i,h,p}|e_{ihp}|,\\qquad\\mathrm{MSE}=\\operatorname{mean}_{i,h,p}e_{ihp}^{2}."
+      ]
+    },
+    {
+      "id": "A1.Ex3",
+      "tex": [
+        "\\Delta y_{ikhp}=y^{(k)}_{ihp}-y^{(0)}_{ihp},\\qquad\\Delta\\hat{y}_{ikhp}=\\hat{y}^{(k)}_{ihp}-\\hat{y}^{(0)}_{ihp}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta y_{ikhp}=y^{(k)}_{ihp}-y^{(0)}_{ihp},\\qquad\\Delta\\hat{y}_{ikhp}=\\hat{y}^{(k)}_{ihp}-\\hat{y}^{(0)}_{ihp}."
+      ]
+    },
+    {
+      "id": "A1.Ex4",
+      "tex": [
+        "E_{\\mathrm{err}}=\\operatorname{mean}_{i,k>0,h,p}\\left|\\frac{\\Delta\\hat{y}_{ikhp}-\\Delta y_{ikhp}}{\\sigma_{p}}\\right|,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{\\mathrm{err}}=\\operatorname{mean}_{i,k>0,h,p}\\left|\\frac{\\Delta\\hat{y}_{ikhp}-\\Delta y_{ikhp}}{\\sigma_{p}}\\right|,"
+      ]
+    },
+    {
+      "id": "A1.Ex5",
+      "tex": [
+        "E_{\\mathrm{true}}=\\operatorname{mean}_{i,k>0,h,p}\\left|\\frac{\\Delta y_{ikhp}}{\\sigma_{p}}\\right|,\\qquad\\mathrm{Effect\\ NMAE}=\\frac{E_{\\mathrm{err}}}{E_{\\mathrm{true}}+10^{-12}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{\\mathrm{true}}=\\operatorname{mean}_{i,k>0,h,p}\\left|\\frac{\\Delta y_{ikhp}}{\\sigma_{p}}\\right|,\\qquad\\mathrm{Effect\\ NMAE}=\\frac{E_{\\mathrm{err}}}{E_{\\mathrm{true}}+10^{-12}}."
+      ]
+    },
+    {
+      "id": "A1.Ex6",
+      "tex": [
+        "R_{j}=\\frac{\\frac{1}{N}\\sum_{i}C_{ij,\\hat{k}_{i}}-\\frac{1}{N}\\sum_{i}C_{ij,k_{i}^{\\star}}}{\\max\\left(\\frac{1}{N}\\sum_{i}C^{\\mathrm{rand}}_{ij}-\\frac{1}{N}\\sum_{i}C_{ij,k_{i}^{\\star}},10^{-12}\\right)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{j}=\\frac{\\frac{1}{N}\\sum_{i}C_{ij,\\hat{k}_{i}}-\\frac{1}{N}\\sum_{i}C_{ij,k_{i}^{\\star}}}{\\max\\left(\\frac{1}{N}\\sum_{i}C^{\\mathrm{rand}}_{ij}-\\frac{1}{N}\\sum_{i}C_{ij,k_{i}^{\\star}},10^{-12}\\right)},"
+      ]
+    },
+    {
+      "id": "A1.Ex7",
+      "tex": [
+        "R_{\\mathrm{macro}}=\\frac{1}{3}\\sum_{j=1}^{3}R_{j}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{\\mathrm{macro}}=\\frac{1}{3}\\sum_{j=1}^{3}R_{j}."
+      ]
+    },
+    {
+      "id": "A1.Ex8",
+      "tex": [
+        "G=\\frac{\\max(s_{0}-0.10-s_{H},0)}{0.90},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "G=\\frac{\\max(s_{0}-0.10-s_{H},0)}{0.90},"
+      ]
+    },
+    {
+      "id": "A1.Ex9",
+      "tex": [
+        "C_{\\mathrm{cost}}=\\frac{\\operatorname{mean}_{h}(g_{h}p_{h})}{c_{\\mathrm{cost}}}+G,\\qquad C_{\\mathrm{peak}}=\\frac{\\max_{h}g_{h}}{c_{\\mathrm{peak}}}+G,\\qquad C_{\\mathrm{energy}}=\\frac{\\operatorname{mean}_{h}g_{h}}{c_{\\mathrm{energy}}}+G,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{cost}}=\\frac{\\operatorname{mean}_{h}(g_{h}p_{h})}{c_{\\mathrm{cost}}}+G,\\qquad C_{\\mathrm{peak}}=\\frac{\\max_{h}g_{h}}{c_{\\mathrm{peak}}}+G,\\qquad C_{\\mathrm{energy}}=\\frac{\\operatorname{mean}_{h}g_{h}}{c_{\\mathrm{energy}}}+G,"
+      ]
+    },
+    {
+      "id": "A1.Ex10",
+      "tex": [
+        "q=\\frac{\\operatorname{mean}_{h}\\sum_{d}Q_{hd}}{40},\\qquad w=\\frac{\\operatorname{mean}_{h}W_{h}}{1500},\\qquad f=\\frac{\\operatorname{mean}_{h}\\max_{d}Q_{hd}}{20},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q=\\frac{\\operatorname{mean}_{h}\\sum_{d}Q_{hd}}{40},\\qquad w=\\frac{\\operatorname{mean}_{h}W_{h}}{1500},\\qquad f=\\frac{\\operatorname{mean}_{h}\\max_{d}Q_{hd}}{20},"
+      ]
+    },
+    {
+      "id": "A1.Ex11",
+      "tex": [
+        "C_{\\mathrm{balanced}}=q+0.5w+0.2f+0.03s,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{balanced}}=q+0.5w+0.2f+0.03s,"
+      ]
+    },
+    {
+      "id": "A1.Ex12",
+      "tex": [
+        "C_{\\mathrm{queue}}=q,\\qquad C_{\\mathrm{waiting}}=w."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{queue}}=q,\\qquad C_{\\mathrm{waiting}}=w."
+      ]
+    },
+    {
+      "id": "A1.Ex13",
+      "tex": [
+        "v_{hp}=\\frac{\\max(L_{p}-y_{hp},0)+\\max(y_{hp}-U_{p},0)}{S_{p}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{hp}=\\frac{\\max(L_{p}-y_{hp},0)+\\max(y_{hp}-U_{p},0)}{S_{p}},"
+      ]
+    },
+    {
+      "id": "A1.Ex14",
+      "tex": [
+        "L=(300,15,50),\\qquad U=(1600,34,85),\\qquad S=(2500,15,15)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "L=(300,15,50),\\qquad U=(1600,34,85),\\qquad S=(2500,15,15)."
+      ]
+    },
+    {
+      "id": "A1.Ex15",
+      "tex": [
+        "C_{\\mathrm{mean}}=\\operatorname{mean}_{h}\\sum_{p}v_{hp},\\qquad C_{\\mathrm{peak}}=\\max_{h}\\sum_{p}v_{hp}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{mean}}=\\operatorname{mean}_{h}\\sum_{p}v_{hp},\\qquad C_{\\mathrm{peak}}=\\max_{h}\\sum_{p}v_{hp}."
+      ]
+    },
+    {
+      "id": "A1.Ex16",
+      "tex": [
+        "C_{\\mathrm{balanced}}=\\operatorname{mean}_{h}\\left(\\sum_{p}v_{hp}+o_{h}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{balanced}}=\\operatorname{mean}_{h}\\left(\\sum_{p}v_{hp}+o_{h}\\right),"
+      ]
+    },
+    {
+      "id": "A1.Ex17",
+      "tex": [
+        "o_{h}=\\frac{0.002925\\,u^{\\mathrm{Boil}}_{h}+0.001350\\,u^{\\mathrm{CO_{2}}}_{h}+0.008700\\,u^{\\mathrm{Lamp}}_{h}}{0.02024146}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "o_{h}=\\frac{0.002925\\,u^{\\mathrm{Boil}}_{h}+0.001350\\,u^{\\mathrm{CO_{2}}}_{h}+0.008700\\,u^{\\mathrm{Lamp}}_{h}}{0.02024146}."
+      ]
+    },
+    {
+      "id": "A1.Ex18",
+      "tex": [
+        "g_{h}=0.03I^{R}_{h}+0.02I^{D}_{h}+0.01I^{F}_{h},\\qquad\\ell_{h}=0.1B_{h}+g_{h}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "g_{h}=0.03I^{R}_{h}+0.02I^{D}_{h}+0.01I^{F}_{h},\\qquad\\ell_{h}=0.1B_{h}+g_{h}."
+      ]
+    },
+    {
+      "id": "A1.Ex19",
+      "tex": [
+        "C_{\\mathrm{economic}}=\\operatorname{mean}_{h}\\ell_{h},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{economic}}=\\operatorname{mean}_{h}\\ell_{h},"
+      ]
+    },
+    {
+      "id": "A1.Ex20",
+      "tex": [
+        "C_{\\mathrm{service}}=\\operatorname{mean}_{h}g_{h}+0.1\\,\\operatorname{TopMean}_{m}(B_{1:n})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{service}}=\\operatorname{mean}_{h}g_{h}+0.1\\,\\operatorname{TopMean}_{m}(B_{1:n})."
+      ]
+    },
+    {
+      "id": "A1.Ex21",
+      "tex": [
+        "C_{\\mathrm{recovery}}=\\frac{1}{r}\\sum_{h=n-r+1}^{n}\\ell_{h},\\qquad r=\\min(4,n),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\mathrm{recovery}}=\\frac{1}{r}\\sum_{h=n-r+1}^{n}\\ell_{h},\\qquad r=\\min(4,n),"
+      ]
+    },
+    {
+      "id": "A1.Ex22",
+      "tex": [
+        "P_{i}^{(m)}=\\operatorname{mean}_{h,p}\\left|\\frac{\\hat{y}^{(m)}_{i0hp}-y_{i0hp}}{\\sigma_{p}}\\right|,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{i}^{(m)}=\\operatorname{mean}_{h,p}\\left|\\frac{\\hat{y}^{(m)}_{i0hp}-y_{i0hp}}{\\sigma_{p}}\\right|,"
+      ]
+    },
+    {
+      "id": "A1.Ex23",
+      "tex": [
+        "D_{i}^{(m)}=-\\rho_{S}\\left(\\widehat{\\mathbf{C}}^{(m)}_{i},\\mathbf{C}_{i}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{i}^{(m)}=-\\rho_{S}\\left(\\widehat{\\mathbf{C}}^{(m)}_{i},\\mathbf{C}_{i}\\right),"
+      ]
+    },
+    {
+      "id": "A1.Ex24",
+      "tex": [
+        "\\bigl(x_{i}^{(a)}-x_{i}^{(b)}\\bigr)\\bigl(y_{i}^{(a)}-y_{i}^{(b)}\\bigr)<0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bigl(x_{i}^{(a)}-x_{i}^{(b)}\\bigr)\\bigl(y_{i}^{(a)}-y_{i}^{(b)}\\bigr)<0,"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S1.F1",
+      "caption": "(a)  Factual prediction (b)  Intervention-effect prediction (c)  Decision ranking Figure 1:  From factual prediction to decision making.\nAccurate prediction under observed actions  (a)  does not guarantee faithful responses under alternative actions  (b) .\nErrors in these responses can further distort candidate-action rankings\nand lead to suboptimal decisions  (c) .",
+      "images": []
+    },
+    {
+      "id": "S1.F1.sf1",
+      "caption": "(a)  Factual prediction",
+      "images": []
+    },
+    {
+      "id": "S1.F1.sf2",
+      "caption": "(b)  Intervention-effect prediction",
+      "images": []
+    },
+    {
+      "id": "S1.F1.sf3",
+      "caption": "(c)  Decision ranking",
+      "images": []
+    },
+    {
+      "id": "S3.F2",
+      "caption": "Figure 2:  Overview of  ActTime .\nThe model filters the observed history by alternating a shared\naction-conditioned transition with observation-based state correction.\nA frozen pretrained temporal backbone provides a history prior through a\nlightweight residual adapter, after which the same transition rolls the\nstate forward under candidate future actions for prediction.\nThe bottom panels detail the transition, correction, and prior modules.",
+      "images": []
+    },
+    {
+      "id": "S4.T1",
+      "caption": "Table 1:  Simulation environments and task configurations.\n D / A / P D/A/P  denote the observation, action, and target dimensions, and  T / H T/H \nthe history/prediction horizons in simulator steps.",
+      "images": []
+    },
+    {
+      "id": "S4.T2",
+      "caption": "Table 2:  \nMain results across four controlled dynamical systems and four evaluation\nsettings.\nLower is better for all task metrics ( ↓ \\downarrow ).\nMacro Regret denotes the average normalized regret over the three predefined\noffline objectives.\nBest and second-best results are shown in  bold  and\n underlined , respectively.\nRidge denotes Ridge-VARX, while DLinear, PatchTST, iTransformer, and TFT\ndenote their action-conditioned variants.\n",
+      "images": []
+    },
+    {
+      "id": "S4.F3",
+      "caption": "Figure 3:  \nModel-order reversals across evaluation levels.\nBars report the fraction of method pairs whose ordering reverses between\nadjacent levels.\nError bars denote 95% bootstrap confidence intervals over histories.\n",
+      "images": []
+    },
+    {
+      "id": "S4.T3",
+      "caption": "Table 3:  \nCandidate-action ranking fidelity.\nMean per-history Spearman correlation between predicted and simulator\ncandidate costs under each domain’s predefined primary decision objective.\nHigher is better. Best and second-best results are shown in bold and\nunderlined, respectively.\n",
+      "images": []
+    },
+    {
+      "id": "S4.T4",
+      "caption": "Table 4:  \nAblation study averaged across the four domains.\nEach entry is the ratio to the matched full-model metric within each domain,\nso  1.0 1.0  denotes parity and larger values indicate degradation.\n",
+      "images": []
+    },
+    {
+      "id": "A1.T5",
+      "caption": "Table 5:  \nFactual data used for training and evaluation.\nWindow counts refer to unique supervised windows.\n",
+      "images": []
+    },
+    {
+      "id": "A1.T6",
+      "caption": "Table 6:  \nEvaluation scale across domains.\nIntervention and Offline report the number of histories and candidate plans per history.\nFor online planning,  K K  denotes the candidate population size per CEM round\nand  H H  the planning horizon.\n",
+      "images": []
+    },
+    {
+      "id": "A1.T7",
+      "caption": "Table 7:  Decision objectives used in offline and closed-loop evaluation.",
+      "images": []
+    },
+    {
+      "id": "A2.T8",
+      "caption": "Table 8:  \nFactual prediction results across the four domains.\nMAE and MSE are computed in standardized target space.\n",
+      "images": []
+    },
+    {
+      "id": "A2.T9",
+      "caption": "Table 9:  \nIntervention-effect prediction results across the four domains.\nEffect NMAE pools normalized intervention-effect errors across targets,\nwhile Macro NMAE averages target-wise normalized effect errors.\n",
+      "images": []
+    },
+    {
+      "id": "A2.T10",
+      "caption": "Table 10:  \nOffline decision results on fixed candidate-action banks.\nMacro Regret is the equal-weight average of normalized regret over the\nthree decision objectives defined in Appendix  A.2 .\n",
+      "images": []
+    },
+    {
+      "id": "A2.T11",
+      "caption": "Table 11:  \nClosed-loop planning results across the four domains.\nThe first metric for each domain is the primary objective reported in the\nmain paper, followed by two complementary operating metrics.\nScores are comparable across methods within a domain but not across\ndomains.\n",
+      "images": []
+    },
+    {
+      "id": "A2.T12",
+      "caption": "Table 12:  \nAlignment between adjacent evaluation levels, macro-averaged across the\nfour domains.\nHigher rank correlation and lower reversal rate indicate stronger\nagreement in model ordering.\n",
+      "images": []
+    },
+    {
+      "id": "A2.F4",
+      "caption": "(a)  \nRelative increase in Effect NMAE when selecting the\nprediction-best method instead of the effect-best method.\n (b)  \nIncrease in normalized regret when selecting the\neffect-best method instead of the regret-best method.\n Figure 4:  \n Downstream penalty from selecting the best method at the preceding\nevaluation level. \nFor each test history, panel (a) compares the Effect NMAE of the\nprediction-best method with that of the effect-best method, while\npanel (b) compares the normalized regret of the effect-best method with\nthat of the regret-best method.\nMethod selection in this analysis uses the realized test outcome and is\ntherefore intended only as a diagnostic of cross-level alignment.\n",
+      "images": []
+    },
+    {
+      "id": "A2.F4.sf1",
+      "caption": "(a)  \nRelative increase in Effect NMAE when selecting the\nprediction-best method instead of the effect-best method.\n",
+      "images": []
+    },
+    {
+      "id": "A2.F4.sf2",
+      "caption": "(b)  \nIncrease in normalized regret when selecting the\neffect-best method instead of the regret-best method.\n",
+      "images": []
+    },
+    {
+      "id": "A2.T13",
+      "caption": "Table 13:  \nCandidate-action ranking fidelity across decision objectives.\nResults are macro-averaged over the 12 domain-objective combinations.\nHigher is better. Best and second-best results are shown in bold and\nunderlined, respectively.\n",
+      "images": []
+    },
+    {
+      "id": "A2.T14",
+      "caption": "Table 14:  \nPer-domain absolute results for the controlled-dynamics ablations\nsummarized in Table  4 .\nFull denotes the matched reference from the same controlled-ablation suite.\nOffline results report Macro Regret.\nOnline objectives are domain-specific and are therefore comparable only\nacross variants within the same domain.\nAll metrics are lower-is-better.\n",
+      "images": []
+    },
+    {
+      "id": "A2.T15",
+      "caption": "Table 15:  \nPaired analysis of the pretrained temporal prior.\nEach entry reports Full / w/o EIDOS Prior.\nThe two variants share the same Stage-A controlled core and differ only in\nthe Stage-B prior adapter.\nLower is better.\n",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

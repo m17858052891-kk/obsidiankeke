@@ -1,0 +1,617 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "GenMatch: An End-to-End Generative Matching Framework for Micro-View Order-Dispatching in Ride-Hailing",
+      "id": null
+    },
+    {
+      "title": "1.  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2.  Related Work",
+      "id": "S2"
+    },
+    {
+      "title": "2.1.  Ride-Hailing Order-Dispatching",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.2.  Generative Modeling",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "3.  Preliminary",
+      "id": "S3"
+    },
+    {
+      "title": "4.  Methods",
+      "id": "S4"
+    },
+    {
+      "title": "4.1.  Context-Aware Bipartite Encoder",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.1.1.  Input Representation",
+      "id": "S4.SS1.SSS1"
+    },
+    {
+      "title": "4.1.2.  Sparse Matching and Competition Modeling",
+      "id": "S4.SS1.SSS2"
+    },
+    {
+      "title": "4.2.  Business-Aware Utility Learner",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.2.1.  Stage-Wise Behavioral Outcome Learning",
+      "id": "S4.SS2.SSS1"
+    },
+    {
+      "title": "4.2.2.  Business Utility Estimation",
+      "id": "S4.SS2.SSS2"
+    },
+    {
+      "title": "4.3.  State-Aware Pointer Decoder",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.3.1.  Matching-State Representation",
+      "id": "S4.SS3.SSS1"
+    },
+    {
+      "title": "4.3.2.  Generative Pointer Distribution",
+      "id": "S4.SS3.SSS2"
+    },
+    {
+      "title": "4.3.3.  Matching-State Transition",
+      "id": "S4.SS3.SSS3"
+    },
+    {
+      "title": "4.4.  Model Training",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "4.4.1.  Target Sequence Construction",
+      "id": "S4.SS4.SSS1"
+    },
+    {
+      "title": "4.4.2.  Training Objective",
+      "id": "S4.SS4.SSS2"
+    },
+    {
+      "title": "5.  Experiments",
+      "id": "S5"
+    },
+    {
+      "title": "5.1.  Experimental Settings",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2.  Offline Performance",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3.  Ablation Study",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "5.4.  Online A/B Testing",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "6.  Deployment",
+      "id": "S6"
+    },
+    {
+      "title": "7.  Conclusion",
+      "id": "S7"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Additional Experimental Details",
+      "id": "A1"
+    },
+    {
+      "title": "A.1.  Experimental Details",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "A.1.1.  Datasets and City Statistics",
+      "id": "A1.SS1.SSS1"
+    },
+    {
+      "title": "A.1.2.  Metrics",
+      "id": "A1.SS1.SSS2"
+    },
+    {
+      "title": "A.1.3.  Baselines",
+      "id": "A1.SS1.SSS3"
+    },
+    {
+      "title": "A.1.4.  Evaluation Protocols",
+      "id": "A1.SS1.SSS4"
+    },
+    {
+      "title": "A.1.5.  Implementation Details",
+      "id": "A1.SS1.SSS5"
+    },
+    {
+      "title": "A.2.  Full Ablation Results",
+      "id": "A1.SS2"
+    },
+    {
+      "title": "A.3.  Auxiliary Prediction Evaluation",
+      "id": "A1.SS3"
+    },
+    {
+      "title": "A.4.  Effect of Model Capacity",
+      "id": "A1.SS4"
+    },
+    {
+      "title": "A.5.  Effect of the Multi-Task-Loss Weight",
+      "id": "A1.SS5"
+    },
+    {
+      "title": "Appendix B  Implementation and Deployment Details",
+      "id": "A2"
+    },
+    {
+      "title": "B.1.  Model Configuration",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2.  Training and Inference Procedures",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.3.  Deployment Details",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\mathcal{G}_{t}=(\\mathcal{O}_{t},\\mathcal{D}_{t},\\mathcal{E}_{t}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{G}_{t}=(\\mathcal{O}_{t},\\mathcal{D}_{t},\\mathcal{E}_{t}),"
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "\\mathcal{M}_{t}^{*}=\\arg\\max_{\\mathcal{M}_{t}\\in\\mathcal{F}(\\mathcal{G}_{t})}U(\\mathcal{M}_{t};\\mathcal{G}_{t}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{M}_{t}^{*}=\\arg\\max_{\\mathcal{M}_{t}\\in\\mathcal{F}(\\mathcal{G}_{t})}U(\\mathcal{M}_{t};\\mathcal{G}_{t}),"
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\displaystyle\\sum_{j}\\mathbb{I}\\!\\big((o_{i},d_{j})\\in\\mathcal{M}_{t}\\big)",
+        "\\displaystyle\\leq 1,",
+        "\\displaystyle\\forall o_{i}\\in\\mathcal{O}_{t},",
+        "\\displaystyle\\sum_{i}\\mathbb{I}\\!\\big((o_{i},d_{j})\\in\\mathcal{M}_{t}\\big)",
+        "\\displaystyle\\leq 1,",
+        "\\displaystyle\\forall d_{j}\\in\\mathcal{D}_{t}."
+      ]
+    },
+    {
+      "id": "S3.E3X",
+      "tex": [
+        "\\displaystyle\\sum_{j}\\mathbb{I}\\!\\big((o_{i},d_{j})\\in\\mathcal{M}_{t}\\big)",
+        "\\displaystyle\\leq 1,",
+        "\\displaystyle\\forall o_{i}\\in\\mathcal{O}_{t},"
+      ]
+    },
+    {
+      "id": "S3.E3Xa",
+      "tex": [
+        "\\displaystyle\\sum_{i}\\mathbb{I}\\!\\big((o_{i},d_{j})\\in\\mathcal{M}_{t}\\big)",
+        "\\displaystyle\\leq 1,",
+        "\\displaystyle\\forall d_{j}\\in\\mathcal{D}_{t}."
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\mathcal{Y}_{t}=\\left(e_{t}^{(1)},e_{t}^{(2)},\\dots,e_{t}^{(K_{t})}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{Y}_{t}=\\left(e_{t}^{(1)},e_{t}^{(2)},\\dots,e_{t}^{(K_{t})}\\right),"
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\Pr(\\mathcal{Y}_{t}\\mid\\mathcal{G}_{t})=\\prod_{k=1}^{K_{t}}\\Pr\\!\\left(e_{t}^{(k)}\\mid\\mathcal{G}_{t}^{(k)},e_{t}^{(<k)}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Pr(\\mathcal{Y}_{t}\\mid\\mathcal{G}_{t})=\\prod_{k=1}^{K_{t}}\\Pr\\!\\left(e_{t}^{(k)}\\mid\\mathcal{G}_{t}^{(k)},e_{t}^{(<k)}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E6",
+      "tex": [
+        "\\displaystyle\\beta_{ij}^{d,l}",
+        "\\displaystyle=\\mathrm{softmax}_{o_{i}\\in\\mathcal{N}(d_{j})}\\!\\left(\\frac{(\\mathbf{W}_{q,c}^{d,l}\\mathbf{h}_{j}^{d,l-1})^{\\top}(\\mathbf{W}_{k,c}^{d,l}\\mathbf{r}_{i\\rightarrow j}^{l})}{\\sqrt{d}}\\right),",
+        "\\displaystyle\\mathbf{c}_{j}^{d,l}",
+        "\\displaystyle=\\sum_{o_{i}\\in\\mathcal{N}(d_{j})}\\beta_{ij}^{d,l}\\mathbf{W}_{v,c}^{d,l}\\mathbf{r}_{i\\rightarrow j}^{l}+\\mathbf{E}_{\\mathrm{deg}}\\!\\left[|\\mathcal{N}(d_{j})|\\right]."
+      ]
+    },
+    {
+      "id": "S4.E6X",
+      "tex": [
+        "\\displaystyle\\beta_{ij}^{d,l}",
+        "\\displaystyle=\\mathrm{softmax}_{o_{i}\\in\\mathcal{N}(d_{j})}\\!\\left(\\frac{(\\mathbf{W}_{q,c}^{d,l}\\mathbf{h}_{j}^{d,l-1})^{\\top}(\\mathbf{W}_{k,c}^{d,l}\\mathbf{r}_{i\\rightarrow j}^{l})}{\\sqrt{d}}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E6Xa",
+      "tex": [
+        "\\displaystyle\\mathbf{c}_{j}^{d,l}",
+        "\\displaystyle=\\sum_{o_{i}\\in\\mathcal{N}(d_{j})}\\beta_{ij}^{d,l}\\mathbf{W}_{v,c}^{d,l}\\mathbf{r}_{i\\rightarrow j}^{l}+\\mathbf{E}_{\\mathrm{deg}}\\!\\left[|\\mathcal{N}(d_{j})|\\right]."
+      ]
+    },
+    {
+      "id": "S4.E7",
+      "tex": [
+        "\\displaystyle\\alpha_{ij}^{o,l}",
+        "\\displaystyle=\\mathrm{softmax}_{d_{j}\\in\\mathcal{N}(o_{i})}\\!\\left(\\frac{(\\mathbf{W}_{q,m}^{o,l}\\mathbf{h}_{i}^{o,l-1})^{\\top}(\\mathbf{W}_{k,m}^{o,l}\\mathbf{z}_{j\\rightarrow i}^{l})}{\\sqrt{d}}\\right),",
+        "\\displaystyle\\mathbf{m}_{i}^{o,l}",
+        "\\displaystyle=\\sum_{d_{j}\\in\\mathcal{N}(o_{i})}\\alpha_{ij}^{o,l}\\mathbf{W}_{v,m}^{o,l}\\mathbf{z}_{j\\rightarrow i}^{l}+\\mathbf{E}_{\\mathrm{deg}}\\!\\left[|\\mathcal{N}(o_{i})|\\right]."
+      ]
+    },
+    {
+      "id": "S4.E7X",
+      "tex": [
+        "\\displaystyle\\alpha_{ij}^{o,l}",
+        "\\displaystyle=\\mathrm{softmax}_{d_{j}\\in\\mathcal{N}(o_{i})}\\!\\left(\\frac{(\\mathbf{W}_{q,m}^{o,l}\\mathbf{h}_{i}^{o,l-1})^{\\top}(\\mathbf{W}_{k,m}^{o,l}\\mathbf{z}_{j\\rightarrow i}^{l})}{\\sqrt{d}}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E7Xa",
+      "tex": [
+        "\\displaystyle\\mathbf{m}_{i}^{o,l}",
+        "\\displaystyle=\\sum_{d_{j}\\in\\mathcal{N}(o_{i})}\\alpha_{ij}^{o,l}\\mathbf{W}_{v,m}^{o,l}\\mathbf{z}_{j\\rightarrow i}^{l}+\\mathbf{E}_{\\mathrm{deg}}\\!\\left[|\\mathcal{N}(o_{i})|\\right]."
+      ]
+    },
+    {
+      "id": "S4.E8",
+      "tex": [
+        "\\mathbf{h}_{i}^{o,l}=\\mathrm{FFN}_{o}^{l}\\!\\left(\\mathbf{h}_{i}^{o,l-1}+\\mathbf{m}_{i}^{o,l}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{h}_{i}^{o,l}=\\mathrm{FFN}_{o}^{l}\\!\\left(\\mathbf{h}_{i}^{o,l-1}+\\mathbf{m}_{i}^{o,l}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E9",
+      "tex": [
+        "\\displaystyle\\tilde{\\mathbf{h}}_{ij}^{e,l}",
+        "\\displaystyle=\\mathbf{h}_{ij}^{e,l-1}+\\mathbf{m}_{i}^{o,l}+\\mathbf{m}_{j}^{d,l}+\\mathbf{m}_{i}^{o,l}\\odot\\mathbf{m}_{j}^{d,l}+\\left|\\mathbf{m}_{i}^{o,l}-\\mathbf{m}_{j}^{d,l}\\right|."
+      ]
+    },
+    {
+      "id": "S4.E9X",
+      "tex": [
+        "\\displaystyle\\tilde{\\mathbf{h}}_{ij}^{e,l}",
+        "\\displaystyle=\\mathbf{h}_{ij}^{e,l-1}+\\mathbf{m}_{i}^{o,l}+\\mathbf{m}_{j}^{d,l}+\\mathbf{m}_{i}^{o,l}\\odot\\mathbf{m}_{j}^{d,l}+\\left|\\mathbf{m}_{i}^{o,l}-\\mathbf{m}_{j}^{d,l}\\right|."
+      ]
+    },
+    {
+      "id": "S4.E10",
+      "tex": [
+        "\\mathbf{z}_{ij}=\\mathrm{LN}\\!\\left(\\mathbf{h}_{i}^{o,L}+\\mathbf{h}_{j}^{d,L}+\\mathbf{h}_{ij}^{e,L}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{z}_{ij}=\\mathrm{LN}\\!\\left(\\mathbf{h}_{i}^{o,L}+\\mathbf{h}_{j}^{d,L}+\\mathbf{h}_{ij}^{e,L}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E11",
+      "tex": [
+        "a_{ij}=\\mathrm{MLP}_{\\mathrm{biz}}\\!\\left(\\mathbf{b}_{ij}^{\\mathrm{all}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "a_{ij}=\\mathrm{MLP}_{\\mathrm{biz}}\\!\\left(\\mathbf{b}_{ij}^{\\mathrm{all}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "\\displaystyle\\mathbf{p}_{\\mathrm{prog}}^{(k)}",
+        "\\displaystyle=\\rho_{\\mathrm{sel}}^{(k)}\\mathbf{e}_{\\mathrm{sel}}+\\rho_{\\mathrm{res}}^{(k)}\\mathbf{e}_{\\mathrm{res}},",
+        "\\displaystyle\\mathbf{q}^{(k)}",
+        "\\displaystyle=\\mathrm{LN}\\!\\left(\\mathbf{W}_{\\mathrm{init}}\\mathbf{q}_{\\mathrm{init}}+\\mathbf{W}_{\\mathrm{sel}}\\mathbf{q}_{\\mathrm{sel}}^{(k)}+\\mathbf{W}_{\\mathrm{res}}\\mathbf{q}_{\\mathrm{res}}^{(k)}+\\mathbf{p}_{\\mathrm{prog}}^{(k)}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E12X",
+      "tex": [
+        "\\displaystyle\\mathbf{p}_{\\mathrm{prog}}^{(k)}",
+        "\\displaystyle=\\rho_{\\mathrm{sel}}^{(k)}\\mathbf{e}_{\\mathrm{sel}}+\\rho_{\\mathrm{res}}^{(k)}\\mathbf{e}_{\\mathrm{res}},"
+      ]
+    },
+    {
+      "id": "S4.E12Xa",
+      "tex": [
+        "\\displaystyle\\mathbf{q}^{(k)}",
+        "\\displaystyle=\\mathrm{LN}\\!\\left(\\mathbf{W}_{\\mathrm{init}}\\mathbf{q}_{\\mathrm{init}}+\\mathbf{W}_{\\mathrm{sel}}\\mathbf{q}_{\\mathrm{sel}}^{(k)}+\\mathbf{W}_{\\mathrm{res}}\\mathbf{q}_{\\mathrm{res}}^{(k)}+\\mathbf{p}_{\\mathrm{prog}}^{(k)}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E13",
+      "tex": [
+        "\\displaystyle s_{r}^{(k,p)}",
+        "\\displaystyle=\\frac{(\\mathbf{W}_{q}^{(p)}\\mathbf{h}^{(k)})^{\\top}(\\mathbf{W}_{k}^{(p)}\\mathbf{z}_{r})}{\\sqrt{d}},",
+        "\\displaystyle\\bar{s}_{r}^{(k)}",
+        "\\displaystyle=\\frac{1}{P_{\\mathrm{ptr}}}\\sum_{p=1}^{P_{\\mathrm{ptr}}}s_{r}^{(k,p)}."
+      ]
+    },
+    {
+      "id": "S4.E13X",
+      "tex": [
+        "\\displaystyle s_{r}^{(k,p)}",
+        "\\displaystyle=\\frac{(\\mathbf{W}_{q}^{(p)}\\mathbf{h}^{(k)})^{\\top}(\\mathbf{W}_{k}^{(p)}\\mathbf{z}_{r})}{\\sqrt{d}},"
+      ]
+    },
+    {
+      "id": "S4.E13Xa",
+      "tex": [
+        "\\displaystyle\\bar{s}_{r}^{(k)}",
+        "\\displaystyle=\\frac{1}{P_{\\mathrm{ptr}}}\\sum_{p=1}^{P_{\\mathrm{ptr}}}s_{r}^{(k,p)}."
+      ]
+    },
+    {
+      "id": "S4.E14",
+      "tex": [
+        "p_{r}^{(k)}=\\frac{\\exp(\\bar{s}_{r}^{(k)}+a_{r})}{\\sum_{r^{\\prime}\\in\\mathcal{R}^{(k)}}\\exp(\\bar{s}_{r^{\\prime}}^{(k)}+a_{r^{\\prime}})},\\quad r\\in\\mathcal{R}^{(k)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "p_{r}^{(k)}=\\frac{\\exp(\\bar{s}_{r}^{(k)}+a_{r})}{\\sum_{r^{\\prime}\\in\\mathcal{R}^{(k)}}\\exp(\\bar{s}_{r^{\\prime}}^{(k)}+a_{r^{\\prime}})},\\quad r\\in\\mathcal{R}^{(k)}."
+      ]
+    },
+    {
+      "id": "S4.E15",
+      "tex": [
+        "r^{(k)}=\\arg\\max_{r\\in\\mathcal{R}^{(k)}}p_{r}^{(k)},\\qquad e^{(k)}=e_{r^{(k)}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "r^{(k)}=\\arg\\max_{r\\in\\mathcal{R}^{(k)}}p_{r}^{(k)},\\qquad e^{(k)}=e_{r^{(k)}}."
+      ]
+    },
+    {
+      "id": "S4.E16",
+      "tex": [
+        "\\displaystyle\\mathbf{S}_{\\mathrm{sel}}^{(k+1)}",
+        "\\displaystyle=\\mathbf{S}_{\\mathrm{sel}}^{(k)}+\\mathbf{z}_{r^{(k)}},",
+        "\\displaystyle N_{\\mathrm{sel}}^{(k+1)}",
+        "\\displaystyle=N_{\\mathrm{sel}}^{(k)}+1,",
+        "\\displaystyle\\mathbf{S}_{\\mathrm{res}}^{(k+1)}",
+        "\\displaystyle=\\mathbf{S}_{\\mathrm{res}}^{(k)}-\\sum_{r\\in\\mathcal{B}^{(k)}}\\mathbf{z}_{r},",
+        "\\displaystyle N_{\\mathrm{res}}^{(k+1)}",
+        "\\displaystyle=N_{\\mathrm{res}}^{(k)}-|\\mathcal{B}^{(k)}|."
+      ]
+    },
+    {
+      "id": "S4.E16X",
+      "tex": [
+        "\\displaystyle\\mathbf{S}_{\\mathrm{sel}}^{(k+1)}",
+        "\\displaystyle=\\mathbf{S}_{\\mathrm{sel}}^{(k)}+\\mathbf{z}_{r^{(k)}},"
+      ]
+    },
+    {
+      "id": "S4.E16Xa",
+      "tex": [
+        "\\displaystyle N_{\\mathrm{sel}}^{(k+1)}",
+        "\\displaystyle=N_{\\mathrm{sel}}^{(k)}+1,"
+      ]
+    },
+    {
+      "id": "S4.E16Xb",
+      "tex": [
+        "\\displaystyle\\mathbf{S}_{\\mathrm{res}}^{(k+1)}",
+        "\\displaystyle=\\mathbf{S}_{\\mathrm{res}}^{(k)}-\\sum_{r\\in\\mathcal{B}^{(k)}}\\mathbf{z}_{r},"
+      ]
+    },
+    {
+      "id": "S4.E16Xc",
+      "tex": [
+        "\\displaystyle N_{\\mathrm{res}}^{(k+1)}",
+        "\\displaystyle=N_{\\mathrm{res}}^{(k)}-|\\mathcal{B}^{(k)}|."
+      ]
+    },
+    {
+      "id": "S4.E17",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{gen}}=-\\frac{1}{Z_{\\mathrm{gen}}}\\sum_{t\\in\\mathcal{I}}\\sum_{k=1}^{K_{t}^{*}}\\log\\Pr\\!\\left(e_{t,*}^{(k)}\\mid\\mathcal{G}_{t}^{(k)},e_{t,*}^{(<k)}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{gen}}=-\\frac{1}{Z_{\\mathrm{gen}}}\\sum_{t\\in\\mathcal{I}}\\sum_{k=1}^{K_{t}^{*}}\\log\\Pr\\!\\left(e_{t,*}^{(k)}\\mid\\mathcal{G}_{t}^{(k)},e_{t,*}^{(<k)}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E18",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{mtl}}=\\frac{1}{Z_{\\mathrm{obs}}}\\sum_{t\\in\\mathcal{I}}\\sum_{r=1}^{P_{t}}w_{tr}\\sum_{m\\in\\mathcal{T}}\\lambda_{m}\\mathrm{BCE}\\!\\left(\\hat{p}_{tr}^{m},y_{tr}^{m}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{mtl}}=\\frac{1}{Z_{\\mathrm{obs}}}\\sum_{t\\in\\mathcal{I}}\\sum_{r=1}^{P_{t}}w_{tr}\\sum_{m\\in\\mathcal{T}}\\lambda_{m}\\mathrm{BCE}\\!\\left(\\hat{p}_{tr}^{m},y_{tr}^{m}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E19",
+      "tex": [
+        "\\mathcal{L}=\\mathcal{L}_{\\mathrm{gen}}+\\lambda_{\\mathrm{mtl}}\\mathcal{L}_{\\mathrm{mtl}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}=\\mathcal{L}_{\\mathrm{gen}}+\\lambda_{\\mathrm{mtl}}\\mathcal{L}_{\\mathrm{mtl}}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S0.F1",
+      "caption": "Figure 1 .  Comparison of  (a)  the end-to-end generative paradigm and  (b)  the conventional multi-stage paradigm for Micro-View Order-Dispatching. (a) The proposed end-to-end generative dispatch framework, which models each dispatch batch as a whole and directly generates the dispatch result in an autoregressive manner. (b) The conventional multi-stage dispatch paradigm, which performs pair-level prediction, value calculation, and dispatch matching in separate stages.",
+      "images": [
+        "2608.19751v1/GenMatch_Figue_1.png"
+      ]
+    },
+    {
+      "id": "S2.F2",
+      "caption": "Figure 2 .  GenMatch architecture: (a) Context-Aware Bipartite Encoder, (b) Business-Aware Utility Learner, and (c) State-Aware Pointer Decoder. The GenMatch architecture consists of a Context-Aware Bipartite Encoder, a Business-Aware Utility Learner, and a State-Aware Pointer Decoder. The decoder updates the selected and residual matching states after generating each OD pair.",
+      "images": [
+        "2608.19751v1/GenMatch_Figue_2.png"
+      ]
+    },
+    {
+      "id": "S4.T1",
+      "caption": "Table 1 .  Offline performance relative to PDP KM . Values are the mean  ± \\pm  standard deviation of percentage changes over five runs; bold and underline denote the best and second-best results.",
+      "images": []
+    },
+    {
+      "id": "S5.T2",
+      "caption": "Table 2 .  Core City III ablations relative to GenMatch (Full), reported as the mean  ± \\pm  standard deviation of percentage changes over five runs. Bold denotes the best result in each column.",
+      "images": []
+    },
+    {
+      "id": "S5.T3",
+      "caption": "Table 3 .  Online A/B test improvements over PDP KM  (T − - C). Overall averages the three cities;  ∗  indicates  p < 0.05 p<0.05 .",
+      "images": []
+    },
+    {
+      "id": "S5.T4",
+      "caption": "Table 4 .  Online changes in dispatch effectiveness and experience relative to PDP KM  (T − - C);  ∗  indicates  p < 0.05 p<0.05 .",
+      "images": []
+    },
+    {
+      "id": "S5.F3",
+      "caption": "Figure 3 .  Online gains of GenMatch across supply–demand periods (T − - C vs. PDP KM ). A grouped bar chart comparing low-, moderate-, and peak-demand periods. Completion-ratio gains increase from 3.24 percent to 3.96 percent and 4.12 percent. Passenger cancellation-after-answer ratio decreases by 1.76 percent, 7.71 percent, and 8.26 percent. Driver cancellation-after-answer ratio decreases by 3.48 percent, 4.31 percent, and 7.96 percent.",
+      "images": []
+    },
+    {
+      "id": "S5.F4",
+      "caption": "Figure 4 .  Production architecture of the Batch-Level Generative Dispatch Engine. The production architecture contains a control plane that collects requests, coordinates distributed shards, and assembles dispatch batches, and a compute plane that performs distributed feature extraction, candidate retrieval, and GenMatch inference.",
+      "images": [
+        "2608.19751v1/GenMatch_Figue_5.png"
+      ]
+    },
+    {
+      "id": "S7.T5",
+      "caption": "Table 5 .  Scale statistics of the five experimental cities.",
+      "images": []
+    },
+    {
+      "id": "S7.T6",
+      "caption": "Table 6 .  Complete ablation results relative to GenMatch (Full). Values are the mean  ± \\pm  standard deviation of percentage changes over five runs.",
+      "images": []
+    },
+    {
+      "id": "S7.T7",
+      "caption": "Table 7 .  Auxiliary prediction AUC relative to PDP, reported as the mean  ± \\pm  standard deviation of percentage changes over five runs.",
+      "images": []
+    },
+    {
+      "id": "A1.F5",
+      "caption": "(a)   AR ( ↑ \\uparrow ) (b)   CR ( ↑ \\uparrow ) (c)   APT ( ↓ \\downarrow ) (d)   GMV ( ↑ \\uparrow ) Figure 5 .  Effect of model capacity relative to the Medium configuration. Error bars denote standard deviations over five runs. Four panels show changes in answer ratio, completion ratio, average pickup time, and gross merchandise volume relative to the Medium configuration across three cities. Six configurations vary encoder depth, decoder depth, and hidden dimension.",
+      "images": []
+    },
+    {
+      "id": "A1.F5.sf1",
+      "caption": "(a)   AR ( ↑ \\uparrow )",
+      "images": []
+    },
+    {
+      "id": "A1.F5.sf2",
+      "caption": "(b)   CR ( ↑ \\uparrow )",
+      "images": []
+    },
+    {
+      "id": "A1.F5.sf3",
+      "caption": "(c)   APT ( ↓ \\downarrow )",
+      "images": []
+    },
+    {
+      "id": "A1.F5.sf4",
+      "caption": "(d)   GMV ( ↑ \\uparrow )",
+      "images": []
+    },
+    {
+      "id": "A1.T8",
+      "caption": "Table 8 .  Sensitivity to  λ mtl \\lambda_{\\mathrm{mtl}}  relative to the selected value 10. Values are the mean  ± \\pm  standard deviation of percentage changes over five runs. Larger AR, CR, GMV, and AUC and smaller APT are preferred. Bold and underlined values denote the best and second-best results in each column, respectively.",
+      "images": []
+    },
+    {
+      "id": "A2.T9",
+      "caption": "Table 9 .  Model and training configurations of GenMatch.",
+      "images": []
+    },
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    GenMatch Training Procedure",
+      "images": []
+    },
+    {
+      "id": "alg2",
+      "caption": "Algorithm 2    GenMatch Inference Procedure",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}
