@@ -1,0 +1,1369 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Reference-based sensitivity analysis for bounded longitudinal outcomes",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Motivating data example",
+      "id": "S2"
+    },
+    {
+      "title": "3  Observed data structure and support specification",
+      "id": "S3"
+    },
+    {
+      "title": "4  Methodology",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Thresholded Gaussian representation on the latent working scale",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Primary posterior under missing at random",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Reference-based sensitivity rules on the latent scale",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.4  Posterior predictive completion and estimation",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "5  Simulation studies",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  Primary model calibration under incomplete follow-up",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Operating characteristics of the reference-based sensitivity analyses",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  Population treatment effect inference after multiple imputation",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "6  Application",
+      "id": "S6"
+    },
+    {
+      "title": "6.1  Predictive model comparison",
+      "id": "S6.SS1"
+    },
+    {
+      "title": "6.2  Sensitivity analyses",
+      "id": "S6.SS2"
+    },
+    {
+      "title": "7  Discussion",
+      "id": "S7"
+    },
+    {
+      "title": "Acknowledgements",
+      "id": "Sx1"
+    },
+    {
+      "title": "Conflicts of interest",
+      "id": "Sx2"
+    },
+    {
+      "title": "Data availability statement",
+      "id": "Sx3"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Supporting information",
+      "id": "Sx4"
+    },
+    {
+      "title": "Appendix",
+      "id": "Sx5"
+    },
+    {
+      "title": "Appendix A  Stan implementation of the primary model",
+      "id": "A1"
+    },
+    {
+      "title": "Appendix B  Variance invariance in the latent threshold model",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Conditional variance invariance on the latent scale",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2  Posterior integration and variation across posterior states",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.3  A first-order heuristic on the observed scale",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "Appendix C  Predictive comparison on a common score scale",
+      "id": "A3"
+    },
+    {
+      "title": "C.1  Common score intervals",
+      "id": "A3.SS1"
+    },
+    {
+      "title": "C.2  Prediction with a subject left out",
+      "id": "A3.SS2"
+    },
+    {
+      "title": "C.3  Uncertainty in model differences",
+      "id": "A3.SS3"
+    },
+    {
+      "title": "Web Appendix A  Descriptive summaries of the motivating example",
+      "id": "A1a"
+    },
+    {
+      "title": "Web Appendix B  Simulation study design and supplementary results",
+      "id": "A2a"
+    },
+    {
+      "title": "B.1  Setup for Simulation Studies 1 and 2",
+      "id": "A2.SS1a"
+    },
+    {
+      "title": "B.2  Simulation Study 1: construction of the primary model scenarios",
+      "id": "A2.SS2a"
+    },
+    {
+      "title": "B.3  Simulation Study 2: support templates, truth rules, and reported summaries",
+      "id": "A2.SS3a"
+    },
+    {
+      "title": "B.4  Simulation Study 3: design and computational details",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "Web Appendix C  Predictive comparison: likelihood and computation",
+      "id": "A3a"
+    },
+    {
+      "title": "C.1  Observed likelihood for the mixed-boundary model",
+      "id": "A3.SS1a"
+    },
+    {
+      "title": "C.2  Numerical evaluation and diagnostics",
+      "id": "A3.SS2a"
+    },
+    {
+      "title": "Web Appendix D  Model comparisons and sensitivity analyses",
+      "id": "A4"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S3.E2",
+      "tex": [
+        "R_{it}=\\begin{cases}1,&\\text{if }Y_{it}\\text{ is observed},\\\\\n0,&\\text{if }Y_{it}\\text{ is missing}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{it}=\\begin{cases}1,&\\text{if }Y_{it}\\text{ is observed},\\\\\n0,&\\text{if }Y_{it}\\text{ is missing}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\mathcal{L}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1,Y_{it}=L_{i}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1,Y_{it}=L_{i}\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\mathcal{I}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1,L_{i}<Y_{it}<U_{i}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{I}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1,L_{i}<Y_{it}<U_{i}\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\mathcal{U}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1,Y_{it}=U_{i}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{U}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1,Y_{it}=U_{i}\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "\\mathcal{M}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=0\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{M}_{i}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=0\\right\\}."
+      ]
+    },
+    {
+      "id": "S3.E7",
+      "tex": [
+        "\\mathcal{M}_{i}^{\\mathrm{pre}}=\\mathcal{M}_{i}\\cap\\left\\{1,\\dots,\\tau_{i}-1\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{M}_{i}^{\\mathrm{pre}}=\\mathcal{M}_{i}\\cap\\left\\{1,\\dots,\\tau_{i}-1\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "\\mathcal{M}_{i}^{\\mathrm{post}}=\\mathcal{M}_{i}\\cap\\left\\{\\tau_{i},\\dots,T\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{M}_{i}^{\\mathrm{post}}=\\mathcal{M}_{i}\\cap\\left\\{\\tau_{i},\\dots,T\\right\\}."
+      ]
+    },
+    {
+      "id": "S4.E9",
+      "tex": [
+        "a_{i}=\\Phi^{-1}\\left(p_{L_{i}}\\right)\\qquad\\text{and}\\qquad b_{i}=\\Phi^{-1}\\left(p_{U_{i}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "a_{i}=\\Phi^{-1}\\left(p_{L_{i}}\\right)\\qquad\\text{and}\\qquad b_{i}=\\Phi^{-1}\\left(p_{U_{i}}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E10",
+      "tex": [
+        "Y_{it}=\\begin{cases}L_{i},&\\text{if }H_{it}\\leq a_{i},\\\\\nL_{i}+\\left(U_{i}-L_{i}\\right)\\dfrac{\\Phi\\left(H_{it}\\right)-p_{L_{i}}}{p_{U_{i}}-p_{L_{i}}},&\\text{if }a_{i}<H_{it}<b_{i},\\\\\nU_{i},&\\text{if }H_{it}\\geq b_{i}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{it}=\\begin{cases}L_{i},&\\text{if }H_{it}\\leq a_{i},\\\\\nL_{i}+\\left(U_{i}-L_{i}\\right)\\dfrac{\\Phi\\left(H_{it}\\right)-p_{L_{i}}}{p_{U_{i}}-p_{L_{i}}},&\\text{if }a_{i}<H_{it}<b_{i},\\\\\nU_{i},&\\text{if }H_{it}\\geq b_{i}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S4.E11",
+      "tex": [
+        "H_{it}=g_{i}\\left(Y_{it}\\right)=\\Phi^{-1}\\left(p_{L_{i}}+\\left(p_{U_{i}}-p_{L_{i}}\\right)\\frac{Y_{it}-L_{i}}{U_{i}-L_{i}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{it}=g_{i}\\left(Y_{it}\\right)=\\Phi^{-1}\\left(p_{L_{i}}+\\left(p_{U_{i}}-p_{L_{i}}\\right)\\frac{Y_{it}-L_{i}}{U_{i}-L_{i}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "\\left|\\frac{\\partial H_{it}}{\\partial Y_{it}}\\right|=\\frac{p_{U_{i}}-p_{L_{i}}}{U_{i}-L_{i}}\\frac{1}{\\phi\\left(H_{it}\\right)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left|\\frac{\\partial H_{it}}{\\partial Y_{it}}\\right|=\\frac{p_{U_{i}}-p_{L_{i}}}{U_{i}-L_{i}}\\frac{1}{\\phi\\left(H_{it}\\right)},"
+      ]
+    },
+    {
+      "id": "S4.E13",
+      "tex": [
+        "p_{L_{i}}=\\frac{s_{i}/2}{U_{i}-L_{i}+s_{i}}\\qquad\\text{and}\\qquad p_{U_{i}}=1-\\frac{s_{i}/2}{U_{i}-L_{i}+s_{i}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "p_{L_{i}}=\\frac{s_{i}/2}{U_{i}-L_{i}+s_{i}}\\qquad\\text{and}\\qquad p_{U_{i}}=1-\\frac{s_{i}/2}{U_{i}-L_{i}+s_{i}}."
+      ]
+    },
+    {
+      "id": "S4.E14",
+      "tex": [
+        "g_{i}\\left(y\\right)=\\Phi^{-1}\\left(\\frac{y-L_{i}+0.5}{U_{i}-L_{i}+1}\\right),\\qquad L_{i}<y<U_{i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "g_{i}\\left(y\\right)=\\Phi^{-1}\\left(\\frac{y-L_{i}+0.5}{U_{i}-L_{i}+1}\\right),\\qquad L_{i}<y<U_{i}."
+      ]
+    },
+    {
+      "id": "S4.E15",
+      "tex": [
+        "H_{i}\\left|A_{i}=a,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(\\mu_{ia},\\Sigma_{a}\\right),\\qquad a\\in\\left\\{0,1\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i}\\left|A_{i}=a,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(\\mu_{ia},\\Sigma_{a}\\right),\\qquad a\\in\\left\\{0,1\\right\\},"
+      ]
+    },
+    {
+      "id": "S4.E16",
+      "tex": [
+        "\\mu_{ia}=\\left(\\mu_{ia1},\\dots,\\mu_{iaT}\\right)^{\\top},\\qquad\\mu_{iat}=X_{it}^{\\top}\\beta_{t}+aW_{it}^{\\top}\\delta_{t},\\qquad t=1,\\dots,T,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{ia}=\\left(\\mu_{ia1},\\dots,\\mu_{iaT}\\right)^{\\top},\\qquad\\mu_{iat}=X_{it}^{\\top}\\beta_{t}+aW_{it}^{\\top}\\delta_{t},\\qquad t=1,\\dots,T,"
+      ]
+    },
+    {
+      "id": "S4.E17",
+      "tex": [
+        "\\widetilde{H}_{it}=\\begin{cases}H_{it},&\\text{if }t\\in\\mathcal{I}_{i},\\\\\nH_{it}^{L},&\\text{if }t\\in\\mathcal{L}_{i},\\\\\nH_{it}^{U},&\\text{if }t\\in\\mathcal{U}_{i},\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{H}_{it}=\\begin{cases}H_{it},&\\text{if }t\\in\\mathcal{I}_{i},\\\\\nH_{it}^{L},&\\text{if }t\\in\\mathcal{L}_{i},\\\\\nH_{it}^{U},&\\text{if }t\\in\\mathcal{U}_{i},\\end{cases}"
+      ]
+    },
+    {
+      "id": "S4.E18",
+      "tex": [
+        "\\displaystyle p\\left(\\theta,\\left\\{H_{it}^{L}:t\\in\\mathcal{L}_{i},\\;i=1,\\dots,n\\right\\},\\left\\{H_{it}^{U}:t\\in\\mathcal{U}_{i},\\;i=1,\\dots,n\\right\\}\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right)",
+        "\\displaystyle\\propto p\\left(\\theta\\right)\\prod_{i=1}^{n}\\left[p\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}}\\middle|A_{i},X_{i},\\theta\\right)\\mathbbm{1}\\left(H_{i,\\mathcal{L}_{i}}^{L}\\leq a_{i}\\mathbf{1}\\right)\\mathbbm{1}\\left(H_{i,\\mathcal{U}_{i}}^{U}\\geq b_{i}\\mathbf{1}\\right)\\right]."
+      ]
+    },
+    {
+      "id": "S4.E18X",
+      "tex": [
+        "\\displaystyle p\\left(\\theta,\\left\\{H_{it}^{L}:t\\in\\mathcal{L}_{i},\\;i=1,\\dots,n\\right\\},\\left\\{H_{it}^{U}:t\\in\\mathcal{U}_{i},\\;i=1,\\dots,n\\right\\}\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right)"
+      ]
+    },
+    {
+      "id": "S4.E18Xa",
+      "tex": [
+        "\\displaystyle\\propto p\\left(\\theta\\right)\\prod_{i=1}^{n}\\left[p\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}}\\middle|A_{i},X_{i},\\theta\\right)\\mathbbm{1}\\left(H_{i,\\mathcal{L}_{i}}^{L}\\leq a_{i}\\mathbf{1}\\right)\\mathbbm{1}\\left(H_{i,\\mathcal{U}_{i}}^{U}\\geq b_{i}\\mathbf{1}\\right)\\right]."
+      ]
+    },
+    {
+      "id": "S4.E19",
+      "tex": [
+        "H_{i}=\\begin{pmatrix}H_{i,\\mathcal{O}_{i}}\\\\\nH_{i,\\mathcal{M}_{i}}\\end{pmatrix},\\qquad\\mu_{ia}=\\begin{pmatrix}\\mu_{ia,\\mathcal{O}_{i}}\\\\\n\\mu_{ia,\\mathcal{M}_{i}}\\end{pmatrix},\\qquad\\Sigma_{a}=\\begin{pmatrix}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{O}_{i}}&\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{M}_{i}}\\\\\n\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{O}_{i}}&\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{M}_{i}}\\end{pmatrix},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i}=\\begin{pmatrix}H_{i,\\mathcal{O}_{i}}\\\\\nH_{i,\\mathcal{M}_{i}}\\end{pmatrix},\\qquad\\mu_{ia}=\\begin{pmatrix}\\mu_{ia,\\mathcal{O}_{i}}\\\\\n\\mu_{ia,\\mathcal{M}_{i}}\\end{pmatrix},\\qquad\\Sigma_{a}=\\begin{pmatrix}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{O}_{i}}&\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{M}_{i}}\\\\\n\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{O}_{i}}&\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{M}_{i}}\\end{pmatrix},"
+      ]
+    },
+    {
+      "id": "S4.E20",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}},A_{i}=a,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right),V_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}},A_{i}=a,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right),V_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": "S4.E21",
+      "tex": [
+        "m_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right)=\\mu_{ia,\\mathcal{M}_{i}}+\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{O}_{i}}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}}-\\mu_{ia,\\mathcal{O}_{i}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right)=\\mu_{ia,\\mathcal{M}_{i}}+\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{O}_{i}}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}}-\\mu_{ia,\\mathcal{O}_{i}}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E22",
+      "tex": [
+        "V_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right)=\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{M}_{i}}-\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{O}_{i}}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{M}_{i}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{ia}^{\\mathrm{MAR}}\\left(\\theta\\right)=\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{M}_{i}}-\\Sigma_{a,\\mathcal{M}_{i}\\mathcal{O}_{i}}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\Sigma_{a,\\mathcal{O}_{i}\\mathcal{M}_{i}}."
+      ]
+    },
+    {
+      "id": "S4.E23",
+      "tex": [
+        "\\mu_{ia}=\\begin{pmatrix}\\mu_{ia,\\mathcal{O}_{i}^{\\star}}\\\\\n\\mu_{ia,\\mathcal{M}_{i}^{\\mathrm{post}}}\\end{pmatrix},\\qquad\\Sigma=\\begin{pmatrix}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}&\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{M}_{i}^{\\mathrm{post}}}\\\\\n\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}&\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{M}_{i}^{\\mathrm{post}}}\\end{pmatrix}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{ia}=\\begin{pmatrix}\\mu_{ia,\\mathcal{O}_{i}^{\\star}}\\\\\n\\mu_{ia,\\mathcal{M}_{i}^{\\mathrm{post}}}\\end{pmatrix},\\qquad\\Sigma=\\begin{pmatrix}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}&\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{M}_{i}^{\\mathrm{post}}}\\\\\n\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}&\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{M}_{i}^{\\mathrm{post}}}\\end{pmatrix}."
+      ]
+    },
+    {
+      "id": "S4.E24",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=a,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{ia}^{\\mathrm{post}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=a,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{ia}^{\\mathrm{post}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": "S4.E25",
+      "tex": [
+        "m_{ia}^{\\mathrm{post}}\\left(\\theta\\right)=\\mu_{ia,\\mathcal{M}_{i}^{\\mathrm{post}}}+\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}-\\mu_{ia,\\mathcal{O}_{i}^{\\star}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{ia}^{\\mathrm{post}}\\left(\\theta\\right)=\\mu_{ia,\\mathcal{M}_{i}^{\\mathrm{post}}}+\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}-\\mu_{ia,\\mathcal{O}_{i}^{\\star}}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E26",
+      "tex": [
+        "V_{i}^{\\mathrm{post}}\\left(\\theta\\right)=\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{M}_{i}^{\\mathrm{post}}}-\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{M}_{i}^{\\mathrm{post}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{i}^{\\mathrm{post}}\\left(\\theta\\right)=\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{M}_{i}^{\\mathrm{post}}}-\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{M}_{i}^{\\mathrm{post}}}."
+      ]
+    },
+    {
+      "id": "S4.E27",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{i1}^{\\mathrm{post}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{i1}^{\\mathrm{post}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right)."
+      ]
+    },
+    {
+      "id": "S4.E28",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{i}^{\\mathrm{J2R}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{i}^{\\mathrm{J2R}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": "S4.E29",
+      "tex": [
+        "m_{i}^{\\mathrm{J2R}}\\left(\\theta\\right)=\\mu_{i0,\\mathcal{M}_{i}^{\\mathrm{post}}}+\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}-\\mu_{i1,\\mathcal{O}_{i}^{\\star}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{i}^{\\mathrm{J2R}}\\left(\\theta\\right)=\\mu_{i0,\\mathcal{M}_{i}^{\\mathrm{post}}}+\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}-\\mu_{i1,\\mathcal{O}_{i}^{\\star}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E30",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{i}^{\\mathrm{CR}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta\\right.\\sim\\mathcal{N}\\left(m_{i}^{\\mathrm{CR}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right),"
+      ]
+    },
+    {
+      "id": "S4.E31",
+      "tex": [
+        "m_{i}^{\\mathrm{CR}}\\left(\\theta\\right)=\\mu_{i0,\\mathcal{M}_{i}^{\\mathrm{post}}}+\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}-\\mu_{i0,\\mathcal{O}_{i}^{\\star}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{i}^{\\mathrm{CR}}\\left(\\theta\\right)=\\mu_{i0,\\mathcal{M}_{i}^{\\mathrm{post}}}+\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}-\\mu_{i0,\\mathcal{O}_{i}^{\\star}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E32",
+      "tex": [
+        "\\ell_{i,\\omega}^{\\mathrm{post}}\\left(\\theta\\right)=\\left(1-\\omega\\right)m_{i1}^{\\mathrm{post}}\\left(\\theta\\right)+\\omega m_{i}^{\\mathrm{J2R}}\\left(\\theta\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{i,\\omega}^{\\mathrm{post}}\\left(\\theta\\right)=\\left(1-\\omega\\right)m_{i1}^{\\mathrm{post}}\\left(\\theta\\right)+\\omega m_{i}^{\\mathrm{J2R}}\\left(\\theta\\right)."
+      ]
+    },
+    {
+      "id": "S4.E33",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta,\\omega\\right.\\sim\\mathcal{N}\\left(\\ell_{i,\\omega}^{\\mathrm{post}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\theta,\\omega\\right.\\sim\\mathcal{N}\\left(\\ell_{i,\\omega}^{\\mathrm{post}}\\left(\\theta\\right),V_{i}^{\\mathrm{post}}\\left(\\theta\\right)\\right)."
+      ]
+    },
+    {
+      "id": "S4.E34",
+      "tex": [
+        "\\left(\\theta^{\\left(1\\right)},\\widetilde{H}_{\\mathcal{L}}^{\\left(1\\right)},\\widetilde{H}_{\\mathcal{U}}^{\\left(1\\right)}\\right),\\dots,\\left(\\theta^{\\left(K\\right)},\\widetilde{H}_{\\mathcal{L}}^{\\left(K\\right)},\\widetilde{H}_{\\mathcal{U}}^{\\left(K\\right)}\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left(\\theta^{\\left(1\\right)},\\widetilde{H}_{\\mathcal{L}}^{\\left(1\\right)},\\widetilde{H}_{\\mathcal{U}}^{\\left(1\\right)}\\right),\\dots,\\left(\\theta^{\\left(K\\right)},\\widetilde{H}_{\\mathcal{L}}^{\\left(K\\right)},\\widetilde{H}_{\\mathcal{U}}^{\\left(K\\right)}\\right)"
+      ]
+    },
+    {
+      "id": "S4.E35",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}},A_{i},X_{i},\\theta^{\\left(k\\right)}\\right.\\sim\\mathcal{N}\\left(m_{iA_{i}}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right),V_{i}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}},A_{i},X_{i},\\theta^{\\left(k\\right)}\\right.\\sim\\mathcal{N}\\left(m_{iA_{i}}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right),V_{i}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right)\\right),"
+      ]
+    },
+    {
+      "id": "S4.E36",
+      "tex": [
+        "m_{iA_{i}}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right)=\\mu_{iA_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}}+\\Sigma_{A_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}\\mathcal{O}_{i}}\\Sigma_{A_{i},\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}}-\\mu_{iA_{i},\\mathcal{O}_{i}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{iA_{i}}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right)=\\mu_{iA_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}}+\\Sigma_{A_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}\\mathcal{O}_{i}}\\Sigma_{A_{i},\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\left(\\widetilde{H}_{i,\\mathcal{O}_{i}}-\\mu_{iA_{i},\\mathcal{O}_{i}}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E37",
+      "tex": [
+        "V_{i}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right)=\\Sigma_{A_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}\\mathcal{M}_{i}^{\\mathrm{pre}}}-\\Sigma_{A_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}\\mathcal{O}_{i}}\\Sigma_{A_{i},\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\Sigma_{A_{i},\\mathcal{O}_{i}\\mathcal{M}_{i}^{\\mathrm{pre}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{i}^{\\mathrm{pre}}\\left(\\theta^{\\left(k\\right)}\\right)=\\Sigma_{A_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}\\mathcal{M}_{i}^{\\mathrm{pre}}}-\\Sigma_{A_{i},\\mathcal{M}_{i}^{\\mathrm{pre}}\\mathcal{O}_{i}}\\Sigma_{A_{i},\\mathcal{O}_{i}\\mathcal{O}_{i}}^{-1}\\Sigma_{A_{i},\\mathcal{O}_{i}\\mathcal{M}_{i}^{\\mathrm{pre}}}."
+      ]
+    },
+    {
+      "id": "S4.E38",
+      "tex": [
+        "H_{i}^{\\left(k\\right)}=\\left(H_{i1}^{\\left(k\\right)},\\dots,H_{iT}^{\\left(k\\right)}\\right)^{\\top}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i}^{\\left(k\\right)}=\\left(H_{i1}^{\\left(k\\right)},\\dots,H_{iT}^{\\left(k\\right)}\\right)^{\\top}"
+      ]
+    },
+    {
+      "id": "S4.E39",
+      "tex": [
+        "Y_{it}^{\\left(k\\right)}=\\begin{cases}L_{i},&\\text{if }H_{it}^{\\left(k\\right)}\\leq a_{i},\\\\\nL_{i}+\\left(U_{i}-L_{i}\\right)\\dfrac{\\Phi\\left(H_{it}^{\\left(k\\right)}\\right)-p_{L_{i}}}{p_{U_{i}}-p_{L_{i}}},&\\text{if }a_{i}<H_{it}^{\\left(k\\right)}<b_{i},\\\\\nU_{i},&\\text{if }H_{it}^{\\left(k\\right)}\\geq b_{i}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{it}^{\\left(k\\right)}=\\begin{cases}L_{i},&\\text{if }H_{it}^{\\left(k\\right)}\\leq a_{i},\\\\\nL_{i}+\\left(U_{i}-L_{i}\\right)\\dfrac{\\Phi\\left(H_{it}^{\\left(k\\right)}\\right)-p_{L_{i}}}{p_{U_{i}}-p_{L_{i}}},&\\text{if }a_{i}<H_{it}^{\\left(k\\right)}<b_{i},\\\\\nU_{i},&\\text{if }H_{it}^{\\left(k\\right)}\\geq b_{i}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S6.E40",
+      "tex": [
+        "\\mu_{it}=\\alpha_{t}+\\beta_{t}^{\\mathrm{base}}\\,\\text{BDI}_{i,\\mathrm{base}}+A_{i}\\delta_{t},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{it}=\\alpha_{t}+\\beta_{t}^{\\mathrm{base}}\\,\\text{BDI}_{i,\\mathrm{base}}+A_{i}\\delta_{t},"
+      ]
+    },
+    {
+      "id": "A1.E41",
+      "tex": [
+        "\\Sigma=\\operatorname{diag}\\left(\\sigma_{1},\\dots,\\sigma_{T}\\right)R\\operatorname{diag}\\left(\\sigma_{1},\\dots,\\sigma_{T}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Sigma=\\operatorname{diag}\\left(\\sigma_{1},\\dots,\\sigma_{T}\\right)R\\operatorname{diag}\\left(\\sigma_{1},\\dots,\\sigma_{T}\\right),"
+      ]
+    },
+    {
+      "id": "A1.E42",
+      "tex": [
+        "L_{\\Sigma}=\\operatorname{diag}\\left(\\sigma_{1},\\dots,\\sigma_{T}\\right)L_{R},\\qquad\\Sigma=L_{\\Sigma}L_{\\Sigma}^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "L_{\\Sigma}=\\operatorname{diag}\\left(\\sigma_{1},\\dots,\\sigma_{T}\\right)L_{R},\\qquad\\Sigma=L_{\\Sigma}L_{\\Sigma}^{\\top}."
+      ]
+    },
+    {
+      "id": "A1.E43",
+      "tex": [
+        "\\mu_{iat}=X_{it}^{\\top}\\beta_{t}+aW_{it}^{\\top}\\delta_{t},\\qquad t=1,\\dots,T,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{iat}=X_{it}^{\\top}\\beta_{t}+aW_{it}^{\\top}\\delta_{t},\\qquad t=1,\\dots,T,"
+      ]
+    },
+    {
+      "id": "A1.E44",
+      "tex": [
+        "\\beta_{t},\\delta_{t}\\sim\\mathcal{N}\\left(0,100^{2}I\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\beta_{t},\\delta_{t}\\sim\\mathcal{N}\\left(0,100^{2}I\\right),"
+      ]
+    },
+    {
+      "id": "A1.E45",
+      "tex": [
+        "\\sigma_{t}\\sim t_{3}^{+}\\left(0,10\\right),\\qquad t=1,\\dots,T."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sigma_{t}\\sim t_{3}^{+}\\left(0,10\\right),\\qquad t=1,\\dots,T."
+      ]
+    },
+    {
+      "id": "A2.E46",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\vartheta\\right.\\sim\\mathcal{N}\\left(m_{i}^{\\left(r\\right)}\\left(\\vartheta\\right),V_{i}^{\\mathrm{post}}\\left(\\vartheta\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},A_{i}=1,X_{i},\\vartheta\\right.\\sim\\mathcal{N}\\left(m_{i}^{\\left(r\\right)}\\left(\\vartheta\\right),V_{i}^{\\mathrm{post}}\\left(\\vartheta\\right)\\right),"
+      ]
+    },
+    {
+      "id": "A2.E47",
+      "tex": [
+        "m_{i}^{\\left(r\\right)}\\left(\\vartheta\\right)=c_{i}^{\\left(r\\right)}\\left(\\vartheta\\right)+B_{i}\\left(\\vartheta\\right)\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{i}^{\\left(r\\right)}\\left(\\vartheta\\right)=c_{i}^{\\left(r\\right)}\\left(\\vartheta\\right)+B_{i}\\left(\\vartheta\\right)\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}},"
+      ]
+    },
+    {
+      "id": "A2.E48",
+      "tex": [
+        "B_{i}\\left(\\vartheta\\right)=\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "B_{i}\\left(\\vartheta\\right)=\\Sigma_{\\mathcal{M}_{i}^{\\mathrm{post}}\\mathcal{O}_{i}^{\\star}}\\Sigma_{\\mathcal{O}_{i}^{\\star}\\mathcal{O}_{i}^{\\star}}^{-1}."
+      ]
+    },
+    {
+      "id": "A2.E49",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}},A_{i},X_{i},\\vartheta\\right.\\sim\\mathcal{N}\\left(m_{iA_{i}}^{\\mathrm{pre}}\\left(\\vartheta\\right),V_{i}^{\\mathrm{pre}}\\left(\\vartheta\\right)\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}\\left|\\widetilde{H}_{i,\\mathcal{O}_{i}},A_{i},X_{i},\\vartheta\\right.\\sim\\mathcal{N}\\left(m_{iA_{i}}^{\\mathrm{pre}}\\left(\\vartheta\\right),V_{i}^{\\mathrm{pre}}\\left(\\vartheta\\right)\\right)."
+      ]
+    },
+    {
+      "id": "A2.E50",
+      "tex": [
+        "\\displaystyle B_{i}\\left(\\vartheta\\right)\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}={}",
+        "\\displaystyle B_{i,\\mathcal{O}}\\left(\\vartheta\\right)\\widetilde{H}_{i,\\mathcal{O}_{i}}+B_{i,\\mathrm{pre}}\\left(\\vartheta\\right)H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}."
+      ]
+    },
+    {
+      "id": "A2.E50X",
+      "tex": [
+        "\\displaystyle B_{i}\\left(\\vartheta\\right)\\widetilde{H}_{i,\\mathcal{O}_{i}^{\\star}}={}",
+        "\\displaystyle B_{i,\\mathcal{O}}\\left(\\vartheta\\right)\\widetilde{H}_{i,\\mathcal{O}_{i}}+B_{i,\\mathrm{pre}}\\left(\\vartheta\\right)H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}."
+      ]
+    },
+    {
+      "id": "A2.E51",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}}^{\\left(r\\right)}=\\left(H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}^{\\top},H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)\\top}\\right)^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}}^{\\left(r\\right)}=\\left(H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}^{\\top},H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)\\top}\\right)^{\\top}."
+      ]
+    },
+    {
+      "id": "A2.E52",
+      "tex": [
+        "\\mathrm{Cov}\\left(H_{i,\\mathcal{M}_{i}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=\\begin{pmatrix}V_{i}^{\\mathrm{pre}}&V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top}\\\\\nB_{i,\\mathrm{pre}}V_{i}^{\\mathrm{pre}}&V_{i}^{\\mathrm{post}}+B_{i,\\mathrm{pre}}V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top}\\end{pmatrix},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Cov}\\left(H_{i,\\mathcal{M}_{i}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=\\begin{pmatrix}V_{i}^{\\mathrm{pre}}&V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top}\\\\\nB_{i,\\mathrm{pre}}V_{i}^{\\mathrm{pre}}&V_{i}^{\\mathrm{post}}+B_{i,\\mathrm{pre}}V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top}\\end{pmatrix},"
+      ]
+    },
+    {
+      "id": "A2.E53",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}=m_{iA_{i}}^{\\mathrm{pre}}+\\varepsilon_{i}^{\\mathrm{pre}},\\qquad\\varepsilon_{i}^{\\mathrm{pre}}\\sim\\mathcal{N}\\left(0,V_{i}^{\\mathrm{pre}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}=m_{iA_{i}}^{\\mathrm{pre}}+\\varepsilon_{i}^{\\mathrm{pre}},\\qquad\\varepsilon_{i}^{\\mathrm{pre}}\\sim\\mathcal{N}\\left(0,V_{i}^{\\mathrm{pre}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E54",
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}=c_{i}^{\\left(r\\right)}+B_{i,\\mathcal{O}}\\widetilde{H}_{i,\\mathcal{O}_{i}}+B_{i,\\mathrm{pre}}H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}+\\varepsilon_{i}^{\\mathrm{post}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}=c_{i}^{\\left(r\\right)}+B_{i,\\mathcal{O}}\\widetilde{H}_{i,\\mathcal{O}_{i}}+B_{i,\\mathrm{pre}}H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}}+\\varepsilon_{i}^{\\mathrm{post}},"
+      ]
+    },
+    {
+      "id": "A2.E55",
+      "tex": [
+        "\\varepsilon_{i}^{\\mathrm{post}}\\sim\\mathcal{N}\\left(0,V_{i}^{\\mathrm{post}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon_{i}^{\\mathrm{post}}\\sim\\mathcal{N}\\left(0,V_{i}^{\\mathrm{post}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E56",
+      "tex": [
+        "\\mathrm{Cov}\\left(H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}},H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Cov}\\left(H_{i,\\mathcal{M}_{i}^{\\mathrm{pre}}},H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E57",
+      "tex": [
+        "\\mathrm{Var}\\left(H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=B_{i,\\mathrm{pre}}V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top}+V_{i}^{\\mathrm{post}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Var}\\left(H_{i,\\mathcal{M}_{i}^{\\mathrm{post}}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=B_{i,\\mathrm{pre}}V_{i}^{\\mathrm{pre}}B_{i,\\mathrm{pre}}^{\\top}+V_{i}^{\\mathrm{post}},"
+      ]
+    },
+    {
+      "id": "A2.E58",
+      "tex": [
+        "\\mathrm{Var}\\left(Q_{H}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=\\sum_{i=1}^{n}d_{i}^{\\top}\\mathrm{Cov}\\left(H_{i,\\mathcal{M}_{i}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)d_{i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Var}\\left(Q_{H}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)=\\sum_{i=1}^{n}d_{i}^{\\top}\\mathrm{Cov}\\left(H_{i,\\mathcal{M}_{i}}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)d_{i}."
+      ]
+    },
+    {
+      "id": "A2.E59",
+      "tex": [
+        "\\mathrm{Var}\\left(Q_{H}^{\\left(r\\right)}\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right)=E\\left[\\mathrm{Var}\\left(Q_{H}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right]+\\mathrm{Var}\\left(E\\left[Q_{H}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right]\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Var}\\left(Q_{H}^{\\left(r\\right)}\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right)=E\\left[\\mathrm{Var}\\left(Q_{H}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right]+\\mathrm{Var}\\left(E\\left[Q_{H}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right]\\middle|\\mathcal{D}_{\\mathrm{obs}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E60",
+      "tex": [
+        "\\mathrm{Var}\\left(Q_{Y}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)\\approx\\nabla F\\left(m_{r}\\left(\\vartheta\\right)\\right)^{\\top}\\Sigma_{\\mathcal{M}}\\left(\\vartheta\\right)\\nabla F\\left(m_{r}\\left(\\vartheta\\right)\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Var}\\left(Q_{Y}^{\\left(r\\right)}\\middle|\\vartheta,\\mathcal{D}_{\\mathrm{obs}}\\right)\\approx\\nabla F\\left(m_{r}\\left(\\vartheta\\right)\\right)^{\\top}\\Sigma_{\\mathcal{M}}\\left(\\vartheta\\right)\\nabla F\\left(m_{r}\\left(\\vartheta\\right)\\right)."
+      ]
+    },
+    {
+      "id": "A3.E61",
+      "tex": [
+        "q_{im}\\left(\\theta_{m}\\right)=\\Pr_{m}\\left(Y_{it}^{\\mathrm{rep}}\\in I\\left(y_{it}\\right)\\text{ for every }t\\in\\mathcal{O}_{i}\\middle|A_{i},X_{i},\\theta_{m}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q_{im}\\left(\\theta_{m}\\right)=\\Pr_{m}\\left(Y_{it}^{\\mathrm{rep}}\\in I\\left(y_{it}\\right)\\text{ for every }t\\in\\mathcal{O}_{i}\\middle|A_{i},X_{i},\\theta_{m}\\right),"
+      ]
+    },
+    {
+      "id": "A3.E62",
+      "tex": [
+        "h\\left(y\\right)=\\Phi^{-1}\\left(\\frac{y+0.5}{64}\\right),\\qquad Y_{it}^{\\mathrm{rep}}=64\\Phi\\left(H_{it}^{\\mathrm{rep}}\\right)-0.5."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h\\left(y\\right)=\\Phi^{-1}\\left(\\frac{y+0.5}{64}\\right),\\qquad Y_{it}^{\\mathrm{rep}}=64\\Phi\\left(H_{it}^{\\mathrm{rep}}\\right)-0.5."
+      ]
+    },
+    {
+      "id": "A3.E63",
+      "tex": [
+        "\\left[\\Phi^{-1}\\left(\\frac{y}{64}\\right),\\Phi^{-1}\\left(\\frac{y+1}{64}\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left[\\Phi^{-1}\\left(\\frac{y}{64}\\right),\\Phi^{-1}\\left(\\frac{y+1}{64}\\right)\\right),"
+      ]
+    },
+    {
+      "id": "A3.E64",
+      "tex": [
+        "\\ell_{im}=\\log\\left\\{\\int q_{im}\\left(\\theta_{m}\\right)p_{m}\\left(\\theta_{m}\\middle|\\mathcal{D}_{-i}\\right)\\,d\\theta_{m}\\right\\},\\qquad\\widehat{\\mathrm{ELPD}}_{m}=\\sum_{i=1}^{n}\\widehat{\\ell}_{im}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{im}=\\log\\left\\{\\int q_{im}\\left(\\theta_{m}\\right)p_{m}\\left(\\theta_{m}\\middle|\\mathcal{D}_{-i}\\right)\\,d\\theta_{m}\\right\\},\\qquad\\widehat{\\mathrm{ELPD}}_{m}=\\sum_{i=1}^{n}\\widehat{\\ell}_{im}."
+      ]
+    },
+    {
+      "id": "A3.E65",
+      "tex": [
+        "\\widehat{\\ell}_{im}=\\log\\left\\{\\sum_{s=1}^{S}\\widetilde{w}_{im}^{\\left(s\\right)}q_{im}\\left(\\theta_{m}^{\\left(s\\right)}\\right)\\right\\},\\qquad\\sum_{s=1}^{S}\\widetilde{w}_{im}^{\\left(s\\right)}=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\ell}_{im}=\\log\\left\\{\\sum_{s=1}^{S}\\widetilde{w}_{im}^{\\left(s\\right)}q_{im}\\left(\\theta_{m}^{\\left(s\\right)}\\right)\\right\\},\\qquad\\sum_{s=1}^{S}\\widetilde{w}_{im}^{\\left(s\\right)}=1."
+      ]
+    },
+    {
+      "id": "A3.E66",
+      "tex": [
+        "\\widehat{\\Delta}_{m,m^{\\prime}}=\\sum_{i=1}^{n}d_{i},\\qquad\\widehat{\\mathrm{SE}}\\left(\\widehat{\\Delta}_{m,m^{\\prime}}\\right)=\\left\\{\\frac{n}{n-1}\\sum_{i=1}^{n}\\left(d_{i}-\\bar{d}\\right)^{2}\\right\\}^{1/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\Delta}_{m,m^{\\prime}}=\\sum_{i=1}^{n}d_{i},\\qquad\\widehat{\\mathrm{SE}}\\left(\\widehat{\\Delta}_{m,m^{\\prime}}\\right)=\\left\\{\\frac{n}{n-1}\\sum_{i=1}^{n}\\left(d_{i}-\\bar{d}\\right)^{2}\\right\\}^{1/2}."
+      ]
+    },
+    {
+      "id": "A2.E67",
+      "tex": [
+        "Y_{it}\\in\\left[0,63\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{it}\\in\\left[0,63\\right],"
+      ]
+    },
+    {
+      "id": "A2.E68",
+      "tex": [
+        "\\bm{\\pi}_{0}^{L,\\left(s\\right)}=\\left(\\pi_{01}^{L,\\left(s\\right)},\\dots,\\pi_{0T}^{L,\\left(s\\right)}\\right)^{\\top},\\qquad\\bm{\\pi}_{0}^{U,\\left(s\\right)}=\\left(\\pi_{01}^{U,\\left(s\\right)},\\dots,\\pi_{0T}^{U,\\left(s\\right)}\\right)^{\\top},\\qquad\\bm{\\kappa}^{\\left(s\\right)}=\\left(\\kappa_{1}^{\\left(s\\right)},\\dots,\\kappa_{T}^{\\left(s\\right)}\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bm{\\pi}_{0}^{L,\\left(s\\right)}=\\left(\\pi_{01}^{L,\\left(s\\right)},\\dots,\\pi_{0T}^{L,\\left(s\\right)}\\right)^{\\top},\\qquad\\bm{\\pi}_{0}^{U,\\left(s\\right)}=\\left(\\pi_{01}^{U,\\left(s\\right)},\\dots,\\pi_{0T}^{U,\\left(s\\right)}\\right)^{\\top},\\qquad\\bm{\\kappa}^{\\left(s\\right)}=\\left(\\kappa_{1}^{\\left(s\\right)},\\dots,\\kappa_{T}^{\\left(s\\right)}\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E69",
+      "tex": [
+        "z_{t}^{L,\\left(s\\right)}=\\Phi^{-1}\\left(\\pi_{0t}^{L,\\left(s\\right)}\\right)\\qquad\\text{and}\\qquad z_{t}^{U,\\left(s\\right)}=\\Phi^{-1}\\left(1-\\pi_{0t}^{U,\\left(s\\right)}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{t}^{L,\\left(s\\right)}=\\Phi^{-1}\\left(\\pi_{0t}^{L,\\left(s\\right)}\\right)\\qquad\\text{and}\\qquad z_{t}^{U,\\left(s\\right)}=\\Phi^{-1}\\left(1-\\pi_{0t}^{U,\\left(s\\right)}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E70",
+      "tex": [
+        "\\sigma_{t}^{\\left(s\\right)}=\\frac{b-a}{z_{t}^{U,\\left(s\\right)}-z_{t}^{L,\\left(s\\right)}},\\qquad\\alpha_{t}^{\\left(s\\right)}=a-\\sigma_{t}^{\\left(s\\right)}z_{t}^{L,\\left(s\\right)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sigma_{t}^{\\left(s\\right)}=\\frac{b-a}{z_{t}^{U,\\left(s\\right)}-z_{t}^{L,\\left(s\\right)}},\\qquad\\alpha_{t}^{\\left(s\\right)}=a-\\sigma_{t}^{\\left(s\\right)}z_{t}^{L,\\left(s\\right)}."
+      ]
+    },
+    {
+      "id": "A2.E71",
+      "tex": [
+        "\\delta_{t}^{\\left(s\\right)}=\\kappa_{t}^{\\left(s\\right)}\\sigma_{t}^{\\left(s\\right)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\delta_{t}^{\\left(s\\right)}=\\kappa_{t}^{\\left(s\\right)}\\sigma_{t}^{\\left(s\\right)},"
+      ]
+    },
+    {
+      "id": "A2.E72",
+      "tex": [
+        "\\mu_{0t}^{\\left(s\\right)}=\\alpha_{t}^{\\left(s\\right)}\\qquad\\text{and}\\qquad\\mu_{1t}^{\\left(s\\right)}=\\alpha_{t}^{\\left(s\\right)}+\\delta_{t}^{\\left(s\\right)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{0t}^{\\left(s\\right)}=\\alpha_{t}^{\\left(s\\right)}\\qquad\\text{and}\\qquad\\mu_{1t}^{\\left(s\\right)}=\\alpha_{t}^{\\left(s\\right)}+\\delta_{t}^{\\left(s\\right)}."
+      ]
+    },
+    {
+      "id": "A2.E73",
+      "tex": [
+        "\\Sigma^{\\left(s\\right)}=D^{\\left(s\\right)}R\\left(\\rho^{\\left(s\\right)}\\right)D^{\\left(s\\right)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Sigma^{\\left(s\\right)}=D^{\\left(s\\right)}R\\left(\\rho^{\\left(s\\right)}\\right)D^{\\left(s\\right)},"
+      ]
+    },
+    {
+      "id": "A2.E74",
+      "tex": [
+        "D^{\\left(s\\right)}=\\operatorname{diag}\\left(\\sigma_{1}^{\\left(s\\right)},\\dots,\\sigma_{T}^{\\left(s\\right)}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D^{\\left(s\\right)}=\\operatorname{diag}\\left(\\sigma_{1}^{\\left(s\\right)},\\dots,\\sigma_{T}^{\\left(s\\right)}\\right),"
+      ]
+    },
+    {
+      "id": "A2.E75",
+      "tex": [
+        "R_{tu}\\left(\\rho^{\\left(s\\right)}\\right)=\\left(\\rho^{\\left(s\\right)}\\right)^{\\left|t-u\\right|},\\qquad t,u=1,\\dots,T."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{tu}\\left(\\rho^{\\left(s\\right)}\\right)=\\left(\\rho^{\\left(s\\right)}\\right)^{\\left|t-u\\right|},\\qquad t,u=1,\\dots,T."
+      ]
+    },
+    {
+      "id": "A2.E76",
+      "tex": [
+        "\\bm{h}^{\\left(s\\right)}=\\left(h_{1}^{\\left(s\\right)},\\dots,h_{T}^{\\left(s\\right)}\\right)^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bm{h}^{\\left(s\\right)}=\\left(h_{1}^{\\left(s\\right)},\\dots,h_{T}^{\\left(s\\right)}\\right)^{\\top}."
+      ]
+    },
+    {
+      "id": "A2.E77",
+      "tex": [
+        "\\bm{h}^{\\left(\\mathrm{SparseBoundary}\\right)}=\\left(0.00,0.03,0.05,0.07,0.09\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bm{h}^{\\left(\\mathrm{SparseBoundary}\\right)}=\\left(0.00,0.03,0.05,0.07,0.09\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E78",
+      "tex": [
+        "\\displaystyle\\bm{h}^{\\left(s\\right)}=\\left(0.00,0.04,0.06,0.08,0.10\\right)^{\\top},",
+        "\\displaystyle s\\in\\left\\{\\mathrm{ModerateFloor},\\mathrm{AggressiveCeiling},\\mathrm{AggressiveBothBounds}\\right\\}."
+      ]
+    },
+    {
+      "id": "A2.E78X",
+      "tex": [
+        "\\displaystyle\\bm{h}^{\\left(s\\right)}=\\left(0.00,0.04,0.06,0.08,0.10\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E78Xa",
+      "tex": [
+        "\\displaystyle s\\in\\left\\{\\mathrm{ModerateFloor},\\mathrm{AggressiveCeiling},\\mathrm{AggressiveBothBounds}\\right\\}."
+      ]
+    },
+    {
+      "id": "A2.E79",
+      "tex": [
+        "\\bm{\\pi}_{0}^{L,\\left(s\\right)},\\qquad\\bm{\\pi}_{0}^{U,\\left(s\\right)},\\qquad\\bm{\\kappa}^{\\left(s\\right)},\\qquad\\rho^{\\left(s\\right)},\\qquad\\bm{\\eta}^{\\left(s\\right)},\\qquad\\bm{\\lambda}^{\\left(s\\right)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bm{\\pi}_{0}^{L,\\left(s\\right)},\\qquad\\bm{\\pi}_{0}^{U,\\left(s\\right)},\\qquad\\bm{\\kappa}^{\\left(s\\right)},\\qquad\\rho^{\\left(s\\right)},\\qquad\\bm{\\eta}^{\\left(s\\right)},\\qquad\\bm{\\lambda}^{\\left(s\\right)},"
+      ]
+    },
+    {
+      "id": "A2.E80",
+      "tex": [
+        "\\mathcal{O}_{i}^{\\mathrm{obs}}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1\\right\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{O}_{i}^{\\mathrm{obs}}=\\left\\{t\\in\\left\\{1,\\dots,T\\right\\}:R_{it}=1\\right\\}"
+      ]
+    },
+    {
+      "id": "A2.E81",
+      "tex": [
+        "t_{i}^{\\mathrm{last}}=\\max\\mathcal{O}_{i}^{\\mathrm{obs}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "t_{i}^{\\mathrm{last}}=\\max\\mathcal{O}_{i}^{\\mathrm{obs}},"
+      ]
+    },
+    {
+      "id": "A2.E82",
+      "tex": [
+        "\\tau_{i}=\\begin{cases}t_{i}^{\\mathrm{last}}+1,&\\text{if }t_{i}^{\\mathrm{last}}<T,\\\\\nT+1,&\\text{if }t_{i}^{\\mathrm{last}}=T.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\tau_{i}=\\begin{cases}t_{i}^{\\mathrm{last}}+1,&\\text{if }t_{i}^{\\mathrm{last}}<T,\\\\\nT+1,&\\text{if }t_{i}^{\\mathrm{last}}=T.\\end{cases}"
+      ]
+    },
+    {
+      "id": "A2.E83",
+      "tex": [
+        "H_{it}^{\\mathrm{MAR}}=\\alpha_{t}+\\beta_{t}B_{i}+A_{i}\\delta_{t}+\\varepsilon_{it},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{it}^{\\mathrm{MAR}}=\\alpha_{t}+\\beta_{t}B_{i}+A_{i}\\delta_{t}+\\varepsilon_{it},"
+      ]
+    },
+    {
+      "id": "A2.E84",
+      "tex": [
+        "\\displaystyle\\bm{\\alpha}",
+        "\\displaystyle=\\left(-0.8,-1.1,-1.3,-1.5\\right)^{\\top},",
+        "\\displaystyle\\bm{\\beta}",
+        "\\displaystyle=\\left(0.35,0.35,0.30,0.30\\right)^{\\top},",
+        "\\displaystyle\\bm{\\delta}",
+        "\\displaystyle=\\left(-0.15,-0.30,-0.45,-0.55\\right)^{\\top}."
+      ]
+    },
+    {
+      "id": "A2.E84X",
+      "tex": [
+        "\\displaystyle\\bm{\\alpha}",
+        "\\displaystyle=\\left(-0.8,-1.1,-1.3,-1.5\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E84Xa",
+      "tex": [
+        "\\displaystyle\\bm{\\beta}",
+        "\\displaystyle=\\left(0.35,0.35,0.30,0.30\\right)^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E84Xb",
+      "tex": [
+        "\\displaystyle\\bm{\\delta}",
+        "\\displaystyle=\\left(-0.15,-0.30,-0.45,-0.55\\right)^{\\top}."
+      ]
+    },
+    {
+      "id": "A3.E85",
+      "tex": [
+        "\\displaystyle L_{i}\\left(\\theta\\right)={}",
+        "\\displaystyle\\phi_{\\left|\\mathcal{I}_{i}\\right|}\\left(h_{i,\\mathcal{I}_{i}};\\mu_{i,\\mathcal{I}_{i}},\\Sigma_{\\mathcal{I}_{i}\\mathcal{I}_{i}}\\right)\\left|J_{i}\\left(h_{i,\\mathcal{I}_{i}}\\right)\\right|",
+        "\\displaystyle\\times\\Pr\\left(H_{i,\\mathcal{B}_{i}}\\in\\mathcal{R}_{i}\\middle|H_{i,\\mathcal{I}_{i}}=h_{i,\\mathcal{I}_{i}},A_{i},X_{i},\\theta\\right),"
+      ]
+    },
+    {
+      "id": "A3.E85X",
+      "tex": [
+        "\\displaystyle L_{i}\\left(\\theta\\right)={}",
+        "\\displaystyle\\phi_{\\left|\\mathcal{I}_{i}\\right|}\\left(h_{i,\\mathcal{I}_{i}};\\mu_{i,\\mathcal{I}_{i}},\\Sigma_{\\mathcal{I}_{i}\\mathcal{I}_{i}}\\right)\\left|J_{i}\\left(h_{i,\\mathcal{I}_{i}}\\right)\\right|"
+      ]
+    },
+    {
+      "id": "A3.E85Xa",
+      "tex": [
+        "\\displaystyle\\times\\Pr\\left(H_{i,\\mathcal{B}_{i}}\\in\\mathcal{R}_{i}\\middle|H_{i,\\mathcal{I}_{i}}=h_{i,\\mathcal{I}_{i}},A_{i},X_{i},\\theta\\right),"
+      ]
+    },
+    {
+      "id": "A3.E86",
+      "tex": [
+        "\\left|J_{i}\\left(h_{i,\\mathcal{I}_{i}}\\right)\\right|=\\prod_{t\\in\\mathcal{I}_{i}}\\frac{p_{U_{i}}-p_{L_{i}}}{U_{i}-L_{i}}\\frac{1}{\\phi\\left(h_{it}\\right)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left|J_{i}\\left(h_{i,\\mathcal{I}_{i}}\\right)\\right|=\\prod_{t\\in\\mathcal{I}_{i}}\\frac{p_{U_{i}}-p_{L_{i}}}{U_{i}-L_{i}}\\frac{1}{\\phi\\left(h_{it}\\right)}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S2.F1",
+      "caption": "Figure 1 :  Observed BDI-II scores by visit and treatment arm, comparing treatment as usual (TAU) with  Beating the Blues  (BtheB), on the bounded scale from 0 to 63 and shown as boxplots with overlaid individual observed values. The dashed horizontal lines mark the lower and upper bounds of the score.",
+      "images": []
+    },
+    {
+      "id": "S2.F2",
+      "caption": "Figure 2 :  Observed proportion of missing BDI-II values by visit and treatment arm, comparing treatment as usual (TAU) with  Beating the Blues  (BtheB). Proportions use the retained analysis set as the denominator within each arm: 45 subjects for TAU and 52 for BtheB. Missingness increases substantially over follow-up in both arms.",
+      "images": []
+    },
+    {
+      "id": "S4.F3",
+      "caption": "Figure 3 :  Illustration of the thresholded latent Gaussian construction for a representative setting with mass at the lower bound,  ( μ , σ ) = ( − 1.1 , 1.0 ) \\left(\\mu,\\sigma\\right)=\\left(-1.1,1.0\\right) , which induces approximately  Pr ⁡ ( Y i ​ t = L i ) = 0.09 \\Pr\\left(Y_{it}=L_{i}\\right)=0.09  and  Pr ⁡ ( Y i ​ t = U i ) = 0.00 \\Pr\\left(Y_{it}=U_{i}\\right)=0.00 . The left panel shows the latent Gaussian density with threshold locations  a i a_{i}  and  b i b_{i} . The right panel shows the corresponding distribution on the observed scale, obtained from 1,000,000 simulated draws under the thresholded observation rule, with the red vertical line indicating the point mass at the lower boundary. The interior histogram is scaled so that its area plus the probabilities at the two bounds equals one.",
+      "images": []
+    },
+    {
+      "id": "S5.T1",
+      "caption": "Table 1:  Simulation Study 3: population treatment effect inference at the final visit when the imputation and generating truth rules match.",
+      "images": []
+    },
+    {
+      "id": "S6.T2",
+      "caption": "Table 2 :  Comparison using leave-one-subject-out prediction of common score intervals. Higher ELPD indicates better predictive performance. Differences are relative to the continuous bounded model; their SEs account for pairing by subject.",
+      "images": []
+    },
+    {
+      "id": "S6.F4",
+      "caption": "Figure 4 :  Application to the  BtheB  data: visit-specific treatment arm differences in mean BDI-II under the MAR, WJ2R(0.50), J2R, and CR sensitivity rules. Points show estimates pooled using Rubin’s rules after fitting an MMRM to each of 50 posterior predictive completed datasets under each rule. Error bars show the corresponding 95% intervals. Negative values favor  Beating the Blues , since lower BDI-II indicates fewer depressive symptoms.",
+      "images": []
+    },
+    {
+      "id": "S6.F5",
+      "caption": "Figure 5 :  Posterior predictive profiles of mean BDI-II and the probability of a score of exactly zero under MAR, WJ2R(0.50), J2R, and CR for BtheB, with TAU under MAR as the reference. Points show posterior means and bars show pointwise 95% intervals for the completed cohort summaries, with observed outcomes held fixed. All 4,000 post-warmup draws were used. Profiles are offset horizontally for readability. Intervals collapse to points at month 2 because all outcomes at that visit were observed.",
+      "images": []
+    },
+    {
+      "id": "A1.F1",
+      "caption": "Web Figure 1 :  Observed mean BDI-II by visit and treatment arm, comparing treatment as usual (TAU) with  Beating the Blues  (BtheB). Error bars show approximate pointwise 95% confidence intervals computed using normal theory from the available cases at each visit.",
+      "images": []
+    },
+    {
+      "id": "A1.F2",
+      "caption": "Web Figure 2 :  Observed proportion of BDI-II scores at the lower bound by visit and treatment arm, comparing treatment as usual (TAU) with  Beating the Blues  (BtheB). Proportions are calculated among subjects with an observed score at each visit within each treatment arm. Values of exactly zero become more prominent later in follow-up.",
+      "images": []
+    },
+    {
+      "id": "A1.F3",
+      "caption": "Web Figure 3 :  Subject trajectories of BDI-II by treatment arm, comparing treatment as usual (TAU) with  Beating the Blues  (BtheB). The trajectories illustrate heterogeneity across subjects, a general downward trend over time, occasional values of exactly zero, and incomplete follow-up for many subjects before the final visit. Open black circles indicate the last observed BDI-II value for subjects whose final available assessment occurred before the last scheduled visit.",
+      "images": []
+    },
+    {
+      "id": "A2.T1",
+      "caption": "Web Table 1 :  Simulation Study 1: exact scenario inputs on the observed scale. For each scenario and visit, the table reports the probabilities of the lower and upper bounds in the control arm,  π 0 ​ t L \\pi_{0t}^{L}  and  π 0 ​ t U \\pi_{0t}^{U} , the standardized treatment shift  κ t \\kappa_{t} , visit-specific dropout hazard  h t h_{t} , and the common AR(1) correlation parameter  ρ \\rho  used to construct the latent truth values. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Web Table 1 :  Simulation Study 1: exact scenario inputs on the observed scale (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T2",
+      "caption": "Web Table 2 :  Mean proportion of missing values by scenario and visit in Simulation Study 1. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Web Table 2 :  Mean proportion of missing values by scenario and visit in Simulation Study 1 (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T3",
+      "caption": "Web Table 3 :  Simulation Study 1: recovery of the visit-specific latent intercepts  α t \\alpha_{t}  under the mixed boundary model. For each scenario and visit, the table reports the true value (True), mean bias (Bias), defined as the average posterior mean minus the true value, and empirical coverage (Cov) of the nominal  95 % 95\\%  credible interval. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Web Table 3 :  Simulation Study 1: recovery of the visit-specific latent intercepts  α t \\alpha_{t}  under the mixed boundary model (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T4",
+      "caption": "Web Table 4 :  Simulation Study 1: recovery of the visit-specific latent treatment effects  δ t \\delta_{t}  under the mixed boundary model. For each scenario and visit, the table reports the true value (True), mean bias (Bias), defined as the average posterior mean minus the true value, and empirical coverage (Cov) of the nominal  95 % 95\\%  credible interval. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Web Table 4 :  Simulation Study 1: recovery of the visit-specific latent treatment effects  δ t \\delta_{t}  under the mixed boundary model (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T5",
+      "caption": "Web Table 5 :  Simulation Study 1: recovery of the probabilities of the lower bound under the mixed boundary model. For each scenario, treatment arm, and visit, the table reports the true value (True), mean bias (Bias), defined as the average posterior mean minus the true value, and empirical coverage (Cov) of the nominal  95 % 95\\%  credible interval. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Treatment abbreviations: Ref = reference and Act = active. Web Table 5 :  Simulation Study 1: recovery of the probabilities of the lower bound under the mixed boundary model (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T6",
+      "caption": "Web Table 6 :  Simulation Study 1: recovery of the probabilities of the upper bound under the mixed boundary model. For each scenario, treatment arm, and visit, the table reports the true value (True), mean bias (Bias), defined as the average posterior mean minus the true value, and empirical coverage (Cov) of the nominal  95 % 95\\%  credible interval. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Treatment abbreviations: Ref = reference and Act = active. Web Table 6 :  Simulation Study 1: recovery of the probabilities of the upper bound under the mixed boundary model (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T7",
+      "caption": "Web Table 7 :  Simulation Study 1: recovery of means on the observed scale across working models. For each scenario, model, treatment arm, and visit, the table reports the true value (True), mean bias (Bias), root mean squared error (RMSE), and empirical coverage (Cov) of the nominal  95 % 95\\%  credible interval. Abbreviated scenario labels are used for space: Sparse bdy =  SparseBoundary , Mod. floor =  ModerateFloor , Agg. ceiling =  AggressiveCeiling , and Two-sided bds =  AggressiveBothBounds . Model abbreviations: Gauss. = Gaussian, CB = continuous bounded, and MB = mixed boundary. Treatment abbreviations: Ref = reference and Act = active. Web Table 7 :  Simulation Study 1: recovery of means on the observed scale across working models (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T8",
+      "caption": "Web Table 8 :  Simulation Study 2: inputs for the support templates and the truth rules used to generate the eight reference-based sensitivity analysis scenarios. In Study 2, each full scenario is defined by the combination of support template and truth rule after the trigger. The two support templates are  ModerateFloor  and  AggressiveBothBounds ; in subsequent tables, these are abbreviated as Mod. floor and Two-sided bds, respectively. Abbreviations: CR = copy reference, J2R = jump to reference, MAR = missing at random, and WJ2R(0.50) = weighted jump to reference with  ω = 0.50 \\omega=0.50 . Web Table 8 :  Simulation Study 2: inputs for the support templates and the truth rules used to generate the eight reference-based sensitivity analysis scenarios (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T9",
+      "caption": "Web Table 9 :  Mean proportion of missing values by support template, truth rule, and visit in Simulation Study 2. Here, the Support column lists abbreviated labels for the support templates rather than full scenario names: Mod. floor =  ModerateFloor  and Two-sided bds =  AggressiveBothBounds . Each full Study 2 scenario is defined by the combination of support template and truth rule. Abbreviations: WJ2R(0.50) = weighted jump to reference with  ω = 0.50 \\omega=0.50 . Web Table 9 :  Mean proportion of missing values by support template, truth rule, and visit in Simulation Study 2 (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T10",
+      "caption": "Web Table 10 :  Simulation Study 2: recovery of the sample treatment contrast on the observed scale at the final visit under the RBMI analysis rules. True is the average of the complete data contrasts across replicates. Bias and root mean squared error (RMSE) compare each posterior mean with the true contrast for that replicate; Cov is the proportion of nominal  95 % 95\\%  posterior intervals containing that contrast. Support labels: Mod. floor =  ModerateFloor  and Two-sided bds =  AggressiveBothBounds . Each scenario combines a support template and a truth rule. WJ2R(0.50) denotes weighted jump to reference with  ω = 0.50 \\omega=0.50 . Web Table 10 :  Simulation Study 2: recovery of the treatment contrast on the observed scale at the final visit under the RBMI analysis rules (continued).",
+      "images": []
+    },
+    {
+      "id": "A2.T11",
+      "caption": "Web Table 11 :  Simulation Study 3: inference for the population treatment effect at the final visit under all sensitivity rules.",
+      "images": []
+    },
+    {
+      "id": "A4.T12",
+      "caption": "Web Table 12:  Predicted probabilities (%) for subjects with missing BDI-II at month 8 under MAR. Entries are posterior means with 95% credible intervals for the average conditional probability within each arm’s subset of subjects with missing scores.",
+      "images": []
+    },
+    {
+      "id": "A4.T13",
+      "caption": "Web Table 13:  Sensitivity of completed cohort summaries at month 8 to the threshold extension. Entries are posterior means with pointwise 95% intervals.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

@@ -18,6 +18,14 @@ created: "2026-11-04"
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/ActTime/精读|ActTime：ActTime: Action-Conditioned World Modeling for Time Series]]
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/PtOGtO/精读|PtOGtO：Contextual Decision Making: Predictive or Generative]]
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/StandIn/精读|StandIn：Stand-In Effects and Pooling Amplification: Design-Based Tests of Whether Biological World Models Use Actions]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/FC-DFL/精读|FC-DFL：Frequency-Calibrated Decision-Focused Learning for BESS Dispatch Under Renewable Uncertainty]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/RAN-SCM/精读|RAN-SCM：From Confounding to Counterfactuals: A Cross-Layer Causal Model for RAN Scheduling]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/OpenNWM/精读|OpenNWM：OpenNWM: A Generalist Navigation World Model with Latent Action Pretraining]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/BoundedSensitivity/精读|BoundedSensitivity：Reference-based sensitivity analysis for bounded longitudinal outcomes]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PoissonSL/精读|PoissonSL：Poisson Super Learning For Survival And Competing Risks On A Discretized Time Scale]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PolicySampleRisk/精读|PolicySampleRisk：How Risky Is Your Data-Driven Policy?]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/LatentForesight/精读|LatentForesight：Coordinating Humanoid Loco-Manipulation through Action-Conditioned Latent Foresight]] — 本期首次入库。
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PrimeSim/精读|PrimeSim：PrimeSim: A Generalist World Model Simulator from Large-Scale Cross-Embodiment Demonstrations]] — 本期首次入库。
 <!-- 自动索引结束 -->
 
 ## 待精读
@@ -41,3 +49,10 @@ created: "2026-11-04"
 ## 跨方向方法
 
 - [[研究前沿/动态等待与匹配决策/01-论文原文与精读/GenMatch/精读|GenMatch]]：阶段履约监督与整批决策，可迁移但未识别反事实概率。
+
+
+<!-- 2026-11-06-daily-update -->
+## 2026-11-06 跨方向关联
+
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/SparseStochasticMatching/精读|SparseStochasticMatching]] — 复用唯一正文。
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/IMMD-Flow/精读|IMMD-Flow]] — 复用唯一正文。

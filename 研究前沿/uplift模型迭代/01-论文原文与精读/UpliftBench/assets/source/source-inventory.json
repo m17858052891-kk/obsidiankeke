@@ -1,0 +1,681 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "UpliftBench: Revealing Outcome-Regime and Objective Mismatch in Uplift Evaluation",
+      "id": null
+    },
+    {
+      "title": "1.  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "Finding 1 (F1) — outcome-regime sensitivity of Qini.",
+      "id": "S1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Finding 2 (F2) — objective mismatch (the metric measures the wrong goal).",
+      "id": "S1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Why this matters and what is new.",
+      "id": "S1.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Contributions.",
+      "id": "S1.SS0.SSS0.Px4"
+    },
+    {
+      "title": "2.  Related Work",
+      "id": "S2"
+    },
+    {
+      "title": "Uplift / CATE estimation.",
+      "id": "S2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Benchmarks.",
+      "id": "S2.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Uplift evaluation metrics.",
+      "id": "S2.SS0.SSS0.Px3"
+    },
+    {
+      "title": "3.  Datasets",
+      "id": "S3"
+    },
+    {
+      "title": "4.  Estimators, Metrics, and Protocol",
+      "id": "S4"
+    },
+    {
+      "title": "Estimators (12).",
+      "id": "S4.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Six metrics.",
+      "id": "S4.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Why PolicyValue@ k k  is not in panel (a) of Fig.  1 .",
+      "id": "S4.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Policy risk and policy value (exact definitions).",
+      "id": "S4.SS0.SSS0.Px4"
+    },
+    {
+      "title": "Outer-test-isolated protocol.",
+      "id": "S4.SS0.SSS0.Px5"
+    },
+    {
+      "title": "Uncertainty: what is resampled.",
+      "id": "S4.SS0.SSS0.Px6"
+    },
+    {
+      "title": "A note on Qini normalization.",
+      "id": "S4.SS0.SSS0.Px7"
+    },
+    {
+      "title": "5.  Results",
+      "id": "S5"
+    },
+    {
+      "title": "5.1.  Finding 1: outcome-regime sensitivity of Qini",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "F1 is not a tail effect.",
+      "id": "S5.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Definitions and identities.",
+      "id": "S5.SS1.SSS0.Px2"
+    },
+    {
+      "title": "Scale ruled out; the failure in one construction.",
+      "id": "S5.SS1.SSS0.Px3"
+    },
+    {
+      "title": "A controlled test, and an honest boundary.",
+      "id": "S5.SS1.SSS0.Px4"
+    },
+    {
+      "title": "5.2.  Finding 2: ranking metrics are insufficient for level-dependent deployment objectives",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "On Jobs, the benchmark contains detectable policy-selection signal that the\nevaluated ranking metrics do not transmit.",
+      "id": "S5.SS2.SSS0.Px1"
+    },
+    {
+      "title": "The operational cost: policy-selection regret.",
+      "id": "S5.SS2.SSS0.Px2"
+    },
+    {
+      "title": "Calibrating the threshold closes most of the gap.",
+      "id": "S5.SS2.SSS0.Px3"
+    },
+    {
+      "title": "How strong is this evidence?",
+      "id": "S5.SS2.SSS0.Px4"
+    },
+    {
+      "title": "Which model wins depends on regime and metric.",
+      "id": "S5.SS2.SSS0.Px5"
+    },
+    {
+      "title": "5.3.  Robustness and boundaries",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "5.3.1.  Robustness of F1",
+      "id": "S5.SS3.SSS1"
+    },
+    {
+      "title": "Paired, decomposed statistics.",
+      "id": "S5.SS3.SSS1.Px1"
+    },
+    {
+      "title": "Uncertainty, and all 100 realizations.",
+      "id": "S5.SS3.SSS1.Px2"
+    },
+    {
+      "title": "Estimator exclusion.",
+      "id": "S5.SS3.SSS1.Px3"
+    },
+    {
+      "title": "Base learner.",
+      "id": "S5.SS3.SSS1.Px4"
+    },
+    {
+      "title": "Implementation variants.",
+      "id": "S5.SS3.SSS1.Px5"
+    },
+    {
+      "title": "5.3.2.  Boundary of F1",
+      "id": "S5.SS3.SSS2"
+    },
+    {
+      "title": "Two boundary-case validation families.",
+      "id": "S5.SS3.SSS2.Px1"
+    },
+    {
+      "title": "A third continuous family ends the tail explanation.",
+      "id": "S5.SS3.SSS2.Px2"
+    },
+    {
+      "title": "Mechanism probes, summarized.",
+      "id": "S5.SS3.SSS2.Px3"
+    },
+    {
+      "title": "5.3.3.  Robustness and scope of F2",
+      "id": "S5.SS3.SSS3"
+    },
+    {
+      "title": "Base-learner replication.",
+      "id": "S5.SS3.SSS3.Px1"
+    },
+    {
+      "title": "Budget grid.",
+      "id": "S5.SS3.SSS3.Px2"
+    },
+    {
+      "title": "Objective specificity.",
+      "id": "S5.SS3.SSS3.Px3"
+    },
+    {
+      "title": "5.4.  Calibration: an identification check, not a third finding",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "6.  Practitioner’s Guide: Choose a Metric, Then a Model",
+      "id": "S6"
+    },
+    {
+      "title": "7.  Limitations",
+      "id": "S7"
+    },
+    {
+      "title": "No ground truth on marketing data.",
+      "id": "S7.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Protocol limitations.",
+      "id": "S7.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Scale and compute.",
+      "id": "S7.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Scope of F1.",
+      "id": "S7.SS0.SSS0.Px4"
+    },
+    {
+      "title": "8.  Reproducibility",
+      "id": "S8"
+    },
+    {
+      "title": "Generative-AI assistance.",
+      "id": "S8.SS0.SSS0.Px1"
+    },
+    {
+      "title": "9.  Benchmark Documentation, Availability, and Ethics",
+      "id": "S9"
+    },
+    {
+      "title": "Provenance and curation.",
+      "id": "S9.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Availability, licensing, and maintenance.",
+      "id": "S9.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Bring your own data.",
+      "id": "S9.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Leaderboard governance.",
+      "id": "S9.SS0.SSS0.Px4"
+    },
+    {
+      "title": "Representativeness of the synthetic data.",
+      "id": "S9.SS0.SSS0.Px5"
+    },
+    {
+      "title": "Ethical considerations.",
+      "id": "S9.SS0.SSS0.Px6"
+    },
+    {
+      "title": "10.  Conclusion",
+      "id": "S10"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Deferred discussion and extended material",
+      "id": "A1"
+    },
+    {
+      "title": "Which model wins depends on regime and metric (full commentary).",
+      "id": "A1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Calibrating the threshold closes most of the gap.",
+      "id": "A1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Mechanism probes, summarized.",
+      "id": "A1.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Estimator exclusion (full detail).",
+      "id": "A1.SS0.SSS0.Px4"
+    },
+    {
+      "title": "The candidate panel is Qini-tuned.",
+      "id": "A1.SS0.SSS0.Px5"
+    },
+    {
+      "title": "Propensity nesting is imperfect inside the tuning loop.",
+      "id": "A1.SS0.SSS0.Px6"
+    },
+    {
+      "title": "F2’s empirical half is within-sample.",
+      "id": "A1.SS0.SSS0.Px7"
+    },
+    {
+      "title": "PEHE \\sqrt{\\mathrm{PEHE}}  is not the sole standard — by design.",
+      "id": "A1.SS0.SSS0.Px8"
+    },
+    {
+      "title": "A third continuous family, and the end of the tail explanation.",
+      "id": "A1.SS0.SSS0.Px9"
+    },
+    {
+      "title": "What F1 is, stated at its true scope.",
+      "id": "A1.SS0.SSS0.Px10"
+    },
+    {
+      "title": "A note on Qini normalization.",
+      "id": "A1.SS0.SSS0.Px11"
+    },
+    {
+      "title": "ACIC 2016: an independent boundary-case validation family.",
+      "id": "A1.SS0.SSS0.Px12"
+    },
+    {
+      "title": "A controlled test, and an honest boundary.",
+      "id": "A1.SS0.SSS0.Px13"
+    },
+    {
+      "title": "Scope of F1.",
+      "id": "A1.SS0.SSS0.Px14"
+    },
+    {
+      "title": "Uncertainty: what is resampled.",
+      "id": "A1.SS0.SSS0.Px15"
+    },
+    {
+      "title": "Appendix B  Full practitioner’s guide",
+      "id": "A2"
+    },
+    {
+      "title": "Continuous-outcome diagnostic.",
+      "id": "A2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Appendix C  Calibration: the full identification-stratified analysis",
+      "id": "A3"
+    },
+    {
+      "title": "Diagnostic and its identification requirement.",
+      "id": "A3.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Where it is identified, calibration does  not  disagree with Qini.",
+      "id": "A3.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Appendix D  F1: proofs, derivations, and detailed constructions",
+      "id": "A4"
+    },
+    {
+      "title": "Edge-case conventions (as shipped).",
+      "id": "A4.SS0.SSS0.Px1"
+    },
+    {
+      "title": "The 12-unit counterexample in full.",
+      "id": "A4.SS0.SSS0.Px2"
+    },
+    {
+      "title": "The three-level claim taxonomy in full.",
+      "id": "A4.SS0.SSS0.Px3"
+    },
+    {
+      "title": "DR-Learner detail and the estimator-panel caveat.",
+      "id": "A4.SS0.SSS0.Px4"
+    },
+    {
+      "title": "DR-Learner instability.",
+      "id": "A4.SS0.SSS0.Px5"
+    },
+    {
+      "title": "Appendix E  Extended robustness and uncertainty analyses",
+      "id": "A5"
+    },
+    {
+      "title": "E.1.  Searching for a covariate that separates the realizations",
+      "id": "A5.SS1"
+    },
+    {
+      "title": "A pre-specified, lemma-derived composite.",
+      "id": "A5.SS1.SSS0.Px1"
+    },
+    {
+      "title": "E.2.  F1 without tuning: is the separation an artifact of the Qini-tuned panel?",
+      "id": "A5.SS2"
+    },
+    {
+      "title": "The other tuning arm: selecting the panel by AUUC",
+      "id": "A5.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Pooled statistic (why we do not lead with it).",
+      "id": "A5.SS2.SSS0.Px2"
+    },
+    {
+      "title": "F2 selector ladder, full detail.",
+      "id": "A5.SS2.SSS0.Px3"
+    },
+    {
+      "title": "F2 regret, secondary statistics.",
+      "id": "A5.SS2.SSS0.Px4"
+    },
+    {
+      "title": "F2 rank correlations, read carefully.",
+      "id": "A5.SS2.SSS0.Px5"
+    },
+    {
+      "title": "causalml implementation comparison, full detail.",
+      "id": "A5.SS2.SSS0.Px6"
+    },
+    {
+      "title": "Budget grid, per-budget values.",
+      "id": "A5.SS2.SSS0.Px7"
+    },
+    {
+      "title": "Estimation noise and split dependence (full detail).",
+      "id": "A5.SS2.SSS0.Px8"
+    },
+    {
+      "title": "Replacement metrics (full detail).",
+      "id": "A5.SS2.SSS0.Px9"
+    },
+    {
+      "title": "Mechanism-candidate sweeps (full detail).",
+      "id": "A5.SS2.SSS0.Px10"
+    },
+    {
+      "title": "Tuning budget (full detail).",
+      "id": "A5.SS2.SSS0.Px11"
+    },
+    {
+      "title": "Appendix F  Calibration: pooled contrast and bin-count robustness",
+      "id": "A6"
+    },
+    {
+      "title": "Appendix G  Leaderboards and tables",
+      "id": "A7"
+    },
+    {
+      "title": "Appendix H  Run statistics",
+      "id": "A8"
+    },
+    {
+      "title": "Appendix I  The Criteo supplement",
+      "id": "A9"
+    },
+    {
+      "title": "Subsampling design.",
+      "id": "A9.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Replication (descriptive).",
+      "id": "A9.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Resolution.",
+      "id": "A9.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Confound and mechanism.",
+      "id": "A9.SS0.SSS0.Px4"
+    },
+    {
+      "title": "Scope and licensing.",
+      "id": "A9.SS0.SSS0.Px5"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S4.Ex1",
+      "tex": [
+        "\\displaystyle R_{\\mathrm{policy}}(\\pi)",
+        "\\displaystyle=1-\\widehat{\\mathbb{E}}\\big[Y(\\pi)\\big],",
+        "\\displaystyle\\widehat{\\mathbb{E}}\\big[Y(\\pi)\\big]",
+        "\\displaystyle=\\frac{1}{|\\mathcal{E}|}\\!\\sum_{i\\in\\mathcal{E}}\\Big[\\tfrac{y_{i}}{\\hat{\\pi}_{1}}\\mathbb{1}[\\pi_{i}{=}1,t_{i}{=}1]",
+        "\\displaystyle+\\tfrac{y_{i}}{1-\\hat{\\pi}_{1}}\\mathbb{1}[\\pi_{i}{=}0,t_{i}{=}0]\\Big]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle R_{\\mathrm{policy}}(\\pi)",
+        "\\displaystyle=1-\\widehat{\\mathbb{E}}\\big[Y(\\pi)\\big],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{\\mathbb{E}}\\big[Y(\\pi)\\big]",
+        "\\displaystyle=\\frac{1}{|\\mathcal{E}|}\\!\\sum_{i\\in\\mathcal{E}}\\Big[\\tfrac{y_{i}}{\\hat{\\pi}_{1}}\\mathbb{1}[\\pi_{i}{=}1,t_{i}{=}1]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\tfrac{y_{i}}{1-\\hat{\\pi}_{1}}\\mathbb{1}[\\pi_{i}{=}0,t_{i}{=}0]\\Big]."
+      ]
+    },
+    {
+      "id": "S5.Ex2",
+      "tex": [
+        "q(k)=T_{k}\\,a(k)+\\tfrac{k}{n}\\,u(n)\\,(T_{k}-T_{n})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q(k)=T_{k}\\,a(k)+\\tfrac{k}{n}\\,u(n)\\,(T_{k}-T_{n})."
+      ]
+    },
+    {
+      "id": "A4.EGx1",
+      "tex": [
+        "\\displaystyle T_{k}\\,u(k)",
+        "\\displaystyle=T_{k}\\big(\\tfrac{1}{T_{k}}\\!\\sum_{i\\leq k}y_{i}t_{i}-\\tfrac{1}{C_{k}}\\!\\sum_{i\\leq k}y_{i}(1-t_{i})\\big)",
+        "\\displaystyle=\\sum_{i\\leq k}y_{i}t_{i}-\\tfrac{T_{k}}{C_{k}}\\sum_{i\\leq k}y_{i}(1-t_{i})=g(k).\\qed"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle T_{k}\\,u(k)",
+        "\\displaystyle=T_{k}\\big(\\tfrac{1}{T_{k}}\\!\\sum_{i\\leq k}y_{i}t_{i}-\\tfrac{1}{C_{k}}\\!\\sum_{i\\leq k}y_{i}(1-t_{i})\\big)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{i\\leq k}y_{i}t_{i}-\\tfrac{T_{k}}{C_{k}}\\sum_{i\\leq k}y_{i}(1-t_{i})=g(k).\\qed"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S3.T1",
+      "caption": "Table 1 .  Benchmark datasets.  n n : sample size used ( Hillstrom  is used in full;  Lenta / X5 / MegaFon  are capped at 10K by stratified subsampling, full size in parentheses).  π 1 \\pi_{1} : treatment fraction.  y ¯ \\bar{y} :\noutcome mean (a base rate where the outcome is binary; on the outcome scale for the\ncontinuous IHDP outcome; its 2–41 entry is the range of  y ¯ \\bar{y}  across the 10\nrealizations; IHDP  n n  is the 672-unit train portion of the standard 747-unit release).\n † Supplement, outside the 25-instance accounting (Appendix  I ).",
+      "images": []
+    },
+    {
+      "id": "S4.T2",
+      "caption": "Table 2 .  The UpliftBench artifact at a glance.",
+      "images": []
+    },
+    {
+      "id": "S5.F1",
+      "caption": "Figure 1 .  Two findings of metric disagreement.  Mean  across dataset\ninstances  of the within-instance Spearman  ρ \\rho  computed across models (not across folds).\nEach panel is computed on a single, stated instance set:  (a)  the 10 continuous\ninstances (IHDP  × \\times 10;  Synthetic  is generated with a binary outcome and is\ntherefore grouped with the binary instances in (b)) — Qini is isolated, agreeing neither\nwith ground truth\n( − PEHE -\\sqrt{\\mathrm{PEHE}} ,  ρ = − 0.15 \\rho=-0.15 ) nor with sibling ranking metrics AUUC/uplift-at- k k \n( ρ ≈ 0 \\rho\\approx 0 ), which themselves correlate substantially with  − PEHE -\\sqrt{\\mathrm{PEHE}} \n( ρ ≈ 0.6 \\rho\\approx 0.6 );  (b)  the 15 binary instances (10 Jobs  + +   Synthetic \n + +  4 marketing) —\nranking metrics agree tightly ( ρ ≈ 0.8 \\rho\\approx 0.8 – 0.9 0.9 );  (c)  the 10 Jobs\nsplits, the only binary instances where the deployment objective is identified —\nevery ranking metric diverges from it ( ρ ≈ − 0.25 \\rho\\approx-0.25  with policy value\n − R policy -R_{\\mathrm{policy}} ; equivalently, positively correlated with policy  risk ). The\nreference objectives are oriented higher-is-better as  − PEHE -\\sqrt{\\mathrm{PEHE}}  and  − R policy -R_{\\mathrm{policy}} ,\nso a positive  ρ \\rho  means “tracks the objective.” Three heatmap panels of mean cross-metric rank agreement: on continuous outcomes Qini is isolated while AUUC and uplift-at-k track effect accuracy; on binary outcomes the ranking metrics agree with each other; and on Jobs alone every ranking metric diverges from the identified policy objective.",
+      "images": [
+        "2608.00915v1/figR1_metric_agreement.png"
+      ]
+    },
+    {
+      "id": "A1.F2",
+      "caption": "Figure 2 .  The findings are robust to the base learner. Switching LightGBM\n → \\rightarrow  XGBoost, Qini still diverges from effect accuracy ( − PEHE -\\sqrt{\\mathrm{PEHE}} ) on IHDP\n( ρ : − 0.15 → − 0.33 \\rho:-0.15\\rightarrow-0.33 ) while AUUC still tracks it ( + 0.68 → + 0.53 +0.68\\rightarrow+0.53 ) — F1\n— and ranking metrics still agree with each other on binary\n( + 0.90 → + 0.91 +0.90\\rightarrow+0.91 ), the mutual-agreement premise of F2. The deployment-objective\nhalf of F2 is retested under XGBoost in Section  5.2 : the policy-value correlations\nand the cross-repeat selection regret both replicate. Bar chart comparing metric-versus-reference-objective correlations under LightGBM and XGBoost base learners, showing both mechanisms persist.",
+      "images": []
+    },
+    {
+      "id": "A1.F3",
+      "caption": "Figure 3 .  Controlled probes of the F1 failure signature  (controlled DGP; 8 fixed models of graded\nquality, latent CATE fixed, only the outcome distribution varies; 30 seeds).\n (a)  Multiplying or shifting the outcome ( y ,  10 ​ y , y + 100 ,  3 ​ y + 50 y,\\,10y,\\,y{+}100,\\,3y{+}50 ) leaves\nevery metric’s agreement with the true quality order unchanged — the failure is not a\nscale artifact (Prop.  D.1 ).  (b)  As outcome excess kurtosis grows, all\ncumulative ranking metrics lose fidelity to true quality, and Qini and AUUC degrade\n together  — so the AUUC-over-Qini advantage on the  real  continuous data\n(Fig.  1 a) is a dataset-specific empirical observation, not a guarantee. Two panels: metric agreement with the true quality order is invariant to affine outcome transforms, and all cumulative ranking metrics degrade together as outcome kurtosis increases.",
+      "images": []
+    },
+    {
+      "id": "A1.T3",
+      "caption": "Table 3 .  Scope delta against the closest prior work,  Yang et al. (2026) . Both papers\nconclude that targeting quality and effect-estimation quality can come apart; the designs\nthat support the conclusion differ, and the binary-vs-continuous contrast is observable only\nin a multi-regime design.",
+      "images": []
+    },
+    {
+      "id": "A3.F4",
+      "caption": "Figure 4 .  Qini (z-scored within dataset) vs. calibration ECE, by regime, shown\n descriptively  (no pooled inferential fit; observations are clustered within\ninstances). Only the randomized regimes identify ECE (see text). Scatter of within-dataset Qini z-score against calibration ECE by regime, shown descriptively.",
+      "images": []
+    },
+    {
+      "id": "A3.F5",
+      "caption": "Figure 5 .  Policy value vs. targeting budget  k k  (marketing RCTs). The budget-optimal\nmodel changes with  k k  — e.g. on Hillstrom the best model shifts from ClassTrans at\n k = 0.1 k{=}0.1  to SoloModel at  k = 0.9 k{=}0.9  — so no single ranking fixes the deployment choice. Line chart of estimated policy value against targeting budget for the marketing datasets; the budget-optimal model changes with the budget.",
+      "images": []
+    },
+    {
+      "id": "A5.F6",
+      "caption": "Figure 6 .  Within IHDP, outcome kurtosis does not predict Qini’s misalignment \n(100 realizations). (a) Per-realization rank correlation of Qini and AUUC with\n − PEHE -\\sqrt{\\mathrm{PEHE}}  vs. outcome excess kurtosis; (b) the paired AUUC − - Qini gap vs. kurtosis.\nSpearman(kurtosis, Qini alignment)  = + 0.14 =+0.14  [ − 0.07 , + 0.35 -0.07,+0.35 ];\nSpearman(kurtosis, gap)  = − 0.07 =-0.07  [ − 0.29 , + 0.15 -0.29,+0.15 ] — weakly\npositive and weakly negative respectively, neither useful as a separating diagnostic, so\nthe F1 signature is not a within-family tail effect and no scalar kurtosis threshold\nseparates failing from non-failing realizations. Figure; see the caption for details.",
+      "images": []
+    },
+    {
+      "id": "A5.T4",
+      "caption": "Table 4 .  Searching for a realization-level covariate that separates the IHDP realizations where Qini’s ranking tracks effect accuracy from those where it does not. Spearman correlation across the  100 100  realizations between each ex-ante covariate (computable from observed data alone) and two alignment outcomes plus AUUC’s alignment, with 95% paired bootstrap CIs. Only a covariate predicting the  gap  would be a candidate mechanism for F1; covariates predicting both alignments merely mark harder realizations. By Prop.  D.1  an affine transform of the outcome leaves every ranking unchanged, so outcome level or scale cannot itself drive F1; these covariates vary because the response surfaces differ, and the arm ratio is the one candidate that is not affine-invariant.",
+      "images": []
+    },
+    {
+      "id": "A5.T5",
+      "caption": "Table 5 .  F1 under three inner-loop selection criteria, on the same 10 IHDP splits, the same\nsix estimators, and the same  3 × 3 3\\times 3  fold protocol. Rank correlations are with  − PEHE -\\sqrt{\\mathrm{PEHE}} \nacross models, averaged over splits with a dataset-level bootstrap CI;  Δ \\Delta  is the paired\nAUUC-over-Qini gap. The released panel is Qini-tuned; the second arm removes tuning; the third\nselects candidates by AUUC at the released budget. Qini shows no detectable alignment in every\narm and  Δ \\Delta  stays positive with its CI excluding zero, so F1 does not depend on which\nmetric selects the candidates.",
+      "images": []
+    },
+    {
+      "id": "A7.F7",
+      "caption": "Figure 7 .  Per-regime leaderboard, each panel scored by its appropriate metric (color =\nwithin-dataset rank, green best); “—” marks binary-only models on continuous IHDP.\nIHDP cells are the arithmetic mean of fold-level  PEHE \\sqrt{\\mathrm{PEHE}}  (not  mean PEHE \\sqrt{\\text{mean PEHE}} ),\nso single divergent folds inflate the affected DR-Learner cells; rankings are unaffected. Per-regime leaderboard heatmap; cell color encodes within-dataset model rank by the regime's appropriate metric.",
+      "images": [
+        "2608.00915v1/fig1_leaderboard_by_regime.png"
+      ]
+    },
+    {
+      "id": "A7.F8",
+      "caption": "(a)   Within-regime rank stability by metric. Bar chart of mean within-dataset rank stability by metric. (b)   Complete-case critical-difference diagrams. Nemenyi critical-difference diagrams over the estimators. Figure 8 .  Supporting analyses for Section  5.3 – 5.2 .",
+      "images": []
+    },
+    {
+      "id": "A7.F8.sf1",
+      "caption": "(a)   Within-regime rank stability by metric. Bar chart of mean within-dataset rank stability by metric.",
+      "images": []
+    },
+    {
+      "id": "A7.F8.sf2",
+      "caption": "(b)   Complete-case critical-difference diagrams. Nemenyi critical-difference diagrams over the estimators.",
+      "images": []
+    },
+    {
+      "id": "A7.T6",
+      "caption": "Table 6 .  F1 estimator-exclusion sensitivity on the continuous-outcome datasets (IHDP  × \\times 10).  ρ \\rho : mean within-dataset Spearman correlation with  − PEHE -\\sqrt{\\mathrm{PEHE}} .  Δ \\Delta : paired per-dataset difference  ρ ⁡ ( AUUC ) − ρ ⁡ ( Qini ) \\rho(\\mathrm{AUUC})-\\rho(\\mathrm{Qini})  with 95% bootstrap CI. The AUUC advantage is positive in all six configurations; its CI excludes zero in five of six (the exception is XGBoost with DR- and R-Learner excluded).",
+      "images": []
+    },
+    {
+      "id": "A7.T7",
+      "caption": "Table 7 .  Affine invariance. Multiplying or shifting a Gaussian outcome leaves every metric’s within-split model ranking (and thus its  ρ \\rho  with truth) unchanged: the count/mean corrections cancel affine transforms. The F1 failure is therefore not driven by outcome scale or location; distributional shape remains relevant but does not by itself explain the observed Qini/AUUC separation.",
+      "images": []
+    },
+    {
+      "id": "A7.T8",
+      "caption": "Table 8 .  Controlled outcome-distribution experiment. Spearman  ρ \\rho  (mean over 30 seeds,  ± \\pm  s.e.) between each metric’s ranking of a fixed 8-model panel and the  known  quality order ( − PEHE -\\sqrt{\\mathrm{PEHE}}  against the latent CATE), with the models and latent CATE held fixed as only the outcome distribution’s tail varies. All cumulative ranking metrics lose fidelity as the tail thickens, and Qini and AUUC degrade  together : the AUUC-over-Qini advantage seen on IHDP (Sec.  5.3 ) is thus an empirical property of that dataset, not a property guaranteed by construction — and on  Revenue-Synthetic , whose outcome is far heavier-tailed, the advantage reverses.",
+      "images": []
+    },
+    {
+      "id": "A7.T9",
+      "caption": "Table 9 .  Full data for the F1 existence counterexample (Section  5.1 ). Twelve units;  t t  treatment,  y y  observed outcome (one large control outcome at unit 3),  τ \\tau  true CATE; models A and B are the scored uplift predictions, with their induced descending-sort ranks. Metrics computed by the shipped functions give  Q A = − 1.18 > Q B = − 1.63 Q_{A}{=}-1.18{>}Q_{B}{=}-1.63  (Qini prefers the worse A) but  AUUC A = − 3.18 < AUUC B = − 1.71 \\mathrm{AUUC}_{A}{=}-3.18{<}\\mathrm{AUUC}_{B}{=}-1.71  and  PEHE A = 1.24 > PEHE B = 0.06 \\sqrt{\\mathrm{PEHE}}_{A}{=}1.24{>}\\sqrt{\\mathrm{PEHE}}_{B}{=}0.06  (both prefer B). Setting  y y  at unit 3 to  0 0  yields  Q A = − 1.54 < Q B = + 1.13 Q_{A}{=}-1.54{<}Q_{B}{=}+1.13 .",
+      "images": []
+    },
+    {
+      "id": "A7.T10",
+      "caption": "Table 10 .  Documentation of the all-100 IHDP validation (Section  5.3 ). Splits 0–9 come from the main benchmark, 10–29 from the F1-extension run, and 30–99 from a dedicated validation run; all use the same loaders, LightGBM base learner, outer-test-isolated protocol and  3 × 3 3\\times 3  outer CV. The validation run uses a smaller tuning budget ( B = 6 B{=}6  rather than  B = 10 B{=}10 ) and restricts to the six meta/forest learners common to every run. Correlations are complete-case per split (a split enters if  ≥ 4 \\geq 4  models have a defined score).",
+      "images": []
+    },
+    {
+      "id": "A7.T11",
+      "caption": "Table 11 .  Audit of the F2 Jobs policy-regret experiment under both base learners (Section  5.2 ). Regret is the cross-repeat selection/evaluation rotation regret (mean over the ten Jobs splits, 95% cluster bootstrap);  ρ ⁡ ( Qini , − R policy ) \\rho(\\text{Qini},-R_{\\mathrm{policy}})  is the mean per-split Spearman correlation with policy value. Both halves of F2 — the ranking metrics’ negative association with policy value and the positive selection regret — replicate under XGBoost (indeed Qini’s correlation is no longer borderline there).",
+      "images": []
+    },
+    {
+      "id": "A7.T12",
+      "caption": "Table 12.  Best model by reference objective vs by Qini, and their rank correlation. The reference objective is ground-truth  PEHE \\sqrt{\\mathrm{PEHE}}  on IHDP and  RCT-estimated  policy risk on Jobs (no per-unit ground truth exists on Jobs).",
+      "images": []
+    },
+    {
+      "id": "A7.T13",
+      "caption": "Table 13.  Calibration ECE, continuous-outcome datasets (IHDP s0–s9); mean across folds, lower=better. Uplift ECE is  ∑ b w b ​ | s ¯ b − τ ^ b | \\sum_{b}w_{b}\\lvert\\bar{s}_{b}-\\widehat{\\tau}_{b}\\rvert  on the  score  scale, so it is unbounded above: the large DR-Learner entries inherit the same AIPW pseudo-outcome divergence documented for  PEHE \\sqrt{\\mathrm{PEHE}}  (Appendix  D ), not a separate defect.",
+      "images": []
+    },
+    {
+      "id": "A7.T14",
+      "caption": "Table 14.  Calibration ECE, binary-outcome datasets (Jobs s0–s9, Synthetic, marketing RCTs); mean across folds, lower=better. Values are not bounded by 1 even for binary outcomes, because the predicted uplift entering the score-scale ECE is unbounded; the two DR-Learner outliers (Jobs s7, s9) are that divergence. Every ECE statistic quoted in the text is a  median  paired cost, so these cells do not drive any reported number.",
+      "images": []
+    },
+    {
+      "id": "A8.T15",
+      "caption": "Table 15 .  Benchmark run statistics (current data).",
+      "images": []
+    },
+    {
+      "id": "A9.T16",
+      "caption": "Table 16 .  Criteo supplement: per-model Qini  ± \\pm  fold-level, descriptive SE at the 10K\ncap (12 estimators) and the 100K probe (nine; uplift forests omitted for compute).\nUnnormalized Qini scales with  n n : compare orderings within a tier only. Paired per-fold\ndifferences are in the text.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/binshuangli/uplift-bench",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML",
+    "https://github.com/maks-sh/scikit-uplift",
+    "https://github.com/py-why/EconML"
+  ]
+}

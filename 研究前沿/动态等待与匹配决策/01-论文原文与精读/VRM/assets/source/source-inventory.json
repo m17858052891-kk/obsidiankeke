@@ -1,0 +1,883 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "A Deterministic  O ⁡ ( log ⁡ m ) O(\\log m) -Competitive Algorithm for\n Online Minimum Cost Bipartite Matching with Delays",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "1.1  Our Contribution and Techniques",
+      "id": "S1.SS1"
+    },
+    {
+      "title": "The RM algorithm.",
+      "id": "S1.SS1.SSS0.Px1"
+    },
+    {
+      "title": "The VRM algorithm.",
+      "id": "S1.SS1.SSS0.Px2"
+    },
+    {
+      "title": "The analysis.",
+      "id": "S1.SS1.SSS0.Px3"
+    },
+    {
+      "title": "Extension to the MPMD problem.",
+      "id": "S1.SS1.SSS0.Px4"
+    },
+    {
+      "title": "1.2  Other Related Work",
+      "id": "S1.SS2"
+    },
+    {
+      "title": "Special metric spaces.",
+      "id": "S1.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Online metric matching without delays.",
+      "id": "S1.SS2.SSS0.Px2"
+    },
+    {
+      "title": "Variants of matching with delays.",
+      "id": "S1.SS2.SSS0.Px3"
+    },
+    {
+      "title": "Other online problems with delays.",
+      "id": "S1.SS2.SSS0.Px4"
+    },
+    {
+      "title": "2  Preliminaries",
+      "id": "S2"
+    },
+    {
+      "title": "2.1  Problem Definition",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.2  Matchings and Augmenting Paths",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "2.3  The Time-Augmented Distance",
+      "id": "S2.SS3"
+    },
+    {
+      "title": "3  The VRM Algorithm",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Minimum Net-Cost Augmenting Paths",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  The Readiness Rule",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  Algorithm Description",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "3.4  Basic Properties",
+      "id": "S3.SS4"
+    },
+    {
+      "title": "4  Analysis",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Bounding the Total Cost by the Total Waiting Time of Requests",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Optimal Paths and the Charging Scheme",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "The charging scheme.",
+      "id": "S4.SS2.SSS0.Px1"
+    },
+    {
+      "title": "4.3  Case 1: The Terminal Server Has Not Arrived",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.4  Case 2: The Terminal Server Has Arrived",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "4.5  Proof of Theorem  1.1",
+      "id": "S4.SS5"
+    },
+    {
+      "title": "5  Extension to Non-Bipartite Matching with Delays",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  The Algorithm",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Computing Minimum Augmenting Paths",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  Bounding the Total Cost by the Total Waiting Time",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "5.4  Charging the Waiting Time to the Optimal Matching",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "Case 1: the terminal request of  P u ∗ ​ ( t ) P^{*}_{u}(t)  has not arrived.",
+      "id": "S5.SS4.SSS0.Px1"
+    },
+    {
+      "title": "Case 2: the terminal request of  P u ∗ ​ ( t ) P^{*}_{u}(t)  has arrived.",
+      "id": "S5.SS4.SSS0.Px2"
+    },
+    {
+      "title": "5.5  Proof of Theorem  5.1",
+      "id": "S5.SS5"
+    },
+    {
+      "title": "6  Concluding Remarks",
+      "id": "S6"
+    },
+    {
+      "title": "AI Usage and Methodology",
+      "id": "Sx1"
+    },
+    {
+      "title": "Background.",
+      "id": "Sx1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "How the result was found.",
+      "id": "Sx1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "What GPT-6 Astra contributed.",
+      "id": "Sx1.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Verification and presentation.",
+      "id": "Sx1.SS0.SSS0.Px4"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Validity of the Algorithm",
+      "id": "A1"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S1.Ex1",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)\\bigl[1+(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)\\bigl[1+(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": "S2.E1",
+      "tex": [
+        "\\min_{M,\\,\\{t_{rs}\\}_{rs\\in M}}\\ \\sum_{rs\\in M}\\bigl(d(x_{r},x_{s})+(t_{rs}-a_{r})+(t_{rs}-a_{s})\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\min_{M,\\,\\{t_{rs}\\}_{rs\\in M}}\\ \\sum_{rs\\in M}\\bigl(d(x_{r},x_{s})+(t_{rs}-a_{r})+(t_{rs}-a_{s})\\bigr)."
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "D(u,v)=d(x_{u},x_{v})+|a_{u}-a_{v}|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D(u,v)=d(x_{u},x_{v})+|a_{u}-a_{v}|."
+      ]
+    },
+    {
+      "id": "S3.Ex1",
+      "tex": [
+        "\\begin{cases}r\\longrightarrow s,\\quad\\text{weight }\\gamma D(r,s),&rs\\notin M^{\\mathrm{OFF}},\\\\\ns\\longrightarrow r,\\quad\\text{weight }{-D(r,s)},&rs\\in M^{\\mathrm{OFF}}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{cases}r\\longrightarrow s,\\quad\\text{weight }\\gamma D(r,s),&rs\\notin M^{\\mathrm{OFF}},\\\\\ns\\longrightarrow r,\\quad\\text{weight }{-D(r,s)},&rs\\in M^{\\mathrm{OFF}}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\begin{split}D^{+}_{M}(P)&=D(P\\setminus M),\\qquad D^{-}_{M}(P)=D(P\\cap M),\\\\\n\\varphi_{M}(P)&=\\gamma D^{+}_{M}(P)-D^{-}_{M}(P).\\end{split}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{split}D^{+}_{M}(P)&=D(P\\setminus M),\\qquad D^{-}_{M}(P)=D(P\\cap M),\\\\\n\\varphi_{M}(P)&=\\gamma D^{+}_{M}(P)-D^{-}_{M}(P).\\end{split}"
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "\\gamma(t-a_{r})\\geq\\varphi_{r},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma(t-a_{r})\\geq\\varphi_{r},"
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "t_{r}^{\\mathrm{rdy}}=t+\\frac{\\varphi_{r}-\\gamma(t-a_{r})}{\\gamma}=a_{r}+\\frac{\\varphi_{r}}{\\gamma},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "t_{r}^{\\mathrm{rdy}}=t+\\frac{\\varphi_{r}-\\gamma(t-a_{r})}{\\gamma}=a_{r}+\\frac{\\varphi_{r}}{\\gamma},"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\varphi_{r}\\leq\\gamma(t_{r}-a_{r})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varphi_{r}\\leq\\gamma(t_{r}-a_{r})."
+      ]
+    },
+    {
+      "id": "S3.Ex2",
+      "tex": [
+        "\\varphi_{M^{\\mathrm{OFF}}}(P)\\geq\\varphi_{r}>\\gamma(t-a_{r})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varphi_{M^{\\mathrm{OFF}}}(P)\\geq\\varphi_{r}>\\gamma(t-a_{r})."
+      ]
+    },
+    {
+      "id": "S4.E1",
+      "tex": [
+        "W_{R}=\\sum_{r\\in R}(t_{r}-a_{r})=\\int_{0}^{\\infty}|R_{\\mathrm{free}}(t)|\\,dt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{R}=\\sum_{r\\in R}(t_{r}-a_{r})=\\int_{0}^{\\infty}|R_{\\mathrm{free}}(t)|\\,dt"
+      ]
+    },
+    {
+      "id": "S4.Ex1",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)W_{R}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)W_{R}."
+      ]
+    },
+    {
+      "id": "S4.E2",
+      "tex": [
+        "\\begin{split}\\sum_{i=1}^{m}(D^{+}_{i}+D^{-}_{i})&=\\frac{2}{\\gamma-1}\\sum_{i=1}^{m}\\varphi_{i}-\\frac{\\gamma+1}{\\gamma-1}\\sum_{i=1}^{m}(D^{+}_{i}-D^{-}_{i})\\\\\n&\\leq\\frac{2}{\\gamma-1}\\sum_{i=1}^{m}\\varphi_{i}\\leq\\frac{2\\gamma}{\\gamma-1}\\,W_{R}.\\end{split}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{split}\\sum_{i=1}^{m}(D^{+}_{i}+D^{-}_{i})&=\\frac{2}{\\gamma-1}\\sum_{i=1}^{m}\\varphi_{i}-\\frac{\\gamma+1}{\\gamma-1}\\sum_{i=1}^{m}(D^{+}_{i}-D^{-}_{i})\\\\\n&\\leq\\frac{2}{\\gamma-1}\\sum_{i=1}^{m}\\varphi_{i}\\leq\\frac{2\\gamma}{\\gamma-1}\\,W_{R}.\\end{split}"
+      ]
+    },
+    {
+      "id": "S4.EGx1",
+      "tex": [
+        "\\displaystyle d(x_{r},x_{s})",
+        "\\displaystyle+(t_{r}-a_{r})+(t_{r}-a_{s})",
+        "\\displaystyle=D(r,s)+2\\bigl(t_{r}-\\max\\{a_{r},a_{s}\\}\\bigr)",
+        "\\displaystyle\\leq D(r,s)+2(t_{r}-a_{r})\\leq D^{+}_{i}+D^{-}_{i}+2(t_{r}-a_{r})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle d(x_{r},x_{s})",
+        "\\displaystyle+(t_{r}-a_{r})+(t_{r}-a_{s})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=D(r,s)+2\\bigl(t_{r}-\\max\\{a_{r},a_{s}\\}\\bigr)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq D(r,s)+2(t_{r}-a_{r})\\leq D^{+}_{i}+D^{-}_{i}+2(t_{r}-a_{r})."
+      ]
+    },
+    {
+      "id": "S4.Ex5",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}W_{R}+2W_{R}=\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)W_{R},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}W_{R}+2W_{R}=\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)W_{R},"
+      ]
+    },
+    {
+      "id": "S4.E3",
+      "tex": [
+        "\\frac{D(e)}{D^{*}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{D(e)}{D^{*}}."
+      ]
+    },
+    {
+      "id": "S4.E4",
+      "tex": [
+        "W_{R}=W_{1}+\\sum_{e\\in M^{*}}\\int_{0}^{\\infty}q_{e}(t)\\,dt."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{R}=W_{1}+\\sum_{e\\in M^{*}}\\int_{0}^{\\infty}q_{e}(t)\\,dt."
+      ]
+    },
+    {
+      "id": "S4.Ex6",
+      "tex": [
+        "D^{*}\\geq\\operatorname{age}(r,t)\\qquad\\text{and}\\qquad D^{*}\\geq\\frac{\\operatorname{age}(v,t)}{\\gamma+1}\\ \\text{ for every vertex $v$ of $P^{*}$.}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D^{*}\\geq\\operatorname{age}(r,t)\\qquad\\text{and}\\qquad D^{*}\\geq\\frac{\\operatorname{age}(v,t)}{\\gamma+1}\\ \\text{ for every vertex $v$ of $P^{*}$.}"
+      ]
+    },
+    {
+      "id": "S4.Ex7",
+      "tex": [
+        "\\operatorname{age}(v,t)=\\operatorname{age}(r,t)+(a_{r}-a_{v})\\leq\\operatorname{age}(r,t)+D(P^{*})<(\\gamma+1)D^{*}-(\\gamma-1)\\operatorname{age}(r,t)\\leq(\\gamma+1)D^{*},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{age}(v,t)=\\operatorname{age}(r,t)+(a_{r}-a_{v})\\leq\\operatorname{age}(r,t)+D(P^{*})<(\\gamma+1)D^{*}-(\\gamma-1)\\operatorname{age}(r,t)\\leq(\\gamma+1)D^{*},"
+      ]
+    },
+    {
+      "id": "S4.Ex8",
+      "tex": [
+        "\\int_{0}^{\\infty}q_{e}(t)\\,dt\\leq(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\int_{0}^{\\infty}q_{e}(t)\\,dt\\leq(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)."
+      ]
+    },
+    {
+      "id": "S4.E5",
+      "tex": [
+        "D^{*}_{e}(t)\\geq(t-b_{e})/(\\gamma+1)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D^{*}_{e}(t)\\geq(t-b_{e})/(\\gamma+1)."
+      ]
+    },
+    {
+      "id": "S4.E6",
+      "tex": [
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle\\leq\\min\\Bigl\\{1,\\,\\frac{(\\gamma+1)D(e)}{t-b_{e}}\\Bigr\\}",
+        "\\displaystyle\\text{if }t\\in(b_{e},\\,b_{e}+(\\gamma+1)\\operatorname{OPT}],",
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle=0",
+        "\\displaystyle\\text{otherwise}."
+      ]
+    },
+    {
+      "id": "S4.E6X",
+      "tex": [
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle\\leq\\min\\Bigl\\{1,\\,\\frac{(\\gamma+1)D(e)}{t-b_{e}}\\Bigr\\}",
+        "\\displaystyle\\text{if }t\\in(b_{e},\\,b_{e}+(\\gamma+1)\\operatorname{OPT}],"
+      ]
+    },
+    {
+      "id": "S4.E6Xa",
+      "tex": [
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle=0",
+        "\\displaystyle\\text{otherwise}."
+      ]
+    },
+    {
+      "id": "S4.EGx2",
+      "tex": [
+        "\\displaystyle\\int_{0}^{\\infty}q_{e}(t)\\,dt",
+        "\\displaystyle\\leq\\int_{b_{e}}^{b_{e}+(\\gamma+1)\\,{\\operatorname{OPT}}/m}1\\,dt+\\int_{b_{e}+(\\gamma+1)\\,{\\operatorname{OPT}}/m}^{b_{e}+(\\gamma+1)\\operatorname{OPT}}\\frac{(\\gamma+1)D(e)}{t-b_{e}}\\,dt",
+        "\\displaystyle=(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\int_{0}^{\\infty}q_{e}(t)\\,dt",
+        "\\displaystyle\\leq\\int_{b_{e}}^{b_{e}+(\\gamma+1)\\,{\\operatorname{OPT}}/m}1\\,dt+\\int_{b_{e}+(\\gamma+1)\\,{\\operatorname{OPT}}/m}^{b_{e}+(\\gamma+1)\\operatorname{OPT}}\\frac{(\\gamma+1)D(e)}{t-b_{e}}\\,dt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)."
+      ]
+    },
+    {
+      "id": "S4.Ex10",
+      "tex": [
+        "W_{R}\\leq\\operatorname{OPT}+\\sum_{e\\in M^{*}}(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)=\\bigl[1+(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{R}\\leq\\operatorname{OPT}+\\sum_{e\\in M^{*}}(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)=\\bigl[1+(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": "S4.Ex11",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)W_{R}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)\\bigl[1+(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)W_{R}\\leq\\left(2+\\frac{2\\gamma}{\\gamma-1}\\right)\\bigl[1+(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": "S5.Ex1",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}\\bigl[1+2(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}\\bigl[1+2(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": "S5.Ex2",
+      "tex": [
+        "\\varphi_{M}(F)=\\gamma D(F\\setminus M)-D(F\\cap M)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varphi_{M}(F)=\\gamma D(F\\setminus M)-D(F\\cap M)."
+      ]
+    },
+    {
+      "id": "S5.E1",
+      "tex": [
+        "\\gamma(t-a_{u})\\geq\\varphi_{u}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma(t-a_{u})\\geq\\varphi_{u}."
+      ]
+    },
+    {
+      "id": "S5.E2",
+      "tex": [
+        "\\varphi_{M^{\\mathrm{OFF}}}(P)\\geq\\varphi_{u}>\\gamma\\operatorname{age}(u,t),\\qquad\\varphi_{M^{\\mathrm{OFF}}}(P)\\geq\\varphi_{v}>\\gamma\\operatorname{age}(v,t)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varphi_{M^{\\mathrm{OFF}}}(P)\\geq\\varphi_{u}>\\gamma\\operatorname{age}(u,t),\\qquad\\varphi_{M^{\\mathrm{OFF}}}(P)\\geq\\varphi_{v}>\\gamma\\operatorname{age}(v,t)."
+      ]
+    },
+    {
+      "id": "S5.Ex3",
+      "tex": [
+        "w_{M}(e)=\\begin{cases}D(e),&e\\in M,\\\\\n\\gamma D(e),&e\\notin M.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "w_{M}(e)=\\begin{cases}D(e),&e\\in M,\\\\\n\\gamma D(e),&e\\notin M.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S5.Ex4",
+      "tex": [
+        "w_{M}(N)-w_{M}(M)=\\gamma D(N\\setminus M)+D(N\\cap M)-D(M)=\\gamma D(N\\setminus M)-D(M\\setminus N)=\\varphi_{M}(N\\mathbin{\\triangle}M)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "w_{M}(N)-w_{M}(M)=\\gamma D(N\\setminus M)+D(N\\cap M)-D(M)=\\gamma D(N\\setminus M)-D(M\\setminus N)=\\varphi_{M}(N\\mathbin{\\triangle}M)."
+      ]
+    },
+    {
+      "id": "S5.Ex5",
+      "tex": [
+        "w_{M}(M\\mathbin{\\triangle}Q_{uv})-w_{M}(M)=\\varphi_{M}(Q_{uv})\\leq\\varphi_{M}(N_{uv}\\mathbin{\\triangle}M)=w_{M}(N_{uv})-w_{M}(M)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "w_{M}(M\\mathbin{\\triangle}Q_{uv})-w_{M}(M)=\\varphi_{M}(Q_{uv})\\leq\\varphi_{M}(N_{uv}\\mathbin{\\triangle}M)=w_{M}(N_{uv})-w_{M}(M)."
+      ]
+    },
+    {
+      "id": "S5.EGx3",
+      "tex": [
+        "\\displaystyle w_{M}(N)-w_{M}(M^{\\prime})",
+        "\\displaystyle=\\bigl(w_{M}(N)-w_{M}(M)\\bigr)-\\bigl(w_{M}(M^{\\prime})-w_{M}(M)\\bigr)",
+        "\\displaystyle=\\varphi_{M}(Q_{uv}\\mathbin{\\triangle}C)-\\varphi_{M}(Q_{uv})",
+        "\\displaystyle=\\sum_{e\\in C\\setminus Q_{uv}}c_{M}(e)-\\sum_{e\\in Q_{uv}\\cap C}c_{M}(e)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle w_{M}(N)-w_{M}(M^{\\prime})",
+        "\\displaystyle=\\bigl(w_{M}(N)-w_{M}(M)\\bigr)-\\bigl(w_{M}(M^{\\prime})-w_{M}(M)\\bigr)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\varphi_{M}(Q_{uv}\\mathbin{\\triangle}C)-\\varphi_{M}(Q_{uv})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{e\\in C\\setminus Q_{uv}}c_{M}(e)-\\sum_{e\\in Q_{uv}\\cap C}c_{M}(e)."
+      ]
+    },
+    {
+      "id": "S5.EGx4",
+      "tex": [
+        "\\displaystyle w_{M}(N)-w_{M}(M^{\\prime})",
+        "\\displaystyle=\\sum_{e\\in C\\setminus Q_{uv}}c_{M^{\\prime}}(e)+\\sum_{e\\in Q_{uv}\\cap C}\\bigl(c_{M^{\\prime}}(e)-(\\gamma-1)D(e)\\bigr)",
+        "\\displaystyle=\\varphi_{M^{\\prime}}(C)-(\\gamma-1)D(Q_{uv}\\cap C)<0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle w_{M}(N)-w_{M}(M^{\\prime})",
+        "\\displaystyle=\\sum_{e\\in C\\setminus Q_{uv}}c_{M^{\\prime}}(e)+\\sum_{e\\in Q_{uv}\\cap C}\\bigl(c_{M^{\\prime}}(e)-(\\gamma-1)D(e)\\bigr)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\varphi_{M^{\\prime}}(C)-(\\gamma-1)D(Q_{uv}\\cap C)<0,"
+      ]
+    },
+    {
+      "id": "S5.Ex11",
+      "tex": [
+        "W_{R}=\\sum_{r\\in R}(t_{r}-a_{r})=\\int_{0}^{\\infty}|R_{\\mathrm{free}}(t)|\\,dt,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{R}=\\sum_{r\\in R}(t_{r}-a_{r})=\\int_{0}^{\\infty}|R_{\\mathrm{free}}(t)|\\,dt,"
+      ]
+    },
+    {
+      "id": "S5.Ex12",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}W_{R}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}W_{R}."
+      ]
+    },
+    {
+      "id": "S5.Ex13",
+      "tex": [
+        "S=\\sum_{i=1}^{m}(t_{i}-a_{u_{i}}),\\qquad T=\\sum_{i=1}^{m}(t_{i}-a_{v_{i}})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "S=\\sum_{i=1}^{m}(t_{i}-a_{u_{i}}),\\qquad T=\\sum_{i=1}^{m}(t_{i}-a_{v_{i}})."
+      ]
+    },
+    {
+      "id": "S5.Ex14",
+      "tex": [
+        "\\sum_{i=1}^{m}(D_{i}^{+}+D_{i}^{-})=\\frac{2}{\\gamma-1}\\sum_{i=1}^{m}\\varphi_{i}-\\frac{\\gamma+1}{\\gamma-1}\\sum_{i=1}^{m}(D_{i}^{+}-D_{i}^{-})\\leq\\frac{2\\gamma}{\\gamma-1}S."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{i=1}^{m}(D_{i}^{+}+D_{i}^{-})=\\frac{2}{\\gamma-1}\\sum_{i=1}^{m}\\varphi_{i}-\\frac{\\gamma+1}{\\gamma-1}\\sum_{i=1}^{m}(D_{i}^{+}-D_{i}^{-})\\leq\\frac{2\\gamma}{\\gamma-1}S."
+      ]
+    },
+    {
+      "id": "S5.EGx5",
+      "tex": [
+        "\\displaystyle d(x_{u_{i}},x_{v_{i}})+(t_{i}-a_{u_{i}})+(t_{i}-a_{v_{i}})",
+        "\\displaystyle=D(u_{i},v_{i})+2\\bigl(t_{i}-\\max\\{a_{u_{i}},a_{v_{i}}\\}\\bigr)",
+        "\\displaystyle\\leq D_{i}^{+}+D_{i}^{-}+2(t_{i}-a_{v_{i}})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle d(x_{u_{i}},x_{v_{i}})+(t_{i}-a_{u_{i}})+(t_{i}-a_{v_{i}})",
+        "\\displaystyle=D(u_{i},v_{i})+2\\bigl(t_{i}-\\max\\{a_{u_{i}},a_{v_{i}}\\}\\bigr)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq D_{i}^{+}+D_{i}^{-}+2(t_{i}-a_{v_{i}})."
+      ]
+    },
+    {
+      "id": "S5.Ex17",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}S+2T\\leq\\frac{2\\gamma}{\\gamma-1}(S+T)=\\frac{2\\gamma}{\\gamma-1}W_{R},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}S+2T\\leq\\frac{2\\gamma}{\\gamma-1}(S+T)=\\frac{2\\gamma}{\\gamma-1}W_{R},"
+      ]
+    },
+    {
+      "id": "S5.Ex18",
+      "tex": [
+        "D^{*}\\geq\\operatorname{age}(u,t)\\qquad\\text{and}\\qquad D^{*}\\geq\\frac{\\operatorname{age}(z,t)}{\\gamma+1}\\ \\text{ for every vertex $z$ of $P^{*}$.}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D^{*}\\geq\\operatorname{age}(u,t)\\qquad\\text{and}\\qquad D^{*}\\geq\\frac{\\operatorname{age}(z,t)}{\\gamma+1}\\ \\text{ for every vertex $z$ of $P^{*}$.}"
+      ]
+    },
+    {
+      "id": "S5.E3",
+      "tex": [
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle\\leq\\min\\Bigl\\{2,\\,\\frac{2(\\gamma+1)D(e)}{t-b_{e}}\\Bigr\\}",
+        "\\displaystyle\\text{if }t\\in(b_{e},\\,b_{e}+(\\gamma+1)\\operatorname{OPT}],",
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle=0",
+        "\\displaystyle\\text{otherwise}."
+      ]
+    },
+    {
+      "id": "S5.E3X",
+      "tex": [
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle\\leq\\min\\Bigl\\{2,\\,\\frac{2(\\gamma+1)D(e)}{t-b_{e}}\\Bigr\\}",
+        "\\displaystyle\\text{if }t\\in(b_{e},\\,b_{e}+(\\gamma+1)\\operatorname{OPT}],"
+      ]
+    },
+    {
+      "id": "S5.E3Xa",
+      "tex": [
+        "\\displaystyle q_{e}(t)",
+        "\\displaystyle=0",
+        "\\displaystyle\\text{otherwise}."
+      ]
+    },
+    {
+      "id": "S5.Ex19",
+      "tex": [
+        "\\int_{0}^{\\infty}q_{e}(t)\\,dt\\leq 2(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\int_{0}^{\\infty}q_{e}(t)\\,dt\\leq 2(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)."
+      ]
+    },
+    {
+      "id": "S5.EGx6",
+      "tex": [
+        "\\displaystyle W_{R}",
+        "\\displaystyle=W_{1}+\\sum_{e\\in M^{*}}\\int_{0}^{\\infty}q_{e}(t)\\,dt",
+        "\\displaystyle\\leq\\operatorname{OPT}+\\sum_{e\\in M^{*}}2(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)",
+        "\\displaystyle=\\bigl[1+2(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle W_{R}",
+        "\\displaystyle=W_{1}+\\sum_{e\\in M^{*}}\\int_{0}^{\\infty}q_{e}(t)\\,dt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\operatorname{OPT}+\\sum_{e\\in M^{*}}2(\\gamma+1)\\Bigl(\\frac{\\operatorname{OPT}}{m}+D(e)\\ln m\\Bigr)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\bigl[1+2(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": "S5.Ex23",
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}\\bigl[1+2(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{ALG}\\leq\\frac{2\\gamma}{\\gamma-1}\\bigl[1+2(\\gamma+1)(1+\\ln m)\\bigr]\\operatorname{OPT}."
+      ]
+    },
+    {
+      "id": "A1.Ex1",
+      "tex": [
+        "z_{r}=\\ell(r)\\quad(r\\in R),\\qquad z_{s}=-\\ell(s)\\quad(s\\in S)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{r}=\\ell(r)\\quad(r\\in R),\\qquad z_{s}=-\\ell(s)\\quad(s\\in S)."
+      ]
+    },
+    {
+      "id": "A1.E1",
+      "tex": [
+        "z_{r}+z_{s}\\leq\\gamma D(r,s)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{r}+z_{s}\\leq\\gamma D(r,s)."
+      ]
+    },
+    {
+      "id": "A1.E2",
+      "tex": [
+        "z_{r}+z_{s}=D(r,s)\\leq\\gamma D(r,s)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{r}+z_{s}=D(r,s)\\leq\\gamma D(r,s)."
+      ]
+    },
+    {
+      "id": "A1.Ex2",
+      "tex": [
+        "\\gamma D(C^{+})-D(C^{-})\\geq\\sum_{rs\\in C^{+}}(z_{r}+z_{s})-\\sum_{rs\\in C^{-}}(z_{r}+z_{s})=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma D(C^{+})-D(C^{-})\\geq\\sum_{rs\\in C^{+}}(z_{r}+z_{s})-\\sum_{rs\\in C^{-}}(z_{r}+z_{s})=0."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S4.F1",
+      "caption": "Figure 1:  Charges received by a fixed edge  e ∈ M ∗ e\\in M^{*}  in Case 2. In (a),\nsolid edges belong to  M ∗ M^{*} , and dashed edges belong to  M t M_{t} . In (b),\nthe charge rate of each request changes when an augmentation changes its\noptimal path, and  b e + ( γ + 1 ) ​ OPT / m b_{e}+(\\gamma+1)\\,{\\operatorname{OPT}}/m  is the time where the proof of\nLemma  4.5  splits the integral.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

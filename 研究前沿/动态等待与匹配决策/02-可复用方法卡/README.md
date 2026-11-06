@@ -23,6 +23,14 @@ created: "2026-11-04"
 - [[研究前沿/动态等待与匹配决策/02-可复用方法卡/GenMatch-state-pointer|集合状态与硬mask的可行匹配指针]]
 - [[研究前沿/动态等待与匹配决策/02-可复用方法卡/TopKQueue-persistent-saa|持续运行队列的总成本率与分块采样]]
 - [[研究前沿/动态等待与匹配决策/02-可复用方法卡/TopKQueue-guardian-search|保留多条最优后代路径的Top-K细化]]
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/DisclosureAgents-disclosure-stress-test|规则披露 × 自利参与者的调度策略压力测试]] — DisclosureAgents
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/DecentralizedMatching-self-calibration|本地输出间隔驱动的异步匹配复核]] — DecentralizedMatching
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/DoseAllocation-variable-action-query|状态 query 汇聚变长有序动作，并分离分配与终局选择]] — DoseAllocation
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/VRM-ready-netcost|最小增广净成本对应的匹配就绪阈值]] — VRM
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/OptimisticSOO-optimistic-bellman|区间分布置信集上的乐观Bellman更新]] — OptimisticSOO
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/SparseStochasticMatching-sample-union|随机可行图匹配并集作为有限查询候选]] — SparseStochasticMatching
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/UnknownIIDMatching-empirical-transport|在线经验运输生成参考分布虚拟请求]] — UnknownIIDMatching
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/NoncrossingDelays-partition-trigger|历史分区势函数驱动异质等待触发]] — NoncrossingDelays
 <!-- 自动索引结束 -->
 
 
@@ -34,3 +42,15 @@ created: "2026-11-04"
 ## 2026-11-05 队列补完
 
 [[研究前沿/_运行记录/2026-11-05-队列精读|本次精读记录与证据边界]]
+
+
+<!-- 2026-11-06-daily-update -->
+## 2026-11-06 跨方向模块
+
+- [[研究前沿/面向决策的履约建模/02-可复用方法卡/FC-DFL-solver-feedback|用投影高斯平滑把离散求解器成本传回预测器]]
+- [[研究前沿/面向决策的履约建模/02-可复用方法卡/RAN-SCM-abduction-allocation|结构机制与个体残差共同驱动预算分配]]
+- [[研究前沿/面向决策的履约建模/02-可复用方法卡/OpenNWM-latent-action-grounding|无动作轨迹预训练与少量物理动作联合约束]]
+- [[研究前沿/面向决策的履约建模/02-可复用方法卡/PolicySampleRisk-combined-cvar|联合训练随机性与未来结果的 CVaR 风险分解]]
+- [[研究前沿/面向决策的履约建模/02-可复用方法卡/LatentForesight-action-consistency|真实与预测转移共享逆动作头的表示约束]]
+- [[研究前沿/面向决策的履约建模/02-可复用方法卡/LatentForesight-joint-prefix-scoring|目标进展与联合时序先验重排动作前缀]]
+- [[研究前沿/uplift模型迭代/02-可复用方法卡/DoubleDiagonal-inventory-correction|利用四格预约率的库存干扰对照估计]]

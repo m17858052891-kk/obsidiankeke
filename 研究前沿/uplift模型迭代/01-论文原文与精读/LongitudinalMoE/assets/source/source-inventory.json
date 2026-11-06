@@ -1,0 +1,548 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Unifying Data-Adaptive Longitudinal Treatment-Effect Subgroup Discovery and Pretreatment Membership Prediction",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Model and estimation",
+      "id": "S2"
+    },
+    {
+      "title": "2.1  Penalized estimation",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.2  Estimation algorithm",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "2.3  Tuning-parameter selection",
+      "id": "S2.SS3"
+    },
+    {
+      "title": "2.4  Subgroup membership estimation and prediction",
+      "id": "S2.SS4"
+    },
+    {
+      "title": "3  Asymptotic properties",
+      "id": "S3"
+    },
+    {
+      "title": "4  Simulation study",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Simulation design",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Competing methods and implementation",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Evaluation criteria",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.4  Simulation results",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "5  Applications to clinical trial data",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  COMPETE migraine trial",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  SANAD epilepsy study",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "6  Discussion",
+      "id": "S6"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "Y_{i}(t_{ij})=\\bm{X}_{ij}^{\\mathrm{T}}\\{\\bm{\\beta}_{g1}(t_{ij})+D_{i}\\bm{\\beta}_{g2}(t_{ij})\\}+e_{ig}(t_{ij})+\\epsilon_{igj},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{i}(t_{ij})=\\bm{X}_{ij}^{\\mathrm{T}}\\{\\bm{\\beta}_{g1}(t_{ij})+D_{i}\\bm{\\beta}_{g2}(t_{ij})\\}+e_{ig}(t_{ij})+\\epsilon_{igj},"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "\\pi_{ig}:=\\pi_{g}(\\bm{Z}_{i})=\\mathbb{P}(G_{i}=g\\mid\\bm{Z}_{i})=\\frac{\\omega_{g}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{g})}{\\sum_{h=1}^{G_{\\max}}\\omega_{h}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{h})},\\qquad g=1,\\ldots,G_{\\max},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\pi_{ig}:=\\pi_{g}(\\bm{Z}_{i})=\\mathbb{P}(G_{i}=g\\mid\\bm{Z}_{i})=\\frac{\\omega_{g}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{g})}{\\sum_{h=1}^{G_{\\max}}\\omega_{h}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{h})},\\qquad g=1,\\ldots,G_{\\max},"
+      ]
+    },
+    {
+      "id": "S2.E3",
+      "tex": [
+        "\\mathcal{F}=\\left\\{f:[0,1]\\to\\mathbb{R}|f^{(q_{1})}(s)-f^{(q_{1})}(t)|\\leq c_{0}|s-t|^{q_{2}},\\quad s,t\\in[0,1]\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{F}=\\left\\{f:[0,1]\\to\\mathbb{R}|f^{(q_{1})}(s)-f^{(q_{1})}(t)|\\leq c_{0}|s-t|^{q_{2}},\\quad s,t\\in[0,1]\\right\\},"
+      ]
+    },
+    {
+      "id": "S2.Ex1",
+      "tex": [
+        "\\ell_{n}(\\bm{\\Theta})=\\sum_{i=1}^{n}\\log\\left\\{\\sum_{g=1}^{G_{\\max}}\\pi_{ig}f_{ig}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{n}(\\bm{\\Theta})=\\sum_{i=1}^{n}\\log\\left\\{\\sum_{g=1}^{G_{\\max}}\\pi_{ig}f_{ig}\\right\\},"
+      ]
+    },
+    {
+      "id": "S2.Ex2",
+      "tex": [
+        "\\mathcal{P}_{\\lambda_{n},\\epsilon_{n}}(\\bm{\\omega})=n\\lambda_{n}\\sum_{g=1}^{G_{\\max}}\\log\\{(\\epsilon_{n}+\\omega_{g})/\\epsilon_{n}\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{P}_{\\lambda_{n},\\epsilon_{n}}(\\bm{\\omega})=n\\lambda_{n}\\sum_{g=1}^{G_{\\max}}\\log\\{(\\epsilon_{n}+\\omega_{g})/\\epsilon_{n}\\},"
+      ]
+    },
+    {
+      "id": "S2.E4",
+      "tex": [
+        "Q_{n}(\\bm{\\Theta})=\\ell_{n}(\\bm{\\Theta})-\\mathcal{P}_{\\lambda_{n},\\epsilon_{n}}(\\bm{\\omega})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q_{n}(\\bm{\\Theta})=\\ell_{n}(\\bm{\\Theta})-\\mathcal{P}_{\\lambda_{n},\\epsilon_{n}}(\\bm{\\omega})."
+      ]
+    },
+    {
+      "id": "S2.Ex3",
+      "tex": [
+        "h_{ig}^{(t)}=\\mathbb{P}(G_{i}=g\\mid\\mathcal{O}_{i};\\bm{\\Theta}^{(t)})=\\frac{\\pi_{ig}^{(t)}f_{ig}^{(t)}}{\\displaystyle\\sum_{\\ell=1}^{G_{\\max}}\\pi_{i\\ell}^{(t)}f_{i\\ell}^{(t)}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{ig}^{(t)}=\\mathbb{P}(G_{i}=g\\mid\\mathcal{O}_{i};\\bm{\\Theta}^{(t)})=\\frac{\\pi_{ig}^{(t)}f_{ig}^{(t)}}{\\displaystyle\\sum_{\\ell=1}^{G_{\\max}}\\pi_{i\\ell}^{(t)}f_{i\\ell}^{(t)}}."
+      ]
+    },
+    {
+      "id": "S2.E5",
+      "tex": [
+        "\\widetilde{\\bm{\\theta}}_{ng}=\\left\\{\\sum_{i=1}^{n}h_{ig}\\bm{W}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{W}_{i}\\right\\}^{-1}\\sum_{i=1}^{n}h_{ig}\\bm{W}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{Y}_{i}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\bm{\\theta}}_{ng}=\\left\\{\\sum_{i=1}^{n}h_{ig}\\bm{W}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{W}_{i}\\right\\}^{-1}\\sum_{i=1}^{n}h_{ig}\\bm{W}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{Y}_{i}."
+      ]
+    },
+    {
+      "id": "S2.E6",
+      "tex": [
+        "\\widetilde{\\bm{\\gamma}}_{ngk}=\\left\\{\\sum_{i=1}^{n}h_{ig}\\bm{B}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{B}_{i}\\right\\}^{-1}\\sum_{i=1}^{n}h_{ig}\\bm{B}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\widetilde{\\bm{r}}_{ig}\\widetilde{\\bm{r}}_{ig}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{B}_{i}\\bm{\\gamma}_{ngk},\\qquad k=1,\\ldots,K."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\bm{\\gamma}}_{ngk}=\\left\\{\\sum_{i=1}^{n}h_{ig}\\bm{B}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{B}_{i}\\right\\}^{-1}\\sum_{i=1}^{n}h_{ig}\\bm{B}_{i}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\widetilde{\\bm{r}}_{ig}\\widetilde{\\bm{r}}_{ig}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{B}_{i}\\bm{\\gamma}_{ngk},\\qquad k=1,\\ldots,K."
+      ]
+    },
+    {
+      "id": "S2.E7",
+      "tex": [
+        "\\widetilde{\\lambda}_{gk}=\\lambda_{gk}+\\frac{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\left\\{\\bm{\\phi}_{igk}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\widetilde{\\bm{r}}_{ig}\\widetilde{\\bm{r}}_{ig}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{\\phi}_{igk}-\\bm{\\phi}_{igk}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{\\phi}_{igk}\\right\\}}{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\left\\{\\bm{\\phi}_{igk}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{\\phi}_{igk}\\right\\}^{2}},\\qquad k=1,\\ldots,K."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\lambda}_{gk}=\\lambda_{gk}+\\frac{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\left\\{\\bm{\\phi}_{igk}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\widetilde{\\bm{r}}_{ig}\\widetilde{\\bm{r}}_{ig}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{\\phi}_{igk}-\\bm{\\phi}_{igk}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{\\phi}_{igk}\\right\\}}{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\left\\{\\bm{\\phi}_{igk}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-1}\\bm{\\phi}_{igk}\\right\\}^{2}},\\qquad k=1,\\ldots,K."
+      ]
+    },
+    {
+      "id": "S2.E8",
+      "tex": [
+        "\\widetilde{\\sigma}_{g}^{2}=\\sigma_{g}^{2}+\\frac{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\left\\{\\widetilde{\\bm{r}}_{ig}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-2}\\widetilde{\\bm{r}}_{ig}-\\operatorname{tr}(\\bm{\\Sigma}_{ig}^{-1})\\right\\}}{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\operatorname{tr}(\\bm{\\Sigma}_{ig}^{-2})},\\qquad g=1,\\ldots,G_{\\max}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\sigma}_{g}^{2}=\\sigma_{g}^{2}+\\frac{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\left\\{\\widetilde{\\bm{r}}_{ig}^{\\mathrm{T}}\\bm{\\Sigma}_{ig}^{-2}\\widetilde{\\bm{r}}_{ig}-\\operatorname{tr}(\\bm{\\Sigma}_{ig}^{-1})\\right\\}}{\\displaystyle\\sum_{i=1}^{n}h_{ig}\\operatorname{tr}(\\bm{\\Sigma}_{ig}^{-2})},\\qquad g=1,\\ldots,G_{\\max}."
+      ]
+    },
+    {
+      "id": "S2.E9",
+      "tex": [
+        "Q_{G}(\\bm{\\omega},\\bm{\\eta})=\\sum_{i=1}^{n}\\log\\left\\{\\sum_{g=1}^{G_{\\max}}\\pi_{ig}f_{ig}\\right\\}-\\mathcal{P}_{\\lambda_{n},\\epsilon_{n}}(\\bm{\\omega}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q_{G}(\\bm{\\omega},\\bm{\\eta})=\\sum_{i=1}^{n}\\log\\left\\{\\sum_{g=1}^{G_{\\max}}\\pi_{ig}f_{ig}\\right\\}-\\mathcal{P}_{\\lambda_{n},\\epsilon_{n}}(\\bm{\\omega}),"
+      ]
+    },
+    {
+      "id": "S2.E10",
+      "tex": [
+        "\\displaystyle\\frac{\\partial Q_{G}}{\\partial\\bm{\\eta}_{g}}",
+        "\\displaystyle=\\sum_{i=1}^{n}(\\rho_{ig}-\\pi_{ig})\\bm{Z}_{i},\\qquad g\\ \\text{nonreference},",
+        "\\displaystyle\\frac{\\partial Q_{G}}{\\partial\\omega_{g}}",
+        "\\displaystyle=\\frac{1}{\\omega_{g}}\\sum_{i=1}^{n}(\\rho_{ig}-\\pi_{ig})-\\frac{n\\lambda_{n}}{\\epsilon_{n}+\\omega_{g}},\\qquad\\omega_{g}>0."
+      ]
+    },
+    {
+      "id": "S2.E10X",
+      "tex": [
+        "\\displaystyle\\frac{\\partial Q_{G}}{\\partial\\bm{\\eta}_{g}}",
+        "\\displaystyle=\\sum_{i=1}^{n}(\\rho_{ig}-\\pi_{ig})\\bm{Z}_{i},\\qquad g\\ \\text{nonreference},"
+      ]
+    },
+    {
+      "id": "S2.E10Xa",
+      "tex": [
+        "\\displaystyle\\frac{\\partial Q_{G}}{\\partial\\omega_{g}}",
+        "\\displaystyle=\\frac{1}{\\omega_{g}}\\sum_{i=1}^{n}(\\rho_{ig}-\\pi_{ig})-\\frac{n\\lambda_{n}}{\\epsilon_{n}+\\omega_{g}},\\qquad\\omega_{g}>0."
+      ]
+    },
+    {
+      "id": "S2.Ex4",
+      "tex": [
+        "\\operatorname{df}(\\widehat{\\bm{\\Theta}})=\\widehat{G}\\left\\{2dq_{n}+q_{n}K-\\frac{K(K+1)}{2}+K+1\\right\\}+(\\widehat{G}-1)(q+1)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{df}(\\widehat{\\bm{\\Theta}})=\\widehat{G}\\left\\{2dq_{n}+q_{n}K-\\frac{K(K+1)}{2}+K+1\\right\\}+(\\widehat{G}-1)(q+1)."
+      ]
+    },
+    {
+      "id": "S2.Ex5",
+      "tex": [
+        "\\mathbb{P}(G_{i}=g\\mid\\mathcal{O}_{i};\\widehat{\\bm{\\Theta}})=\\frac{\\widehat{\\pi}_{g}(\\bm{Z}_{i})\\widehat{f}_{ig}}{\\sum_{h=1}^{\\widehat{G}}\\widehat{\\pi}_{h}(\\bm{Z}_{i})\\widehat{f}_{ih}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(G_{i}=g\\mid\\mathcal{O}_{i};\\widehat{\\bm{\\Theta}})=\\frac{\\widehat{\\pi}_{g}(\\bm{Z}_{i})\\widehat{f}_{ig}}{\\sum_{h=1}^{\\widehat{G}}\\widehat{\\pi}_{h}(\\bm{Z}_{i})\\widehat{f}_{ih}}."
+      ]
+    },
+    {
+      "id": "S2.E11",
+      "tex": [
+        "\\widehat{\\pi}_{g}(\\bm{z}_{*})=\\frac{\\widehat{\\omega}_{g}\\exp(\\bm{z}_{*}^{\\mathrm{T}}\\widehat{\\bm{\\eta}}_{g})}{\\displaystyle\\sum_{h\\in\\widehat{\\mathcal{A}}}\\widehat{\\omega}_{h}\\exp(\\bm{z}_{*}^{\\mathrm{T}}\\widehat{\\bm{\\eta}}_{h})},\\qquad g\\in\\widehat{\\mathcal{A}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\pi}_{g}(\\bm{z}_{*})=\\frac{\\widehat{\\omega}_{g}\\exp(\\bm{z}_{*}^{\\mathrm{T}}\\widehat{\\bm{\\eta}}_{g})}{\\displaystyle\\sum_{h\\in\\widehat{\\mathcal{A}}}\\widehat{\\omega}_{h}\\exp(\\bm{z}_{*}^{\\mathrm{T}}\\widehat{\\bm{\\eta}}_{h})},\\qquad g\\in\\widehat{\\mathcal{A}},"
+      ]
+    },
+    {
+      "id": "S3.Ex6",
+      "tex": [
+        "\\widehat{\\Sigma}_{g}(s,t)=\\sum_{k=1}^{K}\\widehat{\\lambda}_{gk}\\widehat{\\phi}_{gk}(s)\\widehat{\\phi}_{gk}(t)+\\widehat{\\sigma}_{g}^{2}\\mathbb{I}(s=t)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\Sigma}_{g}(s,t)=\\sum_{k=1}^{K}\\widehat{\\lambda}_{gk}\\widehat{\\phi}_{gk}(s)\\widehat{\\phi}_{gk}(t)+\\widehat{\\sigma}_{g}^{2}\\mathbb{I}(s=t)."
+      ]
+    },
+    {
+      "id": "S3.Ex7",
+      "tex": [
+        "\\bm{\\Omega}^{*}=[0,1]^{G_{\\max}}\\times\\mathbb{R}^{q(G_{\\max}-1)}\\times\\mathcal{F}^{2dG_{\\max}}\\times\\mathcal{F}^{KG_{\\max}}\\times\\mathbb{R}_{+}^{KG_{\\max}}\\times\\mathbb{R}_{+}^{G_{\\max}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bm{\\Omega}^{*}=[0,1]^{G_{\\max}}\\times\\mathbb{R}^{q(G_{\\max}-1)}\\times\\mathcal{F}^{2dG_{\\max}}\\times\\mathcal{F}^{KG_{\\max}}\\times\\mathbb{R}_{+}^{KG_{\\max}}\\times\\mathbb{R}_{+}^{G_{\\max}},"
+      ]
+    },
+    {
+      "id": "S3.Ex8",
+      "tex": [
+        "d(\\bm{\\Gamma}_{1},\\bm{\\Gamma}_{2})=\\left\\{\\|\\bm{\\omega}_{1}-\\bm{\\omega}_{2}\\|^{2}+\\sum_{g=1}^{G_{0}}\\sum_{m=1}^{2}\\|\\bm{\\beta}_{gm,1}-\\bm{\\beta}_{gm,2}\\|_{2}^{2}+\\sum_{g=1}^{G_{0}}\\|\\Sigma_{g,1}-\\Sigma_{g,2}\\|_{2}^{2}\\right\\}^{1/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "d(\\bm{\\Gamma}_{1},\\bm{\\Gamma}_{2})=\\left\\{\\|\\bm{\\omega}_{1}-\\bm{\\omega}_{2}\\|^{2}+\\sum_{g=1}^{G_{0}}\\sum_{m=1}^{2}\\|\\bm{\\beta}_{gm,1}-\\bm{\\beta}_{gm,2}\\|_{2}^{2}+\\sum_{g=1}^{G_{0}}\\|\\Sigma_{g,1}-\\Sigma_{g,2}\\|_{2}^{2}\\right\\}^{1/2}."
+      ]
+    },
+    {
+      "id": "S3.Ex9",
+      "tex": [
+        "d(\\widehat{\\bm{\\Gamma}}_{n},\\bm{\\Gamma}_{0})=O_{p}\\left[n^{-\\min\\{(1-\\kappa-e)/2,\\;r\\kappa-e/2\\}}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "d(\\widehat{\\bm{\\Gamma}}_{n},\\bm{\\Gamma}_{0})=O_{p}\\left[n^{-\\min\\{(1-\\kappa-e)/2,\\;r\\kappa-e/2\\}}\\right]."
+      ]
+    },
+    {
+      "id": "S3.Ex10",
+      "tex": [
+        "d(\\widehat{\\bm{\\Gamma}}_{n},\\bm{\\Gamma}_{0})=O_{p}\\left[n^{-\\min\\{(1-\\kappa)/2,\\;r\\kappa\\}}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "d(\\widehat{\\bm{\\Gamma}}_{n},\\bm{\\Gamma}_{0})=O_{p}\\left[n^{-\\min\\{(1-\\kappa)/2,\\;r\\kappa\\}}\\right]."
+      ]
+    },
+    {
+      "id": "S3.Ex11",
+      "tex": [
+        "\\sqrt{n}(\\widehat{\\bm{\\zeta}}-\\bm{\\zeta}_{0})\\ \\xrightarrow{d}\\ N\\{0,\\bm{I}^{-1}(\\bm{\\zeta}_{0})\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sqrt{n}(\\widehat{\\bm{\\zeta}}-\\bm{\\zeta}_{0})\\ \\xrightarrow{d}\\ N\\{0,\\bm{I}^{-1}(\\bm{\\zeta}_{0})\\},"
+      ]
+    },
+    {
+      "id": "S3.Ex12",
+      "tex": [
+        "\\sqrt{n}(\\widehat{\\bm{\\omega}}_{-1}-\\bm{\\omega}_{-1,0})\\ \\xrightarrow{d}\\ N\\left\\{0,[\\bm{I}^{-1}(\\bm{\\zeta}_{0})]_{\\omega\\omega}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sqrt{n}(\\widehat{\\bm{\\omega}}_{-1}-\\bm{\\omega}_{-1,0})\\ \\xrightarrow{d}\\ N\\left\\{0,[\\bm{I}^{-1}(\\bm{\\zeta}_{0})]_{\\omega\\omega}\\right\\}."
+      ]
+    },
+    {
+      "id": "S4.Ex13",
+      "tex": [
+        "X_{i3}(t)=\\frac{1}{2}+\\sin(2\\pi t)+\\sum_{m=1}^{10}\\xi_{im}\\psi_{m}(t),\\qquad\\psi_{m}(t)=\\sqrt{2}\\cos(m\\pi t),\\qquad\\xi_{im}\\sim\\mathcal{N}(0,4m^{-2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "X_{i3}(t)=\\frac{1}{2}+\\sin(2\\pi t)+\\sum_{m=1}^{10}\\xi_{im}\\psi_{m}(t),\\qquad\\psi_{m}(t)=\\sqrt{2}\\cos(m\\pi t),\\qquad\\xi_{im}\\sim\\mathcal{N}(0,4m^{-2})."
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "p_{i}:=\\Pr(G_{i}=1\\mid\\bm{Z}_{i})=\\frac{\\exp\\{c(\\widetilde{Z}_{i1}+\\widetilde{Z}_{i2})\\}}{1+\\exp\\{c(\\widetilde{Z}_{i1}+\\widetilde{Z}_{i2})\\}},\\qquad\\Pr(G_{i}=2\\mid\\bm{Z}_{i})=1-p_{i},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "p_{i}:=\\Pr(G_{i}=1\\mid\\bm{Z}_{i})=\\frac{\\exp\\{c(\\widetilde{Z}_{i1}+\\widetilde{Z}_{i2})\\}}{1+\\exp\\{c(\\widetilde{Z}_{i1}+\\widetilde{Z}_{i2})\\}},\\qquad\\Pr(G_{i}=2\\mid\\bm{Z}_{i})=1-p_{i},"
+      ]
+    },
+    {
+      "id": "S4.Ex14",
+      "tex": [
+        "Y_{i}(t_{ij})=\\bm{X}_{ij}^{\\mathsf{T}}\\{\\bm{\\beta}_{g1}(t_{ij})+D_{i}\\bm{\\beta}_{g2}(t_{ij})\\}+\\bm{V}_{ig}^{\\mathsf{T}}\\bm{\\phi}_{g}(t_{ij})+\\epsilon_{igj},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{i}(t_{ij})=\\bm{X}_{ij}^{\\mathsf{T}}\\{\\bm{\\beta}_{g1}(t_{ij})+D_{i}\\bm{\\beta}_{g2}(t_{ij})\\}+\\bm{V}_{ig}^{\\mathsf{T}}\\bm{\\phi}_{g}(t_{ij})+\\epsilon_{igj},"
+      ]
+    },
+    {
+      "id": "S4.EGx1",
+      "tex": [
+        "\\displaystyle\\bm{\\beta}_{11}(t)",
+        "\\displaystyle=(1+0.45t)\\bm{1}_{3},",
+        "\\displaystyle\\bm{\\beta}_{12}(t)",
+        "\\displaystyle=(0.4-0.35\\exp(t))\\bm{1}_{3},",
+        "\\displaystyle\\bm{\\beta}_{21}(t)",
+        "\\displaystyle=(1+0.15t)\\bm{1}_{3},",
+        "\\displaystyle\\bm{\\beta}_{22}(t)",
+        "\\displaystyle=(0.4-0.10\\exp(t))\\bm{1}_{3},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\bm{\\beta}_{11}(t)",
+        "\\displaystyle=(1+0.45t)\\bm{1}_{3},",
+        "\\displaystyle\\bm{\\beta}_{12}(t)",
+        "\\displaystyle=(0.4-0.35\\exp(t))\\bm{1}_{3},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\bm{\\beta}_{21}(t)",
+        "\\displaystyle=(1+0.15t)\\bm{1}_{3},",
+        "\\displaystyle\\bm{\\beta}_{22}(t)",
+        "\\displaystyle=(0.4-0.10\\exp(t))\\bm{1}_{3},"
+      ]
+    },
+    {
+      "id": "S5.Ex17",
+      "tex": [
+        "\\log\\{1+\\mathrm{MigraineDays}_{ij}\\}=\\sum_{g=1}^{G}\\delta_{ig}\\left\\{\\beta_{g1}+D_{i}\\beta_{g2}(t_{ij})+\\beta_{g3}\\mathrm{MigraineAttacks}_{i}+V_{ig}\\phi_{g}(t_{ij})+\\epsilon_{igj}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\log\\{1+\\mathrm{MigraineDays}_{ij}\\}=\\sum_{g=1}^{G}\\delta_{ig}\\left\\{\\beta_{g1}+D_{i}\\beta_{g2}(t_{ij})+\\beta_{g3}\\mathrm{MigraineAttacks}_{i}+V_{ig}\\phi_{g}(t_{ij})+\\epsilon_{igj}\\right\\}."
+      ]
+    },
+    {
+      "id": "S5.Ex18",
+      "tex": [
+        "\\pi_{ig}=\\frac{\\omega_{g}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{g})}{\\sum_{h=1}^{G_{\\max}}\\omega_{h}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{h})},\\qquad g=1,\\ldots,G_{\\max},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\pi_{ig}=\\frac{\\omega_{g}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{g})}{\\sum_{h=1}^{G_{\\max}}\\omega_{h}\\exp(\\bm{Z}_{i}^{\\mathrm{T}}\\bm{\\eta}_{h})},\\qquad g=1,\\ldots,G_{\\max},"
+      ]
+    },
+    {
+      "id": "S5.Ex19",
+      "tex": [
+        "\\widehat{\\pi}_{2}(\\bm{Z}_{*})=\\frac{0.635\\exp\\{0.446Z_{*,\\mathrm{RR}}-0.268Z_{*,\\mathrm{EF}}\\}}{0.365+0.635\\exp\\{0.446Z_{*,\\mathrm{RR}}-0.268Z_{*,\\mathrm{EF}}\\}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\pi}_{2}(\\bm{Z}_{*})=\\frac{0.635\\exp\\{0.446Z_{*,\\mathrm{RR}}-0.268Z_{*,\\mathrm{EF}}\\}}{0.365+0.635\\exp\\{0.446Z_{*,\\mathrm{RR}}-0.268Z_{*,\\mathrm{EF}}\\}}."
+      ]
+    },
+    {
+      "id": "S5.Ex20",
+      "tex": [
+        "\\log(\\mathrm{AEP}_{ij})=\\beta_{g1}+D_{i}\\beta_{g2}(t_{ij})+\\beta_{g3}\\mathrm{ANX}_{i}+\\beta_{g4}\\mathrm{DEP}_{i}+V_{ig}\\phi_{g}(t_{ij})+\\epsilon_{igj},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\log(\\mathrm{AEP}_{ij})=\\beta_{g1}+D_{i}\\beta_{g2}(t_{ij})+\\beta_{g3}\\mathrm{ANX}_{i}+\\beta_{g4}\\mathrm{DEP}_{i}+V_{ig}\\phi_{g}(t_{ij})+\\epsilon_{igj},"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Blockwise estimation for fixed  ( q n , K , λ n ) (q_{n},K,\\lambda_{n})",
+      "images": []
+    },
+    {
+      "id": "S4.T1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S4.T2",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S4.F1",
+      "caption": "Figure 1:  Estimated eigenfunctions for  n = 600 n=600  and candidate upper bound  G max = 5 G_{\\max}=5 .\nThe first row displays  ϕ 11 ​ ( t ) \\phi_{11}(t)  and  ϕ 12 ​ ( t ) \\phi_{12}(t) ; the second\ndisplays  ϕ 21 ​ ( t ) \\phi_{21}(t)  and  ϕ 22 ​ ( t ) \\phi_{22}(t) . Solid curves are the true\nfunctions, and dashed curves are averages across replications. Gray areas\nare pointwise 95% Monte Carlo variability bands, constructed as\nthe average estimate  ± 1.96 \\pm 1.96  times the pointwise empirical standard\ndeviation across the 196 replications (of 200) that selected two subgroups.\nCurves and band boundaries are evaluated at 200 equally spaced points\non  [ 0 , 1 ] [0,1] , including both endpoints. These bands describe sampling\nvariation across replications.",
+      "images": [
+        "2610.41886v1/simulation_n600_G5_eigenfunctions.jpg"
+      ]
+    },
+    {
+      "id": "S4.F2",
+      "caption": "Figure 2:  Estimated varying coefficients for both subgroups, with  n = 600 n=600 \nand candidate upper bound  G max = 5 G_{\\max}=5 . The top two rows show subgroup 1, and the bottom two\nrows show subgroup 2. Within each subgroup, the first row displays\n β g ​ 11 ​ ( t ) \\beta_{g11}(t) ,  β g ​ 12 ​ ( t ) \\beta_{g12}(t) , and  β g ​ 13 ​ ( t ) \\beta_{g13}(t) ; the second\nshows  β g ​ 21 ​ ( t ) \\beta_{g21}(t) ,  β g ​ 22 ​ ( t ) \\beta_{g22}(t) , and  β g ​ 23 ​ ( t ) \\beta_{g23}(t) .\nSolid curves, dashed curves, and gray areas denote the true functions,\naverages across replications, and pointwise 95% Monte Carlo variability bands,\nrespectively, evaluated at 200 equally spaced points on  [ 0 , 1 ] [0,1] ,\nusing the same 196 replications and construction as in\nFigure  1 .",
+      "images": [
+        "2610.41886v1/simulation_n600_G5_beta_combined.jpg"
+      ]
+    },
+    {
+      "id": "S5.T3",
+      "caption": "Table 3:  Parameter estimates for the two identified subgroups in the COMPETE migraine trial.",
+      "images": []
+    },
+    {
+      "id": "S5.F3",
+      "caption": "Figure 3:  Estimated treatment-effect trajectories and leading eigenfunctions for the\nCOMPETE migraine trial. Panel (a) shows  β g ​ 2 ​ ( t ) \\beta_{g2}(t)  for subgroup\n1 (red, delayed-strengthening pattern) and subgroup 2 (blue,\nearly-plateau pattern). Panels (b) and (c) show  ϕ 1 ​ ( t ) \\phi_{1}(t)  and\n ϕ 2 ​ ( t ) \\phi_{2}(t) , respectively. Curves are fitted estimates; shaded\nregions are pointwise 95% confidence intervals based on 200\npatient-level warm-start bootstrap resamples. Follow-up is expressed\nin weeks. Negative treatment-effect values indicate a lower\ntransformed migraine-day outcome under rivaroxaban than under\nmetoprolol.",
+      "images": [
+        "2610.41886v1/compete_treatment_eigen_combined.jpg"
+      ]
+    },
+    {
+      "id": "S5.T4",
+      "caption": "Table 4:  Parameter estimates for the two identified subgroups in the SANAD epilepsy study.",
+      "images": []
+    },
+    {
+      "id": "S5.F4",
+      "caption": "Figure 4:  Estimated treatment-effect trajectories and leading eigenfunctions for the SANAD epilepsy study. Panel (a) displays  β 12 ​ ( t ) \\beta_{12}(t)  (upper, red) and\n β 22 ​ ( t ) \\beta_{22}(t)  (lower, blue) with separate vertical scales.\nPanels (b) and (c) display  ϕ 1 ​ ( t ) \\phi_{1}(t)  and  ϕ 2 ​ ( t ) \\phi_{2}(t) .\nCurves are fitted estimates, and shaded regions are pointwise 95% bootstrap percentile intervals based on the 186\nreplications (of 200) that selected two subgroups. Eigenfunction signs are aligned to the fitted\nfunctions. Time is normalized to  [ 0 , 1 ] [0,1] .",
+      "images": [
+        "2610.41886v1/sanad_treatment_eigen_combined.jpg"
+      ]
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

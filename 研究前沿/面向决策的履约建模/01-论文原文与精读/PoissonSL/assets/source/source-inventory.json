@@ -1,0 +1,807 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Poisson super learning for survival and competing risks on a discretized time scale",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "1.1  Relation to existing Super Learners for time-to-event data",
+      "id": "S1.SS1"
+    },
+    {
+      "title": "1.2  Contribution and outline",
+      "id": "S1.SS2"
+    },
+    {
+      "title": "2  Overview of the Poisson Super Learner",
+      "id": "S2"
+    },
+    {
+      "title": "Step 1: Ensemble hazard estimation",
+      "id": "S2.SSx1"
+    },
+    {
+      "title": "Step 2: Out-of-sample hazard and risk prediction",
+      "id": "S2.SSx2"
+    },
+    {
+      "title": "3  General framework",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Base learners",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.1.1  Learners used in the empirical analyses",
+      "id": "S3.SS1.SSS1"
+    },
+    {
+      "title": "4  V-Fold Cross-Validation",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Estimating the base learners on the training folds",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Predicting on the validation folds",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Tuning and library construction",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "5  The meta learner",
+      "id": "S5"
+    },
+    {
+      "title": "6  The Discrete Poisson Super Learner",
+      "id": "S6"
+    },
+    {
+      "title": "7  Predictions on new data",
+      "id": "S7"
+    },
+    {
+      "title": "7.1  Risk predictions",
+      "id": "S7.SS1"
+    },
+    {
+      "title": "8  Simulation study",
+      "id": "S8"
+    },
+    {
+      "title": "8.1  Data-generating mechanisms",
+      "id": "S8.SS1"
+    },
+    {
+      "title": "8.2  Poisson Super Learner variants and component learners",
+      "id": "S8.SS2"
+    },
+    {
+      "title": "8.3  External benchmark methods",
+      "id": "S8.SS3"
+    },
+    {
+      "title": "8.4  Performance measure",
+      "id": "S8.SS4"
+    },
+    {
+      "title": "8.5  Results",
+      "id": "S8.SS5"
+    },
+    {
+      "title": "8.6  Results on the scalability of the Poisson Super Learner",
+      "id": "S8.SS6"
+    },
+    {
+      "title": "9  Data application on the real data",
+      "id": "S9"
+    },
+    {
+      "title": "10  Discussion and conclusions",
+      "id": "S10"
+    },
+    {
+      "title": "Acknowledgments",
+      "id": "Sx1"
+    },
+    {
+      "title": "Funding.",
+      "id": "Sx1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Supplementary material",
+      "id": "Sx2"
+    },
+    {
+      "title": "Software and replication code.",
+      "id": "Sx2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.Ex1",
+      "tex": [
+        "0=t_{0}<t_{1}<\\cdots<t_{m}=\\tau."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0=t_{0}<t_{1}<\\cdots<t_{m}=\\tau."
+      ]
+    },
+    {
+      "id": "S3.Ex2",
+      "tex": [
+        "\\lambda_{j}(t\\mid x)=\\lim_{h\\to 0}\\frac{P\\{t\\leq T<t+h,\\ \\Delta=j\\mid T\\geq t,X=x\\}}{h}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{j}(t\\mid x)=\\lim_{h\\to 0}\\frac{P\\{t\\leq T<t+h,\\ \\Delta=j\\mid T\\geq t,X=x\\}}{h}."
+      ]
+    },
+    {
+      "id": "S3.Ex3",
+      "tex": [
+        "0=t_{0}<t_{1}<\\ldots<t_{m}=\\tau"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0=t_{0}<t_{1}<\\ldots<t_{m}=\\tau"
+      ]
+    },
+    {
+      "id": "S3.Ex4",
+      "tex": [
+        "I_{k}(t)=I\\bigl(t\\in(t_{k-1},t_{k}]\\bigr),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "I_{k}(t)=I\\bigl(t\\in(t_{k-1},t_{k}]\\bigr),"
+      ]
+    },
+    {
+      "id": "S3.Ex5",
+      "tex": [
+        "D_{i,k,j}=I(\\widetilde{\\Delta}_{i}=j)\\,I_{k}(\\widetilde{T}_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{i,k,j}=I(\\widetilde{\\Delta}_{i}=j)\\,I_{k}(\\widetilde{T}_{i}),"
+      ]
+    },
+    {
+      "id": "S3.Ex6",
+      "tex": [
+        "R_{i,k}=\\max\\{0,\\min(\\widetilde{T}_{i},t_{k})-t_{k-1}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{i,k}=\\max\\{0,\\min(\\widetilde{T}_{i},t_{k})-t_{k-1}\\}."
+      ]
+    },
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\lambda_{j}(t\\mid x)=\\sum_{k=1}^{m}I_{k}(t)\\lambda_{j,k}(x),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{j}(t\\mid x)=\\sum_{k=1}^{m}I_{k}(t)\\lambda_{j,k}(x),"
+      ]
+    },
+    {
+      "id": "S3.Ex7",
+      "tex": [
+        "\\ell_{j}(\\lambda_{j})(O_{i})=\\sum_{k=1}^{m}\\left[D_{i,k,j}\\log\\{\\lambda_{j,k}(X_{i})\\}-R_{i,k}\\lambda_{j,k}(X_{i})\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{j}(\\lambda_{j})(O_{i})=\\sum_{k=1}^{m}\\left[D_{i,k,j}\\log\\{\\lambda_{j,k}(X_{i})\\}-R_{i,k}\\lambda_{j,k}(X_{i})\\right]."
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "\\mathscr{L}_{j}(\\lambda_{j})(O_{i})=-\\ell_{j}(\\lambda_{j})(O_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathscr{L}_{j}(\\lambda_{j})(O_{i})=-\\ell_{j}(\\lambda_{j})(O_{i})."
+      ]
+    },
+    {
+      "id": "S3.Ex8",
+      "tex": [
+        "P_{n}\\mathscr{L}_{j}(\\lambda_{j})=\\frac{1}{n}\\sum_{i=1}^{n}\\mathscr{L}_{j}(\\lambda_{j})(O_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{n}\\mathscr{L}_{j}(\\lambda_{j})=\\frac{1}{n}\\sum_{i=1}^{n}\\mathscr{L}_{j}(\\lambda_{j})(O_{i})."
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\hat{\\lambda}_{j}\\in\\underset{\\lambda_{j}\\in\\mathcal{H}_{j}}{\\arg\\min}\\left\\{P_{n}\\mathscr{L}_{j}(\\lambda_{j})\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}\\in\\underset{\\lambda_{j}\\in\\mathcal{H}_{j}}{\\arg\\min}\\left\\{P_{n}\\mathscr{L}_{j}(\\lambda_{j})\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.Ex9",
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s}\\in\\arg\\min_{\\lambda_{j}\\in\\mathcal{H}_{j}^{s}}P_{n}L_{j}(\\lambda_{j})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s}\\in\\arg\\min_{\\lambda_{j}\\in\\mathcal{H}_{j}^{s}}P_{n}L_{j}(\\lambda_{j})."
+      ]
+    },
+    {
+      "id": "S3.Ex10",
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s}(t\\mid x)=\\sum_{k=1}^{m}I_{k}(t)\\hat{\\lambda}_{j,k}^{s}(x)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s}(t\\mid x)=\\sum_{k=1}^{m}I_{k}(t)\\hat{\\lambda}_{j,k}^{s}(x)."
+      ]
+    },
+    {
+      "id": "S3.Ex11",
+      "tex": [
+        "\\lambda_{j,k}^{s}(x;\\theta_{j}^{s})=\\exp\\{f_{j,k}^{s}(x;\\theta_{j}^{s})\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{j,k}^{s}(x;\\theta_{j}^{s})=\\exp\\{f_{j,k}^{s}(x;\\theta_{j}^{s})\\},"
+      ]
+    },
+    {
+      "id": "S3.Ex12",
+      "tex": [
+        "\\lambda_{j}^{s}(t\\mid x;\\theta_{j}^{s})=\\sum_{k=1}^{m}I_{k}(t)\\lambda_{j,k}^{s}(x;\\theta_{j}^{s})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{j}^{s}(t\\mid x;\\theta_{j}^{s})=\\sum_{k=1}^{m}I_{k}(t)\\lambda_{j,k}^{s}(x;\\theta_{j}^{s})."
+      ]
+    },
+    {
+      "id": "S3.Ex13",
+      "tex": [
+        "\\mathcal{H}_{j}^{s}=\\left\\{\\lambda_{j}^{s}(\\cdot;\\theta_{j}^{s}):\\theta_{j}^{s}\\in\\Theta_{j}^{s}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{H}_{j}^{s}=\\left\\{\\lambda_{j}^{s}(\\cdot;\\theta_{j}^{s}):\\theta_{j}^{s}\\in\\Theta_{j}^{s}\\right\\}."
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\hat{\\theta}_{j}^{s}=\\underset{\\theta_{j}^{s}\\in\\Theta_{j}^{s}}{\\arg\\min}\\left\\{P_{n}\\mathscr{L}_{j}\\bigl(\\lambda_{j}^{s}(\\cdot;\\theta_{j}^{s})\\bigr)\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\theta}_{j}^{s}=\\underset{\\theta_{j}^{s}\\in\\Theta_{j}^{s}}{\\arg\\min}\\left\\{P_{n}\\mathscr{L}_{j}\\bigl(\\lambda_{j}^{s}(\\cdot;\\theta_{j}^{s})\\bigr)\\right\\}."
+      ]
+    },
+    {
+      "id": "S3.Ex14",
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s}(t\\mid x)=\\lambda_{j}^{s}(t\\mid x;\\hat{\\theta}_{j}^{s})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s}(t\\mid x)=\\lambda_{j}^{s}(t\\mid x;\\hat{\\theta}_{j}^{s})."
+      ]
+    },
+    {
+      "id": "S3.Ex15",
+      "tex": [
+        "f_{j,k}^{s}(x;\\theta_{j}^{s})=\\gamma_{j,k}^{s}+\\sum_{\\ell\\in\\mathcal{A}_{j}}\\beta_{j,\\ell}^{s}x_{\\ell},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "f_{j,k}^{s}(x;\\theta_{j}^{s})=\\gamma_{j,k}^{s}+\\sum_{\\ell\\in\\mathcal{A}_{j}}\\beta_{j,\\ell}^{s}x_{\\ell},"
+      ]
+    },
+    {
+      "id": "S3.Ex16",
+      "tex": [
+        "\\theta_{j}^{s}=(\\gamma_{j,1}^{s},\\ldots,\\gamma_{j,m}^{s},\\beta_{j}^{s})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\theta_{j}^{s}=(\\gamma_{j,1}^{s},\\ldots,\\gamma_{j,m}^{s},\\beta_{j}^{s})."
+      ]
+    },
+    {
+      "id": "S3.Ex17",
+      "tex": [
+        "\\beta_{j}^{s}=(\\beta_{j,\\ell}^{s})_{\\ell\\in\\mathcal{A}_{j}},\\qquad\\mathcal{A}_{j}\\subseteq\\{1,\\ldots,d\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\beta_{j}^{s}=(\\beta_{j,\\ell}^{s})_{\\ell\\in\\mathcal{A}_{j}},\\qquad\\mathcal{A}_{j}\\subseteq\\{1,\\ldots,d\\},"
+      ]
+    },
+    {
+      "id": "S3.Ex18",
+      "tex": [
+        "\\Theta_{j,\\mathrm{EN}}^{s}(c^{s})=\\left\\{(\\gamma_{j,1}^{s},\\ldots,\\gamma_{j,m}^{s},\\beta_{j}^{s}):\\frac{1-\\iota^{s}}{2}\\|\\beta_{j}^{s}\\|_{2}^{2}+\\iota^{s}\\|\\beta_{j}^{s}\\|_{1}\\leq c^{s}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Theta_{j,\\mathrm{EN}}^{s}(c^{s})=\\left\\{(\\gamma_{j,1}^{s},\\ldots,\\gamma_{j,m}^{s},\\beta_{j}^{s}):\\frac{1-\\iota^{s}}{2}\\|\\beta_{j}^{s}\\|_{2}^{2}+\\iota^{s}\\|\\beta_{j}^{s}\\|_{1}\\leq c^{s}\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.Ex19",
+      "tex": [
+        "\\mathcal{S}^{s},\\mathcal{W}^{s}\\subseteq\\{1,\\ldots,d\\},\\qquad\\mathcal{S}^{s}\\cap\\mathcal{W}^{s}=\\emptyset,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{S}^{s},\\mathcal{W}^{s}\\subseteq\\{1,\\ldots,d\\},\\qquad\\mathcal{S}^{s}\\cap\\mathcal{W}^{s}=\\emptyset,"
+      ]
+    },
+    {
+      "id": "S3.Ex20",
+      "tex": [
+        "f_{j,k}^{s}(x;\\theta_{j}^{s})=\\gamma_{j,k}^{s}+\\sum_{\\ell\\in\\mathcal{S}^{s}}\\zeta_{j,\\ell}^{s}(x_{\\ell})+\\sum_{\\ell\\in\\mathcal{W}^{s}}\\beta_{j,\\ell}^{s}x_{\\ell}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "f_{j,k}^{s}(x;\\theta_{j}^{s})=\\gamma_{j,k}^{s}+\\sum_{\\ell\\in\\mathcal{S}^{s}}\\zeta_{j,\\ell}^{s}(x_{\\ell})+\\sum_{\\ell\\in\\mathcal{W}^{s}}\\beta_{j,\\ell}^{s}x_{\\ell}."
+      ]
+    },
+    {
+      "id": "S3.Ex21",
+      "tex": [
+        "J_{\\ell}(\\zeta_{j,\\ell}^{s})=\\int\\left\\{\\frac{d^{2}}{dz^{2}}\\zeta_{j,\\ell}^{s}(z)\\right\\}^{2}\\,dz."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "J_{\\ell}(\\zeta_{j,\\ell}^{s})=\\int\\left\\{\\frac{d^{2}}{dz^{2}}\\zeta_{j,\\ell}^{s}(z)\\right\\}^{2}\\,dz."
+      ]
+    },
+    {
+      "id": "S3.Ex22",
+      "tex": [
+        "\\Theta_{j,\\mathrm{GAM}}^{s}\\left((c_{\\ell}^{s})_{\\ell\\in\\mathcal{S}^{s}}\\right)=\\left\\{\\theta_{j}^{s}\\in\\Theta_{j}^{s}:J_{\\ell}(\\zeta_{j,\\ell}^{s})\\leq c_{\\ell}^{s},\\;\\ell\\in\\mathcal{S}^{s}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Theta_{j,\\mathrm{GAM}}^{s}\\left((c_{\\ell}^{s})_{\\ell\\in\\mathcal{S}^{s}}\\right)=\\left\\{\\theta_{j}^{s}\\in\\Theta_{j}^{s}:J_{\\ell}(\\zeta_{j,\\ell}^{s})\\leq c_{\\ell}^{s},\\;\\ell\\in\\mathcal{S}^{s}\\right\\},"
+      ]
+    },
+    {
+      "id": "S4.Ex23",
+      "tex": [
+        "\\mathcal{D}_{v}\\subset\\{1,\\ldots,n\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{D}_{v}\\subset\\{1,\\ldots,n\\}"
+      ]
+    },
+    {
+      "id": "S4.Ex24",
+      "tex": [
+        "\\bigcup_{v=1}^{V}\\mathcal{D}_{v}=\\{1,\\ldots,n\\},\\qquad\\mathcal{D}_{v_{1}}\\cap\\mathcal{D}_{v_{2}}=\\emptyset\\quad\\text{for }v_{1}\\neq v_{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bigcup_{v=1}^{V}\\mathcal{D}_{v}=\\{1,\\ldots,n\\},\\qquad\\mathcal{D}_{v_{1}}\\cap\\mathcal{D}_{v_{2}}=\\emptyset\\quad\\text{for }v_{1}\\neq v_{2}."
+      ]
+    },
+    {
+      "id": "S4.Ex25",
+      "tex": [
+        "\\mathcal{T}_{v}=\\{1,\\ldots,n\\}\\setminus\\mathcal{D}_{v}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{T}_{v}=\\{1,\\ldots,n\\}\\setminus\\mathcal{D}_{v}."
+      ]
+    },
+    {
+      "id": "S4.Ex26",
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s,v}\\in\\underset{\\lambda_{j}\\in\\mathcal{H}_{j}^{s}}{\\arg\\min}\\left\\{P_{n,\\mathcal{T}_{v}}\\mathscr{L}_{j}(\\lambda_{j})\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s,v}\\in\\underset{\\lambda_{j}\\in\\mathcal{H}_{j}^{s}}{\\arg\\min}\\left\\{P_{n,\\mathcal{T}_{v}}\\mathscr{L}_{j}(\\lambda_{j})\\right\\},"
+      ]
+    },
+    {
+      "id": "S4.Ex27",
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s,v}(t\\mid x)=\\sum_{k=1}^{m}I_{k}(t)\\hat{\\lambda}_{j,k}^{s,v}(x)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}^{s,v}(t\\mid x)=\\sum_{k=1}^{m}I_{k}(t)\\hat{\\lambda}_{j,k}^{s,v}(x)."
+      ]
+    },
+    {
+      "id": "S4.Ex28",
+      "tex": [
+        "Z_{i,j,k}^{s}=\\log\\hat{\\lambda}_{j,k}^{s,v(i)}(X_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Z_{i,j,k}^{s}=\\log\\hat{\\lambda}_{j,k}^{s,v(i)}(X_{i}),"
+      ]
+    },
+    {
+      "id": "S4.Ex29",
+      "tex": [
+        "O_{i,j}^{\\star}=\\left\\{Z_{i,j,k},\\ D_{i,k,j},\\ R_{i,k}:k=1,\\ldots,m\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "O_{i,j}^{\\star}=\\left\\{Z_{i,j,k},\\ D_{i,k,j},\\ R_{i,k}:k=1,\\ldots,m\\right\\}."
+      ]
+    },
+    {
+      "id": "S5.Ex30",
+      "tex": [
+        "\\alpha_{j}=(\\alpha_{j}^{1},\\ldots,\\alpha_{j}^{S})^{\\top}\\in\\mathbb{R}^{S}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\alpha_{j}=(\\alpha_{j}^{1},\\ldots,\\alpha_{j}^{S})^{\\top}\\in\\mathbb{R}^{S}"
+      ]
+    },
+    {
+      "id": "S5.Ex31",
+      "tex": [
+        "m_{j,k}(Z_{i,j,k};\\alpha_{j})=\\exp\\left\\{\\sum_{s=1}^{S}\\alpha_{j}^{s}Z_{i,j,k}^{s}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{j,k}(Z_{i,j,k};\\alpha_{j})=\\exp\\left\\{\\sum_{s=1}^{S}\\alpha_{j}^{s}Z_{i,j,k}^{s}\\right\\}."
+      ]
+    },
+    {
+      "id": "S5.Ex32",
+      "tex": [
+        "m_{j}(t\\mid Z_{i,j};\\alpha_{j})=\\sum_{k=1}^{m}I_{k}(t)\\,m_{j,k}(Z_{i,j,k};\\alpha_{j}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{j}(t\\mid Z_{i,j};\\alpha_{j})=\\sum_{k=1}^{m}I_{k}(t)\\,m_{j,k}(Z_{i,j,k};\\alpha_{j}),"
+      ]
+    },
+    {
+      "id": "S5.Ex33",
+      "tex": [
+        "m_{j,k}(Z_{i,j,k};\\alpha_{j})=\\prod_{s=1}^{S}\\left\\{\\hat{\\lambda}_{j,k}^{s,v(i)}(X_{i})\\right\\}^{\\alpha_{j}^{s}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{j,k}(Z_{i,j,k};\\alpha_{j})=\\prod_{s=1}^{S}\\left\\{\\hat{\\lambda}_{j,k}^{s,v(i)}(X_{i})\\right\\}^{\\alpha_{j}^{s}}."
+      ]
+    },
+    {
+      "id": "S5.Ex34",
+      "tex": [
+        "\\mathscr{L}_{j}^{\\star}(m_{j})(O_{i,j}^{\\star})=-\\sum_{k=1}^{m}\\left[D_{i,k,j}\\log\\{m_{j,k}(Z_{i,j,k};\\alpha_{j})\\}-R_{i,k}m_{j,k}(Z_{i,j,k};\\alpha_{j})\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathscr{L}_{j}^{\\star}(m_{j})(O_{i,j}^{\\star})=-\\sum_{k=1}^{m}\\left[D_{i,k,j}\\log\\{m_{j,k}(Z_{i,j,k};\\alpha_{j})\\}-R_{i,k}m_{j,k}(Z_{i,j,k};\\alpha_{j})\\right]."
+      ]
+    },
+    {
+      "id": "S5.Ex35",
+      "tex": [
+        "\\hat{\\alpha}_{j}=\\arg\\min_{\\alpha_{j}\\in\\mathbb{R}^{S}}P^{*}_{n}\\mathscr{L}_{j}^{\\star}(m_{j}(\\cdot;\\alpha_{j})),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\alpha}_{j}=\\arg\\min_{\\alpha_{j}\\in\\mathbb{R}^{S}}P^{*}_{n}\\mathscr{L}_{j}^{\\star}(m_{j}(\\cdot;\\alpha_{j})),"
+      ]
+    },
+    {
+      "id": "S5.Ex36",
+      "tex": [
+        "\\hat{m}_{j}(t\\mid Z_{i,j})=\\sum_{k=1}^{m}I_{k}(t)\\,\\hat{m}_{j,k}(Z_{i,j,k}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{m}_{j}(t\\mid Z_{i,j})=\\sum_{k=1}^{m}I_{k}(t)\\,\\hat{m}_{j,k}(Z_{i,j,k}),"
+      ]
+    },
+    {
+      "id": "S6.Ex37",
+      "tex": [
+        "\\hat{s}_{j}=\\underset{s\\in\\{1,\\ldots,S\\}}{\\arg\\min}\\left\\{\\frac{1}{n}\\sum_{v=1}^{V}\\sum_{i\\in\\mathcal{D}_{v}}\\mathscr{L}_{j}\\!\\left(\\hat{\\lambda}_{j}^{s,v}\\right)(O_{i})\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{s}_{j}=\\underset{s\\in\\{1,\\ldots,S\\}}{\\arg\\min}\\left\\{\\frac{1}{n}\\sum_{v=1}^{V}\\sum_{i\\in\\mathcal{D}_{v}}\\mathscr{L}_{j}\\!\\left(\\hat{\\lambda}_{j}^{s,v}\\right)(O_{i})\\right\\}."
+      ]
+    },
+    {
+      "id": "S7.Ex38",
+      "tex": [
+        "Z_{j,k}^{s,\\mathrm{new}}=\\log\\hat{\\lambda}_{j,k}^{s}(x^{new}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Z_{j,k}^{s,\\mathrm{new}}=\\log\\hat{\\lambda}_{j,k}^{s}(x^{new}),"
+      ]
+    },
+    {
+      "id": "S7.Ex39",
+      "tex": [
+        "\\hat{\\lambda}_{j}(t\\mid x^{new})=\\sum_{k=1}^{m}I_{k}(t)\\hat{\\lambda}_{j,k}(x^{new}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j}(t\\mid x^{new})=\\sum_{k=1}^{m}I_{k}(t)\\hat{\\lambda}_{j,k}(x^{new}),"
+      ]
+    },
+    {
+      "id": "S7.Ex40",
+      "tex": [
+        "\\hat{\\lambda}_{j,k}(x^{new})=m_{j,k}(Z_{j,k}^{\\mathrm{new}};\\hat{\\alpha}_{j})=\\exp\\left\\{\\sum_{s=1}^{S}\\hat{\\alpha}_{j}^{s}Z_{j,k}^{s,\\mathrm{new}}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{j,k}(x^{new})=m_{j,k}(Z_{j,k}^{\\mathrm{new}};\\hat{\\alpha}_{j})=\\exp\\left\\{\\sum_{s=1}^{S}\\hat{\\alpha}_{j}^{s}Z_{j,k}^{s,\\mathrm{new}}\\right\\}."
+      ]
+    },
+    {
+      "id": "S7.Ex41",
+      "tex": [
+        "\\hat{\\Lambda}_{j}(t\\mid x)=\\int_{0}^{t}\\hat{\\lambda}_{j}(u\\mid x)\\,du"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\Lambda}_{j}(t\\mid x)=\\int_{0}^{t}\\hat{\\lambda}_{j}(u\\mid x)\\,du"
+      ]
+    },
+    {
+      "id": "S7.Ex42",
+      "tex": [
+        "\\hat{S}(t\\mid x)=\\exp\\left\\{-\\sum_{\\ell=1}^{J}\\hat{\\Lambda}_{\\ell}(t\\mid x)\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{S}(t\\mid x)=\\exp\\left\\{-\\sum_{\\ell=1}^{J}\\hat{\\Lambda}_{\\ell}(t\\mid x)\\right\\}."
+      ]
+    },
+    {
+      "id": "S7.Ex43",
+      "tex": [
+        "F_{j}(t\\mid x)=\\int_{0}^{t}S(u-\\mid x)\\lambda_{j}(u\\mid x)\\,du."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F_{j}(t\\mid x)=\\int_{0}^{t}S(u-\\mid x)\\lambda_{j}(u\\mid x)\\,du."
+      ]
+    },
+    {
+      "id": "S7.Ex44",
+      "tex": [
+        "\\hat{\\lambda}_{\\cdot,k}(x)=\\sum_{\\ell=1}^{J}\\hat{\\lambda}_{\\ell,k}(x)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{\\lambda}_{\\cdot,k}(x)=\\sum_{\\ell=1}^{J}\\hat{\\lambda}_{\\ell,k}(x)"
+      ]
+    },
+    {
+      "id": "S7.Ex45",
+      "tex": [
+        "\\Delta_{k}(t)=\\max\\left\\{0,\\min(t,t_{k})-t_{k-1}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta_{k}(t)=\\max\\left\\{0,\\min(t,t_{k})-t_{k-1}\\right\\}."
+      ]
+    },
+    {
+      "id": "S7.Ex46",
+      "tex": [
+        "\\hat{F}_{j}(t\\mid x)=\\sum_{k=1}^{m}\\hat{S}(t_{k-1}\\mid x)\\frac{\\hat{\\lambda}_{j,k}(x)}{\\hat{\\lambda}_{\\cdot,k}(x)}\\left[1-\\exp\\left\\{-\\hat{\\lambda}_{\\cdot,k}(x)\\Delta_{k}(t)\\right\\}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\hat{F}_{j}(t\\mid x)=\\sum_{k=1}^{m}\\hat{S}(t_{k-1}\\mid x)\\frac{\\hat{\\lambda}_{j,k}(x)}{\\hat{\\lambda}_{\\cdot,k}(x)}\\left[1-\\exp\\left\\{-\\hat{\\lambda}_{\\cdot,k}(x)\\Delta_{k}(t)\\right\\}\\right],"
+      ]
+    },
+    {
+      "id": "S8.Ex47",
+      "tex": [
+        "\\text{IPA}_{j}(t)=1-\\frac{\\mathscr{B}_{j,t}(\\hat{F}_{j})}{\\mathscr{B}_{j,t}(\\hat{F}_{j,0})},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\text{IPA}_{j}(t)=1-\\frac{\\mathscr{B}_{j,t}(\\hat{F}_{j})}{\\mathscr{B}_{j,t}(\\hat{F}_{j,0})},"
+      ]
+    },
+    {
+      "id": "S8.Ex48",
+      "tex": [
+        "\\mathscr{B}_{j,5}^{\\ast}(\\hat{F}_{j})=\\frac{1}{N}\\sum_{i=1}^{N}\\left[Y_{i,j}^{\\ast}-\\hat{F}_{j}(5\\mid X_{i})\\right]^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathscr{B}_{j,5}^{\\ast}(\\hat{F}_{j})=\\frac{1}{N}\\sum_{i=1}^{N}\\left[Y_{i,j}^{\\ast}-\\hat{F}_{j}(5\\mid X_{i})\\right]^{2}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S4.T1",
+      "caption": "Table 1:  Hyperparameters of the Poisson Super Learner. The first block summarises the hyperparameters of the meta learner, and the remaining blocks summarise the hyperparameters of the base-learner families considered in this article, namely GLMnet, and GAM. ",
+      "images": []
+    },
+    {
+      "id": "S8.F1",
+      "caption": "Figure 1:  Scenario Alpha. Average IPA scores for increasing sample sizes\n(y-axis) for the different methods (x-axis).",
+      "images": [
+        "2611.03256v1/tiles-alpha.png"
+      ]
+    },
+    {
+      "id": "S8.F2",
+      "caption": "Figure 2:  Scenario Beta. Average IPA scores for increasing sample sizes\n(y-axis) for the different methods (x-axis).",
+      "images": [
+        "2611.03256v1/tiles-beta.png"
+      ]
+    },
+    {
+      "id": "S8.F3",
+      "caption": "Figure 3:  \nAverage computation time relative to the cause-specific Cox model,\n CSC-Cox , by training sample size, based on five data sets from\nScenario Alpha. Average computation times were calculated over ten refits.\nThe horizontal line at  y = 1 y=1  denotes the  CSC-Cox  benchmark.\nThe Poisson-based models are  PSL-disc ,  GLM-cont , and\n GLM-disc .",
+      "images": []
+    },
+    {
+      "id": "S9.T2",
+      "caption": "Table 2:   Baseline covariates of the Steno data set of patients with type 1 diabetes. The covariates are listed in column 1 and described in column 2. Column 3 reports the levels of the categorical covariates. Columns 4 and 5 report the distribution of the categorical covariates in the training and test sets, respectively, or the median and interquartile range in brackets for the continuous covariates. ",
+      "images": []
+    },
+    {
+      "id": "S9.T3",
+      "caption": "Table 3:  \nIntegrated prediction accuracy (IPA, %) by prediction horizon and model.\nFor each prediction horizon, the highest IPA value is shown in bold.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

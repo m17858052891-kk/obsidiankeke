@@ -1,0 +1,414 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Coordinating Humanoid Loco-Manipulation\n through Action-Conditioned Latent Foresight",
+      "id": null
+    },
+    {
+      "title": "I  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "II  Related Work",
+      "id": "S2"
+    },
+    {
+      "title": "II-A   Humanoid VLAs and World–Action Models",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "II-B   Action Supervision for Latent Prediction",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "II-C   Temporal Action Priors and Sequence Scoring",
+      "id": "S2.SS3"
+    },
+    {
+      "title": "III  Method",
+      "id": "S3"
+    },
+    {
+      "title": "III-A   Problem Formulation and Receding-Horizon Scoring",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "III-B   Action Generation",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "III-C   Action-Conditioned Endpoint Dynamics",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "III-D   Joint Temporal Prior",
+      "id": "S3.SS4"
+    },
+    {
+      "title": "III-E   Action Consistency Regularization",
+      "id": "S3.SS5"
+    },
+    {
+      "title": "IV  Experiments",
+      "id": "S4"
+    },
+    {
+      "title": "IV-A   Experimental Setup",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "IV-B   Task Performance",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "IV-C   Qualitative Results and Generalization",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "IV-D   Data Efficiency",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "IV-E   Failure Analysis",
+      "id": "S4.SS5"
+    },
+    {
+      "title": "IV-F   Ablation Studies",
+      "id": "S4.SS6"
+    },
+    {
+      "title": "IV-F 1  Prediction Formulation",
+      "id": "S4.SS6.SSS1"
+    },
+    {
+      "title": "IV-F 2  Action Consistency Regularization",
+      "id": "S4.SS6.SSS2"
+    },
+    {
+      "title": "IV-F 3  Temporal Prior",
+      "id": "S4.SS6.SSS3"
+    },
+    {
+      "title": "IV-G   Inference Cost and Deployment",
+      "id": "S4.SS7"
+    },
+    {
+      "title": "V  Conclusion and Future Work",
+      "id": "S5"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Unseen object configurations",
+      "id": "A1"
+    },
+    {
+      "title": "Appendix B  Visual Subgoal Extraction",
+      "id": "A2"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S3.E1",
+      "tex": [
+        "A_{t}^{(i)}\\sim\\pi_{\\omega}(\\cdot\\mid x_{t}),\\quad A_{t}^{(i)}=(a_{t,0}^{(i)},\\ldots,a_{t,H-1}^{(i)}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "A_{t}^{(i)}\\sim\\pi_{\\omega}(\\cdot\\mid x_{t}),\\quad A_{t}^{(i)}=(a_{t,0}^{(i)},\\ldots,a_{t,H-1}^{(i)}),"
+      ]
+    },
+    {
+      "id": "S3.EGx1",
+      "tex": [
+        "\\displaystyle V_{i}",
+        "\\displaystyle=\\operatorname{dist}(z_{t},z_{g})-\\operatorname{dist}(\\hat{z}^{(i)},z_{g}),",
+        "\\displaystyle i^{*}",
+        "\\displaystyle=\\argmax_{i}\\{V_{i}-\\beta E_{i}\\},\\quad E_{i}=E_{\\phi}(B_{t}^{(i)};s_{t})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle V_{i}",
+        "\\displaystyle=\\operatorname{dist}(z_{t},z_{g})-\\operatorname{dist}(\\hat{z}^{(i)},z_{g}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle i^{*}",
+        "\\displaystyle=\\argmax_{i}\\{V_{i}-\\beta E_{i}\\},\\quad E_{i}=E_{\\phi}(B_{t}^{(i)};s_{t})."
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\mathbf{f}_{t}=\\Phi(o_{t}),\\quad\\mathbf{f}_{g}=\\Phi(g_{t}),\\quad\\mathbf{f}_{t+h}=\\Phi(o_{t+h})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{f}_{t}=\\Phi(o_{t}),\\quad\\mathbf{f}_{g}=\\Phi(g_{t}),\\quad\\mathbf{f}_{t+h}=\\Phi(o_{t+h})."
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\widehat{\\mathbf{f}}_{t+h}=\\mathcal{P}_{\\theta}(\\mathbf{f}_{t},q_{t}(B_{t}))."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\mathbf{f}}_{t+h}=\\mathcal{P}_{\\theta}(\\mathbf{f}_{t},q_{t}(B_{t}))."
+      ]
+    },
+    {
+      "id": "S3.EGx2",
+      "tex": [
+        "\\displaystyle r_{k}",
+        "\\displaystyle=\\operatorname{GRU}_{\\phi}(r_{k-1},e_{\\phi}([s_{t};m_{k-1};u_{k-1}])),",
+        "\\displaystyle[\\tilde{m}_{k};\\tilde{u}_{k}]",
+        "\\displaystyle=\\operatorname{MLP}_{\\phi}(r_{k}),\\qquad k=1,\\ldots,h-1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle r_{k}",
+        "\\displaystyle=\\operatorname{GRU}_{\\phi}(r_{k-1},e_{\\phi}([s_{t};m_{k-1};u_{k-1}])),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle[\\tilde{m}_{k};\\tilde{u}_{k}]",
+        "\\displaystyle=\\operatorname{MLP}_{\\phi}(r_{k}),\\qquad k=1,\\ldots,h-1."
+      ]
+    },
+    {
+      "id": "S3.EGx3",
+      "tex": [
+        "\\displaystyle E_{m}",
+        "\\displaystyle=\\frac{\\sum_{k=1}^{h-1}\\left\\lVert m_{k}-\\tilde{m}_{k}\\right\\rVert_{2}^{2}}{(h-1)d_{m}},",
+        "\\displaystyle E_{u}",
+        "\\displaystyle=\\frac{\\sum_{k=1}^{h-1}\\left\\lVert u_{k}-\\tilde{u}_{k}\\right\\rVert_{2}^{2}}{(h-1)d_{u}},",
+        "\\displaystyle E_{\\phi}(B;s_{t})",
+        "\\displaystyle=w_{m}E_{m}+w_{u}E_{u},\\quad w_{m}+w_{u}=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle E_{m}",
+        "\\displaystyle=\\frac{\\sum_{k=1}^{h-1}\\left\\lVert m_{k}-\\tilde{m}_{k}\\right\\rVert_{2}^{2}}{(h-1)d_{m}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle E_{u}",
+        "\\displaystyle=\\frac{\\sum_{k=1}^{h-1}\\left\\lVert u_{k}-\\tilde{u}_{k}\\right\\rVert_{2}^{2}}{(h-1)d_{u}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle E_{\\phi}(B;s_{t})",
+        "\\displaystyle=w_{m}E_{m}+w_{u}E_{u},\\quad w_{m}+w_{u}=1."
+      ]
+    },
+    {
+      "id": "S3.EGx4",
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\mathrm{wm}}",
+        "\\displaystyle=\\frac{\\left\\lVert\\widehat{\\mathbf{f}}_{t+h}-\\operatorname{sg}(\\mathbf{f}_{t+h})\\right\\rVert_{1}}{|\\mathbf{f}_{t+h}|},",
+        "\\displaystyle\\Delta z",
+        "\\displaystyle=\\operatorname{pool}(\\mathbf{f}_{t+h})-\\operatorname{pool}(\\mathbf{f}_{t}),",
+        "\\displaystyle\\Delta\\hat{z}",
+        "\\displaystyle=\\operatorname{pool}(\\widehat{\\mathbf{f}}_{t+h})-\\operatorname{sg}(\\operatorname{pool}(\\mathbf{f}_{t})),",
+        "\\displaystyle\\mathcal{L}_{\\Delta}",
+        "\\displaystyle=\\operatorname{MSE}(\\Delta\\hat{z},\\operatorname{sg}(\\Delta z))."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\mathrm{wm}}",
+        "\\displaystyle=\\frac{\\left\\lVert\\widehat{\\mathbf{f}}_{t+h}-\\operatorname{sg}(\\mathbf{f}_{t+h})\\right\\rVert_{1}}{|\\mathbf{f}_{t+h}|},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Delta z",
+        "\\displaystyle=\\operatorname{pool}(\\mathbf{f}_{t+h})-\\operatorname{pool}(\\mathbf{f}_{t}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Delta\\hat{z}",
+        "\\displaystyle=\\operatorname{pool}(\\widehat{\\mathbf{f}}_{t+h})-\\operatorname{sg}(\\operatorname{pool}(\\mathbf{f}_{t})),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\Delta}",
+        "\\displaystyle=\\operatorname{MSE}(\\Delta\\hat{z},\\operatorname{sg}(\\Delta z))."
+      ]
+    },
+    {
+      "id": "S3.EGx5",
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\mathrm{acr}}={}",
+        "\\displaystyle\\operatorname{MSE}(D_{\\psi}(\\operatorname{sg}(\\Delta z),s_{t}),a_{t,0})",
+        "\\displaystyle+\\operatorname{MSE}(D_{\\psi}(\\Delta\\hat{z},s_{t}),a_{t,0})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\mathrm{acr}}={}",
+        "\\displaystyle\\operatorname{MSE}(D_{\\psi}(\\operatorname{sg}(\\Delta z),s_{t}),a_{t,0})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\operatorname{MSE}(D_{\\psi}(\\Delta\\hat{z},s_{t}),a_{t,0})."
+      ]
+    },
+    {
+      "id": "S3.EGx6",
+      "tex": [
+        "\\displaystyle\\mathcal{L}={}",
+        "\\displaystyle\\mathcal{L}_{\\mathrm{act}}+\\lambda_{\\mathrm{wm}}\\mathcal{L}_{\\mathrm{wm}}+\\lambda_{\\Delta}\\mathcal{L}_{\\Delta}",
+        "\\displaystyle+\\lambda_{\\mathrm{acr}}\\mathcal{L}_{\\mathrm{acr}}+\\lambda_{\\mathrm{prior}}\\mathcal{L}_{\\mathrm{prior}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{L}={}",
+        "\\displaystyle\\mathcal{L}_{\\mathrm{act}}+\\lambda_{\\mathrm{wm}}\\mathcal{L}_{\\mathrm{wm}}+\\lambda_{\\Delta}\\mathcal{L}_{\\Delta}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle+\\lambda_{\\mathrm{acr}}\\mathcal{L}_{\\mathrm{acr}}+\\lambda_{\\mathrm{prior}}\\mathcal{L}_{\\mathrm{prior}}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S0.F1",
+      "caption": "Fig. 1:  Left: two independent Place Basket on Table recordings with GR00T N1.7 and our method. Right: each sampled sequence  A t ( i ) A_{t}^{(i)}  is scored on its first  h h  commands. Visual progress  V i V_{i}  is the predicted reduction in distance to the subgoal  z g z_{g}  from current features  z t z_{t}  to predicted features  z ^ ( i ) \\hat{z}^{(i)} ; temporal-consistency energy  E i E_{i}  measures next-command prediction errors. The robot executes the first  K K  commands of the best-scoring sequence  i ∗ i^{*}  and replans from  o t + K o_{t+K} .",
+      "images": []
+    },
+    {
+      "id": "S3.F2",
+      "caption": "Fig. 2:  Architecture.  𝐟 \\mathbf{f}  denotes V-JEPA features. Each prefix  B t ( i ) B_{t}^{(i)}  receives visual progress  V i V_{i}  toward the active subgoal  g t g_{t}  (front of the stack) and temporal-consistency energy  E i E_{i} . In training, the demonstrated prefix  B t B_{t}  replaces sampled prefixes, and its first command  a t , 0 a_{t,0}  is reconstructed as  a ^ t , 0 \\hat{a}_{t,0}  from  Δ ​ z \\Delta z  and from  Δ ​ z ^ \\Delta\\hat{z} . Score bars are schematic; snowflakes: frozen weights.",
+      "images": [
+        "2611.04839v1/fig02_network.png"
+      ]
+    },
+    {
+      "id": "S4.T1",
+      "caption": "TABLE I:  Platforms and implementation settings.",
+      "images": []
+    },
+    {
+      "id": "S4.F3",
+      "caption": "Fig. 3:  Representative task scenes: the other six real-robot tasks and the ten SIMPLE simulation tasks. Place Basket on Table is shown in Fig.  1 .",
+      "images": [
+        "2611.04839v1/fig_task_gallery.png"
+      ]
+    },
+    {
+      "id": "S4.F4",
+      "caption": "Fig. 4:  Grasping behavior of our method under standard and unseen object configurations. Rings mark the grasping hand.",
+      "images": [
+        "2611.04839v1/fig03_behavior_comparison.png"
+      ]
+    },
+    {
+      "id": "S4.T2",
+      "caption": "TABLE II:  Six main SIMPLE tasks: L0/L1/L2 successes per ten trials. DiT4DiT, Fast-WAM, VLA-JEPA, and Ours are evaluated by us; other rows are from SIMPLE  [ 16 ] . Task names follow SIMPLE’s results table: Mobile P&P is LocomotionPickBetweenTables, and BendPick and Grasp (TabletopGrasp) use motion-planning demonstrations. Bold/underline mark best/second-best.",
+      "images": []
+    },
+    {
+      "id": "S4.T3",
+      "caption": "TABLE III:  Four additional SIMPLE tasks. Results for  Ψ 0 \\Psi_{0}  are from SIMPLE  [ 16 ] ; we evaluate the other methods. Reporting follows Table  II . Overall is the average success rate across all ten tasks.",
+      "images": []
+    },
+    {
+      "id": "S4.T4",
+      "caption": "TABLE IV:  Real-robot success under standard and unseen object configurations. Cells show successes out of ten trials; Avg. is the mean success rate across tasks (%). Bold/underline mark best/second-best.",
+      "images": []
+    },
+    {
+      "id": "S4.F5",
+      "caption": "Fig. 5:  Average success on five SIMPLE tasks versus the number of training demonstrations per task.",
+      "images": []
+    },
+    {
+      "id": "S4.F6",
+      "caption": "Fig. 6:  Failure cases of our method: (a) OpenFaucet (simulation), (b) Dispose of Trash, and (c) Collect Toy with Cart.",
+      "images": [
+        "2611.04839v1/fig06_failures.png"
+      ]
+    },
+    {
+      "id": "S4.T5",
+      "caption": "TABLE V:  Prediction formulation: closed-loop success on the SIMPLE benchmark (%).",
+      "images": []
+    },
+    {
+      "id": "S4.T6",
+      "caption": "TABLE VI:  Action consistency regularization (ACR) with visual-only scoring. Counts show successes out of ten trials at L0/L1/L2; Avg. is the success rate over all 120 episodes.",
+      "images": []
+    },
+    {
+      "id": "S4.T7",
+      "caption": "TABLE VII:  Temporal-scoring ablation. Counts follow Table  VI ; the joint-prior row uses the same four-task results as Table  III .",
+      "images": []
+    },
+    {
+      "id": "S4.T8",
+      "caption": "TABLE VIII:  Inference cost on SIMPLE. Hz denotes command chunks per second; timing for Ours includes sequence generation, visual prediction, and prior scoring.",
+      "images": []
+    },
+    {
+      "id": "A1.T1",
+      "caption": "TABLE S1:  Unseen object configurations.",
+      "images": []
+    },
+    {
+      "id": "A2.F1",
+      "caption": "Fig. S1:  Visual subgoals extracted with the HIW-500-fine-tuned V-JEPA 2.1 encoder. Each row shows five temporally ordered subgoals from one task demonstration.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

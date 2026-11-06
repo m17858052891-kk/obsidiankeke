@@ -1,0 +1,636 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "OpenNWM: A Generalist Navigation World Model with Latent Action Pretraining",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Related Work",
+      "id": "S2"
+    },
+    {
+      "title": "2.1  From Navigation Policies to Navigation World Models",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.2  Unified Embodied Learning from Heterogeneous Data",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "3  Method",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Problem Setup",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Universal Navigation Latent Actions",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  Latent-Conditioned Navigation World Modeling",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "3.4  Navigation Planning",
+      "id": "S3.SS4"
+    },
+    {
+      "title": "3.5  NavAnyWhere",
+      "id": "S3.SS5"
+    },
+    {
+      "title": "4  Experiments",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Experiment Setups",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Comparison Results",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Ablation Studies",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "5  Conclusion",
+      "id": "S5"
+    },
+    {
+      "title": "AI Use Statement",
+      "id": "Sx1"
+    },
+    {
+      "title": "Reproducibility Statement",
+      "id": "Sx2"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  NavAnywhere Dataset Details",
+      "id": "A1"
+    },
+    {
+      "title": "A.1  Dataset Composition",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "A.2  Scene and Environment Diversity",
+      "id": "A1.SS2"
+    },
+    {
+      "title": "Appendix B  Dataset Details and Preprocessing",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Action-Annotated Datasets",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2  Complementary Out-of-Domain Evaluation Sets",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.3  Data Processing",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "B.4  Dataset Usage in OpenNWM",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "Appendix C  Architecture and Implementation Details",
+      "id": "A3"
+    },
+    {
+      "title": "C.1  Training and Inference Details",
+      "id": "A3.SS1"
+    },
+    {
+      "title": "C.2  Evaluation Metrics",
+      "id": "A3.SS2"
+    },
+    {
+      "title": "Pixel-Level Fidelity.",
+      "id": "A3.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Perceptual Similarity.",
+      "id": "A3.SS2.SSS0.Px2"
+    },
+    {
+      "title": "Distributional Similarity.",
+      "id": "A3.SS2.SSS0.Px3"
+    },
+    {
+      "title": "Appendix D  Extended Quantitative Results",
+      "id": "A4"
+    },
+    {
+      "title": "Appendix E  Scaling and Ablation Studies",
+      "id": "A5"
+    },
+    {
+      "title": "Appendix F  Latent-Action Visualization and Analysis",
+      "id": "A6"
+    },
+    {
+      "title": "F.1  Latent action learning paradigms.",
+      "id": "A6.SS1"
+    },
+    {
+      "title": "F.2  Physical Alignment of Latent Actions",
+      "id": "A6.SS2"
+    },
+    {
+      "title": "F.3  Cross-Dataset Consistency of Latent Action Semantics",
+      "id": "A6.SS3"
+    },
+    {
+      "title": "Appendix G  Qualitative Results",
+      "id": "A7"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\mathcal{J}_{\\mathrm{pred}}(\\theta,\\phi)=\\mathbb{E}_{z_{\\tau:m}\\sim q_{\\phi}(\\cdot\\mid x_{\\tau},x_{m})}\\left[\\log p_{\\theta}(s_{m}\\mid\\mathbf{s}_{\\tau-h+1:\\tau},z_{\\tau:m},k)\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{J}_{\\mathrm{pred}}(\\theta,\\phi)=\\mathbb{E}_{z_{\\tau:m}\\sim q_{\\phi}(\\cdot\\mid x_{\\tau},x_{m})}\\left[\\log p_{\\theta}(s_{m}\\mid\\mathbf{s}_{\\tau-h+1:\\tau},z_{\\tau:m},k)\\right]"
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{vis}}=-\\mathbb{E}_{q_{\\phi}}\\left[\\log p_{\\psi}(x_{m}\\mid x_{\\tau},z_{\\tau\\rightarrow m})\\right]+\\beta D_{\\mathrm{KL}}\\left(q_{\\phi}(z_{\\tau\\rightarrow m}\\mid x_{\\tau},x_{m})\\|p(z)\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{vis}}=-\\mathbb{E}_{q_{\\phi}}\\left[\\log p_{\\psi}(x_{m}\\mid x_{\\tau},z_{\\tau\\rightarrow m})\\right]+\\beta D_{\\mathrm{KL}}\\left(q_{\\phi}(z_{\\tau\\rightarrow m}\\mid x_{\\tau},x_{m})\\|p(z)\\right)"
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{phy}}=-\\mathbb{E}_{q_{\\phi}}\\left[\\log p_{\\omega}\\left(\\mathbf{y}_{\\tau:m}\\mid z_{\\tau\\rightarrow m}\\right)\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{phy}}=-\\mathbb{E}_{q_{\\phi}}\\left[\\log p_{\\omega}\\left(\\mathbf{y}_{\\tau:m}\\mid z_{\\tau\\rightarrow m}\\right)\\right]"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{latent}}=\\mathbb{E}_{(\\mathbf{x},\\mathbf{y})\\sim\\mathcal{D}}\\left[\\mathcal{L}_{\\mathrm{vis}}\\right]+\\lambda_{\\mathrm{phy}}\\mathbb{E}_{(\\mathbf{x},\\mathbf{y})\\sim\\mathcal{D}_{\\mathrm{phy}}}\\left[\\mathcal{L}_{\\mathrm{phy}}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{latent}}=\\mathbb{E}_{(\\mathbf{x},\\mathbf{y})\\sim\\mathcal{D}}\\left[\\mathcal{L}_{\\mathrm{vis}}\\right]+\\lambda_{\\mathrm{phy}}\\mathbb{E}_{(\\mathbf{x},\\mathbf{y})\\sim\\mathcal{D}_{\\mathrm{phy}}}\\left[\\mathcal{L}_{\\mathrm{phy}}\\right]"
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\xi_{\\tau:m}^{(t)}=\\psi_{z}(z_{\\tau\\rightarrow m})+\\psi_{k}(k)+\\psi_{t}(t)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\xi_{\\tau:m}^{(t)}=\\psi_{z}(z_{\\tau\\rightarrow m})+\\psi_{k}(k)+\\psi_{t}(t)"
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "s_{m}^{(t)}=\\sqrt{\\alpha_{t}}s_{m}+\\sqrt{1-\\alpha_{t}}\\epsilon,\\qquad\\epsilon\\sim\\mathcal{N}(0,I)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "s_{m}^{(t)}=\\sqrt{\\alpha_{t}}s_{m}+\\sqrt{1-\\alpha_{t}}\\epsilon,\\qquad\\epsilon\\sim\\mathcal{N}(0,I)"
+      ]
+    },
+    {
+      "id": "S3.Ex1",
+      "tex": [
+        "\\widehat{s}_{m}=F_{\\theta}(s_{m}^{(t)}\\mid\\mathbf{s}_{\\tau-h+1:\\tau},\\xi_{\\tau:m}^{(t)})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{s}_{m}=F_{\\theta}(s_{m}^{(t)}\\mid\\mathbf{s}_{\\tau-h+1:\\tau},\\xi_{\\tau:m}^{(t)})"
+      ]
+    },
+    {
+      "id": "S3.E7",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{NWM}}=\\mathbb{E}\\left[\\left\\|s_{m}-\\widehat{s}_{m}\\right\\|_{2}^{2}\\right]+\\lambda_{\\mathrm{vlb}}\\mathcal{L}_{\\mathrm{vlb}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{NWM}}=\\mathbb{E}\\left[\\left\\|s_{m}-\\widehat{s}_{m}\\right\\|_{2}^{2}\\right]+\\lambda_{\\mathrm{vlb}}\\mathcal{L}_{\\mathrm{vlb}}"
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "\\mathcal{E}(\\widehat{\\mathbf{s}},\\mathbf{a};s^{g},c)=-\\mathcal{S}_{\\mathrm{goal}}(\\widehat{s}_{H},s^{g})+\\mathcal{C}_{\\mathrm{nav}}(\\widehat{\\mathbf{s}},\\mathbf{a},c)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{E}(\\widehat{\\mathbf{s}},\\mathbf{a};s^{g},c)=-\\mathcal{S}_{\\mathrm{goal}}(\\widehat{s}_{H},s^{g})+\\mathcal{C}_{\\mathrm{nav}}(\\widehat{\\mathbf{s}},\\mathbf{a},c)."
+      ]
+    },
+    {
+      "id": "S3.E9",
+      "tex": [
+        "\\mathbf{a}^{*}=\\arg\\min_{\\mathbf{a}}\\mathbb{E}_{\\widehat{\\mathbf{s}}\\sim p_{\\theta}(\\cdot\\mid\\mathbf{s}_{0:\\tau},\\mathbf{a})}\\left[\\mathcal{E}(\\widehat{\\mathbf{s}},\\mathbf{a};s^{g},c)\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{a}^{*}=\\arg\\min_{\\mathbf{a}}\\mathbb{E}_{\\widehat{\\mathbf{s}}\\sim p_{\\theta}(\\cdot\\mid\\mathbf{s}_{0:\\tau},\\mathbf{a})}\\left[\\mathcal{E}(\\widehat{\\mathbf{s}},\\mathbf{a};s^{g},c)\\right]."
+      ]
+    },
+    {
+      "id": "A3.E10",
+      "tex": [
+        "\\mathrm{PSNR}=10\\log_{10}\\left(\\frac{I_{\\max}^{2}}{\\frac{1}{N}\\sum_{i=1}^{N}(\\hat{I}_{i}-I_{i})^{2}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{PSNR}=10\\log_{10}\\left(\\frac{I_{\\max}^{2}}{\\frac{1}{N}\\sum_{i=1}^{N}(\\hat{I}_{i}-I_{i})^{2}}\\right),"
+      ]
+    },
+    {
+      "id": "A3.E11",
+      "tex": [
+        "\\mathrm{LPIPS}(\\hat{\\mathbf{I}},\\mathbf{I})=\\sum_{l}\\frac{1}{H_{l}W_{l}}\\sum_{h,w}\\left\\|\\mathbf{w}_{l}\\odot\\left(\\phi_{l}(\\hat{\\mathbf{I}})_{hw}-\\phi_{l}(\\mathbf{I})_{hw}\\right)\\right\\|_{2}^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{LPIPS}(\\hat{\\mathbf{I}},\\mathbf{I})=\\sum_{l}\\frac{1}{H_{l}W_{l}}\\sum_{h,w}\\left\\|\\mathbf{w}_{l}\\odot\\left(\\phi_{l}(\\hat{\\mathbf{I}})_{hw}-\\phi_{l}(\\mathbf{I})_{hw}\\right)\\right\\|_{2}^{2},"
+      ]
+    },
+    {
+      "id": "A3.E12",
+      "tex": [
+        "\\mathrm{FID}=\\left\\|\\bm{\\mu}_{p}-\\bm{\\mu}_{r}\\right\\|_{2}^{2}+\\operatorname{Tr}\\left(\\bm{\\Sigma}_{p}+\\bm{\\Sigma}_{r}-2\\left(\\bm{\\Sigma}_{p}\\bm{\\Sigma}_{r}\\right)^{1/2}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{FID}=\\left\\|\\bm{\\mu}_{p}-\\bm{\\mu}_{r}\\right\\|_{2}^{2}+\\operatorname{Tr}\\left(\\bm{\\Sigma}_{p}+\\bm{\\Sigma}_{r}-2\\left(\\bm{\\Sigma}_{p}\\bm{\\Sigma}_{r}\\right)^{1/2}\\right),"
+      ]
+    },
+    {
+      "id": "A6.E13",
+      "tex": [
+        "\\mathrm{Macro}\\text{-}6\\ \\mathrm{Recall}=\\frac{1}{6}\\sum_{c\\in\\mathcal{C}}R_{c}=\\frac{1}{6}\\sum_{c\\in\\mathcal{C}}\\frac{\\mathrm{TP}_{c}}{\\mathrm{TP}_{c}+\\mathrm{FN}_{c}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{Macro}\\text{-}6\\ \\mathrm{Recall}=\\frac{1}{6}\\sum_{c\\in\\mathcal{C}}R_{c}=\\frac{1}{6}\\sum_{c\\in\\mathcal{C}}\\frac{\\mathrm{TP}_{c}}{\\mathrm{TP}_{c}+\\mathrm{FN}_{c}},"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S0.F1",
+      "caption": "Figure 1:  Overview of OpenNWM. \nOpenNWM learns navigation dynamics from heterogeneous action-free videos via latent-action pretraining, then adapts to real waypoint actions for action-conditioned prediction and planning.",
+      "images": [
+        "2611.01844v2/nwm-overview.png"
+      ]
+    },
+    {
+      "id": "S3.F2",
+      "caption": "Figure 2:  \n Framework of OpenNWM.",
+      "images": [
+        "2611.01844v2/NWM.png"
+      ]
+    },
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Action-Conditioned Receding-Horizon Planning",
+      "images": []
+    },
+    {
+      "id": "S4.F3",
+      "caption": "Figure 3:  Three-stage training pipeline of OpenNWM.\n(a) Latent-action pretraining on action-free NavAnywhere videos.\n(b) Action-encoder warmup with the CDiT backbone frozen.\n(c) Joint post-training of the entire model.",
+      "images": [
+        "2611.01844v2/training.png"
+      ]
+    },
+    {
+      "id": "S4.T2",
+      "caption": "Table 1:  Direct visual prediction at 4 s.\nDS: DreamSim; NWM † : CDiT-XL + Ego4D.\nID/OOD denote in-domain/out-of-domain evaluation.\nBest and second-best results are  bold  and\n underlined , respectively. Table 2:  Navigation performance on RECON, SCAND,\nand Office Go2 (OOD).\nLower ATE and RPE indicate better performance.\nBest and second-best results are  bold  and\n underlined , respectively.",
+      "images": []
+    },
+    {
+      "id": "S4.T2.fig1",
+      "caption": "Table 1:  Direct visual prediction at 4 s.\nDS: DreamSim; NWM † : CDiT-XL + Ego4D.\nID/OOD denote in-domain/out-of-domain evaluation.\nBest and second-best results are  bold  and\n underlined , respectively.",
+      "images": []
+    },
+    {
+      "id": "S4.T2.fig2",
+      "caption": "Table 2:  Navigation performance on RECON, SCAND,\nand Office Go2 (OOD).\nLower ATE and RPE indicate better performance.\nBest and second-best results are  bold  and\n underlined , respectively.",
+      "images": []
+    },
+    {
+      "id": "S4.F4",
+      "caption": "Table 3:  Image reconstruction performance of LAMs.\nID (in-domain): average over RECON, SCAND, and HuRoN.\nOOD (out-of-domain): unseen Go Stanford.\nBest results are in  bold  and second best are  underlined . Figure 4:  Semantic consistency of latent actions.\nDetailed metric definitions are provided in the appendix.",
+      "images": [
+        "2611.01844v2/matrix.png"
+      ]
+    },
+    {
+      "id": "S4.F4.fig1",
+      "caption": "Table 3:  Image reconstruction performance of LAMs.\nID (in-domain): average over RECON, SCAND, and HuRoN.\nOOD (out-of-domain): unseen Go Stanford.\nBest results are in  bold  and second best are  underlined .",
+      "images": []
+    },
+    {
+      "id": "S4.F4.fig2",
+      "caption": "Figure 4:  Semantic consistency of latent actions.\nDetailed metric definitions are provided in the appendix.",
+      "images": [
+        "2611.01844v2/matrix.png"
+      ]
+    },
+    {
+      "id": "S4.F5",
+      "caption": "Figure 5:  Latent-action clustering under four LAM supervision paradigms.",
+      "images": [
+        "2611.01844v2/cluster.png"
+      ]
+    },
+    {
+      "id": "S4.T5",
+      "caption": "Table 4:  \nPretraining ablation.\nEffect of different DiT conditioning signals. Best and second-best results are bold and underlined, respectively.\n Table 5:  \nLAM supervision ablation.\nEffect of different supervision on latent-action learning. Best/second-best results are  bold / underlined .",
+      "images": []
+    },
+    {
+      "id": "S4.T5.fig1",
+      "caption": "Table 4:  \nPretraining ablation.\nEffect of different DiT conditioning signals. Best and second-best results are bold and underlined, respectively.\n",
+      "images": []
+    },
+    {
+      "id": "S4.T5.fig2",
+      "caption": "Table 5:  \nLAM supervision ablation.\nEffect of different supervision on latent-action learning. Best/second-best results are  bold / underlined .",
+      "images": []
+    },
+    {
+      "id": "A1.F6",
+      "caption": "Figure 6:  Overview of NavAnywhere and its complementary\nout-of-domain evaluation sets. \nNavAnywhere covers diverse everyday navigation environments.\nThe complementary evaluation sets are separate from NavAnywhere\nand are described in Section  B.2 .",
+      "images": [
+        "2611.01844v2/navanywhere_overview_radial_20260922_macos.png"
+      ]
+    },
+    {
+      "id": "A1.F7",
+      "caption": "Figure 7:  Source composition of NavAnywhere. \nStatistics cover the 15 action-free sources.",
+      "images": [
+        "2611.01844v2/figs/navanywhere_dataset_composition.png"
+      ]
+    },
+    {
+      "id": "A1.T6",
+      "caption": "Table 6:  NavAnywhere dataset statistics. \nSequences denote processed video clips or trajectories, and frames\ndenote sampled RGB images. Hours measure source-video duration. All 15 sources are\nused as RGB-only, action-free data.",
+      "images": []
+    },
+    {
+      "id": "A2.T7",
+      "caption": "Table 7:  Statistics of the action-annotated datasets. \nSequences denote processed trajectories, and frames denote sampled\nRGB images. Go Stanford is used only for evaluation.",
+      "images": []
+    },
+    {
+      "id": "A3.T8",
+      "caption": "Table 8:  Training and inference configurations of OpenNWM. \nBatch sizes are global, and image resolutions are reported as\nheight  × \\times  width.",
+      "images": []
+    },
+    {
+      "id": "A4.F8",
+      "caption": "Figure 8:  Scaling unlabeled data ablation. \nThe horizontal axis gives the percentage of the unlabeled data pool\nused for latent-action pretraining, with action-label availability\nfixed.",
+      "images": []
+    },
+    {
+      "id": "A4.T9",
+      "caption": "Table 9:  In-distribution (ID) direct visual prediction\nat the nominal 4 s horizon. \nDS: DreamSim.\nBest and second-best results are bold and underlined, respectively.",
+      "images": []
+    },
+    {
+      "id": "A6.T10",
+      "caption": "Table 10:  Navigation performance on RECON, SCAND, and TartanDrive.\nBest and second-best available results are bold and underlined, respectively.",
+      "images": []
+    },
+    {
+      "id": "A6.F9",
+      "caption": "Figure 9:  Four latent action learning paradigms.\nAn encoder maps a visual transition to a variational latent  z t z_{t} .\nThe prediction targets are (a) the observed action  a t a_{t} , (b) the future image  x t + 1 x_{t+1} ,\n(c) frozen DINOv3 features  f t + 1 f_{t+1} , and (d) both the image and action.\nReconstruction decoders additionally receive the current image or its features.\nIn (d), pixel reconstruction uses all samples, while the action loss uses only labeled samples.\nAll variants include the same form of KL regularization.",
+      "images": [
+        "2611.01844v2/lam_four_paradigms-.png"
+      ]
+    },
+    {
+      "id": "A6.F10",
+      "caption": "Figure 10:  Visualization of the semantic separability of latent actions learned by four LAM paradigms across different navigation action categories. TartanDrive and Go Stanford are out-of-domain datasets.",
+      "images": [
+        "2611.01844v2/nav-vis01.png"
+      ]
+    },
+    {
+      "id": "A7.F11",
+      "caption": "Figure 11:  Video generation examples on RECON. NWM, RAE-NWM and OpenNWM are conditioned on a single first image, and a ground truth trajectory and\nautoregressively predicts the next up to 16 seconds at 4 FPS. We plot the generated results from 0 to 16 seconds, every 2 second.",
+      "images": [
+        "2611.01844v2/vis-pred-recon.png"
+      ]
+    },
+    {
+      "id": "A7.F12",
+      "caption": "Figure 12:  Video generation examples on HuRoN. NWM, RAE-NWM and OpenNWM are conditioned on a single first image, and a ground truth trajectory and\nautoregressively predicts the next up to 16 seconds at 4 FPS. We plot the generated results from 0 to 16 seconds, every 2 second.",
+      "images": [
+        "2611.01844v2/vis-pred-huron.png"
+      ]
+    },
+    {
+      "id": "A7.F13",
+      "caption": "Figure 13:  Video generation examples on TartanDrive. NWM, RAE-NWM and OpenNWM are conditioned on a single first image, and a ground truth trajectory and\nautoregressively predicts the next up to 16 seconds at 4 FPS. We plot the generated results from 0 to 16 seconds, every 2 second.",
+      "images": [
+        "2611.01844v2/vis-pred-tartandrive.png"
+      ]
+    },
+    {
+      "id": "A7.F14",
+      "caption": "Figure 14:  Video generation examples on Go Stanford (OOD). NWM, RAE-NWM and OpenNWM are conditioned on a single first image, and a ground truth trajectory and\nautoregressively predicts the next up to 4 seconds at 4 FPS. We plot the generated results from 0 to 4 seconds, every 1 second.",
+      "images": [
+        "2611.01844v2/vis-pred-stanford.png"
+      ]
+    },
+    {
+      "id": "A7.F15",
+      "caption": "Figure 15:  Qualitative results of our LAM on HuRoN. Each row shows the input image, ground-truth target image, reconstruction, and ground-truth versus decoded actions. Endpoint error (EPE, m) and yaw error ( ∘ ) are reported for each example.",
+      "images": [
+        "2611.01844v2/vis-lam-huron.png"
+      ]
+    },
+    {
+      "id": "A7.F16",
+      "caption": "Figure 16:  Qualitative results of our LAM on RECON. Each row shows the input image, ground-truth target image, reconstruction, and ground-truth versus decoded actions. Endpoint error (EPE, m) and yaw error ( ∘ ) are reported for each example.",
+      "images": [
+        "2611.01844v2/vis-lam-recon.png"
+      ]
+    },
+    {
+      "id": "A7.F17",
+      "caption": "Figure 17:  Qualitative results of our LAM on SCAND. Each row shows the input image, ground-truth target image, reconstruction, and ground-truth versus decoded actions. Endpoint error (EPE, m) and yaw error ( ∘ ) are reported for each example.",
+      "images": [
+        "2611.01844v2/vis-lam-scand.png"
+      ]
+    },
+    {
+      "id": "A7.F18",
+      "caption": "Figure 18:  Qualitative results of our LAM on Go Stanford (OOD). Each row shows the input image, ground-truth target image, reconstruction, and ground-truth versus decoded actions. Endpoint error (EPE, m) and yaw error ( ∘ ) are reported for each example.",
+      "images": [
+        "2611.01844v2/vis-lam-stanford.png"
+      ]
+    },
+    {
+      "id": "A7.F19",
+      "caption": "Figure 19:  Qualitative results of our LAM on TartanDrive (OOD). Each row shows the input image, ground-truth target image, reconstruction, and ground-truth versus decoded actions. Endpoint error (EPE, m) and yaw error ( ∘ ) are reported for each example.",
+      "images": [
+        "2611.01844v2/vis-lam-tartan.png"
+      ]
+    },
+    {
+      "id": "A7.F20",
+      "caption": "Figure 20:  Qualitative navigation results of OpenNWM on HuRoN. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-huron-1.png"
+      ]
+    },
+    {
+      "id": "A7.F21",
+      "caption": "Figure 21:  Qualitative navigation results of OpenNWM on HuRoN. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-huron-2.png"
+      ]
+    },
+    {
+      "id": "A7.F22",
+      "caption": "Figure 22:  Qualitative navigation results of OpenNWM on Office-go2 (OOD). The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-office-go2-1.png"
+      ]
+    },
+    {
+      "id": "A7.F23",
+      "caption": "Figure 23:  Qualitative navigation results of OpenNWM on Office-go2 (OOD). The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-office-go2-2.png"
+      ]
+    },
+    {
+      "id": "A7.F24",
+      "caption": "Figure 24:  Qualitative navigation results of OpenNWM on RECON. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-recon-1.png"
+      ]
+    },
+    {
+      "id": "A7.F25",
+      "caption": "Figure 25:  Qualitative navigation results of OpenNWM on RECON. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-recon-2.png"
+      ]
+    },
+    {
+      "id": "A7.F26",
+      "caption": "Figure 26:  Qualitative navigation results of OpenNWM on SCAND. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-scand-1.png"
+      ]
+    },
+    {
+      "id": "A7.F27",
+      "caption": "Figure 27:  Qualitative navigation results of OpenNWM on SCAND. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-scand-2.png"
+      ]
+    },
+    {
+      "id": "A7.F28",
+      "caption": "Figure 28:  Qualitative navigation results of OpenNWM on Go Stanford (OOD). The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-stanford-1.png"
+      ]
+    },
+    {
+      "id": "A7.F29",
+      "caption": "Figure 29:  Qualitative navigation results of OpenNWM on Go Stanford (OOD). The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-stanford-2.png"
+      ]
+    },
+    {
+      "id": "A7.F30",
+      "caption": "Figure 30:  Qualitative navigation results of OpenNWM on TartanDrive. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-tartan-1.png"
+      ]
+    },
+    {
+      "id": "A7.F31",
+      "caption": "Figure 31:  Qualitative navigation results of OpenNWM on TartanDrive. The top row shows the start and goal images alongside ground-truth and predicted trajectories, with ATE and goal error reported in meters. The bottom rows compare ground-truth and predicted observations at 0.5-second intervals over a 2-second horizon.",
+      "images": [
+        "2611.01844v2/vis-nav-tartan-2.png"
+      ]
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

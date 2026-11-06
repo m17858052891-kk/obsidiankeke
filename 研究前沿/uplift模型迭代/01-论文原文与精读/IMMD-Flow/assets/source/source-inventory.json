@@ -1,0 +1,4832 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Sampling Interventional Distributions with Orthogonal MMD Flow",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Problem Statement",
+      "id": "S2"
+    },
+    {
+      "title": "3  Interventional MMD Flow",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  MMD objective for interventional sampling",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Orthogonal representation of the interventional objective",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  Interventional MMD dynamics",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "4  Sampling Procedure",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Orthogonal target estimation",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Particle generation",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "5  Statistical Guarantees",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  IMMD-Flow sampling error",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Statistical and numerical target error",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  Consistency",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "6  Numerical Experiments",
+      "id": "S6"
+    },
+    {
+      "title": "7  Conclusion",
+      "id": "S7"
+    },
+    {
+      "title": "Code Availability",
+      "id": "S7.SSx1"
+    },
+    {
+      "title": "AI use statement",
+      "id": "S7.SSx2"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix Contents",
+      "id": "Ax1"
+    },
+    {
+      "title": "Appendix A  Discussion of Related work",
+      "id": "A1"
+    },
+    {
+      "title": "Debiased estimation of interventional distributions.",
+      "id": "A1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Kernel embeddings of interventional distributions.",
+      "id": "A1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "MMD-based particle transport.",
+      "id": "A1.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Counterfactual sampling.",
+      "id": "A1.SS0.SSS0.Px4"
+    },
+    {
+      "title": "Appendix B  Orthogonal Target Computation",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Full-ridge computation",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2  Projected Nyström computation",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "Whitened landmark coordinates.",
+      "id": "A2.SS2.SSS0.Px1"
+    },
+    {
+      "title": "B.3  Intervention integration and computational reuse",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "B.4  Plug-in and inverse-probability variants",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "B.5  Computational complexity",
+      "id": "A2.SS5"
+    },
+    {
+      "title": "Appendix C  Proofs for the Interventional MMD Construction",
+      "id": "A3"
+    },
+    {
+      "title": "C.1  Double robustness and orthogonality",
+      "id": "A3.SS1"
+    },
+    {
+      "title": "C.2  Dissipation and velocity stability",
+      "id": "A3.SS2"
+    },
+    {
+      "title": "Appendix D  Theoretical Analysis",
+      "id": "A4"
+    },
+    {
+      "title": "D.1  Projected Nyström approximation of the conditional mean embedding",
+      "id": "A4.SS1"
+    },
+    {
+      "title": "Generic input sketch and Nyström specialization.",
+      "id": "A4.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Auxiliary operator bounds.",
+      "id": "A4.SS1.SSS0.Px2"
+    },
+    {
+      "title": "Same-sample embedding estimation.",
+      "id": "A4.SS1.SSS0.Px3"
+    },
+    {
+      "title": "Finite target-policy Monte Carlo approximation.",
+      "id": "A4.SS1.SSS0.Px4"
+    },
+    {
+      "title": "D.2  Consistency of the generated particles",
+      "id": "A4.SS2"
+    },
+    {
+      "title": "D.3  Numerical-target rate and consistency",
+      "id": "A4.SS3"
+    },
+    {
+      "title": "D.4  Outcome-space transfer through the frozen encoder–decoder",
+      "id": "A4.SS4"
+    },
+    {
+      "title": "Appendix E  Supplementary on Numerical Experiments",
+      "id": "A5"
+    },
+    {
+      "title": "E.1  RKHS and Kernels",
+      "id": "A5.SS1"
+    },
+    {
+      "title": "Kernels.",
+      "id": "A5.SS1.SSS0.Px1"
+    },
+    {
+      "title": "E.2  Riesz Particle Optimization with AdamW and Warm-up Learning Rate",
+      "id": "A5.SS2"
+    },
+    {
+      "title": "Adaptive scale and particle gradient.",
+      "id": "A5.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Optimizer and learning-rate schedule.",
+      "id": "A5.SS2.SSS0.Px2"
+    },
+    {
+      "title": "E.3  Details on Data-Generating Processes",
+      "id": "A5.SS3"
+    },
+    {
+      "title": "ColorMNIST.",
+      "id": "A5.SS3.SSS0.Px1"
+    },
+    {
+      "title": "CelebA.",
+      "id": "A5.SS3.SSS0.Px2"
+    },
+    {
+      "title": "dSprites.",
+      "id": "A5.SS3.SSS0.Px3"
+    },
+    {
+      "title": "Two-dimensional Gaussian mixture.",
+      "id": "A5.SS3.SSS0.Px4"
+    },
+    {
+      "title": "E.4  Autoencoders for Image Experiments",
+      "id": "A5.SS4"
+    },
+    {
+      "title": "E.5  Qualitative samples and particle evolution",
+      "id": "A5.SS5"
+    },
+    {
+      "title": "ColorMNIST samples.",
+      "id": "A5.SS5.SSS0.Px1"
+    },
+    {
+      "title": "CelebA samples.",
+      "id": "A5.SS5.SSS0.Px2"
+    },
+    {
+      "title": "Particle evolution on CelebA.",
+      "id": "A5.SS5.SSS0.Px3"
+    },
+    {
+      "title": "E.6  Additional experiments and ablations",
+      "id": "A5.SS6"
+    },
+    {
+      "title": "Null-effect deconfounding illustration.",
+      "id": "A5.SS6.SSS0.Px1"
+    },
+    {
+      "title": "Effect of the logged sample size.",
+      "id": "A5.SS6.SSS0.Px2"
+    },
+    {
+      "title": "Effect of the particle count.",
+      "id": "A5.SS6.SSS0.Px3"
+    },
+    {
+      "title": "Effect of particle initialization.",
+      "id": "A5.SS6.SSS0.Px4"
+    },
+    {
+      "title": "Full ridge versus projected Nyström.",
+      "id": "A5.SS6.SSS0.Px5"
+    },
+    {
+      "title": "Effect of confounding strength.",
+      "id": "A5.SS6.SSS0.Px6"
+    },
+    {
+      "title": "E.7  Compute resources",
+      "id": "A5.SS7"
+    },
+    {
+      "title": "E.8  Existing assets, licences, and sensitive content",
+      "id": "A5.SS8"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "P_{0}(dy,da,dx)=P_{Y\\mid A,X}(dy|a,x)\\,\\pi_{0}(da|x)\\,P_{X}(dx)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{0}(dy,da,dx)=P_{Y\\mid A,X}(dy|a,x)\\,\\pi_{0}(da|x)\\,P_{X}(dx)"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "P^{\\pi}(B)=\\mathbb{E}\\left[\\int_{{\\mathcal{A}}}\\mathbf{1}\\{Y(a)\\in B\\}\\,\\pi(da\\mid X)\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P^{\\pi}(B)=\\mathbb{E}\\left[\\int_{{\\mathcal{A}}}\\mathbf{1}\\{Y(a)\\in B\\}\\,\\pi(da\\mid X)\\right],"
+      ]
+    },
+    {
+      "id": "S2.E3",
+      "tex": [
+        "P^{\\pi}(B)=\\int_{{\\mathcal{X}}}\\int_{{\\mathcal{A}}}P_{Y|A,X}(B|a,x)\\,\\pi(da|x)\\,P_{X}(dx)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P^{\\pi}(B)=\\int_{{\\mathcal{X}}}\\int_{{\\mathcal{A}}}P_{Y|A,X}(B|a,x)\\,\\pi(da|x)\\,P_{X}(dx)."
+      ]
+    },
+    {
+      "id": "S2.E4",
+      "tex": [
+        "\\Pr(\\widetilde{Y}\\in B)=P^{\\pi}(B),\\qquad B\\subseteq{\\mathcal{Y}}\\ \\text{measurable}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Pr(\\widetilde{Y}\\in B)=P^{\\pi}(B),\\qquad B\\subseteq{\\mathcal{Y}}\\ \\text{measurable}."
+      ]
+    },
+    {
+      "id": "S2.Ex1",
+      "tex": [
+        "P^{\\pi}\\in\\argmin_{Q\\in\\mathcal{P}({\\mathcal{Y}})}\\mathcal{F}_{\\pi}(Q),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P^{\\pi}\\in\\argmin_{Q\\in\\mathcal{P}({\\mathcal{Y}})}\\mathcal{F}_{\\pi}(Q),"
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\mathcal{F}_{\\pi}(Q):=\\frac{1}{2}\\|\\mu_{Q}-\\chi(\\pi)\\|_{{\\mathcal{H}}}^{2}=\\frac{1}{2}\\operatorname{MMD}_{k}^{2}(Q,Q^{\\pi})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{F}_{\\pi}(Q):=\\frac{1}{2}\\|\\mu_{Q}-\\chi(\\pi)\\|_{{\\mathcal{H}}}^{2}=\\frac{1}{2}\\operatorname{MMD}_{k}^{2}(Q,Q^{\\pi})."
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "R_{\\pi}(Q)-R_{\\pi}(Q^{\\pi})=\\mathcal{F}_{\\pi}(Q)=\\frac{1}{2}\\operatorname{MMD}_{k}^{2}(Q,Q^{\\pi})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{\\pi}(Q)-R_{\\pi}(Q^{\\pi})=\\mathcal{F}_{\\pi}(Q)=\\frac{1}{2}\\operatorname{MMD}_{k}^{2}(Q,Q^{\\pi})."
+      ]
+    },
+    {
+      "id": "S3.EGx1",
+      "tex": [
+        "\\displaystyle m_{0}(a,x)",
+        "\\displaystyle:=\\mathbb{E}_{0}[\\varphi(Z)\\mid A=a,X=x],\\quad w_{0}(a,x):=\\frac{d\\pi(\\cdot\\mid x)}{d\\pi_{0}(\\cdot\\mid x)}(a)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle m_{0}(a,x)",
+        "\\displaystyle:=\\mathbb{E}_{0}[\\varphi(Z)\\mid A=a,X=x],\\quad w_{0}(a,x):=\\frac{d\\pi(\\cdot\\mid x)}{d\\pi_{0}(\\cdot\\mid x)}(a)."
+      ]
+    },
+    {
+      "id": "S3.EGx2",
+      "tex": [
+        "\\displaystyle\\chi(\\pi)",
+        "\\displaystyle=\\mathbb{E}_{0}\\left[\\int_{{\\mathcal{A}}}m_{0}(a,X)\\,\\pi(da\\mid X)\\right]=\\mathbb{E}_{0}[w_{0}(A,X)\\varphi(Z)]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\chi(\\pi)",
+        "\\displaystyle=\\mathbb{E}_{0}\\left[\\int_{{\\mathcal{A}}}m_{0}(a,X)\\,\\pi(da\\mid X)\\right]=\\mathbb{E}_{0}[w_{0}(A,X)\\varphi(Z)]."
+      ]
+    },
+    {
+      "id": "S3.EGx3",
+      "tex": [
+        "\\displaystyle\\Gamma_{\\eta}(O)",
+        "\\displaystyle:=\\int_{{\\mathcal{A}}}m(a,X)\\,\\pi(da\\mid X)+w(A,X)\\{\\varphi(Z)-m(A,X)\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Gamma_{\\eta}(O)",
+        "\\displaystyle:=\\int_{{\\mathcal{A}}}m(a,X)\\,\\pi(da\\mid X)+w(A,X)\\{\\varphi(Z)-m(A,X)\\},"
+      ]
+    },
+    {
+      "id": "S3.EGx4",
+      "tex": [
+        "\\displaystyle R(Q;\\eta)",
+        "\\displaystyle:=\\frac{1}{2}\\|\\mu_{Q}\\|_{{\\mathcal{H}}}^{2}-\\langle\\mu_{Q},h_{\\eta}\\rangle_{{\\mathcal{H}}}=\\frac{1}{2}\\|\\mu_{Q}-h_{\\eta}\\|_{{\\mathcal{H}}}^{2}-\\frac{1}{2}\\|h_{\\eta}\\|_{{\\mathcal{H}}}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle R(Q;\\eta)",
+        "\\displaystyle:=\\frac{1}{2}\\|\\mu_{Q}\\|_{{\\mathcal{H}}}^{2}-\\langle\\mu_{Q},h_{\\eta}\\rangle_{{\\mathcal{H}}}=\\frac{1}{2}\\|\\mu_{Q}-h_{\\eta}\\|_{{\\mathcal{H}}}^{2}-\\frac{1}{2}\\|h_{\\eta}\\|_{{\\mathcal{H}}}^{2}."
+      ]
+    },
+    {
+      "id": "S3.EGx5",
+      "tex": [
+        "\\displaystyle h_{\\eta}-\\chi(\\pi)",
+        "\\displaystyle=-\\mathbb{E}_{0}\\!\\left[(w-w_{0})(m-m_{0})\\right],",
+        "\\displaystyle\\|h_{\\eta}-\\chi(\\pi)\\|_{{\\mathcal{H}}}",
+        "\\displaystyle\\leq r_{w}r_{m},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle h_{\\eta}-\\chi(\\pi)",
+        "\\displaystyle=-\\mathbb{E}_{0}\\!\\left[(w-w_{0})(m-m_{0})\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|h_{\\eta}-\\chi(\\pi)\\|_{{\\mathcal{H}}}",
+        "\\displaystyle\\leq r_{w}r_{m},"
+      ]
+    },
+    {
+      "id": "S3.Ex5",
+      "tex": [
+        "D_{\\eta}\\!\\left(u-h_{\\eta}\\right)\\big|_{\\eta=\\eta_{0}}[\\dot{\\eta}]=0,\\qquad u\\in{\\mathcal{H}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{\\eta}\\!\\left(u-h_{\\eta}\\right)\\big|_{\\eta=\\eta_{0}}[\\dot{\\eta}]=0,\\qquad u\\in{\\mathcal{H}},"
+      ]
+    },
+    {
+      "id": "S3.E10",
+      "tex": [
+        "\\mathcal{F}_{h}(Q):=\\frac{1}{2}\\|\\mu_{Q}-h\\|_{{\\mathcal{H}}}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{F}_{h}(Q):=\\frac{1}{2}\\|\\mu_{Q}-h\\|_{{\\mathcal{H}}}^{2}."
+      ]
+    },
+    {
+      "id": "S3.EGx6",
+      "tex": [
+        "\\displaystyle\\sup_{z\\in{\\mathcal{Z}}}\\|D\\varphi(z)\\|_{\\mathrm{op}}",
+        "\\displaystyle\\leq L_{\\varphi},\\ \\|D\\varphi(z)-D\\varphi(z^{\\prime})\\|_{\\mathrm{op}}\\leq L_{D}\\|z-z^{\\prime}\\|_{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sup_{z\\in{\\mathcal{Z}}}\\|D\\varphi(z)\\|_{\\mathrm{op}}",
+        "\\displaystyle\\leq L_{\\varphi},\\ \\|D\\varphi(z)-D\\varphi(z^{\\prime})\\|_{\\mathrm{op}}\\leq L_{D}\\|z-z^{\\prime}\\|_{2}."
+      ]
+    },
+    {
+      "id": "S3.EGx7",
+      "tex": [
+        "\\displaystyle v_{h}(Q,z)",
+        "\\displaystyle:=-\\nabla f_{Q,h}(z)=-\\int_{{\\mathcal{Z}}}\\nabla_{1}k(z,z^{\\prime})\\,Q(dz^{\\prime})+\\nabla s_{h}(z),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle v_{h}(Q,z)",
+        "\\displaystyle:=-\\nabla f_{Q,h}(z)=-\\int_{{\\mathcal{Z}}}\\nabla_{1}k(z,z^{\\prime})\\,Q(dz^{\\prime})+\\nabla s_{h}(z),"
+      ]
+    },
+    {
+      "id": "S3.Ex8",
+      "tex": [
+        "\\partial_{t}Q_{t}^{h}+\\nabla\\cdot\\bigl(Q_{t}^{h}v_{h}(Q_{t}^{h},\\cdot)\\bigr)=0,\\ Q_{t=0}^{h}=Q_{0}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\partial_{t}Q_{t}^{h}+\\nabla\\cdot\\bigl(Q_{t}^{h}v_{h}(Q_{t}^{h},\\cdot)\\bigr)=0,\\ Q_{t=0}^{h}=Q_{0}."
+      ]
+    },
+    {
+      "id": "S3.Ex9",
+      "tex": [
+        "\\dot{Z}_{t}=v_{h}(Q_{t}^{h},Z_{t}),\\qquad Z_{0}\\sim Q_{0},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\dot{Z}_{t}=v_{h}(Q_{t}^{h},Z_{t}),\\qquad Z_{0}\\sim Q_{0},"
+      ]
+    },
+    {
+      "id": "S3.E11",
+      "tex": [
+        "\\frac{d}{dt}\\mathcal{F}_{h}(Q_{t}^{h})=-\\int_{{\\mathcal{Z}}}\\|v_{h}(Q_{t}^{h},z)\\|_{2}^{2}\\,Q_{t}^{h}(dz)\\leq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{d}{dt}\\mathcal{F}_{h}(Q_{t}^{h})=-\\int_{{\\mathcal{Z}}}\\|v_{h}(Q_{t}^{h},z)\\|_{2}^{2}\\,Q_{t}^{h}(dz)\\leq 0."
+      ]
+    },
+    {
+      "id": "S3.EGx8",
+      "tex": [
+        "\\displaystyle\\sup_{z\\in{\\mathcal{Z}}}\\|v_{h_{\\eta}}(Q,z)-v_{\\chi(\\pi)}(Q,z)\\|_{2}",
+        "\\displaystyle\\leq L_{\\varphi}\\|h_{\\eta}-\\chi(\\pi)\\|_{{\\mathcal{H}}}\\leq L_{\\varphi}r_{w}r_{m}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sup_{z\\in{\\mathcal{Z}}}\\|v_{h_{\\eta}}(Q,z)-v_{\\chi(\\pi)}(Q,z)\\|_{2}",
+        "\\displaystyle\\leq L_{\\varphi}\\|h_{\\eta}-\\chi(\\pi)\\|_{{\\mathcal{H}}}\\leq L_{\\varphi}r_{w}r_{m}."
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "\\widehat{h}_{\\pi}:=\\frac{1}{n}\\sum_{i=1}^{n}\\Gamma_{\\widehat{\\eta}}(O_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{h}_{\\pi}:=\\frac{1}{n}\\sum_{i=1}^{n}\\Gamma_{\\widehat{\\eta}}(O_{i})."
+      ]
+    },
+    {
+      "id": "S4.EGx9",
+      "tex": [
+        "\\displaystyle\\widetilde{h}_{\\pi}",
+        "\\displaystyle=\\sum_{i=1}^{n}v_{\\mathrm{DR},i}\\varphi(Z_{i}),\\kern 5.0pt\\widetilde{s}_{\\pi}(z)=\\sum_{i=1}^{n}v_{\\mathrm{DR},i}k(z,Z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widetilde{h}_{\\pi}",
+        "\\displaystyle=\\sum_{i=1}^{n}v_{\\mathrm{DR},i}\\varphi(Z_{i}),\\kern 5.0pt\\widetilde{s}_{\\pi}(z)=\\sum_{i=1}^{n}v_{\\mathrm{DR},i}k(z,Z_{i})."
+      ]
+    },
+    {
+      "id": "S4.E14",
+      "tex": [
+        "\\displaystyle G_{j}^{(r)}",
+        "\\displaystyle=\\frac{1}{M}\\sum_{\\ell=1}^{M}\\nabla_{1}k(\\widetilde{Z}_{j}^{(r)},Z_{\\ell}^{(r)})-\\nabla\\widetilde{s}_{\\pi}(\\widetilde{Z}_{j}^{(r)}),",
+        "\\displaystyle Z_{j}^{(r+1)}",
+        "\\displaystyle=Z_{j}^{(r)}-\\eta_{r}G_{j}^{(r)}."
+      ]
+    },
+    {
+      "id": "S4.E14X",
+      "tex": [
+        "\\displaystyle G_{j}^{(r)}",
+        "\\displaystyle=\\frac{1}{M}\\sum_{\\ell=1}^{M}\\nabla_{1}k(\\widetilde{Z}_{j}^{(r)},Z_{\\ell}^{(r)})-\\nabla\\widetilde{s}_{\\pi}(\\widetilde{Z}_{j}^{(r)}),"
+      ]
+    },
+    {
+      "id": "S4.E14Xa",
+      "tex": [
+        "\\displaystyle Z_{j}^{(r+1)}",
+        "\\displaystyle=Z_{j}^{(r)}-\\eta_{r}G_{j}^{(r)}."
+      ]
+    },
+    {
+      "id": "S5.Ex12",
+      "tex": [
+        "e_{n,J}:=\\|\\widetilde{h}_{\\pi}-\\chi(\\pi)\\|_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "e_{n,J}:=\\|\\widetilde{h}_{\\pi}-\\chi(\\pi)\\|_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": "S5.Ex13",
+      "tex": [
+        "12\\tau\\kappa^{2}d_{Z}\\leq 1,\\qquad 0<c_{\\beta}\\leq\\frac{1}{2\\sqrt{d_{Z}}},\\qquad 0\\leq\\alpha<\\frac{1}{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "12\\tau\\kappa^{2}d_{Z}\\leq 1,\\qquad 0<c_{\\beta}\\leq\\frac{1}{2\\sqrt{d_{Z}}},\\qquad 0\\leq\\alpha<\\frac{1}{2}."
+      ]
+    },
+    {
+      "id": "S5.E15",
+      "tex": [
+        "\\displaystyle\\frac{1}{M}\\sum_{j=1}^{M}\\mathbb{E}\\left[\\left\\|v_{\\chi(\\pi)}\\bigl(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)}\\bigr)\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\geq 4\\kappa^{2}d_{Z}\\beta_{r}^{2}\\operatorname{MMD}_{k}^{2}(\\widehat{Q}_{M}^{(r)},Q^{\\pi}),"
+      ]
+    },
+    {
+      "id": "S5.E15X",
+      "tex": [
+        "\\displaystyle\\frac{1}{M}\\sum_{j=1}^{M}\\mathbb{E}\\left[\\left\\|v_{\\chi(\\pi)}\\bigl(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)}\\bigr)\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\geq 4\\kappa^{2}d_{Z}\\beta_{r}^{2}\\operatorname{MMD}_{k}^{2}(\\widehat{Q}_{M}^{(r)},Q^{\\pi}),"
+      ]
+    },
+    {
+      "id": "S5.EGx10",
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k}(\\widehat{Q}_{M}^{(R)},Q^{\\pi})\\leq C_{0}\\exp\\left(-\\frac{\\tau\\kappa^{2}d_{Z}c_{\\beta}^{2}}{16(1-2\\alpha)}R^{1-2\\alpha}\\right)+(1+C_{1}R^{\\alpha})e_{n,J}+C_{2}R^{\\alpha}\\sqrt{\\frac{\\log(R/\\delta)}{M}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k}(\\widehat{Q}_{M}^{(R)},Q^{\\pi})\\leq C_{0}\\exp\\left(-\\frac{\\tau\\kappa^{2}d_{Z}c_{\\beta}^{2}}{16(1-2\\alpha)}R^{1-2\\alpha}\\right)+(1+C_{1}R^{\\alpha})e_{n,J}+C_{2}R^{\\alpha}\\sqrt{\\frac{\\log(R/\\delta)}{M}}."
+      ]
+    },
+    {
+      "id": "S5.EGx11",
+      "tex": [
+        "\\displaystyle\\|\\widehat{m}_{n}-m_{0}\\|_{L^{2}(P_{A,X};{\\mathcal{H}})}",
+        "\\displaystyle=O_{p}(r_{m,n}),\\quad\\|\\widehat{w}_{n}-w_{0}\\|_{L^{2}(P_{A,X})}=O_{p}(r_{w,n})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\widehat{m}_{n}-m_{0}\\|_{L^{2}(P_{A,X};{\\mathcal{H}})}",
+        "\\displaystyle=O_{p}(r_{m,n}),\\quad\\|\\widehat{w}_{n}-w_{0}\\|_{L^{2}(P_{A,X})}=O_{p}(r_{w,n})."
+      ]
+    },
+    {
+      "id": "S5.E17",
+      "tex": [
+        "\\left\\|(P_{n}-P_{0})\\{\\Gamma_{\\widehat{\\eta}_{n}}-\\Gamma_{\\eta_{0}}\\}\\right\\|_{{\\mathcal{H}}}=O_{p}(n^{-1/2}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|(P_{n}-P_{0})\\{\\Gamma_{\\widehat{\\eta}_{n}}-\\Gamma_{\\eta_{0}}\\}\\right\\|_{{\\mathcal{H}}}=O_{p}(n^{-1/2}),"
+      ]
+    },
+    {
+      "id": "S5.Ex15",
+      "tex": [
+        "V_{n}:=\\frac{1}{n}\\sum_{i=1}^{n}\\int\\|\\widehat{m}_{n}(a,X_{i})-\\bar{m}_{n}(X_{i})\\|_{{\\mathcal{H}}}^{2}\\,\\pi(da\\mid X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{n}:=\\frac{1}{n}\\sum_{i=1}^{n}\\int\\|\\widehat{m}_{n}(a,X_{i})-\\bar{m}_{n}(X_{i})\\|_{{\\mathcal{H}}}^{2}\\,\\pi(da\\mid X_{i})."
+      ]
+    },
+    {
+      "id": "S5.Ex16",
+      "tex": [
+        "e_{n,J}=O_{p}\\left(n^{-1/2}+r_{m,n}r_{w,n}+(nJ)^{-1/2}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "e_{n,J}=O_{p}\\left(n^{-1/2}+r_{m,n}r_{w,n}+(nJ)^{-1/2}\\right)."
+      ]
+    },
+    {
+      "id": "S5.E18",
+      "tex": [
+        "e_{n,J}=O_{p}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}+(nJ)^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "e_{n,J}=O_{p}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}+(nJ)^{-1/2}\\right),"
+      ]
+    },
+    {
+      "id": "S5.E19",
+      "tex": [
+        "R_{n}=\\left\\lceil({\\color[rgb]{0,0,0}C_{R}}\\log n)^{1/(1-2\\alpha)}\\right\\rceil,\\quad M_{n}=\\left\\lceil n^{2s}\\log\\log n\\right\\rceil,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{n}=\\left\\lceil({\\color[rgb]{0,0,0}C_{R}}\\log n)^{1/(1-2\\alpha)}\\right\\rceil,\\quad M_{n}=\\left\\lceil n^{2s}\\log\\log n\\right\\rceil,"
+      ]
+    },
+    {
+      "id": "A2.Ex17",
+      "tex": [
+        "k_{S}\\bigl((a,x),(a^{\\prime},x^{\\prime})\\bigr)=k_{A}(a,a^{\\prime})k_{X}(x,x^{\\prime})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "k_{S}\\bigl((a,x),(a^{\\prime},x^{\\prime})\\bigr)=k_{A}(a,a^{\\prime})k_{X}(x,x^{\\prime})."
+      ]
+    },
+    {
+      "id": "A2.Ex18",
+      "tex": [
+        "B_{\\lambda}:=(K+n\\lambda I_{n})^{-1}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "B_{\\lambda}:=(K+n\\lambda I_{n})^{-1}."
+      ]
+    },
+    {
+      "id": "A2.Ex19",
+      "tex": [
+        "k_{s}=\\bigl(k_{S}(S_{1},s),\\ldots,k_{S}(S_{n},s)\\bigr)^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "k_{s}=\\bigl(k_{S}(S_{1},s),\\ldots,k_{S}(S_{n},s)\\bigr)^{\\top}."
+      ]
+    },
+    {
+      "id": "A2.E20",
+      "tex": [
+        "\\widehat{m}_{\\rm full}(s)=\\sum_{j=1}^{n}[B_{\\lambda}k_{s}]_{j}\\,\\varphi(Z_{j})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{m}_{\\rm full}(s)=\\sum_{j=1}^{n}[B_{\\lambda}k_{s}]_{j}\\,\\varphi(Z_{j})."
+      ]
+    },
+    {
+      "id": "A2.E21",
+      "tex": [
+        "\\bar{k}_{\\pi,i}:=\\int_{{\\mathcal{A}}}k_{(a,X_{i})}\\,\\pi(da\\mid X_{i})\\in\\mathbb{R}^{n},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{k}_{\\pi,i}:=\\int_{{\\mathcal{A}}}k_{(a,X_{i})}\\,\\pi(da\\mid X_{i})\\in\\mathbb{R}^{n},"
+      ]
+    },
+    {
+      "id": "A2.Ex20",
+      "tex": [
+        "K_{\\pi}:=\\bigl(\\bar{k}_{\\pi,1},\\ldots,\\bar{k}_{\\pi,n}\\bigr)\\in\\mathbb{R}^{n\\times n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "K_{\\pi}:=\\bigl(\\bar{k}_{\\pi,1},\\ldots,\\bar{k}_{\\pi,n}\\bigr)\\in\\mathbb{R}^{n\\times n}."
+      ]
+    },
+    {
+      "id": "A2.Ex21",
+      "tex": [
+        "K_{\\pi}=K_{X}\\odot K_{A,\\pi},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "K_{\\pi}=K_{X}\\odot K_{A,\\pi},"
+      ]
+    },
+    {
+      "id": "A2.E22",
+      "tex": [
+        "[K_{A,\\pi}]_{ji}:=\\int_{{\\mathcal{A}}}k_{A}(A_{j},a)\\,\\pi(da\\mid X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "[K_{A,\\pi}]_{ji}:=\\int_{{\\mathcal{A}}}k_{A}(A_{j},a)\\,\\pi(da\\mid X_{i})."
+      ]
+    },
+    {
+      "id": "A2.Ex22",
+      "tex": [
+        "\\widehat{\\bm{w}}=\\bigl(\\widehat{w}(A_{1},X_{1}),\\ldots,\\widehat{w}(A_{n},X_{n})\\bigr)^{\\top},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\bm{w}}=\\bigl(\\widehat{w}(A_{1},X_{1}),\\ldots,\\widehat{w}(A_{n},X_{n})\\bigr)^{\\top},"
+      ]
+    },
+    {
+      "id": "A2.E23",
+      "tex": [
+        "\\widehat{h}_{\\pi,\\rm full}=\\sum_{i=1}^{n}v_{{\\rm full},i}\\varphi(Z_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{h}_{\\pi,\\rm full}=\\sum_{i=1}^{n}v_{{\\rm full},i}\\varphi(Z_{i}),"
+      ]
+    },
+    {
+      "id": "A2.EGx12",
+      "tex": [
+        "\\displaystyle b^{\\rm full}",
+        "\\displaystyle=B_{\\lambda}\\left(K_{\\pi}\\mathbf{1}_{n}-K\\widehat{\\bm{w}}\\right),\\kern 5.0ptv_{\\rm full}=\\frac{1}{n}\\left(b^{\\rm full}+\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle b^{\\rm full}",
+        "\\displaystyle=B_{\\lambda}\\left(K_{\\pi}\\mathbf{1}_{n}-K\\widehat{\\bm{w}}\\right),\\kern 5.0ptv_{\\rm full}=\\frac{1}{n}\\left(b^{\\rm full}+\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E25",
+      "tex": [
+        "v_{\\mathrm{PI,full}}:=B_{\\lambda}K_{\\pi}\\frac{\\mathbf{1}_{n}}{n},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{\\mathrm{PI,full}}:=B_{\\lambda}K_{\\pi}\\frac{\\mathbf{1}_{n}}{n},"
+      ]
+    },
+    {
+      "id": "A2.E26",
+      "tex": [
+        "v_{\\rm full}=v_{\\mathrm{PI,full}}+\\frac{1}{n}\\left(\\widehat{\\bm{w}}-B_{\\lambda}K\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{\\rm full}=v_{\\mathrm{PI,full}}+\\frac{1}{n}\\left(\\widehat{\\bm{w}}-B_{\\lambda}K\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.Ex23",
+      "tex": [
+        "L=\\{\\ell_{1},\\ldots,\\ell_{m_{L}}\\}\\subseteq\\{1,\\ldots,n\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "L=\\{\\ell_{1},\\ldots,\\ell_{m_{L}}\\}\\subseteq\\{1,\\ldots,n\\}"
+      ]
+    },
+    {
+      "id": "A2.Ex24",
+      "tex": [
+        "\\widetilde{S}_{q}:=S_{\\ell_{q}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{S}_{q}:=S_{\\ell_{q}}."
+      ]
+    },
+    {
+      "id": "A2.EGx13",
+      "tex": [
+        "\\displaystyle C_{iq}",
+        "\\displaystyle:=k_{S}(S_{i},\\widetilde{S}_{q}),",
+        "\\displaystyle W_{qr}",
+        "\\displaystyle:=k_{S}(\\widetilde{S}_{q},\\widetilde{S}_{r}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle C_{iq}",
+        "\\displaystyle:=k_{S}(S_{i},\\widetilde{S}_{q}),",
+        "\\displaystyle W_{qr}",
+        "\\displaystyle:=k_{S}(\\widetilde{S}_{q},\\widetilde{S}_{r}),"
+      ]
+    },
+    {
+      "id": "A2.Ex25",
+      "tex": [
+        "C\\in\\mathbb{R}^{n\\times m_{L}},\\qquad W\\in\\mathbb{R}^{m_{L}\\times m_{L}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C\\in\\mathbb{R}^{n\\times m_{L}},\\qquad W\\in\\mathbb{R}^{m_{L}\\times m_{L}}."
+      ]
+    },
+    {
+      "id": "A2.E28",
+      "tex": [
+        "G_{\\lambda}:=\\left(C^{\\top}C+n\\lambda W\\right)^{\\dagger},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "G_{\\lambda}:=\\left(C^{\\top}C+n\\lambda W\\right)^{\\dagger},"
+      ]
+    },
+    {
+      "id": "A2.Ex26",
+      "tex": [
+        "c_{s}=\\bigl(k_{S}(\\widetilde{S}_{1},s),\\ldots,k_{S}(\\widetilde{S}_{m_{L}},s)\\bigr)^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "c_{s}=\\bigl(k_{S}(\\widetilde{S}_{1},s),\\ldots,k_{S}(\\widetilde{S}_{m_{L}},s)\\bigr)^{\\top}."
+      ]
+    },
+    {
+      "id": "A2.E29",
+      "tex": [
+        "\\widehat{m}_{\\rm Nys}(s)=\\sum_{i=1}^{n}[CG_{\\lambda}c_{s}]_{i}\\,\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{m}_{\\rm Nys}(s)=\\sum_{i=1}^{n}[CG_{\\lambda}c_{s}]_{i}\\,\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": "A2.E30",
+      "tex": [
+        "\\bar{c}_{\\pi,i}:=\\int_{{\\mathcal{A}}}c_{(a,X_{i})}\\,\\pi(da\\mid X_{i})\\in\\mathbb{R}^{m_{L}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{c}_{\\pi,i}:=\\int_{{\\mathcal{A}}}c_{(a,X_{i})}\\,\\pi(da\\mid X_{i})\\in\\mathbb{R}^{m_{L}},"
+      ]
+    },
+    {
+      "id": "A2.Ex27",
+      "tex": [
+        "C_{\\pi}:=\\bigl(\\bar{c}_{\\pi,1},\\ldots,\\bar{c}_{\\pi,n}\\bigr)\\in\\mathbb{R}^{m_{L}\\times n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\pi}:=\\bigl(\\bar{c}_{\\pi,1},\\ldots,\\bar{c}_{\\pi,n}\\bigr)\\in\\mathbb{R}^{m_{L}\\times n}."
+      ]
+    },
+    {
+      "id": "A2.Ex28",
+      "tex": [
+        "C_{\\pi}=(K_{\\pi})_{L:}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\pi}=(K_{\\pi})_{L:}."
+      ]
+    },
+    {
+      "id": "A2.EGx14",
+      "tex": [
+        "\\displaystyle b^{\\rm proj}",
+        "\\displaystyle=CG_{\\lambda}\\left(C_{\\pi}\\mathbf{1}_{n}-C^{\\top}\\widehat{\\bm{w}}\\right),\\kern 5.0ptv_{\\rm DR}=\\frac{1}{n}\\left(b^{\\rm proj}+\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle b^{\\rm proj}",
+        "\\displaystyle=CG_{\\lambda}\\left(C_{\\pi}\\mathbf{1}_{n}-C^{\\top}\\widehat{\\bm{w}}\\right),\\kern 5.0ptv_{\\rm DR}=\\frac{1}{n}\\left(b^{\\rm proj}+\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E32",
+      "tex": [
+        "\\widehat{h}_{\\pi,\\rm Nys}=\\sum_{i=1}^{n}v_{{\\rm DR},i}\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{h}_{\\pi,\\rm Nys}=\\sum_{i=1}^{n}v_{{\\rm DR},i}\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": "A2.Ex29",
+      "tex": [
+        "W=V_{r}D_{r}V_{r}^{\\top}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W=V_{r}D_{r}V_{r}^{\\top}"
+      ]
+    },
+    {
+      "id": "A2.Ex30",
+      "tex": [
+        "R_{W}:=V_{r}D_{r}^{-1/2},\\qquad\\Phi:=CR_{W}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{W}:=V_{r}D_{r}^{-1/2},\\qquad\\Phi:=CR_{W}."
+      ]
+    },
+    {
+      "id": "A2.E33",
+      "tex": [
+        "r_{\\pi}:=C_{\\pi}\\mathbf{1}_{n}-C^{\\top}\\widehat{\\bm{w}},\\qquad q_{\\pi}:=R_{W}^{\\top}r_{\\pi},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "r_{\\pi}:=C_{\\pi}\\mathbf{1}_{n}-C^{\\top}\\widehat{\\bm{w}},\\qquad q_{\\pi}:=R_{W}^{\\top}r_{\\pi},"
+      ]
+    },
+    {
+      "id": "A2.E34",
+      "tex": [
+        "b^{\\rm proj}=\\Phi\\left(\\Phi^{\\top}\\Phi+n\\lambda I_{r}\\right)^{-1}q_{\\pi}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "b^{\\rm proj}=\\Phi\\left(\\Phi^{\\top}\\Phi+n\\lambda I_{r}\\right)^{-1}q_{\\pi}."
+      ]
+    },
+    {
+      "id": "A2.Ex31",
+      "tex": [
+        "A_{i1}^{\\pi},\\ldots,A_{iJ}^{\\pi}\\overset{\\mathrm{iid}}{\\sim}\\pi(\\cdot\\mid X_{i})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "A_{i1}^{\\pi},\\ldots,A_{iJ}^{\\pi}\\overset{\\mathrm{iid}}{\\sim}\\pi(\\cdot\\mid X_{i})"
+      ]
+    },
+    {
+      "id": "A2.E35",
+      "tex": [
+        "\\widetilde{k}_{\\pi,i}^{(J)}:=\\frac{1}{J}\\sum_{j=1}^{J}k_{(A_{ij}^{\\pi},X_{i})}\\in\\mathbb{R}^{n},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{k}_{\\pi,i}^{(J)}:=\\frac{1}{J}\\sum_{j=1}^{J}k_{(A_{ij}^{\\pi},X_{i})}\\in\\mathbb{R}^{n},"
+      ]
+    },
+    {
+      "id": "A2.EGx15",
+      "tex": [
+        "\\displaystyle\\widetilde{b}_{J}^{\\rm full}",
+        "\\displaystyle:=B_{\\lambda}\\left(\\widetilde{K}_{\\pi}^{(J)}\\mathbf{1}_{n}-K\\widehat{\\bm{w}}\\right),\\kern 5.0pt\\widetilde{v}_{\\mathrm{full},J}:=\\frac{1}{n}\\left(\\widetilde{b}_{J}^{\\rm full}+\\widehat{\\bm{w}}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widetilde{b}_{J}^{\\rm full}",
+        "\\displaystyle:=B_{\\lambda}\\left(\\widetilde{K}_{\\pi}^{(J)}\\mathbf{1}_{n}-K\\widehat{\\bm{w}}\\right),\\kern 5.0pt\\widetilde{v}_{\\mathrm{full},J}:=\\frac{1}{n}\\left(\\widetilde{b}_{J}^{\\rm full}+\\widehat{\\bm{w}}\\right),"
+      ]
+    },
+    {
+      "id": "A2.E37",
+      "tex": [
+        "\\widetilde{h}_{\\pi,\\mathrm{full},J}:=\\sum_{i=1}^{n}\\widetilde{v}_{\\mathrm{full},J,i}\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{h}_{\\pi,\\mathrm{full},J}:=\\sum_{i=1}^{n}\\widetilde{v}_{\\mathrm{full},J,i}\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": "A2.E38",
+      "tex": [
+        "\\widetilde{c}_{\\pi,i}^{(J)}:=\\frac{1}{J}\\sum_{j=1}^{J}c_{(A_{ij}^{\\pi},X_{i})}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{c}_{\\pi,i}^{(J)}:=\\frac{1}{J}\\sum_{j=1}^{J}c_{(A_{ij}^{\\pi},X_{i})}."
+      ]
+    },
+    {
+      "id": "A2.Ex32",
+      "tex": [
+        "\\widetilde{C}_{\\pi}^{(J)}:=\\bigl(\\widetilde{c}_{\\pi,1}^{(J)},\\ldots,\\widetilde{c}_{\\pi,n}^{(J)}\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{C}_{\\pi}^{(J)}:=\\bigl(\\widetilde{c}_{\\pi,1}^{(J)},\\ldots,\\widetilde{c}_{\\pi,n}^{(J)}\\bigr)."
+      ]
+    },
+    {
+      "id": "A2.Ex33",
+      "tex": [
+        "\\widetilde{C}_{\\pi}^{(J)}=\\bigl(\\widetilde{K}_{\\pi}^{(J)}\\bigr)_{L:}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{C}_{\\pi}^{(J)}=\\bigl(\\widetilde{K}_{\\pi}^{(J)}\\bigr)_{L:}."
+      ]
+    },
+    {
+      "id": "A2.EGx16",
+      "tex": [
+        "\\displaystyle\\widetilde{b}_{J}^{\\rm proj}",
+        "\\displaystyle:=CG_{\\lambda}\\left(\\widetilde{C}_{\\pi}^{(J)}\\mathbf{1}_{n}-C^{\\top}\\widehat{\\bm{w}}\\right),\\kern 5.0pt\\widetilde{v}_{\\mathrm{DR},J}:=\\frac{1}{n}\\left(\\widetilde{b}_{J}^{\\rm proj}+\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widetilde{b}_{J}^{\\rm proj}",
+        "\\displaystyle:=CG_{\\lambda}\\left(\\widetilde{C}_{\\pi}^{(J)}\\mathbf{1}_{n}-C^{\\top}\\widehat{\\bm{w}}\\right),\\kern 5.0pt\\widetilde{v}_{\\mathrm{DR},J}:=\\frac{1}{n}\\left(\\widetilde{b}_{J}^{\\rm proj}+\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E40",
+      "tex": [
+        "\\widetilde{h}_{\\pi,\\mathrm{Nys},J}:=\\sum_{i=1}^{n}\\widetilde{v}_{\\mathrm{DR},J,i}\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{h}_{\\pi,\\mathrm{Nys},J}:=\\sum_{i=1}^{n}\\widetilde{v}_{\\mathrm{DR},J,i}\\varphi(Z_{i})."
+      ]
+    },
+    {
+      "id": "A2.Ex34",
+      "tex": [
+        "\\widetilde{h}_{\\pi}=\\widetilde{h}_{\\pi,\\mathrm{Nys},J}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{h}_{\\pi}=\\widetilde{h}_{\\pi,\\mathrm{Nys},J}."
+      ]
+    },
+    {
+      "id": "A2.EGx17",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{K}_{\\pi}^{(J)}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=K_{\\pi},",
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{C}_{\\pi}^{(J)}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=C_{\\pi}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{K}_{\\pi}^{(J)}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=K_{\\pi},",
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{C}_{\\pi}^{(J)}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=C_{\\pi}."
+      ]
+    },
+    {
+      "id": "A2.EGx18",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{h}_{\\pi,\\mathrm{full},J}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=\\widehat{h}_{\\pi,\\mathrm{full}},",
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{h}_{\\pi,\\mathrm{Nys},J}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=\\widehat{h}_{\\pi,\\mathrm{Nys}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{h}_{\\pi,\\mathrm{full},J}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=\\widehat{h}_{\\pi,\\mathrm{full}},",
+        "\\displaystyle\\mathbb{E}\\!\\left[\\widetilde{h}_{\\pi,\\mathrm{Nys},J}\\mid\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=\\widehat{h}_{\\pi,\\mathrm{Nys}}."
+      ]
+    },
+    {
+      "id": "A2.EGx19",
+      "tex": [
+        "\\displaystyle\\widetilde{v}_{\\mathrm{PI},J}",
+        "\\displaystyle:=\\frac{1}{n}CG_{\\lambda}\\widetilde{C}_{\\pi}^{(J)}\\mathbf{1}_{n},",
+        "\\displaystyle\\widetilde{v}_{\\mathrm{IPW}}",
+        "\\displaystyle:=\\frac{1}{n}\\widehat{\\bm{w}},",
+        "\\displaystyle\\widetilde{v}_{\\mathrm{DR},J}",
+        "\\displaystyle:=\\widetilde{v}_{\\mathrm{PI},J}+\\frac{1}{n}\\left(\\widehat{\\bm{w}}-CG_{\\lambda}C^{\\top}\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widetilde{v}_{\\mathrm{PI},J}",
+        "\\displaystyle:=\\frac{1}{n}CG_{\\lambda}\\widetilde{C}_{\\pi}^{(J)}\\mathbf{1}_{n},",
+        "\\displaystyle\\widetilde{v}_{\\mathrm{IPW}}",
+        "\\displaystyle:=\\frac{1}{n}\\widehat{\\bm{w}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widetilde{v}_{\\mathrm{DR},J}",
+        "\\displaystyle:=\\widetilde{v}_{\\mathrm{PI},J}+\\frac{1}{n}\\left(\\widehat{\\bm{w}}-CG_{\\lambda}C^{\\top}\\widehat{\\bm{w}}\\right)."
+      ]
+    },
+    {
+      "id": "A3.E43",
+      "tex": [
+        "\\mathbb{E}_{0}\\!\\left[\\int_{{\\mathcal{A}}}m(a,X)\\,\\pi(da\\mid X)\\right]=\\mathbb{E}_{0}\\!\\left[w_{0}(A,X)m(A,X)\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}_{0}\\!\\left[\\int_{{\\mathcal{A}}}m(a,X)\\,\\pi(da\\mid X)\\right]=\\mathbb{E}_{0}\\!\\left[w_{0}(A,X)m(A,X)\\right]."
+      ]
+    },
+    {
+      "id": "A3.EGx20",
+      "tex": [
+        "\\displaystyle h_{\\eta}",
+        "\\displaystyle=\\mathbb{E}_{0}\\!\\left[w_{0}m+w(m_{0}-m)\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle h_{\\eta}",
+        "\\displaystyle=\\mathbb{E}_{0}\\!\\left[w_{0}m+w(m_{0}-m)\\right]."
+      ]
+    },
+    {
+      "id": "A3.EGx21",
+      "tex": [
+        "\\displaystyle h_{\\eta}-\\chi(\\pi)",
+        "\\displaystyle=\\mathbb{E}_{0}\\!\\left[w_{0}m+w(m_{0}-m)-w_{0}m_{0}\\right]",
+        "\\displaystyle=-\\mathbb{E}_{0}\\!\\left[(w-w_{0})(m-m_{0})\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle h_{\\eta}-\\chi(\\pi)",
+        "\\displaystyle=\\mathbb{E}_{0}\\!\\left[w_{0}m+w(m_{0}-m)-w_{0}m_{0}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=-\\mathbb{E}_{0}\\!\\left[(w-w_{0})(m-m_{0})\\right]."
+      ]
+    },
+    {
+      "id": "A3.EGx22",
+      "tex": [
+        "\\displaystyle\\left\\|h_{\\eta}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}}",
+        "\\displaystyle\\leq\\left\\|w-w_{0}\\right\\|_{L_{2}(P_{A,X})}\\left\\|m-m_{0}\\right\\|_{L_{2}(P_{A,X};{\\mathcal{H}})}=r_{w}r_{m}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|h_{\\eta}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}}",
+        "\\displaystyle\\leq\\left\\|w-w_{0}\\right\\|_{L_{2}(P_{A,X})}\\left\\|m-m_{0}\\right\\|_{L_{2}(P_{A,X};{\\mathcal{H}})}=r_{w}r_{m}."
+      ]
+    },
+    {
+      "id": "A3.Ex41",
+      "tex": [
+        "\\eta_{\\epsilon}=\\eta_{0}+\\epsilon\\dot{\\eta}=\\left(m_{0}+\\epsilon\\dot{m},w_{0}+\\epsilon\\dot{w}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta_{\\epsilon}=\\eta_{0}+\\epsilon\\dot{\\eta}=\\left(m_{0}+\\epsilon\\dot{m},w_{0}+\\epsilon\\dot{w}\\right)."
+      ]
+    },
+    {
+      "id": "A3.Ex42",
+      "tex": [
+        "h_{\\eta_{\\epsilon}}-\\chi(\\pi)=-\\epsilon^{2}\\mathbb{E}_{0}[\\dot{w}\\,\\dot{m}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{\\eta_{\\epsilon}}-\\chi(\\pi)=-\\epsilon^{2}\\mathbb{E}_{0}[\\dot{w}\\,\\dot{m}]."
+      ]
+    },
+    {
+      "id": "A3.Ex43",
+      "tex": [
+        "D_{\\eta}h_{\\eta_{0}}[\\dot{\\eta}]=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{\\eta}h_{\\eta_{0}}[\\dot{\\eta}]=0."
+      ]
+    },
+    {
+      "id": "A3.Ex44",
+      "tex": [
+        "D_{\\eta}\\left(u-h_{\\eta}\\right)\\big|_{\\eta=\\eta_{0}}[\\dot{\\eta}]=-D_{\\eta}h_{\\eta_{0}}[\\dot{\\eta}]=0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{\\eta}\\left(u-h_{\\eta}\\right)\\big|_{\\eta=\\eta_{0}}[\\dot{\\eta}]=-D_{\\eta}h_{\\eta_{0}}[\\dot{\\eta}]=0,"
+      ]
+    },
+    {
+      "id": "A3.EGx23",
+      "tex": [
+        "\\displaystyle Df_{Q,h}(z)[u]",
+        "\\displaystyle=\\left\\langle\\mu_{Q}-h,D\\varphi(z)[u]\\right\\rangle_{{\\mathcal{H}}}=\\left\\langle D\\varphi(z)^{*}(\\mu_{Q}-h),u\\right\\rangle_{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle Df_{Q,h}(z)[u]",
+        "\\displaystyle=\\left\\langle\\mu_{Q}-h,D\\varphi(z)[u]\\right\\rangle_{{\\mathcal{H}}}=\\left\\langle D\\varphi(z)^{*}(\\mu_{Q}-h),u\\right\\rangle_{2}."
+      ]
+    },
+    {
+      "id": "A3.E44",
+      "tex": [
+        "\\nabla f_{Q,h}(z)=D\\varphi(z)^{*}(\\mu_{Q}-h),\\qquad v_{h}(Q,z)=-D\\varphi(z)^{*}(\\mu_{Q}-h)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nabla f_{Q,h}(z)=D\\varphi(z)^{*}(\\mu_{Q}-h),\\qquad v_{h}(Q,z)=-D\\varphi(z)^{*}(\\mu_{Q}-h)."
+      ]
+    },
+    {
+      "id": "A3.Ex46",
+      "tex": [
+        "\\mu_{t}:=\\mu_{Q_{t}^{h}}=\\int_{{\\mathcal{Z}}}\\varphi(z)\\,Q_{t}^{h}(dz),\\qquad v_{t}(z):=v_{h}(Q_{t}^{h},z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{t}:=\\mu_{Q_{t}^{h}}=\\int_{{\\mathcal{Z}}}\\varphi(z)\\,Q_{t}^{h}(dz),\\qquad v_{t}(z):=v_{h}(Q_{t}^{h},z)."
+      ]
+    },
+    {
+      "id": "A3.Ex47",
+      "tex": [
+        "\\psi_{g}(z):=\\langle g,\\varphi(z)\\rangle_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\psi_{g}(z):=\\langle g,\\varphi(z)\\rangle_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": "A3.Ex48",
+      "tex": [
+        "\\nabla\\psi_{g}(z)=D\\varphi(z)^{*}g."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nabla\\psi_{g}(z)=D\\varphi(z)^{*}g."
+      ]
+    },
+    {
+      "id": "A3.EGx24",
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\langle g,\\mu_{t}\\rangle_{{\\mathcal{H}}}",
+        "\\displaystyle=\\frac{d}{dt}\\int_{{\\mathcal{Z}}}\\psi_{g}(z)\\,Q_{t}^{h}(dz)",
+        "\\displaystyle=\\int_{{\\mathcal{Z}}}\\left\\langle D\\varphi(z)^{*}g,v_{t}(z)\\right\\rangle_{2}Q_{t}^{h}(dz)",
+        "\\displaystyle=\\left\\langle g,\\int_{{\\mathcal{Z}}}D\\varphi(z)[v_{t}(z)]\\,Q_{t}^{h}(dz)\\right\\rangle_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\langle g,\\mu_{t}\\rangle_{{\\mathcal{H}}}",
+        "\\displaystyle=\\frac{d}{dt}\\int_{{\\mathcal{Z}}}\\psi_{g}(z)\\,Q_{t}^{h}(dz)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\int_{{\\mathcal{Z}}}\\left\\langle D\\varphi(z)^{*}g,v_{t}(z)\\right\\rangle_{2}Q_{t}^{h}(dz)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\left\\langle g,\\int_{{\\mathcal{Z}}}D\\varphi(z)[v_{t}(z)]\\,Q_{t}^{h}(dz)\\right\\rangle_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": "A3.E45",
+      "tex": [
+        "\\dot{\\mu}_{t}=\\int_{{\\mathcal{Z}}}D\\varphi(z)[v_{t}(z)]\\,Q_{t}^{h}(dz)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\dot{\\mu}_{t}=\\int_{{\\mathcal{Z}}}D\\varphi(z)[v_{t}(z)]\\,Q_{t}^{h}(dz)"
+      ]
+    },
+    {
+      "id": "A3.EGx25",
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\mathcal{F}_{h}(Q_{t}^{h})",
+        "\\displaystyle=\\frac{d}{dt}\\frac{1}{2}\\left\\|\\mu_{t}-h\\right\\|_{{\\mathcal{H}}}^{2}",
+        "\\displaystyle=\\left\\langle\\mu_{t}-h,\\dot{\\mu}_{t}\\right\\rangle_{{\\mathcal{H}}}",
+        "\\displaystyle=\\int_{{\\mathcal{Z}}}\\left\\langle D\\varphi(z)^{*}(\\mu_{t}-h),v_{t}(z)\\right\\rangle_{2}Q_{t}^{h}(dz)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{d}{dt}\\mathcal{F}_{h}(Q_{t}^{h})",
+        "\\displaystyle=\\frac{d}{dt}\\frac{1}{2}\\left\\|\\mu_{t}-h\\right\\|_{{\\mathcal{H}}}^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\left\\langle\\mu_{t}-h,\\dot{\\mu}_{t}\\right\\rangle_{{\\mathcal{H}}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\int_{{\\mathcal{Z}}}\\left\\langle D\\varphi(z)^{*}(\\mu_{t}-h),v_{t}(z)\\right\\rangle_{2}Q_{t}^{h}(dz)."
+      ]
+    },
+    {
+      "id": "A3.Ex55",
+      "tex": [
+        "D\\varphi(z)^{*}(\\mu_{t}-h)=-v_{t}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D\\varphi(z)^{*}(\\mu_{t}-h)=-v_{t}(z)."
+      ]
+    },
+    {
+      "id": "A3.E46",
+      "tex": [
+        "\\frac{d}{dt}\\mathcal{F}_{h}(Q_{t}^{h})=-\\int_{{\\mathcal{Z}}}\\left\\|v_{h}(Q_{t}^{h},z)\\right\\|_{2}^{2}Q_{t}^{h}(dz)\\leq 0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{d}{dt}\\mathcal{F}_{h}(Q_{t}^{h})=-\\int_{{\\mathcal{Z}}}\\left\\|v_{h}(Q_{t}^{h},z)\\right\\|_{2}^{2}Q_{t}^{h}(dz)\\leq 0,"
+      ]
+    },
+    {
+      "id": "A3.EGx26",
+      "tex": [
+        "\\displaystyle v_{h_{1}}(Q,z)-v_{h_{2}}(Q,z)",
+        "\\displaystyle=D\\varphi(z)^{*}(h_{1}-h_{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle v_{h_{1}}(Q,z)-v_{h_{2}}(Q,z)",
+        "\\displaystyle=D\\varphi(z)^{*}(h_{1}-h_{2})."
+      ]
+    },
+    {
+      "id": "A3.EGx27",
+      "tex": [
+        "\\displaystyle\\left\\|v_{h_{1}}(Q,z)-v_{h_{2}}(Q,z)\\right\\|_{2}",
+        "\\displaystyle\\leq\\left\\|D\\varphi(z)\\right\\|_{\\mathrm{op}}\\left\\|h_{1}-h_{2}\\right\\|_{{\\mathcal{H}}}",
+        "\\displaystyle\\leq L_{\\varphi}\\left\\|h_{1}-h_{2}\\right\\|_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|v_{h_{1}}(Q,z)-v_{h_{2}}(Q,z)\\right\\|_{2}",
+        "\\displaystyle\\leq\\left\\|D\\varphi(z)\\right\\|_{\\mathrm{op}}\\left\\|h_{1}-h_{2}\\right\\|_{{\\mathcal{H}}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq L_{\\varphi}\\left\\|h_{1}-h_{2}\\right\\|_{{\\mathcal{H}}}."
+      ]
+    },
+    {
+      "id": "A3.Ex59",
+      "tex": [
+        "h_{1}=h_{\\eta},\\qquad h_{2}=\\chi(\\pi),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{1}=h_{\\eta},\\qquad h_{2}=\\chi(\\pi),"
+      ]
+    },
+    {
+      "id": "A3.EGx28",
+      "tex": [
+        "\\displaystyle\\sup_{z\\in{\\mathcal{Z}}}\\left\\|v_{h_{\\eta}}(Q,z)-v_{\\chi(\\pi)}(Q,z)\\right\\|_{2}",
+        "\\displaystyle\\leq L_{\\varphi}\\left\\|h_{\\eta}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}}",
+        "\\displaystyle\\leq L_{\\varphi}r_{w}r_{m},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sup_{z\\in{\\mathcal{Z}}}\\left\\|v_{h_{\\eta}}(Q,z)-v_{\\chi(\\pi)}(Q,z)\\right\\|_{2}",
+        "\\displaystyle\\leq L_{\\varphi}\\left\\|h_{\\eta}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq L_{\\varphi}r_{w}r_{m},"
+      ]
+    },
+    {
+      "id": "A4.Ex62",
+      "tex": [
+        "\\varphi_{S}(s):=k_{S}(s,\\cdot)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varphi_{S}(s):=k_{S}(s,\\cdot)."
+      ]
+    },
+    {
+      "id": "A4.Ex63",
+      "tex": [
+        "\\varphi_{Z}(z):=k_{Z}(z,\\cdot)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varphi_{Z}(z):=k_{Z}(z,\\cdot)."
+      ]
+    },
+    {
+      "id": "A4.Ex64",
+      "tex": [
+        "\\sup_{s\\in\\mathcal{S}}k_{S}(s,s)\\leq\\kappa_{S}^{2},\\qquad\\sup_{z\\in\\mathcal{Z}}k_{Z}(z,z)\\leq\\kappa_{Z}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sup_{s\\in\\mathcal{S}}k_{S}(s,s)\\leq\\kappa_{S}^{2},\\qquad\\sup_{z\\in\\mathcal{Z}}k_{Z}(z,z)\\leq\\kappa_{Z}^{2}."
+      ]
+    },
+    {
+      "id": "A4.Ex65",
+      "tex": [
+        "m_{0}(s):=\\mathbb{E}_{P_{0}}\\!\\left[\\varphi_{Z}(Z)\\mid S=s\\right]\\in\\mathcal{H}_{Z}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{0}(s):=\\mathbb{E}_{P_{0}}\\!\\left[\\varphi_{Z}(Z)\\mid S=s\\right]\\in\\mathcal{H}_{Z}."
+      ]
+    },
+    {
+      "id": "A4.Ex66",
+      "tex": [
+        "\\mathbf{K}(s,s^{\\prime})=k_{S}(s,s^{\\prime})I_{\\mathcal{H}_{Z}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{K}(s,s^{\\prime})=k_{S}(s,s^{\\prime})I_{\\mathcal{H}_{Z}}."
+      ]
+    },
+    {
+      "id": "A4.Ex67",
+      "tex": [
+        "m_{H}(s)=H\\varphi_{S}(s),\\qquad\\|m_{H}\\|_{\\mathcal{G}}=\\|H\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{H}(s)=H\\varphi_{S}(s),\\qquad\\|m_{H}\\|_{\\mathcal{G}}=\\|H\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": "A4.Ex68",
+      "tex": [
+        "m_{0}(s)=H_{0}\\varphi_{S}(s)\\qquad P_{S,0}\\text{-almost surely}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{0}(s)=H_{0}\\varphi_{S}(s)\\qquad P_{S,0}\\text{-almost surely}."
+      ]
+    },
+    {
+      "id": "A4.Ex69",
+      "tex": [
+        "C_{S}:=\\mathbb{E}_{P_{0}}\\left[\\varphi_{S}(S)\\otimes\\varphi_{S}(S)\\right]:\\mathcal{H}_{S}\\to\\mathcal{H}_{S},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{S}:=\\mathbb{E}_{P_{0}}\\left[\\varphi_{S}(S)\\otimes\\varphi_{S}(S)\\right]:\\mathcal{H}_{S}\\to\\mathcal{H}_{S},"
+      ]
+    },
+    {
+      "id": "A4.Ex70",
+      "tex": [
+        "C_{ZS}:=\\mathbb{E}_{P_{0}}\\left[\\varphi_{Z}(Z)\\otimes\\varphi_{S}(S)\\right]:\\mathcal{H}_{S}\\to\\mathcal{H}_{Z}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{ZS}:=\\mathbb{E}_{P_{0}}\\left[\\varphi_{Z}(Z)\\otimes\\varphi_{S}(S)\\right]:\\mathcal{H}_{S}\\to\\mathcal{H}_{Z}."
+      ]
+    },
+    {
+      "id": "A4.Ex71",
+      "tex": [
+        "\\operatorname{Tr}(C_{S})=\\mathbb{E}\\|\\varphi_{S}(S)\\|_{\\mathcal{H}_{S}}^{2}\\leq\\kappa_{S}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{Tr}(C_{S})=\\mathbb{E}\\|\\varphi_{S}(S)\\|_{\\mathcal{H}_{S}}^{2}\\leq\\kappa_{S}^{2}."
+      ]
+    },
+    {
+      "id": "A4.Ex72",
+      "tex": [
+        "\\|\\varphi_{Z}(Z)\\otimes\\varphi_{S}(S)\\|_{\\mathrm{HS}}=\\|\\varphi_{Z}(Z)\\|_{\\mathcal{H}_{Z}}\\|\\varphi_{S}(S)\\|_{\\mathcal{H}_{S}}\\leq\\kappa_{Z}\\kappa_{S}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\varphi_{Z}(Z)\\otimes\\varphi_{S}(S)\\|_{\\mathrm{HS}}=\\|\\varphi_{Z}(Z)\\|_{\\mathcal{H}_{Z}}\\|\\varphi_{S}(S)\\|_{\\mathcal{H}_{S}}\\leq\\kappa_{Z}\\kappa_{S}."
+      ]
+    },
+    {
+      "id": "A4.Ex73",
+      "tex": [
+        "C_{ZS}=H_{0}C_{S}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{ZS}=H_{0}C_{S}."
+      ]
+    },
+    {
+      "id": "A4.Ex74",
+      "tex": [
+        "\\|m_{H}-m_{0}\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}=\\|(H-H_{0})C_{S}^{1/2}\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|m_{H}-m_{0}\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}=\\|(H-H_{0})C_{S}^{1/2}\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": "A4.EGx29",
+      "tex": [
+        "\\displaystyle C_{ZS}f",
+        "\\displaystyle=\\mathbb{E}\\left[\\varphi_{Z}(Z)\\langle\\varphi_{S}(S),f\\rangle_{\\mathcal{H}_{S}}\\right]=\\mathbb{E}\\left[m_{0}(S)\\langle\\varphi_{S}(S),f\\rangle_{\\mathcal{H}_{S}}\\right]=H_{0}\\mathbb{E}\\left[\\varphi_{S}(S)\\langle\\varphi_{S}(S),f\\rangle_{\\mathcal{H}_{S}}\\right]=H_{0}C_{S}f."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle C_{ZS}f",
+        "\\displaystyle=\\mathbb{E}\\left[\\varphi_{Z}(Z)\\langle\\varphi_{S}(S),f\\rangle_{\\mathcal{H}_{S}}\\right]=\\mathbb{E}\\left[m_{0}(S)\\langle\\varphi_{S}(S),f\\rangle_{\\mathcal{H}_{S}}\\right]=H_{0}\\mathbb{E}\\left[\\varphi_{S}(S)\\langle\\varphi_{S}(S),f\\rangle_{\\mathcal{H}_{S}}\\right]=H_{0}C_{S}f."
+      ]
+    },
+    {
+      "id": "A4.EGx30",
+      "tex": [
+        "\\displaystyle\\|m_{H}-m_{0}\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}^{2}",
+        "\\displaystyle=\\mathbb{E}\\left[\\|(H-H_{0})\\varphi_{S}(S)\\|_{\\mathcal{H}_{Z}}^{2}\\right]=\\operatorname{Tr}\\left[(H-H_{0})C_{S}(H-H_{0})^{*}\\right]=\\|(H-H_{0})C_{S}^{1/2}\\|_{\\mathrm{HS}}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|m_{H}-m_{0}\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}^{2}",
+        "\\displaystyle=\\mathbb{E}\\left[\\|(H-H_{0})\\varphi_{S}(S)\\|_{\\mathcal{H}_{Z}}^{2}\\right]=\\operatorname{Tr}\\left[(H-H_{0})C_{S}(H-H_{0})^{*}\\right]=\\|(H-H_{0})C_{S}^{1/2}\\|_{\\mathrm{HS}}^{2}."
+      ]
+    },
+    {
+      "id": "A4.Ex77",
+      "tex": [
+        "Q_{S}:=\\operatorname{Tr}(C_{S}^{\\gamma})<\\infty."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q_{S}:=\\operatorname{Tr}(C_{S}^{\\gamma})<\\infty."
+      ]
+    },
+    {
+      "id": "A4.E47",
+      "tex": [
+        "\\displaystyle\\mathsf{T}_{S}",
+        "\\displaystyle:\\mathcal{H}_{S}\\to\\mathbb{R}^{n},",
+        "\\displaystyle(\\mathsf{T}_{S}f)_{i}",
+        "\\displaystyle:=\\frac{1}{\\sqrt{n}}f(S_{i}),\\quad\\mathsf{T}_{Z}:\\mathcal{H}_{Z}\\to\\mathbb{R}^{n},",
+        "\\displaystyle(\\mathsf{T}_{Z}g)_{i}:=\\frac{1}{\\sqrt{n}}g(Z_{i})."
+      ]
+    },
+    {
+      "id": "A4.E47X",
+      "tex": [
+        "\\displaystyle\\mathsf{T}_{S}",
+        "\\displaystyle:\\mathcal{H}_{S}\\to\\mathbb{R}^{n},",
+        "\\displaystyle(\\mathsf{T}_{S}f)_{i}",
+        "\\displaystyle:=\\frac{1}{\\sqrt{n}}f(S_{i}),\\quad\\mathsf{T}_{Z}:\\mathcal{H}_{Z}\\to\\mathbb{R}^{n},",
+        "\\displaystyle(\\mathsf{T}_{Z}g)_{i}:=\\frac{1}{\\sqrt{n}}g(Z_{i})."
+      ]
+    },
+    {
+      "id": "A4.E48",
+      "tex": [
+        "\\displaystyle\\mathsf{T}_{S}^{*}a",
+        "\\displaystyle=\\frac{1}{\\sqrt{n}}\\sum_{i=1}^{n}a_{i}\\varphi_{S}(S_{i}),\\quad\\mathsf{T}_{Z}^{*}a=\\frac{1}{\\sqrt{n}}\\sum_{i=1}^{n}a_{i}\\varphi_{Z}(Z_{i}),\\quad a\\in\\mathbb{R}^{n}."
+      ]
+    },
+    {
+      "id": "A4.E48X",
+      "tex": [
+        "\\displaystyle\\mathsf{T}_{S}^{*}a",
+        "\\displaystyle=\\frac{1}{\\sqrt{n}}\\sum_{i=1}^{n}a_{i}\\varphi_{S}(S_{i}),\\quad\\mathsf{T}_{Z}^{*}a=\\frac{1}{\\sqrt{n}}\\sum_{i=1}^{n}a_{i}\\varphi_{Z}(Z_{i}),\\quad a\\in\\mathbb{R}^{n}."
+      ]
+    },
+    {
+      "id": "A4.E49",
+      "tex": [
+        "\\displaystyle\\widehat{C}_{S}",
+        "\\displaystyle:=\\mathsf{T}_{S}^{*}\\mathsf{T}_{S}=\\frac{1}{n}\\sum_{i=1}^{n}\\varphi_{S}(S_{i})\\otimes\\varphi_{S}(S_{i}),\\quad\\widehat{C}_{ZS}:=\\mathsf{T}_{Z}^{*}\\mathsf{T}_{S}=\\frac{1}{n}\\sum_{i=1}^{n}\\varphi_{Z}(Z_{i})\\otimes\\varphi_{S}(S_{i})."
+      ]
+    },
+    {
+      "id": "A4.E49X",
+      "tex": [
+        "\\displaystyle\\widehat{C}_{S}",
+        "\\displaystyle:=\\mathsf{T}_{S}^{*}\\mathsf{T}_{S}=\\frac{1}{n}\\sum_{i=1}^{n}\\varphi_{S}(S_{i})\\otimes\\varphi_{S}(S_{i}),\\quad\\widehat{C}_{ZS}:=\\mathsf{T}_{Z}^{*}\\mathsf{T}_{S}=\\frac{1}{n}\\sum_{i=1}^{n}\\varphi_{Z}(Z_{i})\\otimes\\varphi_{S}(S_{i})."
+      ]
+    },
+    {
+      "id": "A4.EGx31",
+      "tex": [
+        "\\displaystyle\\left\\lVert\\mathsf{T}_{Z}^{*}-H\\mathsf{T}_{S}^{*}\\right\\rVert_{\\mathrm{HS}}^{2}",
+        "\\displaystyle=\\frac{1}{n}\\sum_{i=1}^{n}\\left\\lVert\\varphi_{Z}(Z_{i})-H\\varphi_{S}(S_{i})\\right\\rVert_{\\mathcal{H}_{Z}}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\lVert\\mathsf{T}_{Z}^{*}-H\\mathsf{T}_{S}^{*}\\right\\rVert_{\\mathrm{HS}}^{2}",
+        "\\displaystyle=\\frac{1}{n}\\sum_{i=1}^{n}\\left\\lVert\\varphi_{Z}(Z_{i})-H\\varphi_{S}(S_{i})\\right\\rVert_{\\mathcal{H}_{Z}}^{2}."
+      ]
+    },
+    {
+      "id": "A4.EGx32",
+      "tex": [
+        "\\displaystyle\\widehat{H}_{\\lambda}\\in\\operatorname*{arg\\,min}_{H\\in\\mathcal{S}_{2}(\\mathcal{H}_{S},\\mathcal{H}_{Z})}\\left\\{\\left\\lVert\\mathsf{T}_{Z}^{*}-H\\mathsf{T}_{S}^{*}\\right\\rVert_{\\mathrm{HS}}^{2}+\\lambda\\left\\lVert H\\right\\rVert_{\\mathrm{HS}}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{H}_{\\lambda}\\in\\operatorname*{arg\\,min}_{H\\in\\mathcal{S}_{2}(\\mathcal{H}_{S},\\mathcal{H}_{Z})}\\left\\{\\left\\lVert\\mathsf{T}_{Z}^{*}-H\\mathsf{T}_{S}^{*}\\right\\rVert_{\\mathrm{HS}}^{2}+\\lambda\\left\\lVert H\\right\\rVert_{\\mathrm{HS}}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.EGx33",
+      "tex": [
+        "\\displaystyle\\widehat{H}_{\\lambda}",
+        "\\displaystyle=\\widehat{C}_{ZS}\\left(\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}\\right)^{-1}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{H}_{\\lambda}",
+        "\\displaystyle=\\widehat{C}_{ZS}\\left(\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}\\right)^{-1}."
+      ]
+    },
+    {
+      "id": "A4.EGx34",
+      "tex": [
+        "\\displaystyle\\widehat{m}_{\\lambda}(s)",
+        "\\displaystyle=\\sum_{i=1}^{n}\\left[\\left(K_{S}+n\\lambda I_{n}\\right)^{-1}k_{S}(s)\\right]_{i}\\varphi_{Z}(Z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{m}_{\\lambda}(s)",
+        "\\displaystyle=\\sum_{i=1}^{n}\\left[\\left(K_{S}+n\\lambda I_{n}\\right)^{-1}k_{S}(s)\\right]_{i}\\varphi_{Z}(Z_{i})."
+      ]
+    },
+    {
+      "id": "A4.EGx35",
+      "tex": [
+        "\\displaystyle\\mathsf{B}_{R}",
+        "\\displaystyle:=\\mathsf{R}\\mathsf{T}_{S}:{\\mathcal{H}}_{S}\\to\\mathbb{R}^{m},\\quad\\mathsf{B}_{R}^{*}=\\mathsf{T}_{S}^{*}\\mathsf{R}^{\\top}:\\mathbb{R}^{m}\\to{\\mathcal{H}}_{S},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathsf{B}_{R}",
+        "\\displaystyle:=\\mathsf{R}\\mathsf{T}_{S}:{\\mathcal{H}}_{S}\\to\\mathbb{R}^{m},\\quad\\mathsf{B}_{R}^{*}=\\mathsf{T}_{S}^{*}\\mathsf{R}^{\\top}:\\mathbb{R}^{m}\\to{\\mathcal{H}}_{S},"
+      ]
+    },
+    {
+      "id": "A4.Ex78",
+      "tex": [
+        "{\\mathcal{H}}_{S,R}\\coloneqq\\operatorname{Range}(\\mathsf{B}_{R}^{*})\\subseteq{\\mathcal{H}}_{\\mathcal{S}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "{\\mathcal{H}}_{S,R}\\coloneqq\\operatorname{Range}(\\mathsf{B}_{R}^{*})\\subseteq{\\mathcal{H}}_{\\mathcal{S}}."
+      ]
+    },
+    {
+      "id": "A4.EGx36",
+      "tex": [
+        "\\displaystyle\\mathsf{B}_{R}^{*}e_{j}=\\frac{1}{\\sqrt{n}}\\sum_{i=1}^{n}\\mathsf{R}_{ji}\\varphi_{\\mathcal{S}}(S_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathsf{B}_{R}^{*}e_{j}=\\frac{1}{\\sqrt{n}}\\sum_{i=1}^{n}\\mathsf{R}_{ji}\\varphi_{\\mathcal{S}}(S_{i})."
+      ]
+    },
+    {
+      "id": "A4.EGx37",
+      "tex": [
+        "\\displaystyle{\\mathcal{H}}_{S,R}",
+        "\\displaystyle=\\operatorname{span}\\left\\{\\sum_{i=1}^{n}R_{ji}\\varphi_{S}(S_{i}):j=1,\\ldots,m\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle{\\mathcal{H}}_{S,R}",
+        "\\displaystyle=\\operatorname{span}\\left\\{\\sum_{i=1}^{n}R_{ji}\\varphi_{S}(S_{i}):j=1,\\ldots,m\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.EGx38",
+      "tex": [
+        "\\displaystyle P_{R}:=\\mathsf{B}_{R}^{*}(\\mathsf{B}_{R}\\mathsf{B}_{R}^{*})^{\\dagger}\\mathsf{B}_{R},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle P_{R}:=\\mathsf{B}_{R}^{*}(\\mathsf{B}_{R}\\mathsf{B}_{R}^{*})^{\\dagger}\\mathsf{B}_{R},"
+      ]
+    },
+    {
+      "id": "A4.EGx39",
+      "tex": [
+        "\\displaystyle\\mathsf{B}_{R}=U_{R}\\Sigma_{R}V_{R}^{*},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathsf{B}_{R}=U_{R}\\Sigma_{R}V_{R}^{*},"
+      ]
+    },
+    {
+      "id": "A4.EGx40",
+      "tex": [
+        "\\displaystyle L=\\{\\ell_{1},\\ldots,\\ell_{m}\\}\\subseteq\\{1,\\ldots,n\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle L=\\{\\ell_{1},\\ldots,\\ell_{m}\\}\\subseteq\\{1,\\ldots,n\\}"
+      ]
+    },
+    {
+      "id": "A4.EGx41",
+      "tex": [
+        "\\displaystyle(\\mathsf{R}_{L}a)_{j}=a_{\\ell_{j}},\\qquad j=1,\\ldots,m."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(\\mathsf{R}_{L}a)_{j}=a_{\\ell_{j}},\\qquad j=1,\\ldots,m."
+      ]
+    },
+    {
+      "id": "A4.EGx42",
+      "tex": [
+        "\\displaystyle\\Phi_{L}:\\mathbb{R}^{m}\\to{\\mathcal{H}}_{S},\\quad\\Phi_{L}c=\\sum_{j=1}^{m}c_{j}\\varphi_{S}(S_{\\ell_{j}})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Phi_{L}:\\mathbb{R}^{m}\\to{\\mathcal{H}}_{S},\\quad\\Phi_{L}c=\\sum_{j=1}^{m}c_{j}\\varphi_{S}(S_{\\ell_{j}})."
+      ]
+    },
+    {
+      "id": "A4.EGx43",
+      "tex": [
+        "\\displaystyle\\Phi_{L}^{*}f=\\begin{bmatrix}f(S_{\\ell_{1}})\\\\\n\\vdots\\\\\nf(S_{\\ell_{m}})\\end{bmatrix}\\in\\mathbb{R}^{m}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Phi_{L}^{*}f=\\begin{bmatrix}f(S_{\\ell_{1}})\\\\\n\\vdots\\\\\nf(S_{\\ell_{m}})\\end{bmatrix}\\in\\mathbb{R}^{m}"
+      ]
+    },
+    {
+      "id": "A4.EGx44",
+      "tex": [
+        "\\displaystyle\\mathsf{R}_{L}\\mathsf{T}_{S}",
+        "\\displaystyle=\\frac{1}{\\sqrt{n}}\\Phi_{L}^{*},\\quad\\mathsf{T}_{S}^{*}\\mathsf{R}_{L}^{\\top}=\\frac{1}{\\sqrt{n}}\\Phi_{L},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathsf{R}_{L}\\mathsf{T}_{S}",
+        "\\displaystyle=\\frac{1}{\\sqrt{n}}\\Phi_{L}^{*},\\quad\\mathsf{T}_{S}^{*}\\mathsf{R}_{L}^{\\top}=\\frac{1}{\\sqrt{n}}\\Phi_{L},"
+      ]
+    },
+    {
+      "id": "A4.EGx45",
+      "tex": [
+        "\\displaystyle{\\mathcal{H}}_{S,R_{L}}=\\operatorname{Range}(\\mathsf{T}_{S}^{*}\\mathsf{R}_{L}^{\\top})=\\operatorname{Range}(\\Phi_{L})=\\operatorname{span}\\{\\varphi_{S}(S_{\\ell}):\\ell\\in L\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle{\\mathcal{H}}_{S,R_{L}}=\\operatorname{Range}(\\mathsf{T}_{S}^{*}\\mathsf{R}_{L}^{\\top})=\\operatorname{Range}(\\Phi_{L})=\\operatorname{span}\\{\\varphi_{S}(S_{\\ell}):\\ell\\in L\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex88",
+      "tex": [
+        "W=\\mathsf{R}_{L}K_{S}\\mathsf{R}_{L}^{\\top}=K_{S}[L,L]\\in\\mathbb{R}^{m\\times m}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W=\\mathsf{R}_{L}K_{S}\\mathsf{R}_{L}^{\\top}=K_{S}[L,L]\\in\\mathbb{R}^{m\\times m}."
+      ]
+    },
+    {
+      "id": "A4.EGx46",
+      "tex": [
+        "\\displaystyle P_{L}=P_{R_{L}}=\\Phi_{L}W^{\\dagger}\\Phi_{L}^{*}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle P_{L}=P_{R_{L}}=\\Phi_{L}W^{\\dagger}\\Phi_{L}^{*}."
+      ]
+    },
+    {
+      "id": "A4.EGx47",
+      "tex": [
+        "\\displaystyle{\\mathcal{H}}_{\\mathcal{S}}={\\mathcal{H}}_{{\\mathcal{S}},R}\\oplus{\\mathcal{H}}_{{\\mathcal{S}},R}^{\\perp},\\quad{\\mathcal{H}}_{{\\mathcal{S}},R}=\\operatorname{Range}(P_{R})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle{\\mathcal{H}}_{\\mathcal{S}}={\\mathcal{H}}_{{\\mathcal{S}},R}\\oplus{\\mathcal{H}}_{{\\mathcal{S}},R}^{\\perp},\\quad{\\mathcal{H}}_{{\\mathcal{S}},R}=\\operatorname{Range}(P_{R})."
+      ]
+    },
+    {
+      "id": "A4.EGx48",
+      "tex": [
+        "\\displaystyle{\\mathcal{S}}_{2,R}:=\\left\\{H\\in{\\mathcal{S}}({\\mathcal{H}}_{\\mathcal{S}},{\\mathcal{H}}_{\\mathcal{Z}}):H=HP_{R}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle{\\mathcal{S}}_{2,R}:=\\left\\{H\\in{\\mathcal{S}}({\\mathcal{H}}_{\\mathcal{S}},{\\mathcal{H}}_{\\mathcal{Z}}):H=HP_{R}\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex91",
+      "tex": [
+        "m_{H}(s)=H\\varphi_{S}(s)=HP_{R}\\varphi_{S}(s)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{H}(s)=H\\varphi_{S}(s)=HP_{R}\\varphi_{S}(s)."
+      ]
+    },
+    {
+      "id": "A4.EGx49",
+      "tex": [
+        "\\displaystyle{\\mathcal{G}}_{R}:=\\left\\{m_{H}:m_{H}(s)=H\\varphi_{S}(s),\\ H\\in{\\mathcal{S}}_{2,R}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle{\\mathcal{G}}_{R}:=\\left\\{m_{H}:m_{H}(s)=H\\varphi_{S}(s),\\ H\\in{\\mathcal{S}}_{2,R}\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.EGx50",
+      "tex": [
+        "\\displaystyle\\widehat{H}_{R,\\lambda}\\in\\operatorname*{arg\\,min}_{\\begin{subarray}{c}H\\in\\mathcal{S}_{2,R}\\end{subarray}}\\left\\{\\left\\lVert\\mathsf{T}_{Z}^{*}-H\\mathsf{T}_{S}^{*}\\right\\rVert_{\\mathrm{HS}}^{2}+\\lambda\\left\\lVert H\\right\\rVert_{\\mathrm{HS}}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{H}_{R,\\lambda}\\in\\operatorname*{arg\\,min}_{\\begin{subarray}{c}H\\in\\mathcal{S}_{2,R}\\end{subarray}}\\left\\{\\left\\lVert\\mathsf{T}_{Z}^{*}-H\\mathsf{T}_{S}^{*}\\right\\rVert_{\\mathrm{HS}}^{2}+\\lambda\\left\\lVert H\\right\\rVert_{\\mathrm{HS}}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.EGx51",
+      "tex": [
+        "\\displaystyle\\widehat{H}_{R,\\lambda}\\in\\operatorname*{arg\\,min}_{\\begin{subarray}{c}H\\in\\mathcal{S}_{2}({\\mathcal{H}}_{S},{\\mathcal{H}}_{Z})\\\\\nH=HP_{R}\\end{subarray}}\\left\\{\\frac{1}{n}\\sum_{i=1}^{n}\\left\\lVert\\varphi_{\\mathcal{Z}}(Z_{i})-HP_{R}\\varphi_{\\mathcal{S}}(S_{i})\\right\\rVert_{{\\mathcal{H}}_{\\mathcal{Z}}}^{2}+\\lambda\\left\\lVert H\\right\\rVert_{\\mathrm{HS}}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{H}_{R,\\lambda}\\in\\operatorname*{arg\\,min}_{\\begin{subarray}{c}H\\in\\mathcal{S}_{2}({\\mathcal{H}}_{S},{\\mathcal{H}}_{Z})\\\\\nH=HP_{R}\\end{subarray}}\\left\\{\\frac{1}{n}\\sum_{i=1}^{n}\\left\\lVert\\varphi_{\\mathcal{Z}}(Z_{i})-HP_{R}\\varphi_{\\mathcal{S}}(S_{i})\\right\\rVert_{{\\mathcal{H}}_{\\mathcal{Z}}}^{2}+\\lambda\\left\\lVert H\\right\\rVert_{\\mathrm{HS}}^{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex93",
+      "tex": [
+        "f=V_{R}a,\\qquad a=V_{R}^{*}f\\in\\mathbb{R}^{r_{R}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "f=V_{R}a,\\qquad a=V_{R}^{*}f\\in\\mathbb{R}^{r_{R}}."
+      ]
+    },
+    {
+      "id": "A4.E59",
+      "tex": [
+        "\\widehat{C}_{S,R}^{\\mathrm{red}}:=V_{R}^{*}\\widehat{C}_{S}V_{R}\\in\\mathbb{R}^{r_{R}\\times r_{R}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{C}_{S,R}^{\\mathrm{red}}:=V_{R}^{*}\\widehat{C}_{S}V_{R}\\in\\mathbb{R}^{r_{R}\\times r_{R}}."
+      ]
+    },
+    {
+      "id": "A4.EGx52",
+      "tex": [
+        "\\displaystyle a^{\\top}\\widehat{C}_{S,R}^{\\mathrm{red}}a",
+        "\\displaystyle=\\left\\langle V_{R}a,\\widehat{C}_{S}V_{R}a\\right\\rangle_{\\mathcal{H}_{S}}=\\frac{1}{n}\\sum_{i=1}^{n}\\left|\\left\\langle V_{R}a,\\varphi_{S}(S_{i})\\right\\rangle_{\\mathcal{H}_{S}}\\right|^{2}\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle a^{\\top}\\widehat{C}_{S,R}^{\\mathrm{red}}a",
+        "\\displaystyle=\\left\\langle V_{R}a,\\widehat{C}_{S}V_{R}a\\right\\rangle_{\\mathcal{H}_{S}}=\\frac{1}{n}\\sum_{i=1}^{n}\\left|\\left\\langle V_{R}a,\\varphi_{S}(S_{i})\\right\\rangle_{\\mathcal{H}_{S}}\\right|^{2}\\geq 0."
+      ]
+    },
+    {
+      "id": "A4.E60",
+      "tex": [
+        "\\eta_{R,\\lambda}(\\widehat{C}_{S}):=V_{R}\\left(\\widehat{C}_{S,R}^{\\mathrm{red}}+\\lambda I_{r_{R}}\\right)^{-1}V_{R}^{*}:\\mathcal{H}_{S}\\to\\mathcal{H}_{S}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta_{R,\\lambda}(\\widehat{C}_{S}):=V_{R}\\left(\\widehat{C}_{S,R}^{\\mathrm{red}}+\\lambda I_{r_{R}}\\right)^{-1}V_{R}^{*}:\\mathcal{H}_{S}\\to\\mathcal{H}_{S}."
+      ]
+    },
+    {
+      "id": "A4.E61",
+      "tex": [
+        "\\widehat{H}_{R,\\lambda}=\\widehat{C}_{ZS}\\eta_{R,\\lambda}(\\widehat{C}_{S})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{H}_{R,\\lambda}=\\widehat{C}_{ZS}\\eta_{R,\\lambda}(\\widehat{C}_{S})."
+      ]
+    },
+    {
+      "id": "A4.EGx53",
+      "tex": [
+        "\\displaystyle P_{R}\\left(\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}\\right)\\eta_{R,\\lambda}(\\widehat{C}_{S})",
+        "\\displaystyle=P_{R},",
+        "\\displaystyle\\eta_{R,\\lambda}(\\widehat{C}_{S})\\left(\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}\\right)P_{R}",
+        "\\displaystyle=P_{R}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle P_{R}\\left(\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}\\right)\\eta_{R,\\lambda}(\\widehat{C}_{S})",
+        "\\displaystyle=P_{R},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\eta_{R,\\lambda}(\\widehat{C}_{S})\\left(\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}\\right)P_{R}",
+        "\\displaystyle=P_{R}."
+      ]
+    },
+    {
+      "id": "A4.Ex95",
+      "tex": [
+        "P_{L}:=P_{R_{L}},\\qquad\\eta_{L,\\lambda}:=\\eta_{R_{L},\\lambda}(\\widehat{C}_{S})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{L}:=P_{R_{L}},\\qquad\\eta_{L,\\lambda}:=\\eta_{R_{L},\\lambda}(\\widehat{C}_{S})."
+      ]
+    },
+    {
+      "id": "A4.Ex96",
+      "tex": [
+        "\\widehat{H}_{L,\\lambda}=\\widehat{C}_{ZS}\\eta_{L,\\lambda},\\qquad\\widehat{m}_{L,\\lambda}(s):=\\widehat{H}_{L,\\lambda}\\varphi_{S}(s)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{H}_{L,\\lambda}=\\widehat{C}_{ZS}\\eta_{L,\\lambda},\\qquad\\widehat{m}_{L,\\lambda}(s):=\\widehat{H}_{L,\\lambda}\\varphi_{S}(s)."
+      ]
+    },
+    {
+      "id": "A4.E64",
+      "tex": [
+        "H_{\\lambda}-H_{0}=-\\lambda H_{0}C_{S,\\lambda}^{-1}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{\\lambda}-H_{0}=-\\lambda H_{0}C_{S,\\lambda}^{-1}."
+      ]
+    },
+    {
+      "id": "A4.EGx54",
+      "tex": [
+        "\\displaystyle\\widehat{H}_{L,\\lambda}-H_{0}",
+        "\\displaystyle=\\left(\\widehat{C}_{ZS}-H_{\\lambda}\\widehat{C}_{S}\\right)\\eta_{L,\\lambda}+H_{\\lambda}\\left(\\widehat{C}_{S}\\eta_{L,\\lambda}-I_{\\mathcal{H}_{S}}\\right)+\\left(H_{\\lambda}-H_{0}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{H}_{L,\\lambda}-H_{0}",
+        "\\displaystyle=\\left(\\widehat{C}_{ZS}-H_{\\lambda}\\widehat{C}_{S}\\right)\\eta_{L,\\lambda}+H_{\\lambda}\\left(\\widehat{C}_{S}\\eta_{L,\\lambda}-I_{\\mathcal{H}_{S}}\\right)+\\left(H_{\\lambda}-H_{0}\\right)."
+      ]
+    },
+    {
+      "id": "A4.E66",
+      "tex": [
+        "r_{m}(L,\\lambda):=\\left\\|\\widehat{m}_{L,\\lambda}-m_{0}\\right\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}\\leq(A)_{L,\\lambda}+(B)_{L,\\lambda}+(C)_{\\lambda},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "r_{m}(L,\\lambda):=\\left\\|\\widehat{m}_{L,\\lambda}-m_{0}\\right\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}\\leq(A)_{L,\\lambda}+(B)_{L,\\lambda}+(C)_{\\lambda},"
+      ]
+    },
+    {
+      "id": "A4.EGx55",
+      "tex": [
+        "\\displaystyle(A)_{L,\\lambda}",
+        "\\displaystyle:=\\left\\|\\left(\\widehat{C}_{ZS}-H_{\\lambda}\\widehat{C}_{S}\\right)\\eta_{L,\\lambda}C_{S}^{1/2}\\right\\|_{\\mathrm{HS}},",
+        "\\displaystyle(B)_{L,\\lambda}",
+        "\\displaystyle:=\\left\\|H_{\\lambda}\\left(\\widehat{C}_{S}\\eta_{L,\\lambda}-I_{\\mathcal{H}_{S}}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{HS}},",
+        "\\displaystyle(C)_{\\lambda}",
+        "\\displaystyle:=\\left\\|\\left(H_{\\lambda}-H_{0}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(A)_{L,\\lambda}",
+        "\\displaystyle:=\\left\\|\\left(\\widehat{C}_{ZS}-H_{\\lambda}\\widehat{C}_{S}\\right)\\eta_{L,\\lambda}C_{S}^{1/2}\\right\\|_{\\mathrm{HS}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(B)_{L,\\lambda}",
+        "\\displaystyle:=\\left\\|H_{\\lambda}\\left(\\widehat{C}_{S}\\eta_{L,\\lambda}-I_{\\mathcal{H}_{S}}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{HS}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(C)_{\\lambda}",
+        "\\displaystyle:=\\left\\|\\left(H_{\\lambda}-H_{0}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": "A4.Ex99",
+      "tex": [
+        "\\widehat{C}_{S,\\lambda}:=\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{C}_{S,\\lambda}:=\\widehat{C}_{S}+\\lambda I_{\\mathcal{H}_{S}}."
+      ]
+    },
+    {
+      "id": "A4.EGx56",
+      "tex": [
+        "\\displaystyle\\mathcal{E}_{\\mathrm{cmp}}(\\lambda):=\\Bigg\\{",
+        "\\displaystyle\\left\\|\\widehat{C}_{S,\\lambda}^{-1/2}C_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\leq\\sqrt{2},\\left\\|C_{S,\\lambda}^{-1/2}\\widehat{C}_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\leq\\sqrt{\\frac{3}{2}}\\Bigg\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{E}_{\\mathrm{cmp}}(\\lambda):=\\Bigg\\{",
+        "\\displaystyle\\left\\|\\widehat{C}_{S,\\lambda}^{-1/2}C_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\leq\\sqrt{2},\\left\\|C_{S,\\lambda}^{-1/2}\\widehat{C}_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\leq\\sqrt{\\frac{3}{2}}\\Bigg\\}."
+      ]
+    },
+    {
+      "id": "A4.E69",
+      "tex": [
+        "\\left\\|\\widehat{C}_{S,\\lambda}^{1/2}\\eta_{L,\\lambda}\\widehat{C}_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\leq 1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widehat{C}_{S,\\lambda}^{1/2}\\eta_{L,\\lambda}\\widehat{C}_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\leq 1,"
+      ]
+    },
+    {
+      "id": "A4.E70",
+      "tex": [
+        "\\varepsilon_{L}:=\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon_{L}:=\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": "A4.Ex100",
+      "tex": [
+        "\\lambda_{n}:=n^{-1/(1+\\gamma)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{n}:=n^{-1/(1+\\gamma)}."
+      ]
+    },
+    {
+      "id": "A4.E71",
+      "tex": [
+        "\\frac{9\\kappa_{S}^{2}}{n}\\log\\left(\\frac{n}{\\delta}\\right)\\leq\\lambda_{n}\\leq\\|C_{S}\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{9\\kappa_{S}^{2}}{n}\\log\\left(\\frac{n}{\\delta}\\right)\\leq\\lambda_{n}\\leq\\|C_{S}\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": "A4.E72",
+      "tex": [
+        "(A)_{L,\\lambda_{n}}\\leq C_{A}\\log\\left(\\frac{4}{\\delta}\\right)n^{-\\frac{1}{2(1+\\gamma)}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(A)_{L,\\lambda_{n}}\\leq C_{A}\\log\\left(\\frac{4}{\\delta}\\right)n^{-\\frac{1}{2(1+\\gamma)}}."
+      ]
+    },
+    {
+      "id": "A4.E73",
+      "tex": [
+        "(B)_{L,\\lambda}\\leq 2\\sqrt{3}\\,\\|H_{0}\\|_{\\mathrm{HS}}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(B)_{L,\\lambda}\\leq 2\\sqrt{3}\\,\\|H_{0}\\|_{\\mathrm{HS}}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right)."
+      ]
+    },
+    {
+      "id": "A4.EGx57",
+      "tex": [
+        "\\displaystyle\\widehat{C}_{S}\\eta_{L,\\lambda}-I_{\\mathcal{H}_{S}}",
+        "\\displaystyle=\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)\\widehat{C}_{S,\\lambda}\\eta_{L,\\lambda}-\\lambda\\eta_{L,\\lambda}-\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{C}_{S}\\eta_{L,\\lambda}-I_{\\mathcal{H}_{S}}",
+        "\\displaystyle=\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)\\widehat{C}_{S,\\lambda}\\eta_{L,\\lambda}-\\lambda\\eta_{L,\\lambda}-\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)."
+      ]
+    },
+    {
+      "id": "A4.Ex101",
+      "tex": [
+        "(B)_{L,\\lambda}\\leq\\|H_{\\lambda}\\|_{\\mathrm{HS}}\\left(B_{1}+B_{2}+B_{3}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(B)_{L,\\lambda}\\leq\\|H_{\\lambda}\\|_{\\mathrm{HS}}\\left(B_{1}+B_{2}+B_{3}\\right),"
+      ]
+    },
+    {
+      "id": "A4.EGx58",
+      "tex": [
+        "\\displaystyle B_{1}",
+        "\\displaystyle:=\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)\\widehat{C}_{S,\\lambda}\\eta_{L,\\lambda}C_{S}^{1/2}\\right\\|_{\\mathrm{op}},\\kern 5.0ptB_{2}:=\\lambda\\left\\|\\eta_{L,\\lambda}C_{S}^{1/2}\\right\\|_{\\mathrm{op}},\\kern 5.0ptB_{3}:=\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{op}}=\\varepsilon_{L}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle B_{1}",
+        "\\displaystyle:=\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)\\widehat{C}_{S,\\lambda}\\eta_{L,\\lambda}C_{S}^{1/2}\\right\\|_{\\mathrm{op}},\\kern 5.0ptB_{2}:=\\lambda\\left\\|\\eta_{L,\\lambda}C_{S}^{1/2}\\right\\|_{\\mathrm{op}},\\kern 5.0ptB_{3}:=\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S}^{1/2}\\right\\|_{\\mathrm{op}}=\\varepsilon_{L}."
+      ]
+    },
+    {
+      "id": "A4.Ex103",
+      "tex": [
+        "B_{1}\\leq\\sqrt{3}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right),\\qquad B_{2}\\leq\\sqrt{2\\lambda}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "B_{1}\\leq\\sqrt{3}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right),\\qquad B_{2}\\leq\\sqrt{2\\lambda}."
+      ]
+    },
+    {
+      "id": "A4.EGx59",
+      "tex": [
+        "\\displaystyle B_{1}+B_{2}+B_{3}",
+        "\\displaystyle\\leq\\sqrt{3}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right)+\\sqrt{2\\lambda}+\\varepsilon_{L}\\leq 2\\sqrt{3}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle B_{1}+B_{2}+B_{3}",
+        "\\displaystyle\\leq\\sqrt{3}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right)+\\sqrt{2\\lambda}+\\varepsilon_{L}\\leq 2\\sqrt{3}\\left(\\varepsilon_{L}+\\sqrt{\\lambda}\\right)."
+      ]
+    },
+    {
+      "id": "A4.Ex105",
+      "tex": [
+        "H_{\\lambda}=H_{0}C_{S}(C_{S}+\\lambda I_{\\mathcal{H}_{S}})^{-1},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{\\lambda}=H_{0}C_{S}(C_{S}+\\lambda I_{\\mathcal{H}_{S}})^{-1},"
+      ]
+    },
+    {
+      "id": "A4.Ex106",
+      "tex": [
+        "\\left\\|C_{S}(C_{S}+\\lambda I_{\\mathcal{H}_{S}})^{-1}\\right\\|_{\\mathrm{op}}\\leq 1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|C_{S}(C_{S}+\\lambda I_{\\mathcal{H}_{S}})^{-1}\\right\\|_{\\mathrm{op}}\\leq 1."
+      ]
+    },
+    {
+      "id": "A4.E75",
+      "tex": [
+        "(C)_{\\lambda}\\leq\\frac{\\sqrt{\\lambda}}{2}\\|H_{0}\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(C)_{\\lambda}\\leq\\frac{\\sqrt{\\lambda}}{2}\\|H_{0}\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": "A4.EGx60",
+      "tex": [
+        "\\displaystyle(C)_{\\lambda}",
+        "\\displaystyle=\\lambda\\left\\|H_{0}C_{S,\\lambda}^{-1}C_{S}^{1/2}\\right\\|_{\\mathrm{HS}}\\leq\\|H_{0}\\|_{\\mathrm{HS}}\\left\\|\\lambda C_{S,\\lambda}^{-1}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(C)_{\\lambda}",
+        "\\displaystyle=\\lambda\\left\\|H_{0}C_{S,\\lambda}^{-1}C_{S}^{1/2}\\right\\|_{\\mathrm{HS}}\\leq\\|H_{0}\\|_{\\mathrm{HS}}\\left\\|\\lambda C_{S,\\lambda}^{-1}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": "A4.EGx61",
+      "tex": [
+        "\\displaystyle\\left\\|\\lambda C_{S,\\lambda}^{-1}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}",
+        "\\displaystyle=\\sup_{\\sigma\\in\\operatorname{spec}(C_{S})}\\frac{\\lambda\\sqrt{\\sigma}}{\\sigma+\\lambda}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|\\lambda C_{S,\\lambda}^{-1}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}",
+        "\\displaystyle=\\sup_{\\sigma\\in\\operatorname{spec}(C_{S})}\\frac{\\lambda\\sqrt{\\sigma}}{\\sigma+\\lambda}."
+      ]
+    },
+    {
+      "id": "A4.EGx62",
+      "tex": [
+        "\\displaystyle r_{m}(L,\\lambda)",
+        "\\displaystyle\\leq(A)_{L,\\lambda}+2\\sqrt{3}\\,\\|H_{0}\\|_{\\mathrm{HS}}\\,\\varepsilon_{L}+\\left(2\\sqrt{3}+\\frac{1}{2}\\right)\\|H_{0}\\|_{\\mathrm{HS}}\\sqrt{\\lambda}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle r_{m}(L,\\lambda)",
+        "\\displaystyle\\leq(A)_{L,\\lambda}+2\\sqrt{3}\\,\\|H_{0}\\|_{\\mathrm{HS}}\\,\\varepsilon_{L}+\\left(2\\sqrt{3}+\\frac{1}{2}\\right)\\|H_{0}\\|_{\\mathrm{HS}}\\sqrt{\\lambda}."
+      ]
+    },
+    {
+      "id": "A4.E77",
+      "tex": [
+        "\\mathcal{N}(\\lambda):=\\operatorname{Tr}\\left[C_{S}C_{S,\\lambda}^{-1}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}(\\lambda):=\\operatorname{Tr}\\left[C_{S}C_{S,\\lambda}^{-1}\\right],"
+      ]
+    },
+    {
+      "id": "A4.E78",
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda):=\\operatorname*{ess\\,sup}_{s\\sim P_{S,0}}\\left\\langle\\varphi_{S}(s),C_{S,\\lambda}^{-1}\\varphi_{S}(s)\\right\\rangle_{\\mathcal{H}_{S}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda):=\\operatorname*{ess\\,sup}_{s\\sim P_{S,0}}\\left\\langle\\varphi_{S}(s),C_{S,\\lambda}^{-1}\\varphi_{S}(s)\\right\\rangle_{\\mathcal{H}_{S}}."
+      ]
+    },
+    {
+      "id": "A4.Ex109",
+      "tex": [
+        "\\operatorname{span}\\left\\{\\varphi_{S}(S_{\\ell}):\\ell\\in L\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{span}\\left\\{\\varphi_{S}(S_{\\ell}):\\ell\\in L\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.E79",
+      "tex": [
+        "m\\geq\\left\\{67\\vee 5\\mathcal{N}_{\\infty}(\\lambda)\\right\\}\\log\\left(\\frac{4\\kappa_{S}^{2}}{\\lambda\\delta}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m\\geq\\left\\{67\\vee 5\\mathcal{N}_{\\infty}(\\lambda)\\right\\}\\log\\left(\\frac{4\\kappa_{S}^{2}}{\\lambda\\delta}\\right),"
+      ]
+    },
+    {
+      "id": "A4.E80",
+      "tex": [
+        "\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}^{2}\\leq 3\\lambda."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}^{2}\\leq 3\\lambda."
+      ]
+    },
+    {
+      "id": "A4.E81",
+      "tex": [
+        "\\varepsilon_{L}\\leq\\sqrt{3\\lambda}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon_{L}\\leq\\sqrt{3\\lambda}."
+      ]
+    },
+    {
+      "id": "A4.Ex110",
+      "tex": [
+        "C_{S}^{1/2}=C_{S,\\lambda}^{1/2}C_{S,\\lambda}^{-1/2}C_{S}^{1/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{S}^{1/2}=C_{S,\\lambda}^{1/2}C_{S,\\lambda}^{-1/2}C_{S}^{1/2}."
+      ]
+    },
+    {
+      "id": "A4.EGx63",
+      "tex": [
+        "\\displaystyle\\varepsilon_{L}",
+        "\\displaystyle\\leq\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\left\\|C_{S,\\lambda}^{-1/2}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\varepsilon_{L}",
+        "\\displaystyle\\leq\\left\\|\\left(I_{\\mathcal{H}_{S}}-P_{L}\\right)C_{S,\\lambda}^{1/2}\\right\\|_{\\mathrm{op}}\\left\\|C_{S,\\lambda}^{-1/2}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}."
+      ]
+    },
+    {
+      "id": "A4.Ex112",
+      "tex": [
+        "\\left\\|C_{S,\\lambda}^{-1/2}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}=\\sup_{\\sigma\\in\\operatorname{spec}(C_{S})}\\sqrt{\\frac{\\sigma}{\\sigma+\\lambda}}\\leq 1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|C_{S,\\lambda}^{-1/2}C_{S}^{1/2}\\right\\|_{\\mathrm{op}}=\\sup_{\\sigma\\in\\operatorname{spec}(C_{S})}\\sqrt{\\frac{\\sigma}{\\sigma+\\lambda}}\\leq 1."
+      ]
+    },
+    {
+      "id": "A4.EGx64",
+      "tex": [
+        "\\displaystyle r_{m}(L,\\lambda)",
+        "\\displaystyle\\leq(A)_{L,\\lambda}+C_{H}\\sqrt{\\lambda},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle r_{m}(L,\\lambda)",
+        "\\displaystyle\\leq(A)_{L,\\lambda}+C_{H}\\sqrt{\\lambda},"
+      ]
+    },
+    {
+      "id": "A4.Ex113",
+      "tex": [
+        "C_{H}:=\\left[2\\sqrt{3}(\\sqrt{3}+1)+\\frac{1}{2}\\right]\\|H_{0}\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{H}:=\\left[2\\sqrt{3}(\\sqrt{3}+1)+\\frac{1}{2}\\right]\\|H_{0}\\|_{\\mathrm{HS}}."
+      ]
+    },
+    {
+      "id": "A4.E83",
+      "tex": [
+        "\\mathcal{N}(\\lambda)\\leq Q_{S}\\lambda^{-\\gamma}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}(\\lambda)\\leq Q_{S}\\lambda^{-\\gamma}."
+      ]
+    },
+    {
+      "id": "A4.E84",
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq\\frac{\\kappa_{S}^{2}}{\\lambda}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq\\frac{\\kappa_{S}^{2}}{\\lambda}."
+      ]
+    },
+    {
+      "id": "A4.E85",
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq B_{S}Q_{S}\\lambda^{-(\\gamma+\\mu)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq B_{S}Q_{S}\\lambda^{-(\\gamma+\\mu)}."
+      ]
+    },
+    {
+      "id": "A4.Ex114",
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq B_{S}\\sum_{j}\\frac{\\sigma_{j}^{1-\\mu}}{\\sigma_{j}+\\lambda},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq B_{S}\\sum_{j}\\frac{\\sigma_{j}^{1-\\mu}}{\\sigma_{j}+\\lambda},"
+      ]
+    },
+    {
+      "id": "A4.Ex115",
+      "tex": [
+        "\\frac{\\sigma^{1-\\mu}}{\\sigma+\\lambda}\\leq\\lambda^{-(\\gamma+\\mu)}\\sigma^{\\gamma}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\sigma^{1-\\mu}}{\\sigma+\\lambda}\\leq\\lambda^{-(\\gamma+\\mu)}\\sigma^{\\gamma}"
+      ]
+    },
+    {
+      "id": "A4.Ex116",
+      "tex": [
+        "\\lambda_{n}:=n^{-1/(1+\\gamma)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{n}:=n^{-1/(1+\\gamma)}."
+      ]
+    },
+    {
+      "id": "A4.E86",
+      "tex": [
+        "\\frac{9\\kappa_{S}^{2}}{n}\\log\\left(\\frac{2n}{\\delta}\\right)\\leq\\lambda_{n}\\leq\\|C_{S}\\|_{\\mathrm{op}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{9\\kappa_{S}^{2}}{n}\\log\\left(\\frac{2n}{\\delta}\\right)\\leq\\lambda_{n}\\leq\\|C_{S}\\|_{\\mathrm{op}},"
+      ]
+    },
+    {
+      "id": "A4.E87",
+      "tex": [
+        "m_{n}\\geq\\left\\{67\\vee 5\\mathcal{N}_{\\infty}(\\lambda_{n})\\right\\}\\log\\left(\\frac{8\\kappa_{S}^{2}}{\\lambda_{n}\\delta}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{n}\\geq\\left\\{67\\vee 5\\mathcal{N}_{\\infty}(\\lambda_{n})\\right\\}\\log\\left(\\frac{8\\kappa_{S}^{2}}{\\lambda_{n}\\delta}\\right)."
+      ]
+    },
+    {
+      "id": "A4.E88",
+      "tex": [
+        "\\left\\|\\widehat{m}_{L_{n},\\lambda_{n}}-m_{0}\\right\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}\\leq\\left\\{C_{A}\\log\\left(\\frac{8}{\\delta}\\right)+C_{H}\\right\\}n^{-\\frac{1}{2(1+\\gamma)}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widehat{m}_{L_{n},\\lambda_{n}}-m_{0}\\right\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}\\leq\\left\\{C_{A}\\log\\left(\\frac{8}{\\delta}\\right)+C_{H}\\right\\}n^{-\\frac{1}{2(1+\\gamma)}}."
+      ]
+    },
+    {
+      "id": "A4.Ex117",
+      "tex": [
+        "(A)_{L_{n},\\lambda_{n}}\\leq C_{A}\\log\\left(\\frac{8}{\\delta}\\right)n^{-\\frac{1}{2(1+\\gamma)}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(A)_{L_{n},\\lambda_{n}}\\leq C_{A}\\log\\left(\\frac{8}{\\delta}\\right)n^{-\\frac{1}{2(1+\\gamma)}},"
+      ]
+    },
+    {
+      "id": "A4.Ex118",
+      "tex": [
+        "\\varepsilon_{L_{n}}\\leq\\sqrt{3\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon_{L_{n}}\\leq\\sqrt{3\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": "A4.EGx65",
+      "tex": [
+        "\\displaystyle(B)_{L_{n},\\lambda_{n}}",
+        "\\displaystyle\\leq 2\\sqrt{3}\\,\\|H_{0}\\|_{\\mathrm{HS}}\\left(\\varepsilon_{L_{n}}+\\sqrt{\\lambda_{n}}\\right)\\leq 2\\sqrt{3}(\\sqrt{3}+1)\\|H_{0}\\|_{\\mathrm{HS}}\\sqrt{\\lambda_{n}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle(B)_{L_{n},\\lambda_{n}}",
+        "\\displaystyle\\leq 2\\sqrt{3}\\,\\|H_{0}\\|_{\\mathrm{HS}}\\left(\\varepsilon_{L_{n}}+\\sqrt{\\lambda_{n}}\\right)\\leq 2\\sqrt{3}(\\sqrt{3}+1)\\|H_{0}\\|_{\\mathrm{HS}}\\sqrt{\\lambda_{n}},"
+      ]
+    },
+    {
+      "id": "A4.Ex120",
+      "tex": [
+        "(C)_{\\lambda_{n}}\\leq\\frac{1}{2}\\|H_{0}\\|_{\\mathrm{HS}}\\sqrt{\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(C)_{\\lambda_{n}}\\leq\\frac{1}{2}\\|H_{0}\\|_{\\mathrm{HS}}\\sqrt{\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": "A4.Ex121",
+      "tex": [
+        "\\sqrt{\\lambda_{n}}=n^{-\\frac{1}{2(1+\\gamma)}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sqrt{\\lambda_{n}}=n^{-\\frac{1}{2(1+\\gamma)}}"
+      ]
+    },
+    {
+      "id": "A4.E89",
+      "tex": [
+        "\\vartheta:=\\min\\{\\gamma+\\mu,1\\},\\qquad C_{\\star}:=\\begin{cases}B_{S}Q_{S},&\\gamma+\\mu\\leq 1,\\\\[2.0pt]\n\\kappa_{S}^{2},&\\gamma+\\mu>1.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\vartheta:=\\min\\{\\gamma+\\mu,1\\},\\qquad C_{\\star}:=\\begin{cases}B_{S}Q_{S},&\\gamma+\\mu\\leq 1,\\\\[2.0pt]\n\\kappa_{S}^{2},&\\gamma+\\mu>1.\\end{cases}"
+      ]
+    },
+    {
+      "id": "A4.E90",
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq C_{\\star}\\lambda^{-\\vartheta}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{N}_{\\infty}(\\lambda)\\leq C_{\\star}\\lambda^{-\\vartheta}."
+      ]
+    },
+    {
+      "id": "A4.Ex122",
+      "tex": [
+        "\\lambda_{n}=n^{-1/(1+\\gamma)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{n}=n^{-1/(1+\\gamma)},"
+      ]
+    },
+    {
+      "id": "A4.E91",
+      "tex": [
+        "m_{n}\\geq\\left\\{67\\vee 5C_{\\star}n^{\\frac{\\vartheta}{1+\\gamma}}\\right\\}\\log\\left(\\frac{8\\kappa_{S}^{2}}{\\delta}n^{\\frac{1}{1+\\gamma}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{n}\\geq\\left\\{67\\vee 5C_{\\star}n^{\\frac{\\vartheta}{1+\\gamma}}\\right\\}\\log\\left(\\frac{8\\kappa_{S}^{2}}{\\delta}n^{\\frac{1}{1+\\gamma}}\\right)."
+      ]
+    },
+    {
+      "id": "A4.E92",
+      "tex": [
+        "m_{n}\\gtrsim n^{\\frac{\\vartheta}{1+\\gamma}}\\log n."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{n}\\gtrsim n^{\\frac{\\vartheta}{1+\\gamma}}\\log n."
+      ]
+    },
+    {
+      "id": "A4.E93",
+      "tex": [
+        "\\left\\|\\widehat{m}_{L_{n},\\lambda_{n}}-m_{0}\\right\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}=O_{\\mathbb{P}}\\left(n^{-\\frac{1}{2(1+\\gamma)}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widehat{m}_{L_{n},\\lambda_{n}}-m_{0}\\right\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})}=O_{\\mathbb{P}}\\left(n^{-\\frac{1}{2(1+\\gamma)}}\\right)."
+      ]
+    },
+    {
+      "id": "A4.Ex123",
+      "tex": [
+        "\\lambda_{n}=n^{-1/(1+\\gamma)}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{n}=n^{-1/(1+\\gamma)}"
+      ]
+    },
+    {
+      "id": "A4.E94",
+      "tex": [
+        "\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\|_{\\mathrm{HS}}=O_{\\mathbb{P}}(1),\\qquad\\|\\widehat{H}_{L_{n},\\lambda_{n}}-H_{0}\\|_{\\mathrm{op}}=O_{\\mathbb{P}}(1)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\|_{\\mathrm{HS}}=O_{\\mathbb{P}}(1),\\qquad\\|\\widehat{H}_{L_{n},\\lambda_{n}}-H_{0}\\|_{\\mathrm{op}}=O_{\\mathbb{P}}(1)."
+      ]
+    },
+    {
+      "id": "A4.Ex124",
+      "tex": [
+        "r_{0}(O)=\\varphi_{Z}(Z)-H_{0}\\varphi_{S}(S),\\qquad E_{n}=P_{n}[r_{0}\\otimes\\varphi_{S}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "r_{0}(O)=\\varphi_{Z}(Z)-H_{0}\\varphi_{S}(S),\\qquad E_{n}=P_{n}[r_{0}\\otimes\\varphi_{S}]."
+      ]
+    },
+    {
+      "id": "A4.Ex125",
+      "tex": [
+        "\\|(I-P)\\widehat{T}^{1/2}\\|_{\\mathrm{op}}\\leq 3\\sqrt{\\lambda/2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|(I-P)\\widehat{T}^{1/2}\\|_{\\mathrm{op}}\\leq 3\\sqrt{\\lambda/2}."
+      ]
+    },
+    {
+      "id": "A4.Ex126",
+      "tex": [
+        "\\|\\widehat{T}^{1/2}\\eta\\|_{\\mathrm{op}}\\leq\\frac{1}{2\\sqrt{\\lambda}},\\qquad\\|(T+\\lambda I)^{1/2}\\eta\\|_{\\mathrm{op}}\\leq\\sqrt{2/\\lambda}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\widehat{T}^{1/2}\\eta\\|_{\\mathrm{op}}\\leq\\frac{1}{2\\sqrt{\\lambda}},\\qquad\\|(T+\\lambda I)^{1/2}\\eta\\|_{\\mathrm{op}}\\leq\\sqrt{2/\\lambda}."
+      ]
+    },
+    {
+      "id": "A4.Ex127",
+      "tex": [
+        "\\mathbb{E}\\|E_{n}(T+\\lambda I)^{-1/2}\\|_{\\mathrm{HS}}^{2}\\leq\\frac{4\\kappa_{Z}^{2}}{n}\\mathcal{N}(\\lambda)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\|E_{n}(T+\\lambda I)^{-1/2}\\|_{\\mathrm{HS}}^{2}\\leq\\frac{4\\kappa_{Z}^{2}}{n}\\mathcal{N}(\\lambda)."
+      ]
+    },
+    {
+      "id": "A4.Ex128",
+      "tex": [
+        "\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\|_{\\mathrm{HS}}=O_{\\mathbb{P}}\\!\\left(1+\\sqrt{\\frac{\\mathcal{N}(\\lambda_{n})}{n\\lambda_{n}}}\\right)=O_{\\mathbb{P}}(1),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\|_{\\mathrm{HS}}=O_{\\mathbb{P}}\\!\\left(1+\\sqrt{\\frac{\\mathcal{N}(\\lambda_{n})}{n\\lambda_{n}}}\\right)=O_{\\mathbb{P}}(1),"
+      ]
+    },
+    {
+      "id": "A4.E95",
+      "tex": [
+        "\\begin{split}\\widehat{h}_{\\pi}-\\chi(\\pi)&=(P_{n}-P_{0})\\Gamma_{0}+(P_{n}-P_{0})(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})\\\\\n&\\quad-P_{0}[(\\widehat{w}-w_{0})(\\widehat{m}-m_{0})].\\end{split}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{split}\\widehat{h}_{\\pi}-\\chi(\\pi)&=(P_{n}-P_{0})\\Gamma_{0}+(P_{n}-P_{0})(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})\\\\\n&\\quad-P_{0}[(\\widehat{w}-w_{0})(\\widehat{m}-m_{0})].\\end{split}"
+      ]
+    },
+    {
+      "id": "A4.Ex129",
+      "tex": [
+        "\\|\\mathbb{G}_{n}(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})\\|_{\\mathcal{H}_{Z}}=O_{\\mathbb{P}}(1)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\mathbb{G}_{n}(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})\\|_{\\mathcal{H}_{Z}}=O_{\\mathbb{P}}(1)."
+      ]
+    },
+    {
+      "id": "A4.E96",
+      "tex": [
+        "\\widehat{h}_{\\pi}-\\chi(\\pi)=(P_{n}-P_{0})\\Gamma_{0}-P_{0}[(\\widehat{w}-w_{0})(\\widehat{m}-m_{0})]+o_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{h}_{\\pi}-\\chi(\\pi)=(P_{n}-P_{0})\\Gamma_{0}-P_{0}[(\\widehat{w}-w_{0})(\\widehat{m}-m_{0})]+o_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": "A4.Ex130",
+      "tex": [
+        "v_{\\pi}(X)=\\int v(a,X)\\pi(da\\mid X),\\qquad b_{\\pi}=v_{\\pi}(X)-w_{0}(S)v(S),\\qquad r_{0}=\\varphi_{Z}(Z)-H_{0}v(S)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{\\pi}(X)=\\int v(a,X)\\pi(da\\mid X),\\qquad b_{\\pi}=v_{\\pi}(X)-w_{0}(S)v(S),\\qquad r_{0}=\\varphi_{Z}(Z)-H_{0}v(S)."
+      ]
+    },
+    {
+      "id": "A4.E97",
+      "tex": [
+        "\\mathbb{G}_{n}(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})=D\\mathbb{G}_{n}b_{\\pi}+\\mathbb{G}_{n}[q_{n}r_{0}]-D\\mathbb{G}_{n}[q_{n}v]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{G}_{n}(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})=D\\mathbb{G}_{n}b_{\\pi}+\\mathbb{G}_{n}[q_{n}r_{0}]-D\\mathbb{G}_{n}[q_{n}v]."
+      ]
+    },
+    {
+      "id": "A4.Ex131",
+      "tex": [
+        "\\mathbb{E}\\|\\mathbb{G}_{n}b_{\\pi}\\|^{2}=B_{\\pi}^{2},\\qquad\\mathbb{E}\\|U_{n,c}\\|_{\\mathrm{HS}}^{2}\\leq\\|c\\|_{\\infty}^{2}P_{0}\\|t\\|^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\|\\mathbb{G}_{n}b_{\\pi}\\|^{2}=B_{\\pi}^{2},\\qquad\\mathbb{E}\\|U_{n,c}\\|_{\\mathrm{HS}}^{2}\\leq\\|c\\|_{\\infty}^{2}P_{0}\\|t\\|^{2}."
+      ]
+    },
+    {
+      "id": "A4.Ex132",
+      "tex": [
+        "\\|D\\|_{\\mathrm{op}},\\ \\|q\\|_{\\mathcal{K}_{w}}\\leq R,\\qquad\\|Dv\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})},\\ \\|q\\|_{L_{2}(P_{S,0})}\\leq\\delta."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|D\\|_{\\mathrm{op}},\\ \\|q\\|_{\\mathcal{K}_{w}}\\leq R,\\qquad\\|Dv\\|_{L_{2}(P_{S,0};\\mathcal{H}_{Z})},\\ \\|q\\|_{L_{2}(P_{S,0})}\\leq\\delta."
+      ]
+    },
+    {
+      "id": "A4.Ex133",
+      "tex": [
+        "\\mathbb{E}^{*}\\sup_{\\mathcal{A}_{R}(\\delta)}\\|D\\mathbb{G}_{n}b_{\\pi}\\|\\leq\\frac{\\delta B_{\\pi}}{\\sqrt{\\sigma_{J}}}+Ra_{J}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}^{*}\\sup_{\\mathcal{A}_{R}(\\delta)}\\|D\\mathbb{G}_{n}b_{\\pi}\\|\\leq\\frac{\\delta B_{\\pi}}{\\sqrt{\\sigma_{J}}}+Ra_{J}."
+      ]
+    },
+    {
+      "id": "A4.Ex134",
+      "tex": [
+        "\\mathbb{E}^{*}\\sup_{\\mathcal{A}_{R}(\\delta)}\\|\\mathbb{G}_{n}[qc]\\|\\leq\\|c\\|_{\\infty}\\left\\{\\delta\\sqrt{\\frac{\\operatorname{Tr}(T_{w})}{\\rho_{K}}}+R\\sqrt{\\sum_{j>K}\\rho_{j}}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}^{*}\\sup_{\\mathcal{A}_{R}(\\delta)}\\|\\mathbb{G}_{n}[qc]\\|\\leq\\|c\\|_{\\infty}\\left\\{\\delta\\sqrt{\\frac{\\operatorname{Tr}(T_{w})}{\\rho_{K}}}+R\\sqrt{\\sum_{j>K}\\rho_{j}}\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex135",
+      "tex": [
+        "\\lim_{\\delta\\downarrow 0}\\limsup_{n\\to\\infty}\\mathbb{P}^{*}\\!\\left(\\sup_{(D,q)\\in\\mathcal{A}_{R}(\\delta)}\\|\\mathbb{G}_{n}(\\Gamma_{m_{0}+Dv,w_{0}+q}-\\Gamma_{0})\\|>\\epsilon\\right)=0\\quad(\\epsilon>0)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lim_{\\delta\\downarrow 0}\\limsup_{n\\to\\infty}\\mathbb{P}^{*}\\!\\left(\\sup_{(D,q)\\in\\mathcal{A}_{R}(\\delta)}\\|\\mathbb{G}_{n}(\\Gamma_{m_{0}+Dv,w_{0}+q}-\\Gamma_{0})\\|>\\epsilon\\right)=0\\quad(\\epsilon>0)."
+      ]
+    },
+    {
+      "id": "A4.Ex136",
+      "tex": [
+        "\\|\\dot{w}_{\\theta_{0}}\\|_{2}\\in L_{2}(P_{S,0}),\\qquad B(s):=\\sup_{\\theta\\in U}\\|\\ddot{w}_{\\theta}(s)\\|_{\\mathrm{op}}\\in L_{2}(P_{S,0})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\dot{w}_{\\theta_{0}}\\|_{2}\\in L_{2}(P_{S,0}),\\qquad B(s):=\\sup_{\\theta\\in U}\\|\\ddot{w}_{\\theta}(s)\\|_{\\mathrm{op}}\\in L_{2}(P_{S,0})."
+      ]
+    },
+    {
+      "id": "A4.Ex137",
+      "tex": [
+        "\\|\\widehat{w}-w_{0}\\|_{L_{2}(P_{S,0})}=O_{\\mathbb{P}}(n^{-1/2}),\\qquad\\|\\mathbb{G}_{n}(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})\\|_{\\mathcal{H}_{Z}}=o_{\\mathbb{P}}(1),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\widehat{w}-w_{0}\\|_{L_{2}(P_{S,0})}=O_{\\mathbb{P}}(n^{-1/2}),\\qquad\\|\\mathbb{G}_{n}(\\Gamma_{\\widehat{\\eta}}-\\Gamma_{0})\\|_{\\mathcal{H}_{Z}}=o_{\\mathbb{P}}(1),"
+      ]
+    },
+    {
+      "id": "A4.Ex138",
+      "tex": [
+        "\\widehat{h}_{\\pi}-\\chi(\\pi)=(P_{n}-P_{0})\\Gamma_{0}+o_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{h}_{\\pi}-\\chi(\\pi)=(P_{n}-P_{0})\\Gamma_{0}+o_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": "A4.Ex139",
+      "tex": [
+        "q_{n}=\\dot{w}_{\\theta_{0}}^{\\top}\\Delta_{n}+R_{n},\\qquad|R_{n}|\\leq\\tfrac{1}{2}B\\|\\Delta_{n}\\|_{2}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q_{n}=\\dot{w}_{\\theta_{0}}^{\\top}\\Delta_{n}+R_{n},\\qquad|R_{n}|\\leq\\tfrac{1}{2}B\\|\\Delta_{n}\\|_{2}^{2}."
+      ]
+    },
+    {
+      "id": "A4.EGx66",
+      "tex": [
+        "\\displaystyle\\|\\mathbb{G}_{n}[q_{n}c]\\|",
+        "\\displaystyle\\leq\\|\\Delta_{n}\\|_{2}\\sum_{j=1}^{p}\\|\\mathbb{G}_{n}[\\dot{w}_{\\theta_{0},j}c]\\|",
+        "\\displaystyle\\quad+\\tfrac{1}{2}\\sqrt{n}\\|\\Delta_{n}\\|_{2}^{2}\\|c\\|_{\\infty}(P_{n}B+P_{0}B)=O_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\mathbb{G}_{n}[q_{n}c]\\|",
+        "\\displaystyle\\leq\\|\\Delta_{n}\\|_{2}\\sum_{j=1}^{p}\\|\\mathbb{G}_{n}[\\dot{w}_{\\theta_{0},j}c]\\|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\tfrac{1}{2}\\sqrt{n}\\|\\Delta_{n}\\|_{2}^{2}\\|c\\|_{\\infty}(P_{n}B+P_{0}B)=O_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": "A4.Ex142",
+      "tex": [
+        "\\|\\widehat{w}-w_{0}\\|_{L_{2}(P_{S,0})}=O_{\\mathbb{P}}(r_{w,n})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\widehat{w}-w_{0}\\|_{L_{2}(P_{S,0})}=O_{\\mathbb{P}}(r_{w,n})."
+      ]
+    },
+    {
+      "id": "A4.Ex143",
+      "tex": [
+        "\\mathbb{E}\\|\\Gamma_{m_{0},w_{0}}(O)\\|_{\\mathcal{H}_{Z}}^{2}<\\infty"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\|\\Gamma_{m_{0},w_{0}}(O)\\|_{\\mathcal{H}_{Z}}^{2}<\\infty"
+      ]
+    },
+    {
+      "id": "A4.Ex144",
+      "tex": [
+        "\\left\\|(P_{n}-P_{0})\\left\\{\\Gamma_{\\widehat{m}_{L_{n},\\lambda_{n}},\\widehat{w}}-\\Gamma_{m_{0},w_{0}}\\right\\}\\right\\|_{\\mathcal{H}_{Z}}=O_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|(P_{n}-P_{0})\\left\\{\\Gamma_{\\widehat{m}_{L_{n},\\lambda_{n}},\\widehat{w}}-\\Gamma_{m_{0},w_{0}}\\right\\}\\right\\|_{\\mathcal{H}_{Z}}=O_{\\mathbb{P}}(n^{-1/2})."
+      ]
+    },
+    {
+      "id": "A4.E98",
+      "tex": [
+        "\\left\\|\\widehat{\\chi}_{\\mathrm{DR,Nys}}(\\pi)-\\chi(\\pi)\\right\\|_{\\mathcal{H}_{Z}}=O_{\\mathbb{P}}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widehat{\\chi}_{\\mathrm{DR,Nys}}(\\pi)-\\chi(\\pi)\\right\\|_{\\mathcal{H}_{Z}}=O_{\\mathbb{P}}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}\\right)."
+      ]
+    },
+    {
+      "id": "A4.Ex145",
+      "tex": [
+        "\\widehat{m}_{n}:=\\widehat{m}_{L_{n},\\lambda_{n}},\\qquad\\widehat{\\chi}_{n}:=\\widehat{\\chi}_{\\mathrm{DR,Nys}}(\\pi)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{m}_{n}:=\\widehat{m}_{L_{n},\\lambda_{n}},\\qquad\\widehat{\\chi}_{n}:=\\widehat{\\chi}_{\\mathrm{DR,Nys}}(\\pi)."
+      ]
+    },
+    {
+      "id": "A4.E99",
+      "tex": [
+        "\\overline{m}_{n}(X_{i}):=\\int_{{\\mathcal{A}}}\\widehat{m}_{n}(a,X_{i})\\,\\pi(da\\mid X_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{m}_{n}(X_{i}):=\\int_{{\\mathcal{A}}}\\widehat{m}_{n}(a,X_{i})\\,\\pi(da\\mid X_{i}),"
+      ]
+    },
+    {
+      "id": "A4.EGx67",
+      "tex": [
+        "\\displaystyle\\widehat{\\chi}_{n}",
+        "\\displaystyle=\\frac{1}{n}\\sum_{i=1}^{n}\\Bigg[\\widehat{w}(A_{i},X_{i})\\left\\{\\varphi_{Z}(Z_{i})-\\widehat{m}_{n}(A_{i},X_{i})\\right\\}+\\overline{m}_{n}(X_{i})\\Bigg]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widehat{\\chi}_{n}",
+        "\\displaystyle=\\frac{1}{n}\\sum_{i=1}^{n}\\Bigg[\\widehat{w}(A_{i},X_{i})\\left\\{\\varphi_{Z}(Z_{i})-\\widehat{m}_{n}(A_{i},X_{i})\\right\\}+\\overline{m}_{n}(X_{i})\\Bigg]."
+      ]
+    },
+    {
+      "id": "A4.E101",
+      "tex": [
+        "A_{iu}^{\\pi}\\mid\\mathcal{F}_{n}\\sim\\pi(\\cdot\\mid X_{i}),\\qquad i=1,\\ldots,n,\\quad u=1,\\ldots,J,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "A_{iu}^{\\pi}\\mid\\mathcal{F}_{n}\\sim\\pi(\\cdot\\mid X_{i}),\\qquad i=1,\\ldots,n,\\quad u=1,\\ldots,J,"
+      ]
+    },
+    {
+      "id": "A4.E102",
+      "tex": [
+        "\\overline{m}_{n,J}(X_{i}):=\\frac{1}{J}\\sum_{u=1}^{J}\\widehat{m}_{n}(A_{iu}^{\\pi},X_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\overline{m}_{n,J}(X_{i}):=\\frac{1}{J}\\sum_{u=1}^{J}\\widehat{m}_{n}(A_{iu}^{\\pi},X_{i}),"
+      ]
+    },
+    {
+      "id": "A4.EGx68",
+      "tex": [
+        "\\displaystyle\\widetilde{\\chi}_{n,J}",
+        "\\displaystyle:=\\frac{1}{n}\\sum_{i=1}^{n}\\Bigg[\\widehat{w}(A_{i},X_{i})\\left\\{\\varphi_{Z}(Z_{i})-\\widehat{m}_{n}(A_{i},X_{i})\\right\\}+\\overline{m}_{n,J}(X_{i})\\Bigg]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\widetilde{\\chi}_{n,J}",
+        "\\displaystyle:=\\frac{1}{n}\\sum_{i=1}^{n}\\Bigg[\\widehat{w}(A_{i},X_{i})\\left\\{\\varphi_{Z}(Z_{i})-\\widehat{m}_{n}(A_{i},X_{i})\\right\\}+\\overline{m}_{n,J}(X_{i})\\Bigg]."
+      ]
+    },
+    {
+      "id": "A4.E104",
+      "tex": [
+        "\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}=\\frac{1}{n}\\sum_{i=1}^{n}\\left\\{\\overline{m}_{n,J}(X_{i})-\\overline{m}_{n}(X_{i})\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}=\\frac{1}{n}\\sum_{i=1}^{n}\\left\\{\\overline{m}_{n,J}(X_{i})-\\overline{m}_{n}(X_{i})\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex146",
+      "tex": [
+        "\\widetilde{\\chi}_{\\mathrm{DR,Nys},J}(\\pi)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\chi}_{\\mathrm{DR,Nys},J}(\\pi)"
+      ]
+    },
+    {
+      "id": "A4.Ex147",
+      "tex": [
+        "a\\longmapsto\\widehat{m}_{n}(a,X_{i})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "a\\longmapsto\\widehat{m}_{n}(a,X_{i})"
+      ]
+    },
+    {
+      "id": "A4.E105",
+      "tex": [
+        "\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})<\\infty."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})<\\infty."
+      ]
+    },
+    {
+      "id": "A4.E106",
+      "tex": [
+        "V_{n}:=\\frac{1}{n}\\sum_{i=1}^{n}\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})-\\overline{m}_{n}(X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{n}:=\\frac{1}{n}\\sum_{i=1}^{n}\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})-\\overline{m}_{n}(X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})."
+      ]
+    },
+    {
+      "id": "A4.E107",
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\widetilde{\\chi}_{n,J}\\,\\middle|\\,\\mathcal{F}_{n}\\right]=\\widehat{\\chi}_{n},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\widetilde{\\chi}_{n,J}\\,\\middle|\\,\\mathcal{F}_{n}\\right]=\\widehat{\\chi}_{n},"
+      ]
+    },
+    {
+      "id": "A4.E108",
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\,\\middle|\\,\\mathcal{F}_{n}\\right]=\\frac{V_{n}}{nJ}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\,\\middle|\\,\\mathcal{F}_{n}\\right]=\\frac{V_{n}}{nJ}."
+      ]
+    },
+    {
+      "id": "A4.E109",
+      "tex": [
+        "\\Pr\\!\\left(\\left.\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}>\\sqrt{\\frac{V_{n}}{nJ\\delta}}\\,\\right|\\,\\mathcal{F}_{n}\\right)\\leq\\delta."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Pr\\!\\left(\\left.\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}>\\sqrt{\\frac{V_{n}}{nJ\\delta}}\\,\\right|\\,\\mathcal{F}_{n}\\right)\\leq\\delta."
+      ]
+    },
+    {
+      "id": "A4.Ex148",
+      "tex": [
+        "\\xi_{iu}:=\\widehat{m}_{n}(A_{iu}^{\\pi},X_{i})-\\overline{m}_{n}(X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\xi_{iu}:=\\widehat{m}_{n}(A_{iu}^{\\pi},X_{i})-\\overline{m}_{n}(X_{i})."
+      ]
+    },
+    {
+      "id": "A4.E110",
+      "tex": [
+        "\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}=\\frac{1}{nJ}\\sum_{i=1}^{n}\\sum_{u=1}^{J}\\xi_{iu}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}=\\frac{1}{nJ}\\sum_{i=1}^{n}\\sum_{u=1}^{J}\\xi_{iu}."
+      ]
+    },
+    {
+      "id": "A4.Ex149",
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\left\\langle\\xi_{iu},\\xi_{i^{\\prime}u^{\\prime}}\\right\\rangle_{{\\mathcal{H}}_{Z}}\\,\\middle|\\,\\mathcal{F}_{n}\\right]=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\!\\left[\\left\\langle\\xi_{iu},\\xi_{i^{\\prime}u^{\\prime}}\\right\\rangle_{{\\mathcal{H}}_{Z}}\\,\\middle|\\,\\mathcal{F}_{n}\\right]=0."
+      ]
+    },
+    {
+      "id": "A4.EGx69",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\,\\middle|\\,\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=\\frac{1}{n^{2}J^{2}}\\sum_{i=1}^{n}\\sum_{u=1}^{J}\\mathbb{E}\\!\\left[\\left\\|\\xi_{iu}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\,\\middle|\\,\\mathcal{F}_{n}\\right]",
+        "\\displaystyle\\quad=\\frac{1}{n^{2}J}\\sum_{i=1}^{n}\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})-\\overline{m}_{n}(X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})",
+        "\\displaystyle\\quad=\\frac{V_{n}}{nJ}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\,\\middle|\\,\\mathcal{F}_{n}\\right]",
+        "\\displaystyle=\\frac{1}{n^{2}J^{2}}\\sum_{i=1}^{n}\\sum_{u=1}^{J}\\mathbb{E}\\!\\left[\\left\\|\\xi_{iu}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\,\\middle|\\,\\mathcal{F}_{n}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad=\\frac{1}{n^{2}J}\\sum_{i=1}^{n}\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})-\\overline{m}_{n}(X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad=\\frac{V_{n}}{nJ}."
+      ]
+    },
+    {
+      "id": "A4.Ex153",
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}^{2}."
+      ]
+    },
+    {
+      "id": "A4.E111",
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}=O_{\\mathbb{P}}\\left(\\frac{1}{\\sqrt{nJ_{n}\\lambda_{n}}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}=O_{\\mathbb{P}}\\left(\\frac{1}{\\sqrt{nJ_{n}\\lambda_{n}}}\\right)."
+      ]
+    },
+    {
+      "id": "A4.EGx70",
+      "tex": [
+        "\\displaystyle\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}_{Z}}",
+        "\\displaystyle=O_{\\mathbb{P}}\\Bigg(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}+\\frac{1}{\\sqrt{nJ_{n}\\lambda_{n}}}\\Bigg)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}_{Z}}",
+        "\\displaystyle=O_{\\mathbb{P}}\\Bigg(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}+\\frac{1}{\\sqrt{nJ_{n}\\lambda_{n}}}\\Bigg)."
+      ]
+    },
+    {
+      "id": "A4.E113",
+      "tex": [
+        "\\frac{1}{\\sqrt{nJ_{n}\\lambda_{n}}}=J_{n}^{-1/2}n^{-\\frac{\\gamma}{2(1+\\gamma)}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{1}{\\sqrt{nJ_{n}\\lambda_{n}}}=J_{n}^{-1/2}n^{-\\frac{\\gamma}{2(1+\\gamma)}}."
+      ]
+    },
+    {
+      "id": "A4.E114",
+      "tex": [
+        "V_{n}=O_{\\mathbb{P}}(1),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{n}=O_{\\mathbb{P}}(1),"
+      ]
+    },
+    {
+      "id": "A4.E115",
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}=O_{\\mathbb{P}}\\left((nJ_{n})^{-1/2}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\widehat{\\chi}_{n}\\right\\|_{{\\mathcal{H}}_{Z}}=O_{\\mathbb{P}}\\left((nJ_{n})^{-1/2}\\right)."
+      ]
+    },
+    {
+      "id": "A4.EGx71",
+      "tex": [
+        "\\displaystyle\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}_{Z}}",
+        "\\displaystyle=O_{\\mathbb{P}}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}+(nJ_{n})^{-1/2}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}_{Z}}",
+        "\\displaystyle=O_{\\mathbb{P}}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}+(nJ_{n})^{-1/2}\\right)."
+      ]
+    },
+    {
+      "id": "A4.E117",
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}_{Z}}=O_{\\mathbb{P}}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left\\|\\widetilde{\\chi}_{n,J_{n}}-\\chi(\\pi)\\right\\|_{{\\mathcal{H}}_{Z}}=O_{\\mathbb{P}}\\left(n^{-1/2}+r_{w,n}n^{-\\frac{1}{2(1+\\gamma)}}\\right)."
+      ]
+    },
+    {
+      "id": "A4.EGx72",
+      "tex": [
+        "\\displaystyle\\lambda_{n}\\left\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\right\\|_{\\mathrm{HS}}^{2}",
+        "\\displaystyle\\leq\\frac{1}{n}\\sum_{i=1}^{n}\\left\\|\\varphi_{Z}(Z_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\leq\\kappa_{Z}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\lambda_{n}\\left\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\right\\|_{\\mathrm{HS}}^{2}",
+        "\\displaystyle\\leq\\frac{1}{n}\\sum_{i=1}^{n}\\left\\|\\varphi_{Z}(Z_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\leq\\kappa_{Z}^{2}."
+      ]
+    },
+    {
+      "id": "A4.EGx73",
+      "tex": [
+        "\\displaystyle\\left\\|\\widehat{m}_{n}(s)\\right\\|_{{\\mathcal{H}}_{Z}}",
+        "\\displaystyle=\\left\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\varphi_{S}(s)\\right\\|_{{\\mathcal{H}}_{Z}}\\leq\\left\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\right\\|_{\\mathrm{HS}}\\left\\|\\varphi_{S}(s)\\right\\|_{{\\mathcal{H}}_{S}}\\leq\\frac{\\kappa_{S}\\kappa_{Z}}{\\sqrt{\\lambda_{n}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|\\widehat{m}_{n}(s)\\right\\|_{{\\mathcal{H}}_{Z}}",
+        "\\displaystyle=\\left\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\varphi_{S}(s)\\right\\|_{{\\mathcal{H}}_{Z}}\\leq\\left\\|\\widehat{H}_{L_{n},\\lambda_{n}}\\right\\|_{\\mathrm{HS}}\\left\\|\\varphi_{S}(s)\\right\\|_{{\\mathcal{H}}_{S}}\\leq\\frac{\\kappa_{S}\\kappa_{Z}}{\\sqrt{\\lambda_{n}}}."
+      ]
+    },
+    {
+      "id": "A4.Ex155",
+      "tex": [
+        "\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})-\\overline{m}_{n}(X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})\\leq\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})-\\overline{m}_{n}(X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i})\\leq\\int_{{\\mathcal{A}}}\\left\\|\\widehat{m}_{n}(a,X_{i})\\right\\|_{{\\mathcal{H}}_{Z}}^{2}\\pi(da\\mid X_{i}),"
+      ]
+    },
+    {
+      "id": "A4.E119",
+      "tex": [
+        "V_{n}\\leq\\frac{\\kappa_{S}^{2}\\kappa_{Z}^{2}}{\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{n}\\leq\\frac{\\kappa_{S}^{2}\\kappa_{Z}^{2}}{\\lambda_{n}}."
+      ]
+    },
+    {
+      "id": "A4.Ex156",
+      "tex": [
+        "(nJ_{n})^{-1/2}\\leq n^{-1/2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(nJ_{n})^{-1/2}\\leq n^{-1/2}"
+      ]
+    },
+    {
+      "id": "A4.Ex157",
+      "tex": [
+        "nJ_{n}\\lambda_{n}=J_{n}n^{\\frac{\\gamma}{1+\\gamma}}\\longrightarrow\\infty."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "nJ_{n}\\lambda_{n}=J_{n}n^{\\frac{\\gamma}{1+\\gamma}}\\longrightarrow\\infty."
+      ]
+    },
+    {
+      "id": "A4.E120",
+      "tex": [
+        "J_{n}\\gtrsim n^{\\frac{1-\\gamma}{1+\\gamma}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "J_{n}\\gtrsim n^{\\frac{1-\\gamma}{1+\\gamma}}."
+      ]
+    },
+    {
+      "id": "A4.Ex158",
+      "tex": [
+        "\\mathcal{E}_{n}:=\\bigl\\{\\|\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\leq\\kappa\\bigr\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{E}_{n}:=\\bigl\\{\\|\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\leq\\kappa\\bigr\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex159",
+      "tex": [
+        "s_{h}(z):=\\langle h,\\varphi(z)\\rangle_{\\mathcal{H}},\\qquad v_{h}(Q,z)=\\nabla s_{h}(z)-\\int\\nabla_{1}k(z,z^{\\prime})\\,Q(dz^{\\prime})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "s_{h}(z):=\\langle h,\\varphi(z)\\rangle_{\\mathcal{H}},\\qquad v_{h}(Q,z)=\\nabla s_{h}(z)-\\int\\nabla_{1}k(z,z^{\\prime})\\,Q(dz^{\\prime})."
+      ]
+    },
+    {
+      "id": "A4.Ex160",
+      "tex": [
+        "Z_{j}^{(r+1)}=Z_{j}^{(r)}+\\tau v_{\\widetilde{h}_{\\pi}}\\!\\left(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)}\\right),\\qquad j=1,\\ldots,M,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Z_{j}^{(r+1)}=Z_{j}^{(r)}+\\tau v_{\\widetilde{h}_{\\pi}}\\!\\left(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)}\\right),\\qquad j=1,\\ldots,M,"
+      ]
+    },
+    {
+      "id": "A4.Ex161",
+      "tex": [
+        "12\\tau\\kappa^{2}d_{Z}\\leq 1,\\qquad 0<c_{\\beta}\\leq\\frac{1}{2\\sqrt{d_{Z}}},\\qquad 0\\leq\\alpha<\\frac{1}{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "12\\tau\\kappa^{2}d_{Z}\\leq 1,\\qquad 0<c_{\\beta}\\leq\\frac{1}{2\\sqrt{d_{Z}}},\\qquad 0\\leq\\alpha<\\frac{1}{2}."
+      ]
+    },
+    {
+      "id": "A4.Ex162",
+      "tex": [
+        "\\frac{1}{M}\\sum_{j=1}^{M}\\mathbb{E}\\!\\left[\\left\\|v_{\\chi(\\pi)}\\!\\left(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)}\\right)\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\geq 4\\kappa^{2}d_{Z}\\beta_{r}^{2}\\operatorname{MMD}_{k}^{2}(\\widehat{Q}_{M}^{(r)},Q^{\\pi})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{1}{M}\\sum_{j=1}^{M}\\mathbb{E}\\!\\left[\\left\\|v_{\\chi(\\pi)}\\!\\left(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)}\\right)\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\geq 4\\kappa^{2}d_{Z}\\beta_{r}^{2}\\operatorname{MMD}_{k}^{2}(\\widehat{Q}_{M}^{(r)},Q^{\\pi})."
+      ]
+    },
+    {
+      "id": "A4.EGx74",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\left\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]",
+        "\\displaystyle\\leq\\left(1-\\frac{\\tau\\kappa^{2}d_{Z}}{8}\\beta_{r}^{2}\\right)\\left\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}^{2}+\\tau\\kappa^{2}\\left(\\frac{9}{2}d_{Z}\\beta_{r}^{2}+\\frac{3}{4}\\right)e_{n,J}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\left\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]",
+        "\\displaystyle\\leq\\left(1-\\frac{\\tau\\kappa^{2}d_{Z}}{8}\\beta_{r}^{2}\\right)\\left\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}^{2}+\\tau\\kappa^{2}\\left(\\frac{9}{2}d_{Z}\\beta_{r}^{2}+\\frac{3}{4}\\right)e_{n,J}^{2}."
+      ]
+    },
+    {
+      "id": "A4.EGx75",
+      "tex": [
+        "\\displaystyle\\left\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}-\\mathbb{E}\\!\\left[\\left\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\leq 2\\tau\\kappa^{3}\\beta_{r}\\sqrt{\\frac{2q}{M}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\left\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}-\\mathbb{E}\\!\\left[\\left\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\right\\|_{\\mathcal{H}}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\leq 2\\tau\\kappa^{3}\\beta_{r}\\sqrt{\\frac{2q}{M}}."
+      ]
+    },
+    {
+      "id": "A4.Ex165",
+      "tex": [
+        "\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\leq\\sqrt{(1-a_{r})\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}+Be_{n,J}^{2}}+2\\sqrt{2}\\,\\tau\\kappa^{3}c_{\\beta}(r+1)^{-\\alpha}\\sqrt{\\frac{\\log(R/\\delta)}{M}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\leq\\sqrt{(1-a_{r})\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}+Be_{n,J}^{2}}+2\\sqrt{2}\\,\\tau\\kappa^{3}c_{\\beta}(r+1)^{-\\alpha}\\sqrt{\\frac{\\log(R/\\delta)}{M}}."
+      ]
+    },
+    {
+      "id": "A4.EGx76",
+      "tex": [
+        "\\displaystyle\\|\\mu_{\\widehat{Q}_{M}^{(R)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}",
+        "\\displaystyle\\leq\\left[\\|\\mu_{\\widehat{Q}_{M}^{(0)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}\\prod_{r=0}^{R-1}(1-a_{r})+Be_{n,J}^{2}\\sum_{r=0}^{R-1}\\prod_{\\ell=r+1}^{R-1}(1-a_{\\ell})\\right]^{1/2}",
+        "\\displaystyle\\quad+2\\sqrt{2}\\,\\tau\\kappa^{3}c_{\\beta}\\sqrt{\\frac{\\log(R/\\delta)}{M}}\\sum_{r=0}^{R-1}(r+1)^{-\\alpha}\\prod_{\\ell=r+1}^{R-1}\\sqrt{1-a_{\\ell}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\mu_{\\widehat{Q}_{M}^{(R)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}",
+        "\\displaystyle\\leq\\left[\\|\\mu_{\\widehat{Q}_{M}^{(0)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}\\prod_{r=0}^{R-1}(1-a_{r})+Be_{n,J}^{2}\\sum_{r=0}^{R-1}\\prod_{\\ell=r+1}^{R-1}(1-a_{\\ell})\\right]^{1/2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+2\\sqrt{2}\\,\\tau\\kappa^{3}c_{\\beta}\\sqrt{\\frac{\\log(R/\\delta)}{M}}\\sum_{r=0}^{R-1}(r+1)^{-\\alpha}\\prod_{\\ell=r+1}^{R-1}\\sqrt{1-a_{\\ell}}."
+      ]
+    },
+    {
+      "id": "A4.Ex168",
+      "tex": [
+        "\\operatorname{MMD}_{k}(\\widehat{Q}_{M}^{(R)},Q^{\\pi})\\leq C_{0}e^{-cR^{1-2\\alpha}}+(1+C_{1}R^{\\alpha})e_{n,J}+C_{2}R^{\\alpha}\\sqrt{\\frac{\\log(R/\\delta)}{M}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{MMD}_{k}(\\widehat{Q}_{M}^{(R)},Q^{\\pi})\\leq C_{0}e^{-cR^{1-2\\alpha}}+(1+C_{1}R^{\\alpha})e_{n,J}+C_{2}R^{\\alpha}\\sqrt{\\frac{\\log(R/\\delta)}{M}},"
+      ]
+    },
+    {
+      "id": "A4.Ex169",
+      "tex": [
+        "\\displaystyle\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},z)-v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},z^{\\prime})\\|_{2}\\leq\\kappa\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\|z-z^{\\prime}\\|_{2},",
+        "\\displaystyle\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},z)-v_{\\chi(\\pi)}(\\widehat{Q}_{M}^{(r)},z)\\|_{2}\\leq\\kappa e_{n,J}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},z)-v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},z^{\\prime})\\|_{2}\\leq\\kappa\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\|z-z^{\\prime}\\|_{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},z)-v_{\\chi(\\pi)}(\\widehat{Q}_{M}^{(r)},z)\\|_{2}\\leq\\kappa e_{n,J}."
+      ]
+    },
+    {
+      "id": "A4.EGx77",
+      "tex": [
+        "\\displaystyle\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}",
+        "\\displaystyle\\leq\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}-\\frac{2\\tau}{M}\\sum_{j=1}^{M}\\left\\langle v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}),v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\rangle",
+        "\\displaystyle\\quad+\\frac{3\\tau^{2}\\kappa^{2}}{M}\\sum_{j=1}^{M}\\left\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\|_{2}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}",
+        "\\displaystyle\\leq\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}-\\frac{2\\tau}{M}\\sum_{j=1}^{M}\\left\\langle v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}),v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\rangle"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\quad+\\frac{3\\tau^{2}\\kappa^{2}}{M}\\sum_{j=1}^{M}\\left\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\|_{2}^{2}."
+      ]
+    },
+    {
+      "id": "A4.EGx78",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\leq(1+\\tau\\kappa^{2}d_{Z}\\beta_{r}^{2})\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}-\\frac{3\\tau}{4M}\\sum_{j=1}^{M}\\mathbb{E}\\!\\left[\\left\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\leq(1+\\tau\\kappa^{2}d_{Z}\\beta_{r}^{2})\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}-\\frac{3\\tau}{4M}\\sum_{j=1}^{M}\\mathbb{E}\\!\\left[\\left\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]."
+      ]
+    },
+    {
+      "id": "A4.EGx79",
+      "tex": [
+        "\\displaystyle\\frac{1}{M}\\sum_{j=1}^{M}\\mathbb{E}\\!\\left[\\left\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]",
+        "\\displaystyle\\geq 2\\kappa^{2}d_{Z}\\beta_{r}^{2}\\operatorname{MMD}_{k}^{2}(\\widehat{Q}_{M}^{(r)},Q^{\\pi})-\\kappa^{2}e_{n,J}^{2}",
+        "\\displaystyle\\geq\\frac{3}{2}\\kappa^{2}d_{Z}\\beta_{r}^{2}\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}-(6\\kappa^{2}d_{Z}\\beta_{r}^{2}+\\kappa^{2})e_{n,J}^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{1}{M}\\sum_{j=1}^{M}\\mathbb{E}\\!\\left[\\left\\|v_{\\widetilde{h}_{\\pi}}(\\widehat{Q}_{M}^{(r)},Z_{j}^{(r)}+\\beta_{r}U_{j}^{(r)})\\right\\|_{2}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]",
+        "\\displaystyle\\geq 2\\kappa^{2}d_{Z}\\beta_{r}^{2}\\operatorname{MMD}_{k}^{2}(\\widehat{Q}_{M}^{(r)},Q^{\\pi})-\\kappa^{2}e_{n,J}^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\geq\\frac{3}{2}\\kappa^{2}d_{Z}\\beta_{r}^{2}\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}-(6\\kappa^{2}d_{Z}\\beta_{r}^{2}+\\kappa^{2})e_{n,J}^{2},"
+      ]
+    },
+    {
+      "id": "A4.EGx80",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]",
+        "\\displaystyle\\leq\\left(1-\\frac{\\tau\\kappa^{2}d_{Z}}{8}\\beta_{r}^{2}\\right)\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}+\\tau\\kappa^{2}\\left(\\frac{9}{2}d_{Z}\\beta_{r}^{2}+\\frac{3}{4}\\right)e_{n,J}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\!\\left[\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}\\,\\middle|\\,\\mathcal{F}_{r}\\right]",
+        "\\displaystyle\\leq\\left(1-\\frac{\\tau\\kappa^{2}d_{Z}}{8}\\beta_{r}^{2}\\right)\\|\\mu_{\\widehat{Q}_{M}^{(r)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}^{2}+\\tau\\kappa^{2}\\left(\\frac{9}{2}d_{Z}\\beta_{r}^{2}+\\frac{3}{4}\\right)e_{n,J}^{2}."
+      ]
+    },
+    {
+      "id": "A4.Ex176",
+      "tex": [
+        "\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}-\\mathbb{E}\\!\\left[\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\leq 2\\tau\\kappa^{3}\\beta_{r}\\sqrt{\\frac{2q}{M}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}-\\mathbb{E}\\!\\left[\\|\\mu_{\\widehat{Q}_{M}^{(r+1)}}-\\widetilde{h}_{\\pi}\\|_{\\mathcal{H}}\\,\\middle|\\,\\mathcal{F}_{r}\\right]\\leq 2\\tau\\kappa^{3}\\beta_{r}\\sqrt{\\frac{2q}{M}}."
+      ]
+    },
+    {
+      "id": "A4.Ex177",
+      "tex": [
+        "\\lambda_{\\mathrm{opt}}:=\\frac{\\tau\\kappa^{2}d_{Z}c_{\\beta}^{2}}{16(1-2\\alpha)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{\\mathrm{opt}}:=\\frac{\\tau\\kappa^{2}d_{Z}c_{\\beta}^{2}}{16(1-2\\alpha)}."
+      ]
+    },
+    {
+      "id": "A4.EGx81",
+      "tex": [
+        "\\displaystyle e_{n,J}",
+        "\\displaystyle=O_{p}\\left(n^{-1/2}+r_{m,n}r_{w,n}+(nJ)^{-1/2}\\right)=O_{p}(n^{-s})=o_{p}(1)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle e_{n,J}",
+        "\\displaystyle=O_{p}\\left(n^{-1/2}+r_{m,n}r_{w,n}+(nJ)^{-1/2}\\right)=O_{p}(n^{-s})=o_{p}(1)."
+      ]
+    },
+    {
+      "id": "A4.Ex179",
+      "tex": [
+        "\\Delta_{\\kappa}:=\\kappa-\\sup_{z\\in{\\mathcal{Z}}}\\|\\varphi(z)\\|_{{\\mathcal{H}}}>0"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta_{\\kappa}:=\\kappa-\\sup_{z\\in{\\mathcal{Z}}}\\|\\varphi(z)\\|_{{\\mathcal{H}}}>0"
+      ]
+    },
+    {
+      "id": "A4.Ex180",
+      "tex": [
+        "\\mathcal{E}_{n}:=\\left\\{\\|\\widetilde{h}_{\\pi}\\|_{{\\mathcal{H}}}\\leq\\kappa\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{E}_{n}:=\\left\\{\\|\\widetilde{h}_{\\pi}\\|_{{\\mathcal{H}}}\\leq\\kappa\\right\\}."
+      ]
+    },
+    {
+      "id": "A4.Ex181",
+      "tex": [
+        "\\|\\chi(\\pi)\\|_{{\\mathcal{H}}}=\\left\\|\\int_{{\\mathcal{Z}}}\\varphi(z)\\,Q^{\\pi}(dz)\\right\\|_{{\\mathcal{H}}}\\leq\\sup_{z\\in{\\mathcal{Z}}}\\|\\varphi(z)\\|_{{\\mathcal{H}}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|\\chi(\\pi)\\|_{{\\mathcal{H}}}=\\left\\|\\int_{{\\mathcal{Z}}}\\varphi(z)\\,Q^{\\pi}(dz)\\right\\|_{{\\mathcal{H}}}\\leq\\sup_{z\\in{\\mathcal{Z}}}\\|\\varphi(z)\\|_{{\\mathcal{H}}},"
+      ]
+    },
+    {
+      "id": "A4.EGx82",
+      "tex": [
+        "\\displaystyle\\|\\widetilde{h}_{\\pi}\\|_{{\\mathcal{H}}}\\leq\\sup_{z\\in{\\mathcal{Z}}}\\|\\varphi(z)\\|_{{\\mathcal{H}}}+e_{n,J}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\widetilde{h}_{\\pi}\\|_{{\\mathcal{H}}}\\leq\\sup_{z\\in{\\mathcal{Z}}}\\|\\varphi(z)\\|_{{\\mathcal{H}}}+e_{n,J}."
+      ]
+    },
+    {
+      "id": "A4.Ex182",
+      "tex": [
+        "\\Pr(\\mathcal{E}_{n}^{c})\\leq\\Pr(e_{n,J}>\\Delta_{\\kappa})\\longrightarrow 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Pr(\\mathcal{E}_{n}^{c})\\leq\\Pr(e_{n,J}>\\Delta_{\\kappa})\\longrightarrow 0."
+      ]
+    },
+    {
+      "id": "A4.EGx83",
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k}\\left(\\widehat{Q}_{M_{n}}^{(R_{n})},Q^{\\pi}\\right)\\leq C_{0}\\exp\\left\\{-\\lambda_{\\mathrm{opt}}R_{n}^{1-2\\alpha}\\right\\}+\\left(1+C_{1}R_{n}^{\\alpha}\\right)e_{n,J}+C_{2}R_{n}^{\\alpha}\\sqrt{\\frac{\\log(R_{n}/\\delta)}{M_{n}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k}\\left(\\widehat{Q}_{M_{n}}^{(R_{n})},Q^{\\pi}\\right)\\leq C_{0}\\exp\\left\\{-\\lambda_{\\mathrm{opt}}R_{n}^{1-2\\alpha}\\right\\}+\\left(1+C_{1}R_{n}^{\\alpha}\\right)e_{n,J}+C_{2}R_{n}^{\\alpha}\\sqrt{\\frac{\\log(R_{n}/\\delta)}{M_{n}}}."
+      ]
+    },
+    {
+      "id": "A4.Ex183",
+      "tex": [
+        "R_{n}\\geq(C_{R}\\log n)^{1/(1-2\\alpha)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R_{n}\\geq(C_{R}\\log n)^{1/(1-2\\alpha)}."
+      ]
+    },
+    {
+      "id": "A4.EGx84",
+      "tex": [
+        "\\displaystyle\\exp\\left\\{-\\lambda_{\\mathrm{opt}}R_{n}^{1-2\\alpha}\\right\\}",
+        "\\displaystyle\\leq\\exp\\left\\{-\\lambda_{\\mathrm{opt}}C_{R}\\log n\\right\\}=\\exp\\{-s\\log n\\}=n^{-s}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\exp\\left\\{-\\lambda_{\\mathrm{opt}}R_{n}^{1-2\\alpha}\\right\\}",
+        "\\displaystyle\\leq\\exp\\left\\{-\\lambda_{\\mathrm{opt}}C_{R}\\log n\\right\\}=\\exp\\{-s\\log n\\}=n^{-s}."
+      ]
+    },
+    {
+      "id": "A4.Ex185",
+      "tex": [
+        "\\left(1+C_{1}R_{n}^{\\alpha}\\right)e_{n,J}=O_{p}\\left(n^{-s}(\\log n)^{\\alpha/(1-2\\alpha)}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\left(1+C_{1}R_{n}^{\\alpha}\\right)e_{n,J}=O_{p}\\left(n^{-s}(\\log n)^{\\alpha/(1-2\\alpha)}\\right)."
+      ]
+    },
+    {
+      "id": "A4.Ex186",
+      "tex": [
+        "M_{n}\\asymp n^{2s}\\log\\log n."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "M_{n}\\asymp n^{2s}\\log\\log n."
+      ]
+    },
+    {
+      "id": "A4.EGx85",
+      "tex": [
+        "\\displaystyle R_{n}^{\\alpha}\\sqrt{\\frac{\\log(R_{n}/\\delta)}{M_{n}}}",
+        "\\displaystyle=O\\left((\\log n)^{\\alpha/(1-2\\alpha)}\\sqrt{\\frac{\\log\\log n}{n^{2s}\\log\\log n}}\\right)=O\\left(n^{-s}(\\log n)^{\\alpha/(1-2\\alpha)}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle R_{n}^{\\alpha}\\sqrt{\\frac{\\log(R_{n}/\\delta)}{M_{n}}}",
+        "\\displaystyle=O\\left((\\log n)^{\\alpha/(1-2\\alpha)}\\sqrt{\\frac{\\log\\log n}{n^{2s}\\log\\log n}}\\right)=O\\left(n^{-s}(\\log n)^{\\alpha/(1-2\\alpha)}\\right)."
+      ]
+    },
+    {
+      "id": "A4.EGx86",
+      "tex": [
+        "\\displaystyle\\Pr\\!\\left(\\mathcal{G}_{n}(\\delta)^{c}\\right)",
+        "\\displaystyle\\leq\\Pr(\\mathcal{E}_{n}^{c})+\\mathbb{E}\\!\\left[\\mathbf{1}_{\\mathcal{E}_{n}}\\Pr\\!\\left(\\mathcal{G}_{n}(\\delta)^{c}\\mid\\mathcal{D}\\right)\\right]\\leq o(1)+\\delta."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Pr\\!\\left(\\mathcal{G}_{n}(\\delta)^{c}\\right)",
+        "\\displaystyle\\leq\\Pr(\\mathcal{E}_{n}^{c})+\\mathbb{E}\\!\\left[\\mathbf{1}_{\\mathcal{E}_{n}}\\Pr\\!\\left(\\mathcal{G}_{n}(\\delta)^{c}\\mid\\mathcal{D}\\right)\\right]\\leq o(1)+\\delta."
+      ]
+    },
+    {
+      "id": "A4.Ex189",
+      "tex": [
+        "\\operatorname{MMD}_{k}\\left(\\widehat{Q}_{M_{n}}^{(R_{n})},Q^{\\pi}\\right)=O_{p}\\left(n^{-s}(\\log n)^{\\alpha/(1-2\\alpha)}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{MMD}_{k}\\left(\\widehat{Q}_{M_{n}}^{(R_{n})},Q^{\\pi}\\right)=O_{p}\\left(n^{-s}(\\log n)^{\\alpha/(1-2\\alpha)}\\right)."
+      ]
+    },
+    {
+      "id": "A4.EGx87",
+      "tex": [
+        "\\displaystyle\\sum_{i=1}^{m}\\sum_{\\ell=1}^{m}c_{i}c_{\\ell}k_{E}(y_{i},y_{\\ell})",
+        "\\displaystyle=\\sum_{i=1}^{m}\\sum_{\\ell=1}^{m}c_{i}c_{\\ell}\\langle\\varphi(E(y_{i})),\\varphi(E(y_{\\ell}))\\rangle_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle=\\left\\|\\sum_{i=1}^{m}c_{i}\\varphi(E(y_{i}))\\right\\|_{{\\mathcal{H}}_{k}}^{2}\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{i=1}^{m}\\sum_{\\ell=1}^{m}c_{i}c_{\\ell}k_{E}(y_{i},y_{\\ell})",
+        "\\displaystyle=\\sum_{i=1}^{m}\\sum_{\\ell=1}^{m}c_{i}c_{\\ell}\\langle\\varphi(E(y_{i})),\\varphi(E(y_{\\ell}))\\rangle_{{\\mathcal{H}}_{k}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\left\\|\\sum_{i=1}^{m}c_{i}\\varphi(E(y_{i}))\\right\\|_{{\\mathcal{H}}_{k}}^{2}\\geq 0."
+      ]
+    },
+    {
+      "id": "A4.Ex192",
+      "tex": [
+        "\\mu_{j}=\\mathbb{E}_{Z\\sim Q_{j}}[\\varphi(Z)]\\qquad\\text{and}\\qquad\\widetilde{\\mu}_{j}=\\mathbb{E}_{Z\\sim Q_{j}}[\\varphi(T(Z))]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{j}=\\mathbb{E}_{Z\\sim Q_{j}}[\\varphi(Z)]\\qquad\\text{and}\\qquad\\widetilde{\\mu}_{j}=\\mathbb{E}_{Z\\sim Q_{j}}[\\varphi(T(Z))]."
+      ]
+    },
+    {
+      "id": "A4.EGx88",
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}Q_{1},D_{\\#}Q_{2})",
+        "\\displaystyle=\\|\\widetilde{\\mu}_{1}-\\widetilde{\\mu}_{2}\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle=\\operatorname{MMD}_{k}(T_{\\#}Q_{1},T_{\\#}Q_{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}Q_{1},D_{\\#}Q_{2})",
+        "\\displaystyle=\\|\\widetilde{\\mu}_{1}-\\widetilde{\\mu}_{2}\\|_{{\\mathcal{H}}_{k}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\operatorname{MMD}_{k}(T_{\\#}Q_{1},T_{\\#}Q_{2})."
+      ]
+    },
+    {
+      "id": "A4.Ex194",
+      "tex": [
+        "\\widetilde{\\mu}_{1}-\\widetilde{\\mu}_{2}=(\\mu_{1}-\\mu_{2})+(\\widetilde{\\mu}_{1}-\\mu_{1})-(\\widetilde{\\mu}_{2}-\\mu_{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\mu}_{1}-\\widetilde{\\mu}_{2}=(\\mu_{1}-\\mu_{2})+(\\widetilde{\\mu}_{1}-\\mu_{1})-(\\widetilde{\\mu}_{2}-\\mu_{2})."
+      ]
+    },
+    {
+      "id": "A4.EGx89",
+      "tex": [
+        "\\displaystyle\\|\\widetilde{\\mu}_{1}-\\widetilde{\\mu}_{2}\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle\\leq\\|\\mu_{1}-\\mu_{2}\\|_{{\\mathcal{H}}_{k}}+\\sum_{j=1}^{2}\\|\\widetilde{\\mu}_{j}-\\mu_{j}\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle=\\operatorname{MMD}_{k}(Q_{1},Q_{2})+\\sum_{j=1}^{2}\\|\\widetilde{\\mu}_{j}-\\mu_{j}\\|_{{\\mathcal{H}}_{k}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\widetilde{\\mu}_{1}-\\widetilde{\\mu}_{2}\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle\\leq\\|\\mu_{1}-\\mu_{2}\\|_{{\\mathcal{H}}_{k}}+\\sum_{j=1}^{2}\\|\\widetilde{\\mu}_{j}-\\mu_{j}\\|_{{\\mathcal{H}}_{k}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\operatorname{MMD}_{k}(Q_{1},Q_{2})+\\sum_{j=1}^{2}\\|\\widetilde{\\mu}_{j}-\\mu_{j}\\|_{{\\mathcal{H}}_{k}}."
+      ]
+    },
+    {
+      "id": "A4.Ex196",
+      "tex": [
+        "\\widetilde{\\mu}_{j}-\\mu_{j}=\\mathbb{E}_{Z\\sim Q_{j}}[\\varphi(T(Z))-\\varphi(Z)]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widetilde{\\mu}_{j}-\\mu_{j}=\\mathbb{E}_{Z\\sim Q_{j}}[\\varphi(T(Z))-\\varphi(Z)]."
+      ]
+    },
+    {
+      "id": "A4.EGx90",
+      "tex": [
+        "\\displaystyle\\|\\widetilde{\\mu}_{j}-\\mu_{j}\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle\\leq\\mathbb{E}_{Z\\sim Q_{j}}\\|\\varphi(T(Z))-\\varphi(Z)\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle\\leq L_{k}\\mathbb{E}_{Z\\sim Q_{j}}\\|T(Z)-Z\\|_{2}",
+        "\\displaystyle=L_{k}\\mathbb{E}_{Z\\sim Q_{j}}\\|E(D(Z))-Z\\|_{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|\\widetilde{\\mu}_{j}-\\mu_{j}\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle\\leq\\mathbb{E}_{Z\\sim Q_{j}}\\|\\varphi(T(Z))-\\varphi(Z)\\|_{{\\mathcal{H}}_{k}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq L_{k}\\mathbb{E}_{Z\\sim Q_{j}}\\|T(Z)-Z\\|_{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=L_{k}\\mathbb{E}_{Z\\sim Q_{j}}\\|E(D(Z))-Z\\|_{2},"
+      ]
+    },
+    {
+      "id": "A4.EGx91",
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}Q_{1},D_{\\#}Q_{2})\\leq\\operatorname{MMD}_{k}(Q_{1},Q_{2})+L_{k}\\sum_{j=1}^{2}\\mathbb{E}_{Z\\sim Q_{j}}\\|E(D(Z))-Z\\|_{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}Q_{1},D_{\\#}Q_{2})\\leq\\operatorname{MMD}_{k}(Q_{1},Q_{2})+L_{k}\\sum_{j=1}^{2}\\mathbb{E}_{Z\\sim Q_{j}}\\|E(D(Z))-Z\\|_{2}."
+      ]
+    },
+    {
+      "id": "A4.EGx92",
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}\\widehat{Q},P_{\\pi})",
+        "\\displaystyle=\\left\\|\\mathbb{E}_{Z\\sim\\widehat{Q}}[\\varphi(T(Z))]-\\mathbb{E}_{Y\\sim P_{\\pi}}[\\varphi(E(Y))]\\right\\|_{{\\mathcal{H}}_{k}}=\\left\\|\\mathbb{E}_{Z\\sim\\widehat{Q}}[\\varphi(T(Z))]-\\mathbb{E}_{Z\\sim Q_{\\pi}}[\\varphi(Z)]\\right\\|_{{\\mathcal{H}}_{k}}",
+        "\\displaystyle=\\operatorname{MMD}_{k}(T_{\\#}\\widehat{Q},Q_{\\pi})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}\\widehat{Q},P_{\\pi})",
+        "\\displaystyle=\\left\\|\\mathbb{E}_{Z\\sim\\widehat{Q}}[\\varphi(T(Z))]-\\mathbb{E}_{Y\\sim P_{\\pi}}[\\varphi(E(Y))]\\right\\|_{{\\mathcal{H}}_{k}}=\\left\\|\\mathbb{E}_{Z\\sim\\widehat{Q}}[\\varphi(T(Z))]-\\mathbb{E}_{Z\\sim Q_{\\pi}}[\\varphi(Z)]\\right\\|_{{\\mathcal{H}}_{k}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\operatorname{MMD}_{k}(T_{\\#}\\widehat{Q},Q_{\\pi})."
+      ]
+    },
+    {
+      "id": "A4.EGx93",
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}\\widehat{Q},P_{\\pi})",
+        "\\displaystyle\\leq\\operatorname{MMD}_{k}(\\widehat{Q},Q_{\\pi})+L_{k}\\mathbb{E}_{Z\\sim\\widehat{Q}}\\|E(D(Z))-Z\\|_{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\operatorname{MMD}_{k_{E}}(D_{\\#}\\widehat{Q},P_{\\pi})",
+        "\\displaystyle\\leq\\operatorname{MMD}_{k}(\\widehat{Q},Q_{\\pi})+L_{k}\\mathbb{E}_{Z\\sim\\widehat{Q}}\\|E(D(Z))-Z\\|_{2}."
+      ]
+    },
+    {
+      "id": "A5.Ex202",
+      "tex": [
+        "\\mu_{P}:=\\mathbb{E}_{U\\sim P}\\!\\left[\\varphi_{\\mathcal{U}}(U)\\right]\\in\\mathcal{H}_{\\mathcal{U}},\\qquad\\mathbb{E}_{U\\sim P}[f(U)]=\\langle f,\\mu_{P}\\rangle_{\\mathcal{H}_{\\mathcal{U}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{P}:=\\mathbb{E}_{U\\sim P}\\!\\left[\\varphi_{\\mathcal{U}}(U)\\right]\\in\\mathcal{H}_{\\mathcal{U}},\\qquad\\mathbb{E}_{U\\sim P}[f(U)]=\\langle f,\\mu_{P}\\rangle_{\\mathcal{H}_{\\mathcal{U}}}."
+      ]
+    },
+    {
+      "id": "A5.Ex203",
+      "tex": [
+        "\\operatorname{MMD}_{k_{\\mathcal{U}}}(P,Q):=\\|\\mu_{P}-\\mu_{Q}\\|_{\\mathcal{H}_{\\mathcal{U}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{MMD}_{k_{\\mathcal{U}}}(P,Q):=\\|\\mu_{P}-\\mu_{Q}\\|_{\\mathcal{H}_{\\mathcal{U}}}."
+      ]
+    },
+    {
+      "id": "A5.Ex204",
+      "tex": [
+        "m_{U\\mid V}(v):=\\mathbb{E}[\\varphi_{\\mathcal{U}}(U)\\mid V=v]\\in\\mathcal{H}_{\\mathcal{U}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{U\\mid V}(v):=\\mathbb{E}[\\varphi_{\\mathcal{U}}(U)\\mid V=v]\\in\\mathcal{H}_{\\mathcal{U}}"
+      ]
+    },
+    {
+      "id": "A5.EGx94",
+      "tex": [
+        "\\displaystyle k_{\\mathrm{RBF}}(z,z^{\\prime};\\ell)",
+        "\\displaystyle=\\exp\\!\\left(-\\frac{\\|z-z^{\\prime}\\|_{2}^{2}}{2\\ell^{2}}\\right),\\qquad\\ell>0,",
+        "\\displaystyle k_{\\mathrm{IMQ}}(z,z^{\\prime};c,\\beta)",
+        "\\displaystyle=\\left(c^{2}+\\|z-z^{\\prime}\\|_{2}^{2}\\right)^{\\beta},\\qquad c>0,\\quad\\beta<0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle k_{\\mathrm{RBF}}(z,z^{\\prime};\\ell)",
+        "\\displaystyle=\\exp\\!\\left(-\\frac{\\|z-z^{\\prime}\\|_{2}^{2}}{2\\ell^{2}}\\right),\\qquad\\ell>0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle k_{\\mathrm{IMQ}}(z,z^{\\prime};c,\\beta)",
+        "\\displaystyle=\\left(c^{2}+\\|z-z^{\\prime}\\|_{2}^{2}\\right)^{\\beta},\\qquad c>0,\\quad\\beta<0."
+      ]
+    },
+    {
+      "id": "A5.Ex207",
+      "tex": [
+        "\\rho_{s}(z,z^{\\prime}):=\\|z-z^{\\prime}\\|_{2}^{s},\\qquad\\kappa_{s}(z,z^{\\prime}):=-\\rho_{s}(z,z^{\\prime}),\\qquad 0<s<2."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\rho_{s}(z,z^{\\prime}):=\\|z-z^{\\prime}\\|_{2}^{s},\\qquad\\kappa_{s}(z,z^{\\prime}):=-\\rho_{s}(z,z^{\\prime}),\\qquad 0<s<2."
+      ]
+    },
+    {
+      "id": "A5.Ex208",
+      "tex": [
+        "\\sum_{a=1}^{N}\\sum_{b=1}^{N}c_{a}c_{b}\\,\\kappa_{s}(z_{a},z_{b})\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{a=1}^{N}\\sum_{b=1}^{N}c_{a}c_{b}\\,\\kappa_{s}(z_{a},z_{b})\\geq 0."
+      ]
+    },
+    {
+      "id": "A5.Ex209",
+      "tex": [
+        "k_{s,z_{\\star}}(z,z^{\\prime}):=\\frac{1}{2}\\left\\{\\rho_{s}(z,z_{\\star})+\\rho_{s}(z^{\\prime},z_{\\star})-\\rho_{s}(z,z^{\\prime})\\right\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "k_{s,z_{\\star}}(z,z^{\\prime}):=\\frac{1}{2}\\left\\{\\rho_{s}(z,z_{\\star})+\\rho_{s}(z^{\\prime},z_{\\star})-\\rho_{s}(z,z^{\\prime})\\right\\}"
+      ]
+    },
+    {
+      "id": "A5.EGx95",
+      "tex": [
+        "\\displaystyle\\mathcal{D}_{s}(P,Q)",
+        "\\displaystyle:=2\\mathbb{E}\\rho_{s}(X,Y)-\\mathbb{E}\\rho_{s}(X,X^{\\prime})-\\mathbb{E}\\rho_{s}(Y,Y^{\\prime})=2\\,\\operatorname{MMD}_{k_{s,z_{\\star}}}^{2}(P,Q)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{D}_{s}(P,Q)",
+        "\\displaystyle:=2\\mathbb{E}\\rho_{s}(X,Y)-\\mathbb{E}\\rho_{s}(X,X^{\\prime})-\\mathbb{E}\\rho_{s}(Y,Y^{\\prime})=2\\,\\operatorname{MMD}_{k_{s,z_{\\star}}}^{2}(P,Q)."
+      ]
+    },
+    {
+      "id": "A5.Ex211",
+      "tex": [
+        "\\bar{Z}_{i}=\\{E(Y_{i})-\\widehat{\\mu}_{Z}\\}\\oslash\\widehat{\\sigma}_{Z},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\bar{Z}_{i}=\\{E(Y_{i})-\\widehat{\\mu}_{Z}\\}\\oslash\\widehat{\\sigma}_{Z},"
+      ]
+    },
+    {
+      "id": "A5.EGx96",
+      "tex": [
+        "\\displaystyle\\mathcal{D}_{s}(G_{1:M};v,\\bar{Z}_{1:n})={}",
+        "\\displaystyle\\frac{2}{M}\\sum_{j=1}^{M}\\sum_{i=1}^{n}v_{i}\\|G_{j}-\\bar{Z}_{i}\\|_{2}^{s}-\\frac{1}{M^{2}}\\sum_{j=1}^{M}\\sum_{\\ell=1}^{M}\\|G_{j}-G_{\\ell}\\|_{2}^{s}-\\sum_{i=1}^{n}\\sum_{q=1}^{n}v_{i}v_{q}\\|\\bar{Z}_{i}-\\bar{Z}_{q}\\|_{2}^{s}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{D}_{s}(G_{1:M};v,\\bar{Z}_{1:n})={}",
+        "\\displaystyle\\frac{2}{M}\\sum_{j=1}^{M}\\sum_{i=1}^{n}v_{i}\\|G_{j}-\\bar{Z}_{i}\\|_{2}^{s}-\\frac{1}{M^{2}}\\sum_{j=1}^{M}\\sum_{\\ell=1}^{M}\\|G_{j}-G_{\\ell}\\|_{2}^{s}-\\sum_{i=1}^{n}\\sum_{q=1}^{n}v_{i}v_{q}\\|\\bar{Z}_{i}-\\bar{Z}_{q}\\|_{2}^{s}."
+      ]
+    },
+    {
+      "id": "A5.E128",
+      "tex": [
+        "\\mathcal{L}_{s}(G_{1:M})=\\frac{2}{M}\\sum_{j=1}^{M}\\sum_{i=1}^{n}v_{i}\\|G_{j}-\\bar{Z}_{i}\\|_{2}^{s}-\\frac{1}{M^{2}}\\sum_{j=1}^{M}\\sum_{\\ell=1}^{M}\\|G_{j}-G_{\\ell}\\|_{2}^{s}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{s}(G_{1:M})=\\frac{2}{M}\\sum_{j=1}^{M}\\sum_{i=1}^{n}v_{i}\\|G_{j}-\\bar{Z}_{i}\\|_{2}^{s}-\\frac{1}{M^{2}}\\sum_{j=1}^{M}\\sum_{\\ell=1}^{M}\\|G_{j}-G_{\\ell}\\|_{2}^{s}."
+      ]
+    },
+    {
+      "id": "A5.Ex212",
+      "tex": [
+        "(U_{1}^{(r)},\\ldots,U_{M+n}^{(r)}):=(G_{1}^{(r)},\\ldots,G_{M}^{(r)},\\bar{Z}_{1},\\ldots,\\bar{Z}_{n})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(U_{1}^{(r)},\\ldots,U_{M+n}^{(r)}):=(G_{1}^{(r)},\\ldots,G_{M}^{(r)},\\bar{Z}_{1},\\ldots,\\bar{Z}_{n})"
+      ]
+    },
+    {
+      "id": "A5.E129",
+      "tex": [
+        "a_{r}:=\\max\\!\\left\\{10^{-3},\\frac{1}{M(M+n)\\sqrt{d_{Z}}}\\sum_{j=1}^{M}\\sum_{q=1}^{M+n}\\|G_{j}^{(r)}-U_{q}^{(r)}\\|_{2}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "a_{r}:=\\max\\!\\left\\{10^{-3},\\frac{1}{M(M+n)\\sqrt{d_{Z}}}\\sum_{j=1}^{M}\\sum_{q=1}^{M+n}\\|G_{j}^{(r)}-U_{q}^{(r)}\\|_{2}\\right\\}."
+      ]
+    },
+    {
+      "id": "A5.E130",
+      "tex": [
+        "g_{j}^{(r)}=\\frac{1}{a_{r}}\\left\\{\\frac{2}{M}\\sum_{i=1}^{n}v_{i}\\psi(G_{j}^{(r)}-\\bar{Z}_{i})-\\frac{2}{M^{2}}\\sum_{\\ell=1}^{M}\\psi(G_{j}^{(r)}-G_{\\ell}^{(r)})\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "g_{j}^{(r)}=\\frac{1}{a_{r}}\\left\\{\\frac{2}{M}\\sum_{i=1}^{n}v_{i}\\psi(G_{j}^{(r)}-\\bar{Z}_{i})-\\frac{2}{M^{2}}\\sum_{\\ell=1}^{M}\\psi(G_{j}^{(r)}-G_{\\ell}^{(r)})\\right\\},"
+      ]
+    },
+    {
+      "id": "A5.E131",
+      "tex": [
+        "\\eta_{r}=\\eta_{\\min}+\\left(\\eta_{\\max}-\\eta_{\\min}\\right)\\frac{r}{W},\\qquad 0\\leq r<W."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta_{r}=\\eta_{\\min}+\\left(\\eta_{\\max}-\\eta_{\\min}\\right)\\frac{r}{W},\\qquad 0\\leq r<W."
+      ]
+    },
+    {
+      "id": "A5.E132",
+      "tex": [
+        "\\eta_{r}=\\eta_{\\max}\\,\\omega_{r},\\qquad W\\leq r<R,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta_{r}=\\eta_{\\max}\\,\\omega_{r},\\qquad W\\leq r<R,"
+      ]
+    },
+    {
+      "id": "A5.E133",
+      "tex": [
+        "\\omega_{r}=\\begin{cases}1,&\\text{constant schedule},\\\\[3.0pt]\n\\dfrac{1}{2}\\left[1+\\cos\\!\\left(\\pi\\dfrac{r-W}{R-W}\\right)\\right],&\\text{cosine schedule}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\omega_{r}=\\begin{cases}1,&\\text{constant schedule},\\\\[3.0pt]\n\\dfrac{1}{2}\\left[1+\\cos\\!\\left(\\pi\\dfrac{r-W}{R-W}\\right)\\right],&\\text{cosine schedule}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "A5.EGx97",
+      "tex": [
+        "\\displaystyle X",
+        "\\displaystyle\\sim\\mathrm{Unif}[0,1],",
+        "\\displaystyle A\\mid X=x",
+        "\\displaystyle\\sim\\mathrm{Bernoulli}\\!\\left(\\sigma_{\\ell}\\!\\left(w(x-1/2)\\right)\\right),",
+        "\\displaystyle S\\mid A=a",
+        "\\displaystyle\\sim\\widehat{P}_{d_{a}},\\quad(d_{0},d_{1})=(1,6)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle X",
+        "\\displaystyle\\sim\\mathrm{Unif}[0,1],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle A\\mid X=x",
+        "\\displaystyle\\sim\\mathrm{Bernoulli}\\!\\left(\\sigma_{\\ell}\\!\\left(w(x-1/2)\\right)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle S\\mid A=a",
+        "\\displaystyle\\sim\\widehat{P}_{d_{a}},\\quad(d_{0},d_{1})=(1,6)."
+      ]
+    },
+    {
+      "id": "A5.EGx98",
+      "tex": [
+        "\\displaystyle M(S)",
+        "\\displaystyle=\\sigma_{\\ell}\\!\\left(\\kappa(S-\\tau)\\right),\\kern 5.0ptc_{\\mathrm{fg}}(x)=(x,\\alpha,1-x)^{\\top},\\kern 5.0ptY=M(S)\\odot\\bigl(c_{\\mathrm{fg}}(X)\\otimes S\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle M(S)",
+        "\\displaystyle=\\sigma_{\\ell}\\!\\left(\\kappa(S-\\tau)\\right),\\kern 5.0ptc_{\\mathrm{fg}}(x)=(x,\\alpha,1-x)^{\\top},\\kern 5.0ptY=M(S)\\odot\\bigl(c_{\\mathrm{fg}}(X)\\otimes S\\bigr)."
+      ]
+    },
+    {
+      "id": "A5.Ex217",
+      "tex": [
+        "A=\\bm{1}\\{\\mathrm{Male}\\},\\qquad X=\\bm{1}\\{\\mathrm{Blond\\ Hair}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "A=\\bm{1}\\{\\mathrm{Male}\\},\\qquad X=\\bm{1}\\{\\mathrm{Blond\\ Hair}\\}."
+      ]
+    },
+    {
+      "id": "A5.EGx99",
+      "tex": [
+        "\\displaystyle P_{\\mathrm{obs}}(X=1)",
+        "\\displaystyle=q=0.3,\\quad P_{\\mathrm{obs}}(A=1\\mid X=0)=0.6,\\quad P_{\\mathrm{obs}}(A=1\\mid X=1)=0.1,\\quad Y\\mid(A=a,X=x)\\sim\\widehat{P}_{a,x}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle P_{\\mathrm{obs}}(X=1)",
+        "\\displaystyle=q=0.3,\\quad P_{\\mathrm{obs}}(A=1\\mid X=0)=0.6,\\quad P_{\\mathrm{obs}}(A=1\\mid X=1)=0.1,\\quad Y\\mid(A=a,X=x)\\sim\\widehat{P}_{a,x}."
+      ]
+    },
+    {
+      "id": "A5.EGx100",
+      "tex": [
+        "\\displaystyle P_{a}^{\\star}=(1-q)\\widehat{P}_{a,0}+q\\widehat{P}_{a,1}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle P_{a}^{\\star}=(1-q)\\widehat{P}_{a,0}+q\\widehat{P}_{a,1}."
+      ]
+    },
+    {
+      "id": "A5.EGx101",
+      "tex": [
+        "\\displaystyle C(X)",
+        "\\displaystyle=\\min\\{2,\\lfloor 3X_{1}\\rfloor\\},",
+        "\\displaystyle S(X)",
+        "\\displaystyle=\\min\\{5,\\lfloor 6X_{2}\\rfloor\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle C(X)",
+        "\\displaystyle=\\min\\{2,\\lfloor 3X_{1}\\rfloor\\},",
+        "\\displaystyle S(X)",
+        "\\displaystyle=\\min\\{5,\\lfloor 6X_{2}\\rfloor\\},"
+      ]
+    },
+    {
+      "id": "A5.EGx102",
+      "tex": [
+        "\\displaystyle\\pi_{0}(\\cdot\\mid x)",
+        "\\displaystyle={\\mathcal{N}}\\!\\left(\\mu_{0}(x),0.6^{2}I_{2}\\right),",
+        "\\displaystyle\\pi(\\cdot\\mid x)",
+        "\\displaystyle=\\tfrac{1}{2}{\\mathcal{N}}\\!\\left(\\mu_{0}(x),0.6^{2}I_{2}\\right)+\\tfrac{1}{2}{\\mathcal{N}}\\!\\left(\\mu_{0}(x)+\\Delta,0.6^{2}I_{2}\\right),\\qquad\\Delta=(0.45,-0.45)^{\\top}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\pi_{0}(\\cdot\\mid x)",
+        "\\displaystyle={\\mathcal{N}}\\!\\left(\\mu_{0}(x),0.6^{2}I_{2}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\pi(\\cdot\\mid x)",
+        "\\displaystyle=\\tfrac{1}{2}{\\mathcal{N}}\\!\\left(\\mu_{0}(x),0.6^{2}I_{2}\\right)+\\tfrac{1}{2}{\\mathcal{N}}\\!\\left(\\mu_{0}(x)+\\Delta,0.6^{2}I_{2}\\right),\\qquad\\Delta=(0.45,-0.45)^{\\top}."
+      ]
+    },
+    {
+      "id": "A5.EGx103",
+      "tex": [
+        "\\displaystyle\\frac{\\pi(a\\mid x)}{\\pi_{0}(a\\mid x)}=\\frac{1}{2}+\\frac{1}{2}\\exp\\!\\left\\{\\frac{\\Delta^{\\top}(a-\\mu_{0}(x))}{0.6^{2}}-\\frac{\\lVert\\Delta\\rVert_{2}^{2}}{2(0.6^{2})}\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{\\pi(a\\mid x)}{\\pi_{0}(a\\mid x)}=\\frac{1}{2}+\\frac{1}{2}\\exp\\!\\left\\{\\frac{\\Delta^{\\top}(a-\\mu_{0}(x))}{0.6^{2}}-\\frac{\\lVert\\Delta\\rVert_{2}^{2}}{2(0.6^{2})}\\right\\}."
+      ]
+    },
+    {
+      "id": "A5.EGx104",
+      "tex": [
+        "\\displaystyle X",
+        "\\displaystyle\\sim{\\mathcal{N}}(0,I_{2}),\\quad A\\mid X=x\\sim\\mathrm{Bernoulli}\\!\\left(\\sigma_{\\ell}(\\gamma b^{\\top}x)\\right),",
+        "\\displaystyle B",
+        "\\displaystyle\\sim\\mathrm{Bernoulli}(1/2),\\quad\\epsilon\\sim{\\mathcal{N}}(0,\\sigma_{Y}^{2}I_{2}),\\quad Y=X+\\delta B\\bm{1}_{2}+\\epsilon."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle X",
+        "\\displaystyle\\sim{\\mathcal{N}}(0,I_{2}),\\quad A\\mid X=x\\sim\\mathrm{Bernoulli}\\!\\left(\\sigma_{\\ell}(\\gamma b^{\\top}x)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle B",
+        "\\displaystyle\\sim\\mathrm{Bernoulli}(1/2),\\quad\\epsilon\\sim{\\mathcal{N}}(0,\\sigma_{Y}^{2}I_{2}),\\quad Y=X+\\delta B\\bm{1}_{2}+\\epsilon."
+      ]
+    },
+    {
+      "id": "A5.E134",
+      "tex": [
+        "c(y):=\\frac{R(y)}{R(y)+B(y)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "c(y):=\\frac{R(y)}{R(y)+B(y)}."
+      ]
+    },
+    {
+      "id": "A5.Ex226",
+      "tex": [
+        "P_{Y(0)}=P_{Y(1)}=P_{Y}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{Y(0)}=P_{Y(1)}=P_{Y}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Projected-Nyström IMMD sampler",
+      "images": []
+    },
+    {
+      "id": "S6.T1",
+      "caption": "Table 1 :  \nComparison on ColorMNIST, CelebA, and dSprites. Lower is better; both  SW 2 \\mathrm{SW}_{2}  metrics are multiplied by  10 3 10^{3} . Entries are mean  ± \\pm  sample standard deviation, — denotes an unavailable result. Boldface marks the lowest reported mean within each benchmark and metric.\n",
+      "images": []
+    },
+    {
+      "id": "S6.F1",
+      "caption": "Figure 1 :  ColorMNIST DR–IMMD at  n = 20,000 n=20{,}000  and  M = 2,000 M=2{,}000 . Left: two illustrative particles initialized from  P Y | A = a P_{Y\\mid A=a} ; their foreground colors change during optimization while their digit identities are preserved. Right: the empirical foreground-color laws move away from the confounded observational arms and toward the oracle interventional laws. The displayed particle paths are algorithmic trajectories, not identified individual-level counterfactuals. Additional examples appear in Appendix  E.5 .",
+      "images": [
+        "2611.03962v1/figures/colormnist_flow_arm0_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm0_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm0_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm0_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm1_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm1_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm1_n20000.png",
+        "2611.03962v1/figures/colormnist_flow_arm1_n20000.png",
+        "2611.03962v1/figures/colormnist_colour_law_n20000.png"
+      ]
+    },
+    {
+      "id": "S6.T2",
+      "caption": "Table 2 :  End-to-end wall-clock comparison at  n = 20,000 n=20{,}000  and  M = 2,000 M=2{,}000 . Within each benchmark, all methods were run on the same hardware: an NVIDIA L40S for ColorMNIST and an NVIDIA A100-SXM4-40GB for CelebA. Each entry covers both intervention arms. Fitting and sampling times are means  ± \\pm  sample standard deviations over three data seeds; totals are sums of the reported means. The final column reports total time relative to DR–IMMD.",
+      "images": []
+    },
+    {
+      "id": "S7.F2",
+      "caption": "Figure 2 :  Decoded CelebA particles during DR–IMMD optimization at  n = 20,000 n=20{,}000  and  M = 2,000 M=2{,}000 . Particles are initialized from the corresponding observational arm  P Y | A = a P_{Y\\mid A=a} , and each row follows one numerical particle across optimization iterations as the empirical particle law is transported toward the interventional law  P Y ⁡ ( a ) P_{Y(a)} . Note that these are not identified individual-level counterfactual trajectories, but rather represent the distributional change needed for these particles to represent valid samples from the interventional distribution. Additional particle trajectories appear in Appendix  5 .",
+      "images": [
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter0.png",
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter400.png",
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter800.png",
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter1600.png",
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter2400.png",
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter3200.png",
+        "2611.03962v1/figures/celeba_main_trajectory/female_iter4000.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter0.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter400.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter800.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter1600.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter2400.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter3200.png",
+        "2611.03962v1/figures/celeba_main_trajectory/male_iter4000.png"
+      ]
+    },
+    {
+      "id": "A2.T3",
+      "caption": "Table 3 :  \nComputational comparison of the full-ridge and input-projected\nNyström target constructions. The per-intervention costs assume that\nthe corresponding regression system has already been factorized.\n",
+      "images": []
+    },
+    {
+      "id": "A5.T4",
+      "caption": "Table 4 :  Riesz–AdamW settings used for the reported experiments. All rows use  W = 100 W=100 ,  M = 2,000 M=2{,}000 , adaptive scaling, no weight decay, and no injected noise.",
+      "images": []
+    },
+    {
+      "id": "A5.F3",
+      "caption": "(a)   Intervention arm  a = 0 a=0 . (b)   Intervention arm  a = 1 a=1 . Figure 3 :  \nInitialized and final ColorMNIST particles. Within each pair of rows, columns correspond to the same numerical particles before and after optimization. The number displayed beside each row is the empirical mean of the foreground-colour statistic  R / ( R + B ) R/(R+B) ; the oracle mean is  0.501 0.501 . IMMD-Flow moves the colour composition toward the interventional target while preserving the digit class.\n",
+      "images": [
+        "2611.03962v1/figures/colormnist_immdflow_logged_vs_flow_arm0_n20000.png",
+        "2611.03962v1/figures/colormnist_immdflow_logged_vs_flow_arm1_n20000.png"
+      ]
+    },
+    {
+      "id": "A5.F3.sf1",
+      "caption": "(a)   Intervention arm  a = 0 a=0 .",
+      "images": [
+        "2611.03962v1/figures/colormnist_immdflow_logged_vs_flow_arm0_n20000.png"
+      ]
+    },
+    {
+      "id": "A5.F3.sf2",
+      "caption": "(b)   Intervention arm  a = 1 a=1 .",
+      "images": [
+        "2611.03962v1/figures/colormnist_immdflow_logged_vs_flow_arm1_n20000.png"
+      ]
+    },
+    {
+      "id": "A5.F4",
+      "caption": "Figure 4 :  \nExample CelebA particles before and after IMMD-Flow for the female and male groups.\n",
+      "images": [
+        "2611.03962v1/figures/celeba_immdflow_both_arms_wide8_n20000.png"
+      ]
+    },
+    {
+      "id": "A5.F5",
+      "caption": "Figure 5 :  \nEvolution of selected CelebA particles during IMMD-Flow. The top and bottom panels correspond to the female ( a = 0 a=0 ) and male ( a = 1 a=1 ) groups, respectively.\n",
+      "images": [
+        "2611.03962v1/figures/celeba_hair_flow_female_n20000_M2000.png",
+        "2611.03962v1/figures/celeba_hair_flow_male_n20000_M2000.png"
+      ]
+    },
+    {
+      "id": "A5.F6",
+      "caption": "Figure 6 :   Initial and flowed particles in the two-dimensional benchmark of  Dance et al. [15] . Rows correspond to the intervention arms  a ∈ { 0 , 1 } a\\in\\{0,1\\} . Gray points show a fresh oracle draw from the common interventional law  P Y ⁡ ( a ) = P Y P_{Y(a)}=P_{Y} ; red points are particles initialized from  P Y | A = a P_{Y\\mid A=a} , and blue points are returned by DR–IMMD with the RBF–Euler update. We use  n = 20,000 n=20{,}000  logged observations and  M = 2,000 M=2{,}000  particles.",
+      "images": [
+        "2611.03962v1/figures/decfm2d_immdflow_initial_vs_flowed_n20000_M2000.png"
+      ]
+    },
+    {
+      "id": "A5.F7",
+      "caption": "Figure 7 :   Paths of 80 representative particles for each\nintervention arm in the run from Figure  6  over\n3,000 RBF–Euler updates. Path color indicates the iteration; open red markers\nand black markers denote initial and returned particles, respectively. Gray\npoints show a fresh oracle draw from  P Y P_{Y} .",
+      "images": [
+        "2611.03962v1/figures/decfm2d_immdflow_particle_paths_n20000_M2000_it3000.png"
+      ]
+    },
+    {
+      "id": "A5.T5",
+      "caption": "Table 5 :  \nAblation over the number of logged observations, before and after\nparticle optimization. “Initial” denotes the particle distribution\nbefore the flow: the corresponding observational arm for the\ndiscrete-treatment benchmarks and the logged outcome distribution for\ndSprites. “Flow” denotes the DR–IMMD output. Lower is better. A dash\ndenotes an unreported metric; the two-dimensional experiment has neither\na separate latent-space metric nor image FID. All entries are means\n ± \\pm  sample standard deviations across three data seeds. FID is\ncomputed against the same held-out interventional reference of\n 2,000 2{,}000  images at every  n n .\n",
+      "images": []
+    },
+    {
+      "id": "A5.T6",
+      "caption": "Table 6 :  \nAblation over the number of particles before and after IMMD-Flow.\n“Initial” and “flow” denote the metrics before and after particle optimization, respectively. Lower is better. Entries are means  ± \\pm  sample standard deviations across three data seeds; a dash denotes an unreported metric. Every initial entry is scored on the same  M M  samples as the corresponding flow entry, so the two are count-matched; both sliced Wasserstein and FID are biased upward at small sample size, and an initial column scored at a fixed larger count would understate the flow’s gain at small  M M .\n",
+      "images": []
+    },
+    {
+      "id": "A5.T7",
+      "caption": "Table 7 :  Particle-initialization ablation at  n = 20000 n=20000  and  M = 2,000 M=2{,}000 . Lower is better.",
+      "images": []
+    },
+    {
+      "id": "A5.T8",
+      "caption": "Table 8 :  ColorMNIST full-ridge and projected-Nyström comparison ( M = 2,000 M=2{,}000 ). CME solve times are wall-clock seconds for one intervention arm on an L40S GPU, measured with both solvers run back to back in a single process on identical inputs, after a warm-up pass and with the solver order rotated across repeats; mean  ± \\pm  s.d. over three data seeds  × \\times  three repeats. The timing covers the ridge solve alone.",
+      "images": []
+    },
+    {
+      "id": "A5.T9",
+      "caption": "Table 9 :  \nColorMNIST ablation over confounding strength for DR–IMMD.\n“Initial” denotes the observational-arm particles before optimization,\nand “flow” denotes the particles returned by IMMD-Flow.\nLower is better. Entries are means  ± \\pm  sample standard deviations\nacross three data seeds.\n",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/BariscanBozkurt/Interventional-MMD-Flow-Sampling",
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML",
+    "https://github.com/google-deepmind/dsprites-dataset",
+    "https://github.com/huggingface/diffusers",
+    "https://huggingface.co/stabilityai/sd-vae-ft-mse"
+  ]
+}

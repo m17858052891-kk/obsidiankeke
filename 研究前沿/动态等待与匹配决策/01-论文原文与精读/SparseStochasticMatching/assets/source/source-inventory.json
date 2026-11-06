@@ -1,0 +1,1592 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Stochastic Matching with Polynomial Degree",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "Previous results.",
+      "id": "S1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Main result.",
+      "id": "S1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "2  Technical Overview",
+      "id": "S2"
+    },
+    {
+      "title": "Crucial and noncrucial edges.",
+      "id": "S2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "The independence approach.",
+      "id": "S2.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Our key lemma: bounding total covariance.",
+      "id": "S2.SS0.SSS0.Px3"
+    },
+    {
+      "title": "An illustrative example.",
+      "id": "S2.SS0.SSS0.Px4"
+    },
+    {
+      "title": "Proof idea for the key lemma.",
+      "id": "S2.SS0.SSS0.Px5"
+    },
+    {
+      "title": "3  Key lemma: bounding total covariance",
+      "id": "S3"
+    },
+    {
+      "title": "Proof outline.",
+      "id": "S3.SS0.SSS0.Px1"
+    },
+    {
+      "title": "3.1  Stability of vertex weighted matchings",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Independent perturbations give the covariance bound",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  Satisfying vertex marginals by weight updates",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "The potential.",
+      "id": "S3.SS3.SSS0.Px1"
+    },
+    {
+      "title": "How one vertex’s coverage probability responds.",
+      "id": "S3.SS3.SSS0.Px2"
+    },
+    {
+      "title": "Comparing the old and new optimal scores.",
+      "id": "S3.SS3.SSS0.Px3"
+    },
+    {
+      "title": "Every inaccurate coordinate gives a definite decrease.",
+      "id": "S3.SS3.SSS0.Px4"
+    },
+    {
+      "title": "Getting exact marginals.",
+      "id": "S3.SS3.SSS0.Px5"
+    },
+    {
+      "title": "4  Proof of the main theorem using  Lemma   3.1",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Notation and elementary tools",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "Notation.",
+      "id": "S4.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Tools.",
+      "id": "S4.SS1.SSS0.Px2"
+    },
+    {
+      "title": "4.2  The analysis",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "The crucial matching  M C M_{C} .",
+      "id": "S4.SS2.SSS0.Px1"
+    },
+    {
+      "title": "A fractional assignment.",
+      "id": "S4.SS2.SSS0.Px2"
+    },
+    {
+      "title": "From the fractional assignment to a fractional matching.",
+      "id": "S4.SS2.SSS0.Px3"
+    },
+    {
+      "title": "Individual variances.",
+      "id": "S4.SS2.SSS0.Px4"
+    },
+    {
+      "title": "Pairwise covariances.",
+      "id": "S4.SS2.SSS0.Px5"
+    },
+    {
+      "title": "Summing over vertices.",
+      "id": "S4.SS2.SSS0.Px6"
+    },
+    {
+      "title": "Controlling the vertex loads.",
+      "id": "S4.SS2.SSS0.Px7"
+    },
+    {
+      "title": "Rounding.",
+      "id": "S4.SS2.SSS0.Px8"
+    },
+    {
+      "title": "Acknowledgments",
+      "id": "Sx1"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  A Lower Bound of  Ω ⁡ ( 1 / ( p ​ ε ) ) \\Omega(1/(p\\varepsilon))",
+      "id": "A1"
+    },
+    {
+      "title": "The construction.",
+      "id": "A1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "The expected optimum in  G p G_{p} .",
+      "id": "A1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "The limitation of bounded-degree sparsifiers.",
+      "id": "A1.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Concluding the lower bound.",
+      "id": "A1.SS0.SSS0.Px4"
+    },
+    {
+      "title": "Appendix B  Improving the Polynomial Degree Bound",
+      "id": "A2"
+    },
+    {
+      "title": "A modified sparsification algorithm.",
+      "id": "A2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Changes to the analysis.",
+      "id": "A2.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S0.Ex1",
+      "tex": [
+        "O\\left(\\frac{\\log(1/\\varepsilon)}{\\varepsilon^{4}}\\cdot\\frac{1}{p}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "O\\left(\\frac{\\log(1/\\varepsilon)}{\\varepsilon^{4}}\\cdot\\frac{1}{p}\\right)."
+      ]
+    },
+    {
+      "id": "S1.E1",
+      "tex": [
+        "\\E\\mu(H\\cap G_{p})\\geq(1-\\varepsilon)\\E\\mu(G_{p})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\mu(H\\cap G_{p})\\geq(1-\\varepsilon)\\E\\mu(G_{p})."
+      ]
+    },
+    {
+      "id": "S1.Ex2",
+      "tex": [
+        "\\Delta(H)\\leq(1/p)^{(\\log(1/p))^{\\exp(O(1/\\varepsilon))}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta(H)\\leq(1/p)^{(\\log(1/p))^{\\exp(O(1/\\varepsilon))}}."
+      ]
+    },
+    {
+      "id": "S1.Ex3",
+      "tex": [
+        "\\Delta(H)\\leq(1/p)^{\\exp((1/\\varepsilon)\\log(1/\\varepsilon))},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta(H)\\leq(1/p)^{\\exp((1/\\varepsilon)\\log(1/\\varepsilon))},"
+      ]
+    },
+    {
+      "id": "S1.Ex4",
+      "tex": [
+        "\\Delta(H)\\leq O\\left(\\frac{\\log(1/\\varepsilon)}{\\varepsilon^{4}}\\cdot\\frac{1}{p}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta(H)\\leq O\\left(\\frac{\\log(1/\\varepsilon)}{\\varepsilon^{4}}\\cdot\\frac{1}{p}\\right)."
+      ]
+    },
+    {
+      "id": "S2.Ex5",
+      "tex": [
+        "q_{e}:=\\Pr[e\\in\\MM(G_{p})]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q_{e}:=\\Pr[e\\in\\MM(G_{p})]"
+      ]
+    },
+    {
+      "id": "S2.Ex6",
+      "tex": [
+        "\\sum_{u,v}|\\Cov(X^{\\prime}_{u},X^{\\prime}_{v})|=O(\\E|M|)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{u,v}|\\Cov(X^{\\prime}_{u},X^{\\prime}_{v})|=O(\\E|M|)."
+      ]
+    },
+    {
+      "id": "S2.Ex7",
+      "tex": [
+        "w_{v}=\\theta_{v}+\\xi_{v},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "w_{v}=\\theta_{v}+\\xi_{v},"
+      ]
+    },
+    {
+      "id": "S3.Ex8",
+      "tex": [
+        "M=\\mathcal{A}(G(\\omega)),\\qquad M^{\\prime}=\\mathcal{A}^{\\prime}(G(\\omega)),\\qquad X_{v}=\\mathbf{1}_{\\{v\\in V(M)\\}},\\qquad X^{\\prime}_{v}=\\mathbf{1}_{\\{v\\in V(M^{\\prime})\\}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "M=\\mathcal{A}(G(\\omega)),\\qquad M^{\\prime}=\\mathcal{A}^{\\prime}(G(\\omega)),\\qquad X_{v}=\\mathbf{1}_{\\{v\\in V(M)\\}},\\qquad X^{\\prime}_{v}=\\mathbf{1}_{\\{v\\in V(M^{\\prime})\\}}."
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "\\sum_{u,v\\in V}|\\Cov(X^{\\prime}_{u},X^{\\prime}_{v})|=O(\\E|M|)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{u,v\\in V}|\\Cov(X^{\\prime}_{u},X^{\\prime}_{v})|=O(\\E|M|)."
+      ]
+    },
+    {
+      "id": "S3.Ex9",
+      "tex": [
+        "|S(G,w)\\mathbin{\\triangle}S(G^{\\prime},w^{\\prime})|\\leq 2."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|S(G,w)\\mathbin{\\triangle}S(G^{\\prime},w^{\\prime})|\\leq 2."
+      ]
+    },
+    {
+      "id": "S3.EGx1",
+      "tex": [
+        "\\displaystyle\\|X^{\\theta}-X^{\\theta,(i)}\\|_{1}",
+        "\\displaystyle\\leq 2,",
+        "\\displaystyle\\E\\|X^{\\theta}-X^{\\theta,(i)}\\|_{1}",
+        "\\displaystyle\\leq 2\\mathbb{P}[X_{i}^{\\theta}=1\\text{ or }X_{i}^{\\theta,(i)}=1]\\leq 4\\E X_{i}^{\\theta}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\|X^{\\theta}-X^{\\theta,(i)}\\|_{1}",
+        "\\displaystyle\\leq 2,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E\\|X^{\\theta}-X^{\\theta,(i)}\\|_{1}",
+        "\\displaystyle\\leq 2\\mathbb{P}[X_{i}^{\\theta}=1\\text{ or }X_{i}^{\\theta,(i)}=1]\\leq 4\\E X_{i}^{\\theta}."
+      ]
+    },
+    {
+      "id": "S3.Ex10",
+      "tex": [
+        "D_{i}=\\E[X^{\\theta}\\mid\\mathcal{F}_{i}]-\\E[X^{\\theta}\\mid\\mathcal{F}_{i-1}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{i}=\\E[X^{\\theta}\\mid\\mathcal{F}_{i}]-\\E[X^{\\theta}\\mid\\mathcal{F}_{i-1}]."
+      ]
+    },
+    {
+      "id": "S3.Ex11",
+      "tex": [
+        "D_{i}=\\E[X^{\\theta}-X^{\\theta,(i)}\\mid\\mathcal{F}_{i}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{i}=\\E[X^{\\theta}-X^{\\theta,(i)}\\mid\\mathcal{F}_{i}]."
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\|D_{i}\\|_{1}\\leq 2\\qquad\\text{and}\\qquad\\E\\|D_{i}\\|_{1}\\leq 4\\E X_{i}^{\\theta}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\|D_{i}\\|_{1}\\leq 2\\qquad\\text{and}\\qquad\\E\\|D_{i}\\|_{1}\\leq 4\\E X_{i}^{\\theta}."
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "\\sum_{i=1}^{n}D_{i}=\\sum_{i=1}^{n}\\left(\\E[X^{\\theta}\\mid\\mathcal{F}_{i}]-\\E[X^{\\theta}\\mid\\mathcal{F}_{i-1}]\\right)=\\E[X^{\\theta}\\mid\\mathcal{F}_{n}]-\\E[X^{\\theta}\\mid\\mathcal{F}_{0}]=X^{\\theta}-\\E X^{\\theta}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{i=1}^{n}D_{i}=\\sum_{i=1}^{n}\\left(\\E[X^{\\theta}\\mid\\mathcal{F}_{i}]-\\E[X^{\\theta}\\mid\\mathcal{F}_{i-1}]\\right)=\\E[X^{\\theta}\\mid\\mathcal{F}_{n}]-\\E[X^{\\theta}\\mid\\mathcal{F}_{0}]=X^{\\theta}-\\E X^{\\theta}."
+      ]
+    },
+    {
+      "id": "S3.EGx2",
+      "tex": [
+        "\\displaystyle\\Cov(X_{u}^{\\theta},X_{v}^{\\theta})=\\E[(X_{u}-\\E X_{u})(X_{v}-\\E X_{v})]=\\E\\left[\\left(\\sum_{i}D_{i,u}\\right)\\left(\\sum_{i}D_{i,v}\\right)\\right]=\\sum_{i,j}\\E[D_{i,u}D_{j,v}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Cov(X_{u}^{\\theta},X_{v}^{\\theta})=\\E[(X_{u}-\\E X_{u})(X_{v}-\\E X_{v})]=\\E\\left[\\left(\\sum_{i}D_{i,u}\\right)\\left(\\sum_{i}D_{i,v}\\right)\\right]=\\sum_{i,j}\\E[D_{i,u}D_{j,v}]."
+      ]
+    },
+    {
+      "id": "S3.Ex13",
+      "tex": [
+        "\\E[D_{i,u}D_{j,v}]=\\E[\\E[D_{i,u}D_{j,v}\\mid\\mathcal{F}_{j-1}]]=\\E[D_{i,u}\\E[D_{j,v}\\mid\\mathcal{F}_{j-1}]]=\\E[D_{i,u}\\cdot 0]=0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E[D_{i,u}D_{j,v}]=\\E[\\E[D_{i,u}D_{j,v}\\mid\\mathcal{F}_{j-1}]]=\\E[D_{i,u}\\E[D_{j,v}\\mid\\mathcal{F}_{j-1}]]=\\E[D_{i,u}\\cdot 0]=0,"
+      ]
+    },
+    {
+      "id": "S3.EGx3",
+      "tex": [
+        "\\displaystyle\\sum_{u,v}|\\Cov(X_{u}^{\\theta},X_{v}^{\\theta})|",
+        "\\displaystyle=\\sum_{u,v}\\left|\\sum_{i}\\E[D_{i,u}D_{i,v}]\\right|",
+        "\\displaystyle\\leq\\sum_{u,v}\\sum_{i}\\E[|D_{i,u}||D_{i,v}|]",
+        "\\displaystyle=\\sum_{i}\\E\\!\\left[\\left(\\sum_{v}|D_{i,v}|\\right)^{2}\\right]",
+        "\\sum_{u,v}a_{u}a_{v}=\\left(\\sum_{u}a_{u}\\right)\\left(\\sum_{v}a_{v}\\right)=\\left(\\sum_{v}a_{v}\\right)^{2}",
+        "\\displaystyle\\leq 2\\sum_{i}\\E\\|D_{i}\\|_{1}",
+        "\\|D_{i}\\|_{1}\\leq 2",
+        "\\displaystyle\\leq 8\\sum_{i}\\E X_{i}^{\\theta}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{u,v}|\\Cov(X_{u}^{\\theta},X_{v}^{\\theta})|",
+        "\\displaystyle=\\sum_{u,v}\\left|\\sum_{i}\\E[D_{i,u}D_{i,v}]\\right|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\sum_{u,v}\\sum_{i}\\E[|D_{i,u}||D_{i,v}|]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{i}\\E\\!\\left[\\left(\\sum_{v}|D_{i,v}|\\right)^{2}\\right]",
+        "\\sum_{u,v}a_{u}a_{v}=\\left(\\sum_{u}a_{u}\\right)\\left(\\sum_{v}a_{v}\\right)=\\left(\\sum_{v}a_{v}\\right)^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq 2\\sum_{i}\\E\\|D_{i}\\|_{1}",
+        "\\|D_{i}\\|_{1}\\leq 2"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq 8\\sum_{i}\\E X_{i}^{\\theta}."
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "h:=s_{v}-m_{v}(\\theta),\\qquad\\theta_{v}\\leftarrow\\theta_{v}+h,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h:=s_{v}-m_{v}(\\theta),\\qquad\\theta_{v}\\leftarrow\\theta_{v}+h,"
+      ]
+    },
+    {
+      "id": "S3.E9",
+      "tex": [
+        "\\max_{v}|m_{v}(\\theta^{(\\rho)})-s_{v}|\\leq\\rho,\\qquad\\|\\theta^{(\\rho)}\\|_{\\infty}\\leq\\frac{2n}{\\rho}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\max_{v}|m_{v}(\\theta^{(\\rho)})-s_{v}|\\leq\\rho,\\qquad\\|\\theta^{(\\rho)}\\|_{\\infty}\\leq\\frac{2n}{\\rho}."
+      ]
+    },
+    {
+      "id": "S3.Ex18",
+      "tex": [
+        "W_{\\theta}(L):=\\sum_{u\\in V(L)}(\\theta_{u}+\\xi_{u})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{\\theta}(L):=\\sum_{u\\in V(L)}(\\theta_{u}+\\xi_{u})."
+      ]
+    },
+    {
+      "id": "S3.E10",
+      "tex": [
+        "F(\\theta):=\\E W_{\\theta}(M^{\\theta}),\\qquad\\Psi(\\theta):=F(\\theta)-\\sum_{u}\\theta_{u}s_{u}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F(\\theta):=\\E W_{\\theta}(M^{\\theta}),\\qquad\\Psi(\\theta):=F(\\theta)-\\sum_{u}\\theta_{u}s_{u}."
+      ]
+    },
+    {
+      "id": "S3.Ex19",
+      "tex": [
+        "\\E W_{\\theta}(M)=\\sum_{u}\\theta_{u}s_{u},\\qquad\\Psi(\\theta)=\\E\\bigl[W_{\\theta}(M^{\\theta})-W_{\\theta}(M)\\bigr]\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E W_{\\theta}(M)=\\sum_{u}\\theta_{u}s_{u},\\qquad\\Psi(\\theta)=\\E\\bigl[W_{\\theta}(M^{\\theta})-W_{\\theta}(M)\\bigr]\\geq 0."
+      ]
+    },
+    {
+      "id": "S3.E11",
+      "tex": [
+        "0\\leq\\Psi(0)=F(0)\\leq n,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0\\leq\\Psi(0)=F(0)\\leq n,"
+      ]
+    },
+    {
+      "id": "S3.EGx4",
+      "tex": [
+        "\\displaystyle A:=\\max_{L:\\,v\\in V(L)}\\sum_{u\\in V(L)\\setminus\\{v\\}}(\\theta_{u}+\\xi_{u}),\\qquad\\qquad B:=\\max_{L:\\,v\\notin V(L)}\\sum_{u\\in V(L)}(\\theta_{u}+\\xi_{u}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle A:=\\max_{L:\\,v\\in V(L)}\\sum_{u\\in V(L)\\setminus\\{v\\}}(\\theta_{u}+\\xi_{u}),\\qquad\\qquad B:=\\max_{L:\\,v\\notin V(L)}\\sum_{u\\in V(L)}(\\theta_{u}+\\xi_{u}),"
+      ]
+    },
+    {
+      "id": "S3.Ex21",
+      "tex": [
+        "\\xi_{v}>B-A-\\theta_{v}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\xi_{v}>B-A-\\theta_{v}."
+      ]
+    },
+    {
+      "id": "S3.E12",
+      "tex": [
+        "|m_{v}(\\theta^{\\prime})-m_{v}(\\theta)|\\leq\\frac{|h|}{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|m_{v}(\\theta^{\\prime})-m_{v}(\\theta)|\\leq\\frac{|h|}{2}."
+      ]
+    },
+    {
+      "id": "S3.E13",
+      "tex": [
+        "W_{\\theta^{\\prime}}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta^{\\prime}})=hX_{v}^{\\theta^{\\prime}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{\\theta^{\\prime}}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta^{\\prime}})=hX_{v}^{\\theta^{\\prime}}."
+      ]
+    },
+    {
+      "id": "S3.EGx5",
+      "tex": [
+        "\\displaystyle W_{\\theta^{\\prime}}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta})",
+        "\\displaystyle=\\bigl[W_{\\theta^{\\prime}}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta^{\\prime}})\\bigr]+\\bigl[W_{\\theta}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta})\\bigr]\\leq hX_{v}^{\\theta^{\\prime}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle W_{\\theta^{\\prime}}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta})",
+        "\\displaystyle=\\bigl[W_{\\theta^{\\prime}}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta^{\\prime}})\\bigr]+\\bigl[W_{\\theta}(M^{\\theta^{\\prime}})-W_{\\theta}(M^{\\theta})\\bigr]\\leq hX_{v}^{\\theta^{\\prime}}."
+      ]
+    },
+    {
+      "id": "S3.E14",
+      "tex": [
+        "\\Psi(\\theta^{\\prime})-\\Psi(\\theta)\\leq h\\bigl(m_{v}(\\theta^{\\prime})-s_{v}\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Psi(\\theta^{\\prime})-\\Psi(\\theta)\\leq h\\bigl(m_{v}(\\theta^{\\prime})-s_{v}\\bigr)."
+      ]
+    },
+    {
+      "id": "S3.Ex23",
+      "tex": [
+        "\\Psi(\\theta^{\\prime})-\\Psi(\\theta)\\leq h\\bigl(m_{v}(\\theta^{\\prime})-m_{v}(\\theta)\\bigr)-h^{2}\\leq|h|\\,|m_{v}(\\theta^{\\prime})-m_{v}(\\theta)|-h^{2}\\leq-\\frac{h^{2}}{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Psi(\\theta^{\\prime})-\\Psi(\\theta)\\leq h\\bigl(m_{v}(\\theta^{\\prime})-m_{v}(\\theta)\\bigr)-h^{2}\\leq|h|\\,|m_{v}(\\theta^{\\prime})-m_{v}(\\theta)|-h^{2}\\leq-\\frac{h^{2}}{2}."
+      ]
+    },
+    {
+      "id": "S4.Ex24",
+      "tex": [
+        "|z|:=\\sum_{e}z_{e},\\qquad z_{v}:=\\sum_{e\\ni v}z_{e},\\qquad z(F):=\\sum_{e\\in F}z_{e}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|z|:=\\sum_{e}z_{e},\\qquad z_{v}:=\\sum_{e\\ni v}z_{e},\\qquad z(F):=\\sum_{e\\in F}z_{e}."
+      ]
+    },
+    {
+      "id": "S4.Ex25",
+      "tex": [
+        "(r-b)_{+}\\leq\\frac{r^{2}}{4b},\\qquad(r)_{+}:=\\max\\{r,0\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(r-b)_{+}\\leq\\frac{r^{2}}{4b},\\qquad(r)_{+}:=\\max\\{r,0\\}."
+      ]
+    },
+    {
+      "id": "S4.Ex26",
+      "tex": [
+        "\\E(W-c)_{+}\\leq\\frac{\\Var(W)}{4(c-\\E W)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E(W-c)_{+}\\leq\\frac{\\Var(W)}{4(c-\\E W)}."
+      ]
+    },
+    {
+      "id": "S4.Ex27",
+      "tex": [
+        "z_{v}\\leq 1\\quad\\text{for every }v,\\qquad z(E_{K}(S))\\leq\\frac{|S|-1}{2}\\quad\\text{for every odd-cardinality }S\\subseteq V(K)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{v}\\leq 1\\quad\\text{for every }v,\\qquad z(E_{K}(S))\\leq\\frac{|S|-1}{2}\\quad\\text{for every odd-cardinality }S\\subseteq V(K)."
+      ]
+    },
+    {
+      "id": "S4.Ex28",
+      "tex": [
+        "\\mu(K)\\geq|y|-\\sum_{e}y_{e}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu(K)\\geq|y|-\\sum_{e}y_{e}^{2}."
+      ]
+    },
+    {
+      "id": "S4.Ex29",
+      "tex": [
+        "z(E_{K}(S))=m-\\sum_{e\\in E_{K}(S)}y_{e}^{2}\\leq m-\\frac{2m^{2}}{s(s-1)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z(E_{K}(S))=m-\\sum_{e\\in E_{K}(S)}y_{e}^{2}\\leq m-\\frac{2m^{2}}{s(s-1)}."
+      ]
+    },
+    {
+      "id": "S4.Ex30",
+      "tex": [
+        "z(E_{K}(S))\\leq\\frac{s}{2}-\\frac{s}{2(s-1)}=\\frac{s-1}{2}-\\frac{1}{2(s-1)}\\leq\\frac{s-1}{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z(E_{K}(S))\\leq\\frac{s}{2}-\\frac{s}{2(s-1)}=\\frac{s-1}{2}-\\frac{1}{2(s-1)}\\leq\\frac{s-1}{2}."
+      ]
+    },
+    {
+      "id": "S4.Ex31",
+      "tex": [
+        "|x|-|y|\\leq\\sum_{v}(x_{v}-1)_{+}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|x|-|y|\\leq\\sum_{v}(x_{v}-1)_{+}."
+      ]
+    },
+    {
+      "id": "S4.Ex32",
+      "tex": [
+        "q_{e}:=\\mathbb{P}[e\\in\\MM(G_{p})],\\qquad q_{v}:=\\sum_{e\\ni v}q_{e}\\leq 1,\\qquad Q:=\\sum_{e}q_{e}=\\E\\mu(G_{p})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q_{e}:=\\mathbb{P}[e\\in\\MM(G_{p})],\\qquad q_{v}:=\\sum_{e\\ni v}q_{e}\\leq 1,\\qquad Q:=\\sum_{e}q_{e}=\\E\\mu(G_{p})."
+      ]
+    },
+    {
+      "id": "S4.E15",
+      "tex": [
+        "\\gamma:=1-\\delta,\\qquad\\tau:=p\\delta^{4},\\qquad R:=\\left\\lceil\\frac{\\log(1/\\delta)}{\\tau}\\right\\rceil."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma:=1-\\delta,\\qquad\\tau:=p\\delta^{4},\\qquad R:=\\left\\lceil\\frac{\\log(1/\\delta)}{\\tau}\\right\\rceil."
+      ]
+    },
+    {
+      "id": "S4.E16",
+      "tex": [
+        "a_{v}=1-\\gamma q_{v}^{C}\\geq\\delta+\\gamma r_{v},\\qquad\\E|M_{C}|=\\gamma Q_{C},\\qquad\\Gamma:=\\sum_{u,w}|\\Cov(U_{u},U_{w})|=O(Q)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "a_{v}=1-\\gamma q_{v}^{C}\\geq\\delta+\\gamma r_{v},\\qquad\\E|M_{C}|=\\gamma Q_{C},\\qquad\\Gamma:=\\sum_{u,w}|\\Cov(U_{u},U_{w})|=O(Q)."
+      ]
+    },
+    {
+      "id": "S4.EGx6",
+      "tex": [
+        "\\displaystyle\\frac{r_{v}}{a_{v}}=\\frac{q_{v}-q^{C}_{v}}{1-\\gamma q^{C}_{v}}\\leq q_{v},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{r_{v}}{a_{v}}=\\frac{q_{v}-q^{C}_{v}}{1-\\gamma q^{C}_{v}}\\leq q_{v},"
+      ]
+    },
+    {
+      "id": "S4.E18",
+      "tex": [
+        "\\sum_{v}\\frac{r_{v}}{a_{v}}\\leq\\sum_{v}q_{v}=2Q."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}\\frac{r_{v}}{a_{v}}\\leq\\sum_{v}q_{v}=2Q."
+      ]
+    },
+    {
+      "id": "S4.Ex33",
+      "tex": [
+        "f_{e}:=R^{-1}\\sum_{i=1}^{R}\\mathbf{1}_{\\{e\\in M_{i}\\}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "f_{e}:=R^{-1}\\sum_{i=1}^{R}\\mathbf{1}_{\\{e\\in M_{i}\\}}"
+      ]
+    },
+    {
+      "id": "S4.Ex34",
+      "tex": [
+        "x_{e}:=\\begin{cases}\\mathbf{1}_{\\{e\\in M_{C}\\cap H\\}},&e\\in C,\\\\[2.0pt]\n\\displaystyle\\gamma\\frac{f_{e}I_{e}U_{u}U_{v}}{pa_{u}a_{v}},&e=uv\\in N.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "x_{e}:=\\begin{cases}\\mathbf{1}_{\\{e\\in M_{C}\\cap H\\}},&e\\in C,\\\\[2.0pt]\n\\displaystyle\\gamma\\frac{f_{e}I_{e}U_{u}U_{v}}{pa_{u}a_{v}},&e=uv\\in N.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S4.EGx7",
+      "tex": [
+        "\\displaystyle\\E x_{uv}",
+        "\\displaystyle=\\frac{\\gamma}{pa_{u}a_{v}}\\E[f_{uv}I_{uv}U_{u}U_{v}]",
+        "x_{uv}",
+        "\\displaystyle=\\frac{\\gamma}{pa_{u}a_{v}}\\E[f_{uv}]\\E[I_{uv}]\\E[U_{u}U_{v}]",
+        "\\displaystyle=\\frac{\\gamma q_{uv}}{a_{u}a_{v}}\\E[U_{u}U_{v}]",
+        "\\E f_{uv}=q_{uv}",
+        "\\E I_{uv}=p",
+        "\\displaystyle=\\frac{\\gamma q_{uv}}{a_{u}a_{v}}\\left(a_{u}a_{v}+\\Cov(U_{u},U_{v})\\right)",
+        "\\Cov(U_{u},U_{v})=\\E[U_{u}U_{v}]-\\E[U_{u}]\\E[U_{v}]=\\E[U_{u}U_{v}]-a_{u}a_{v}",
+        "\\displaystyle=\\gamma q_{uv}\\left(1+\\frac{\\Cov(U_{u},U_{v})}{a_{u}a_{v}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E x_{uv}",
+        "\\displaystyle=\\frac{\\gamma}{pa_{u}a_{v}}\\E[f_{uv}I_{uv}U_{u}U_{v}]",
+        "x_{uv}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\gamma}{pa_{u}a_{v}}\\E[f_{uv}]\\E[I_{uv}]\\E[U_{u}U_{v}]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\gamma q_{uv}}{a_{u}a_{v}}\\E[U_{u}U_{v}]",
+        "\\E f_{uv}=q_{uv}",
+        "\\E I_{uv}=p"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\gamma q_{uv}}{a_{u}a_{v}}\\left(a_{u}a_{v}+\\Cov(U_{u},U_{v})\\right)",
+        "\\Cov(U_{u},U_{v})=\\E[U_{u}U_{v}]-\\E[U_{u}]\\E[U_{v}]=\\E[U_{u}U_{v}]-a_{u}a_{v}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\gamma q_{uv}\\left(1+\\frac{\\Cov(U_{u},U_{v})}{a_{u}a_{v}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.EGx8",
+      "tex": [
+        "\\displaystyle\\sum_{uv\\in N}\\E x_{uv}",
+        "\\displaystyle=\\gamma Q_{N}+\\gamma\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}\\Cov(U_{u},U_{v})",
+        "\\displaystyle\\geq\\gamma Q_{N}-\\gamma\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}|\\Cov(U_{u},U_{v})|",
+        "\\displaystyle\\geq\\gamma Q_{N}-\\frac{\\gamma\\tau}{\\delta^{2}}\\sum_{uv\\in N}|\\Cov(U_{u},U_{v})|",
+        "q_{uv}<\\tau",
+        "a_{u},a_{v}\\geq\\delta",
+        "\\displaystyle\\geq\\gamma Q_{N}-\\frac{\\gamma\\tau}{\\delta^{2}}\\Gamma",
+        "\\displaystyle=\\gamma Q_{N}-O\\left(\\frac{\\tau}{\\delta^{2}}Q\\right).",
+        "\\Gamma=O(Q)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{uv\\in N}\\E x_{uv}",
+        "\\displaystyle=\\gamma Q_{N}+\\gamma\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}\\Cov(U_{u},U_{v})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\geq\\gamma Q_{N}-\\gamma\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}|\\Cov(U_{u},U_{v})|"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\geq\\gamma Q_{N}-\\frac{\\gamma\\tau}{\\delta^{2}}\\sum_{uv\\in N}|\\Cov(U_{u},U_{v})|",
+        "q_{uv}<\\tau",
+        "a_{u},a_{v}\\geq\\delta"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\geq\\gamma Q_{N}-\\frac{\\gamma\\tau}{\\delta^{2}}\\Gamma"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\gamma Q_{N}-O\\left(\\frac{\\tau}{\\delta^{2}}Q\\right).",
+        "\\Gamma=O(Q)"
+      ]
+    },
+    {
+      "id": "S4.E19",
+      "tex": [
+        "\\E|x|\\geq\\bigl(1-O(\\delta+\\tau/\\delta^{2})\\bigr)Q=(1-O(\\delta))Q."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E|x|\\geq\\bigl(1-O(\\delta+\\tau/\\delta^{2})\\bigr)Q=(1-O(\\delta))Q."
+      ]
+    },
+    {
+      "id": "S4.Ex45",
+      "tex": [
+        "Y_{vu}:=\\begin{cases}\\displaystyle\\frac{f_{vu}I_{vu}U_{u}}{pa_{u}},&vu\\in N,\\\\[4.0pt]\n0,&vu\\notin N,\\end{cases}\\qquad Z_{v}=\\sum_{u}Y_{vu}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{vu}:=\\begin{cases}\\displaystyle\\frac{f_{vu}I_{vu}U_{u}}{pa_{u}},&vu\\in N,\\\\[4.0pt]\n0,&vu\\notin N,\\end{cases}\\qquad Z_{v}=\\sum_{u}Y_{vu}."
+      ]
+    },
+    {
+      "id": "S4.Ex46",
+      "tex": [
+        "\\Var(Z_{v})=\\sum_{u}\\Var(Y_{vu})+\\sum_{u\\neq w}\\Cov(Y_{vu},Y_{vw}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Var(Z_{v})=\\sum_{u}\\Var(Y_{vu})+\\sum_{u\\neq w}\\Cov(Y_{vu},Y_{vw}),"
+      ]
+    },
+    {
+      "id": "S4.EGx9",
+      "tex": [
+        "\\displaystyle\\E f_{vu}^{2}",
+        "\\displaystyle=\\frac{1}{R^{2}}\\E\\left[\\left(\\sum_{i=1}^{R}B_{i}\\right)^{2}\\right]=\\frac{1}{R^{2}}\\left(\\sum_{i}\\E B_{i}^{2}+\\sum_{i\\neq j}\\E[B_{i}B_{j}]\\right)",
+        "\\displaystyle=\\frac{1}{R^{2}}\\left(Rq_{vu}+R(R-1)q_{vu}^{2}\\right)",
+        "B_{i}^{2}=B_{i}",
+        "B_{i}",
+        "\\displaystyle=q_{vu}^{2}+\\frac{q_{vu}(1-q_{vu})}{R}",
+        "\\displaystyle\\leq\\left(\\tau+\\frac{1}{R}\\right)q_{vu}.",
+        "q_{vu}<\\tau",
+        "1-q_{vu}\\leq 1"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E f_{vu}^{2}",
+        "\\displaystyle=\\frac{1}{R^{2}}\\E\\left[\\left(\\sum_{i=1}^{R}B_{i}\\right)^{2}\\right]=\\frac{1}{R^{2}}\\left(\\sum_{i}\\E B_{i}^{2}+\\sum_{i\\neq j}\\E[B_{i}B_{j}]\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{1}{R^{2}}\\left(Rq_{vu}+R(R-1)q_{vu}^{2}\\right)",
+        "B_{i}^{2}=B_{i}",
+        "B_{i}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=q_{vu}^{2}+\\frac{q_{vu}(1-q_{vu})}{R}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\left(\\tau+\\frac{1}{R}\\right)q_{vu}.",
+        "q_{vu}<\\tau",
+        "1-q_{vu}\\leq 1"
+      ]
+    },
+    {
+      "id": "S4.EGx10",
+      "tex": [
+        "\\displaystyle\\Var(Y_{vu})",
+        "\\displaystyle=\\E Y_{vu}^{2}-(\\E Y_{vu})^{2}\\leq\\E Y_{vu}^{2}=\\frac{\\E[f_{vu}^{2}I_{vu}^{2}U_{u}^{2}]}{p^{2}a_{u}^{2}}=\\frac{\\E[f_{vu}^{2}]\\E[I_{vu}]\\E[U_{u}]}{p^{2}a_{u}^{2}}=\\frac{\\E f_{vu}^{2}}{pa_{u}}",
+        "\\displaystyle\\leq\\frac{\\tau+1/R}{p}\\frac{q_{vu}}{a_{u}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Var(Y_{vu})",
+        "\\displaystyle=\\E Y_{vu}^{2}-(\\E Y_{vu})^{2}\\leq\\E Y_{vu}^{2}=\\frac{\\E[f_{vu}^{2}I_{vu}^{2}U_{u}^{2}]}{p^{2}a_{u}^{2}}=\\frac{\\E[f_{vu}^{2}]\\E[I_{vu}]\\E[U_{u}]}{p^{2}a_{u}^{2}}=\\frac{\\E f_{vu}^{2}}{pa_{u}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{\\tau+1/R}{p}\\frac{q_{vu}}{a_{u}}."
+      ]
+    },
+    {
+      "id": "S4.E21",
+      "tex": [
+        "\\E[f_{vu}f_{vw}]=\\frac{1}{R^{2}}\\sum_{i\\neq j}\\mathbb{P}[vu\\in M_{i},\\ vw\\in M_{j}]=\\left(1-\\frac{1}{R}\\right)q_{vu}q_{vw}\\leq q_{vu}q_{vw}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E[f_{vu}f_{vw}]=\\frac{1}{R^{2}}\\sum_{i\\neq j}\\mathbb{P}[vu\\in M_{i},\\ vw\\in M_{j}]=\\left(1-\\frac{1}{R}\\right)q_{vu}q_{vw}\\leq q_{vu}q_{vw}."
+      ]
+    },
+    {
+      "id": "S4.EGx11",
+      "tex": [
+        "\\displaystyle\\Cov(Y_{vu},Y_{vw})",
+        "\\displaystyle=\\E[Y_{vu}Y_{vw}]-\\E[Y_{vu}]\\E[Y_{vw}]",
+        "\\displaystyle=\\frac{\\E[f_{vu}I_{vu}U_{u}f_{vw}I_{vw}U_{w}]}{p^{2}a_{u}a_{w}}-q_{vu}q_{vw}",
+        "Y_{vu}",
+        "\\E Y_{vu}=q_{vu}",
+        "\\displaystyle=\\frac{\\E[f_{vu}f_{vw}]\\E[I_{vu}I_{vw}]\\E[U_{u}U_{w}]}{p^{2}a_{u}a_{w}}-q_{vu}q_{vw}",
+        "f",
+        "I",
+        "U",
+        "\\displaystyle=\\frac{\\E[f_{vu}f_{vw}]\\E[U_{u}U_{w}]}{a_{u}a_{w}}-q_{vu}q_{vw}",
+        "\\E[I_{vu}I_{vw}]=p^{2}",
+        "\\displaystyle\\leq\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\E[U_{u}U_{w}]-q_{vu}q_{vw}",
+        "\\E[f_{vu}f_{vw}]\\leq q_{vu}q_{vw}",
+        "\\displaystyle=\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\left(\\E[U_{u}U_{w}]-a_{u}a_{w}\\right)",
+        "\\displaystyle=\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\Cov(U_{u},U_{w})",
+        "\\E U_{u}=a_{u}",
+        "\\E U_{w}=a_{w}",
+        "\\displaystyle\\leq\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}|\\Cov(U_{u},U_{w})|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\Cov(Y_{vu},Y_{vw})",
+        "\\displaystyle=\\E[Y_{vu}Y_{vw}]-\\E[Y_{vu}]\\E[Y_{vw}]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\E[f_{vu}I_{vu}U_{u}f_{vw}I_{vw}U_{w}]}{p^{2}a_{u}a_{w}}-q_{vu}q_{vw}",
+        "Y_{vu}",
+        "\\E Y_{vu}=q_{vu}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\E[f_{vu}f_{vw}]\\E[I_{vu}I_{vw}]\\E[U_{u}U_{w}]}{p^{2}a_{u}a_{w}}-q_{vu}q_{vw}",
+        "f",
+        "I",
+        "U"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\E[f_{vu}f_{vw}]\\E[U_{u}U_{w}]}{a_{u}a_{w}}-q_{vu}q_{vw}",
+        "\\E[I_{vu}I_{vw}]=p^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\E[U_{u}U_{w}]-q_{vu}q_{vw}",
+        "\\E[f_{vu}f_{vw}]\\leq q_{vu}q_{vw}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\left(\\E[U_{u}U_{w}]-a_{u}a_{w}\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\Cov(U_{u},U_{w})",
+        "\\E U_{u}=a_{u}",
+        "\\E U_{w}=a_{w}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}|\\Cov(U_{u},U_{w})|."
+      ]
+    },
+    {
+      "id": "S4.Ex60",
+      "tex": [
+        "\\sum_{v}\\Var(Z_{v})\\leq\\frac{\\tau+1/R}{p}\\sum_{u}\\frac{r_{u}}{a_{u}}+\\sum_{u,w}|\\Cov(U_{u},U_{w})|\\sum_{v}\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}\\Var(Z_{v})\\leq\\frac{\\tau+1/R}{p}\\sum_{u}\\frac{r_{u}}{a_{u}}+\\sum_{u,w}|\\Cov(U_{u},U_{w})|\\sum_{v}\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}."
+      ]
+    },
+    {
+      "id": "S4.Ex61",
+      "tex": [
+        "\\sum_{v}\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\leq\\frac{\\tau}{a_{u}}\\sum_{v}\\frac{q_{vw}}{a_{w}}=\\frac{\\tau}{a_{u}}\\frac{r_{w}}{a_{w}}\\leq\\frac{\\tau}{\\gamma\\delta},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}\\frac{q_{vu}q_{vw}}{a_{u}a_{w}}\\leq\\frac{\\tau}{a_{u}}\\sum_{v}\\frac{q_{vw}}{a_{w}}=\\frac{\\tau}{a_{u}}\\frac{r_{w}}{a_{w}}\\leq\\frac{\\tau}{\\gamma\\delta},"
+      ]
+    },
+    {
+      "id": "S4.E22",
+      "tex": [
+        "\\sum_{v}\\Var(Z_{v})\\leq\\frac{2Q}{Rp}+\\frac{2\\tau Q}{p}+\\frac{\\tau\\Gamma}{\\gamma\\delta}=O(\\delta^{3}Q)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}\\Var(Z_{v})\\leq\\frac{2Q}{Rp}+\\frac{2\\tau Q}{p}+\\frac{\\tau\\Gamma}{\\gamma\\delta}=O(\\delta^{3}Q)."
+      ]
+    },
+    {
+      "id": "S4.EGx12",
+      "tex": [
+        "\\displaystyle x_{v}",
+        "\\displaystyle=\\sum_{e=vu\\in N}x_{e}=\\sum_{e=vu\\in N}\\gamma\\frac{f_{e}I_{e}U_{u}}{pa_{u}a_{v}}=\\frac{\\gamma}{a_{v}}Z_{v}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle x_{v}",
+        "\\displaystyle=\\sum_{e=vu\\in N}x_{e}=\\sum_{e=vu\\in N}\\gamma\\frac{f_{e}I_{e}U_{u}}{pa_{u}a_{v}}=\\frac{\\gamma}{a_{v}}Z_{v}."
+      ]
+    },
+    {
+      "id": "S4.Ex63",
+      "tex": [
+        "(x_{v}-1)_{+}=U_{v}\\left(\\frac{\\gamma}{a_{v}}Z_{v}-1\\right)_{+}\\leq\\frac{\\gamma}{a_{v}}\\left(Z_{v}-\\frac{a_{v}}{\\gamma}\\right)_{+}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(x_{v}-1)_{+}=U_{v}\\left(\\frac{\\gamma}{a_{v}}Z_{v}-1\\right)_{+}\\leq\\frac{\\gamma}{a_{v}}\\left(Z_{v}-\\frac{a_{v}}{\\gamma}\\right)_{+}."
+      ]
+    },
+    {
+      "id": "S4.EGx13",
+      "tex": [
+        "\\displaystyle\\frac{a_{v}}{\\gamma}-\\E Z_{v}=\\frac{1-\\gamma q_{v}^{C}}{\\gamma}-r_{v}=\\frac{1-\\gamma(q_{v}^{C}+r_{v})}{\\gamma}=\\frac{1-\\gamma q_{v}}{\\gamma}\\geq\\frac{1-\\gamma}{\\gamma}=\\frac{\\delta}{\\gamma}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\frac{a_{v}}{\\gamma}-\\E Z_{v}=\\frac{1-\\gamma q_{v}^{C}}{\\gamma}-r_{v}=\\frac{1-\\gamma(q_{v}^{C}+r_{v})}{\\gamma}=\\frac{1-\\gamma q_{v}}{\\gamma}\\geq\\frac{1-\\gamma}{\\gamma}=\\frac{\\delta}{\\gamma}"
+      ]
+    },
+    {
+      "id": "S4.Ex65",
+      "tex": [
+        "\\E(W-c)_{+}\\leq\\frac{\\Var(W)}{4(c-\\E W)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E(W-c)_{+}\\leq\\frac{\\Var(W)}{4(c-\\E W)}."
+      ]
+    },
+    {
+      "id": "S4.EGx14",
+      "tex": [
+        "\\displaystyle\\E(x_{v}-1)_{+}",
+        "\\displaystyle\\leq\\frac{\\gamma}{a_{v}}\\E\\left(Z_{v}-\\frac{a_{v}}{\\gamma}\\right)_{+}",
+        "\\displaystyle\\leq\\frac{\\gamma}{a_{v}}\\frac{\\Var(Z_{v})}{4(a_{v}/\\gamma-\\E Z_{v})}",
+        "\\displaystyle\\leq\\frac{\\gamma^{2}}{4a_{v}\\delta}\\Var(Z_{v})",
+        "a_{v}/\\gamma-\\E Z_{v}\\geq\\delta/\\gamma",
+        "\\displaystyle\\leq\\frac{1}{4\\delta^{2}}\\Var(Z_{v}).",
+        "\\gamma\\leq 1",
+        "a_{v}\\geq\\delta"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E(x_{v}-1)_{+}",
+        "\\displaystyle\\leq\\frac{\\gamma}{a_{v}}\\E\\left(Z_{v}-\\frac{a_{v}}{\\gamma}\\right)_{+}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{\\gamma}{a_{v}}\\frac{\\Var(Z_{v})}{4(a_{v}/\\gamma-\\E Z_{v})}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{\\gamma^{2}}{4a_{v}\\delta}\\Var(Z_{v})",
+        "a_{v}/\\gamma-\\E Z_{v}\\geq\\delta/\\gamma"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{1}{4\\delta^{2}}\\Var(Z_{v}).",
+        "\\gamma\\leq 1",
+        "a_{v}\\geq\\delta"
+      ]
+    },
+    {
+      "id": "S4.Ex70",
+      "tex": [
+        "\\sum_{v}\\E(x_{v}-1)_{+}\\leq\\frac{1}{4\\delta^{2}}\\sum_{v}\\Var(Z_{v})=O(\\delta Q)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}\\E(x_{v}-1)_{+}\\leq\\frac{1}{4\\delta^{2}}\\sum_{v}\\Var(Z_{v})=O(\\delta Q)."
+      ]
+    },
+    {
+      "id": "S4.Ex71",
+      "tex": [
+        "|x|-|y|\\leq\\sum_{v}(x_{v}-1)_{+}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|x|-|y|\\leq\\sum_{v}(x_{v}-1)_{+}."
+      ]
+    },
+    {
+      "id": "S4.Ex72",
+      "tex": [
+        "\\E|y|\\geq\\E|x|-\\sum_{v}\\E(x_{v}-1)_{+}\\geq(1-O(\\delta))Q-O(\\delta Q)=(1-O(\\delta))Q."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E|y|\\geq\\E|x|-\\sum_{v}\\E(x_{v}-1)_{+}\\geq(1-O(\\delta))Q-O(\\delta Q)=(1-O(\\delta))Q."
+      ]
+    },
+    {
+      "id": "S4.Ex73",
+      "tex": [
+        "\\mu(K)\\geq|z|-\\sum_{e}z_{e}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu(K)\\geq|z|-\\sum_{e}z_{e}^{2}."
+      ]
+    },
+    {
+      "id": "S4.Ex74",
+      "tex": [
+        "\\E f_{e}^{2}=q_{e}^{2}+\\frac{q_{e}(1-q_{e})}{R}\\leq\\left(\\tau+\\frac{1}{R}\\right)q_{e}\\leq 2\\tau q_{e},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E f_{e}^{2}=q_{e}^{2}+\\frac{q_{e}(1-q_{e})}{R}\\leq\\left(\\tau+\\frac{1}{R}\\right)q_{e}\\leq 2\\tau q_{e},"
+      ]
+    },
+    {
+      "id": "S4.EGx15",
+      "tex": [
+        "\\displaystyle\\E x_{uv}^{2}",
+        "\\displaystyle=\\E\\left[\\left(\\gamma\\frac{f_{uv}I_{uv}U_{u}U_{v}}{pa_{u}a_{v}}\\right)^{2}\\right]",
+        "\\displaystyle=\\frac{\\gamma^{2}}{p^{2}a_{u}^{2}a_{v}^{2}}\\E[f_{uv}^{2}I_{uv}U_{u}U_{v}]",
+        "I_{uv},U_{u},U_{v}\\in\\{0,1\\}",
+        "\\displaystyle=\\frac{\\gamma^{2}}{p^{2}a_{u}^{2}a_{v}^{2}}\\E f_{uv}^{2}\\,\\E I_{uv}\\,\\E[U_{u}U_{v}]",
+        "f",
+        "I",
+        "U",
+        "\\displaystyle=\\frac{\\gamma^{2}\\E f_{uv}^{2}}{pa_{u}^{2}a_{v}^{2}}\\E[U_{u}U_{v}]",
+        "\\E I_{uv}=p",
+        "\\displaystyle\\leq\\frac{2\\tau q_{uv}}{pa_{u}^{2}a_{v}^{2}}\\E[U_{u}U_{v}]",
+        "\\E f_{uv}^{2}\\leq 2\\tau q_{uv}",
+        "\\gamma\\leq 1",
+        "\\displaystyle=\\frac{2\\tau q_{uv}}{pa_{u}^{2}a_{v}^{2}}\\left(a_{u}a_{v}+\\Cov(U_{u},U_{v})\\right)",
+        "\\displaystyle\\leq\\frac{2\\tau q_{uv}}{pa_{u}^{2}a_{v}^{2}}\\left(a_{u}a_{v}+|\\Cov(U_{u},U_{v})|\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E x_{uv}^{2}",
+        "\\displaystyle=\\E\\left[\\left(\\gamma\\frac{f_{uv}I_{uv}U_{u}U_{v}}{pa_{u}a_{v}}\\right)^{2}\\right]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\gamma^{2}}{p^{2}a_{u}^{2}a_{v}^{2}}\\E[f_{uv}^{2}I_{uv}U_{u}U_{v}]",
+        "I_{uv},U_{u},U_{v}\\in\\{0,1\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\gamma^{2}}{p^{2}a_{u}^{2}a_{v}^{2}}\\E f_{uv}^{2}\\,\\E I_{uv}\\,\\E[U_{u}U_{v}]",
+        "f",
+        "I",
+        "U"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\gamma^{2}\\E f_{uv}^{2}}{pa_{u}^{2}a_{v}^{2}}\\E[U_{u}U_{v}]",
+        "\\E I_{uv}=p"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{2\\tau q_{uv}}{pa_{u}^{2}a_{v}^{2}}\\E[U_{u}U_{v}]",
+        "\\E f_{uv}^{2}\\leq 2\\tau q_{uv}",
+        "\\gamma\\leq 1"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{2\\tau q_{uv}}{pa_{u}^{2}a_{v}^{2}}\\left(a_{u}a_{v}+\\Cov(U_{u},U_{v})\\right)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\frac{2\\tau q_{uv}}{pa_{u}^{2}a_{v}^{2}}\\left(a_{u}a_{v}+|\\Cov(U_{u},U_{v})|\\right)."
+      ]
+    },
+    {
+      "id": "S4.EGx16",
+      "tex": [
+        "\\displaystyle\\E\\sum_{e\\in N}y_{e}^{2}",
+        "\\displaystyle\\leq\\E\\sum_{e\\in N}x_{e}^{2}\\leq\\frac{2\\tau}{p}\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}\\quad+\\frac{2\\tau}{p}\\sum_{uv\\in N}\\frac{q_{uv}|\\Cov(U_{u},U_{v})|}{a_{u}^{2}a_{v}^{2}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E\\sum_{e\\in N}y_{e}^{2}",
+        "\\displaystyle\\leq\\E\\sum_{e\\in N}x_{e}^{2}\\leq\\frac{2\\tau}{p}\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}\\quad+\\frac{2\\tau}{p}\\sum_{uv\\in N}\\frac{q_{uv}|\\Cov(U_{u},U_{v})|}{a_{u}^{2}a_{v}^{2}}."
+      ]
+    },
+    {
+      "id": "S4.Ex83",
+      "tex": [
+        "\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}\\leq\\frac{1}{\\delta^{2}}\\sum_{uv\\in N}q_{uv}=\\frac{Q_{N}}{\\delta^{2}}\\leq\\frac{Q}{\\delta^{2}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{uv\\in N}\\frac{q_{uv}}{a_{u}a_{v}}\\leq\\frac{1}{\\delta^{2}}\\sum_{uv\\in N}q_{uv}=\\frac{Q_{N}}{\\delta^{2}}\\leq\\frac{Q}{\\delta^{2}}."
+      ]
+    },
+    {
+      "id": "S4.EGx17",
+      "tex": [
+        "\\displaystyle\\sum_{uv\\in N}\\frac{q_{uv}|\\Cov(U_{u},U_{v})|}{a_{u}^{2}a_{v}^{2}}\\leq\\frac{\\tau}{\\delta^{4}}\\sum_{uv\\in N}|\\Cov(U_{u},U_{v})|\\leq\\frac{\\tau\\Gamma}{\\delta^{4}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{uv\\in N}\\frac{q_{uv}|\\Cov(U_{u},U_{v})|}{a_{u}^{2}a_{v}^{2}}\\leq\\frac{\\tau}{\\delta^{4}}\\sum_{uv\\in N}|\\Cov(U_{u},U_{v})|\\leq\\frac{\\tau\\Gamma}{\\delta^{4}}."
+      ]
+    },
+    {
+      "id": "S4.EGx18",
+      "tex": [
+        "\\displaystyle\\E\\sum_{e\\in N}y_{e}^{2}",
+        "\\displaystyle\\leq\\frac{2\\tau Q}{p\\delta^{2}}+\\frac{2\\tau^{2}\\Gamma}{p\\delta^{4}}=2\\delta^{2}Q+2p\\delta^{4}\\Gamma=O(\\delta^{2}Q)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E\\sum_{e\\in N}y_{e}^{2}",
+        "\\displaystyle\\leq\\frac{2\\tau Q}{p\\delta^{2}}+\\frac{2\\tau^{2}\\Gamma}{p\\delta^{4}}=2\\delta^{2}Q+2p\\delta^{4}\\Gamma=O(\\delta^{2}Q)."
+      ]
+    },
+    {
+      "id": "S4.Ex86",
+      "tex": [
+        "|M_{N}|\\geq|y_{N}|-\\sum_{e\\in N}y_{e}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|M_{N}|\\geq|y_{N}|-\\sum_{e\\in N}y_{e}^{2}."
+      ]
+    },
+    {
+      "id": "S4.EGx19",
+      "tex": [
+        "\\displaystyle\\mu(H\\cap G_{p})\\geq|M_{C}\\cap H|+|M_{N}|\\geq|M_{C}\\cap H|+|y_{N}|-\\sum_{e\\in N}y_{e}^{2}=|y|-\\sum_{e\\in N}y_{e}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mu(H\\cap G_{p})\\geq|M_{C}\\cap H|+|M_{N}|\\geq|M_{C}\\cap H|+|y_{N}|-\\sum_{e\\in N}y_{e}^{2}=|y|-\\sum_{e\\in N}y_{e}^{2}."
+      ]
+    },
+    {
+      "id": "S4.EGx20",
+      "tex": [
+        "\\displaystyle\\E\\mu(H\\cap G_{p})\\geq\\E|y|-\\E\\sum_{e\\in N}y_{e}^{2}\\geq(1-O(\\delta))Q-O(\\delta^{2}Q)=(1-O(\\delta))Q."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\E\\mu(H\\cap G_{p})\\geq\\E|y|-\\E\\sum_{e\\in N}y_{e}^{2}\\geq(1-O(\\delta))Q-O(\\delta^{2}Q)=(1-O(\\delta))Q."
+      ]
+    },
+    {
+      "id": "S4.Ex89",
+      "tex": [
+        "\\E_{H,G_{p}}\\mu(H\\cap G_{p})\\geq(1-\\varepsilon)\\E\\mu(G_{p})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E_{H,G_{p}}\\mu(H\\cap G_{p})\\geq(1-\\varepsilon)\\E\\mu(G_{p})."
+      ]
+    },
+    {
+      "id": "S4.Ex90",
+      "tex": [
+        "R=\\left\\lceil\\frac{\\log(1/\\delta)}{p\\delta^{4}}\\right\\rceil=O\\left(\\frac{\\log(1/\\varepsilon)}{p\\varepsilon^{4}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R=\\left\\lceil\\frac{\\log(1/\\delta)}{p\\delta^{4}}\\right\\rceil=O\\left(\\frac{\\log(1/\\varepsilon)}{p\\varepsilon^{4}}\\right)."
+      ]
+    },
+    {
+      "id": "A1.E23",
+      "tex": [
+        "\\E\\mu(G_{p})=m(2-a)-o(m)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\mu(G_{p})=m(2-a)-o(m)."
+      ]
+    },
+    {
+      "id": "A1.E24",
+      "tex": [
+        "\\E\\mu(H\\cap G_{p})\\leq m\\left(2-a-a(1-pa)^{D}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E\\mu(H\\cap G_{p})\\leq m\\left(2-a-a(1-pa)^{D}\\right)."
+      ]
+    },
+    {
+      "id": "A1.Ex91",
+      "tex": [
+        "D\\geq\\frac{\\log 2}{16p\\varepsilon}=\\Omega\\left(\\frac{1}{p\\varepsilon}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D\\geq\\frac{\\log 2}{16p\\varepsilon}=\\Omega\\left(\\frac{1}{p\\varepsilon}\\right)."
+      ]
+    },
+    {
+      "id": "A2.Ex92",
+      "tex": [
+        "\\gamma:=1-t,\\qquad\\sigma:=\\frac{t^{2}}{1024},\\qquad\\kappa:=\\frac{pt^{2}}{1024},\\qquad\\tau:=\\min\\{\\sigma t,\\kappa\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma:=1-t,\\qquad\\sigma:=\\frac{t^{2}}{1024},\\qquad\\kappa:=\\frac{pt^{2}}{1024},\\qquad\\tau:=\\min\\{\\sigma t,\\kappa\\}."
+      ]
+    },
+    {
+      "id": "A2.Ex93",
+      "tex": [
+        "\\Delta(H)\\leq\\frac{1}{\\tau}+\\frac{1}{\\kappa}+2=O\\left(\\frac{1}{p\\varepsilon^{2}}+\\frac{1}{\\varepsilon^{3}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Delta(H)\\leq\\frac{1}{\\tau}+\\frac{1}{\\kappa}+2=O\\left(\\frac{1}{p\\varepsilon^{2}}+\\frac{1}{\\varepsilon^{3}}\\right)."
+      ]
+    },
+    {
+      "id": "A2.E25",
+      "tex": [
+        "\\sum_{v}|\\Cov(U_{v},F_{v}(U))|\\leq 16L\\,\\E|M_{C}|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}|\\Cov(U_{v},F_{v}(U))|\\leq 16L\\,\\E|M_{C}|."
+      ]
+    },
+    {
+      "id": "A2.Ex94",
+      "tex": [
+        "\\E f_{e}=q_{e},\\qquad\\E f_{e}^{2}=\\kappa q_{e}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\E f_{e}=q_{e},\\qquad\\E f_{e}^{2}=\\kappa q_{e}."
+      ]
+    },
+    {
+      "id": "A2.Ex95",
+      "tex": [
+        "\\sum_{v}\\Var(Z_{v})\\leq\\eta_{*}Q,\\qquad\\eta_{*}:=\\frac{6\\kappa}{p}+16\\sigma=O(t^{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{v}\\Var(Z_{v})\\leq\\eta_{*}Q,\\qquad\\eta_{*}:=\\frac{6\\kappa}{p}+16\\sigma=O(t^{2})."
+      ]
+    },
+    {
+      "id": "A2.Ex96",
+      "tex": [
+        "t+\\frac{32\\sigma}{t}+2\\sqrt{\\eta_{*}}+\\frac{\\eta_{*}}{2}+\\frac{\\kappa}{pt}+\\frac{16\\kappa\\sigma}{pt^{3}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "t+\\frac{32\\sigma}{t}+2\\sqrt{\\eta_{*}}+\\frac{\\eta_{*}}{2}+\\frac{\\kappa}{pt}+\\frac{16\\kappa\\sigma}{pt^{3}}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S2.SS0.SSS0.Px1.fig1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "S2.SS0.SSS0.Px4.fig1",
+      "caption": "",
+      "images": []
+    },
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1   Sample-and-Union Algorithm",
+      "images": []
+    },
+    {
+      "id": "A1.SS0.SSS0.Px1.fig1",
+      "caption": "",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

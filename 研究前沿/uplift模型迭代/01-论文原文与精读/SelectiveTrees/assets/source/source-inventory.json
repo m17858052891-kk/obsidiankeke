@@ -1,0 +1,2311 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Selective inference for pruned interaction trees\n with known unequal variances in randomized trials",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Problem setup and interaction trees",
+      "id": "S2"
+    },
+    {
+      "title": "2.1  RCT setting and the subgroup question",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.2  Interaction trees",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "2.3  Outcome reuse and the inferential problem",
+      "id": "S2.SS3"
+    },
+    {
+      "title": "3  Proposed selective inference procedure",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Interaction-tree construction and target contrasts",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "Deterministic growth.",
+      "id": "S3.SS1.SSS0.Px1"
+    },
+    {
+      "title": "Fixed-penalty pruning.",
+      "id": "S3.SS1.SSS0.Px2"
+    },
+    {
+      "title": "3.2  Proposed selective tests and confidence intervals",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "4  Theoretical analysis",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Causal interpretation and pruning invariance",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Weighted orthogonality",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Retained-path event and truncation set",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.4  Selective tests and confidence intervals",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "4.5  Equivalence with full-tree conditioning",
+      "id": "S4.SS5"
+    },
+    {
+      "title": "5  Simulation",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  Data-generating mechanism",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Tree construction and comparison procedures",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  Performance measures and Monte Carlo design",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "5.4  Calibration and the need to adjust for pruning",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "5.5  Honest comparison: availability and reference-split recovery",
+      "id": "S5.SS5"
+    },
+    {
+      "title": "5.6  Interval widths and their limitations",
+      "id": "S5.SS6"
+    },
+    {
+      "title": "5.7  Substituting an estimated common scale",
+      "id": "S5.SS7"
+    },
+    {
+      "title": "6  Real-data application: ACTG 175",
+      "id": "S6"
+    },
+    {
+      "title": "6.1  Scientific question and public analysis sample",
+      "id": "S6.SS1"
+    },
+    {
+      "title": "6.2  Maximum-depth-three unpruned analysis",
+      "id": "S6.SS2"
+    },
+    {
+      "title": "6.3  Unpruned results and positive-penalty reference analyses",
+      "id": "S6.SS3"
+    },
+    {
+      "title": "6.4  Interpretation and limits",
+      "id": "S6.SS4"
+    },
+    {
+      "title": "7  Discussion",
+      "id": "S7"
+    },
+    {
+      "title": "Acknowledgement",
+      "id": "Sx1"
+    },
+    {
+      "title": "Data and computation.",
+      "id": "Sx1.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Code and reproducibility.",
+      "id": "Sx1.SS0.SSS0.Px2"
+    },
+    {
+      "title": "Use of generative artificial intelligence.",
+      "id": "Sx1.SS0.SSS0.Px3"
+    },
+    {
+      "title": "Appendix A  Proofs of the main results",
+      "id": "A1"
+    },
+    {
+      "title": "A.1  Proof of Proposition  1",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "A.2  Proof of Proposition  2",
+      "id": "A1.SS2"
+    },
+    {
+      "title": "A.3  Proof of Lemma  1",
+      "id": "A1.SS3"
+    },
+    {
+      "title": "A.4  Proof of Lemma  2",
+      "id": "A1.SS4"
+    },
+    {
+      "title": "A.5  Proof of Theorem  1",
+      "id": "A1.SS5"
+    },
+    {
+      "title": "A.6  Proof of Proposition  3",
+      "id": "A1.SS6"
+    },
+    {
+      "title": "A.7  Proof of Theorem  2",
+      "id": "A1.SS7"
+    },
+    {
+      "title": "A.8  Proof of Corollary  1",
+      "id": "A1.SS8"
+    },
+    {
+      "title": "A.9  Proof of Corollary  2",
+      "id": "A1.SS9"
+    },
+    {
+      "title": "A.10  Proof of Lemma  3",
+      "id": "A1.SS10"
+    },
+    {
+      "title": "A.11  Proof of Theorem  3",
+      "id": "A1.SS11"
+    },
+    {
+      "title": "A.12  Justification of Remark  4",
+      "id": "A1.SS12"
+    },
+    {
+      "title": "Appendix B  Further structural results and limits",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Relation to existing selective tree inference",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2  A weighted RSS representation for the selected directions",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.3  Score envelopes and ancestor costs",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "B.4  Conditions for extension and their limits",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "B.5  Why changing only the OLS standard error is insufficient",
+      "id": "A2.SS5"
+    },
+    {
+      "title": "B.6  Known shape and unknown scale",
+      "id": "A2.SS6"
+    },
+    {
+      "title": "B.7  A concrete change in target under GLS weighting",
+      "id": "A2.SS7"
+    },
+    {
+      "title": "B.8  Two-component support geometry",
+      "id": "A2.SS8"
+    },
+    {
+      "title": "B.9  Numerical implementation and candidate screening",
+      "id": "A2.SS9"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "\\sigma^{2}=\\sigma_{0}^{2},\\qquad V_{ii}=\\mathbf{1}\\{A_{i}=0\\}+\\rho\\mathbf{1}\\{A_{i}=1\\},\\qquad\\rho=\\sigma_{1}^{2}/\\sigma_{0}^{2}>0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sigma^{2}=\\sigma_{0}^{2},\\qquad V_{ii}=\\mathbf{1}\\{A_{i}=0\\}+\\rho\\mathbf{1}\\{A_{i}=1\\},\\qquad\\rho=\\sigma_{1}^{2}/\\sigma_{0}^{2}>0,"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "\\mu=B\\beta+A\\odot\\tau_{X},\\qquad\\tau_{X}=(\\tau(X_{1}),\\ldots,\\tau(X_{n}))^{\\mathsf{T}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu=B\\beta+A\\odot\\tau_{X},\\qquad\\tau_{X}=(\\tau(X_{1}),\\ldots,\\tau(X_{n}))^{\\mathsf{T}}."
+      ]
+    },
+    {
+      "id": "S2.Ex1",
+      "tex": [
+        "\\widehat{\\Delta}_{s}=(\\bar{Y}_{1,L}-\\bar{Y}_{0,L})-(\\bar{Y}_{1,R}-\\bar{Y}_{0,R})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\Delta}_{s}=(\\bar{Y}_{1,L}-\\bar{Y}_{0,L})-(\\bar{Y}_{1,R}-\\bar{Y}_{0,R})."
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\begin{split}C_{s}&=[B_{R},A_{R},h_{s}],\\qquad g_{s}=A_{R}\\odot h_{s},\\\\\nr_{s}&=(I-P_{V_{R}^{-1/2}C_{s}})V_{R}^{-1/2}g_{s},\\\\\nv_{s}&=V_{R}^{1/2}r_{s},\\qquad d_{s}^{2}=r_{s}^{\\mathsf{T}}r_{s}=v_{s}^{\\mathsf{T}}W_{R}v_{s},\\\\\n\\eta_{s}&=W_{R}v_{s}/d_{s}^{2},\\qquad\\ell_{s}=W_{R}v_{s}/d_{s},\\qquad u_{s}=V_{R}^{-1/2}v_{s}/d_{s}.\\end{split}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{split}C_{s}&=[B_{R},A_{R},h_{s}],\\qquad g_{s}=A_{R}\\odot h_{s},\\\\\nr_{s}&=(I-P_{V_{R}^{-1/2}C_{s}})V_{R}^{-1/2}g_{s},\\\\\nv_{s}&=V_{R}^{1/2}r_{s},\\qquad d_{s}^{2}=r_{s}^{\\mathsf{T}}r_{s}=v_{s}^{\\mathsf{T}}W_{R}v_{s},\\\\\n\\eta_{s}&=W_{R}v_{s}/d_{s}^{2},\\qquad\\ell_{s}=W_{R}v_{s}/d_{s},\\qquad u_{s}=V_{R}^{-1/2}v_{s}/d_{s}.\\end{split}"
+      ]
+    },
+    {
+      "id": "S3.E4",
+      "tex": [
+        "G_{s}(y)=(\\ell_{s}^{\\mathsf{T}}y)^{2}=\\frac{(v_{s}^{\\mathsf{T}}Wy)^{2}}{d_{s}^{2}},\\qquad T_{s}=\\eta_{s}^{\\mathsf{T}}Y,\\qquad\\theta_{s}=\\eta_{s}^{\\mathsf{T}}\\mu."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "G_{s}(y)=(\\ell_{s}^{\\mathsf{T}}y)^{2}=\\frac{(v_{s}^{\\mathsf{T}}Wy)^{2}}{d_{s}^{2}},\\qquad T_{s}=\\eta_{s}^{\\mathsf{T}}Y,\\qquad\\theta_{s}=\\eta_{s}^{\\mathsf{T}}\\mu."
+      ]
+    },
+    {
+      "id": "S3.Ex2",
+      "tex": [
+        "\\min_{a,t}(\\mu_{R}-C_{s}a-g_{s}t)^{\\mathsf{T}}W_{R}(\\mu_{R}-C_{s}a-g_{s}t)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\min_{a,t}(\\mu_{R}-C_{s}a-g_{s}t)^{\\mathsf{T}}W_{R}(\\mu_{R}-C_{s}a-g_{s}t)."
+      ]
+    },
+    {
+      "id": "S3.Ex3",
+      "tex": [
+        "\\theta_{s}=\\frac{v_{s,R}^{\\mathsf{T}}W_{R}\\mu_{R}}{d_{s}^{2}}=\\eta_{s,R}^{\\mathsf{T}}\\mu_{R}=\\eta_{s}^{\\mathsf{T}}\\mu."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\theta_{s}=\\frac{v_{s,R}^{\\mathsf{T}}W_{R}\\mu_{R}}{d_{s}^{2}}=\\eta_{s,R}^{\\mathsf{T}}\\mu_{R}=\\eta_{s}^{\\mathsf{T}}\\mu."
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "Q_{\\lambda}(P;y)=\\sum_{w\\in I(P)}G_{w}(y)-\\lambda|I(P)|,\\qquad P\\preceq H."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q_{\\lambda}(P;y)=\\sum_{w\\in I(P)}G_{w}(y)-\\lambda|I(P)|,\\qquad P\\preceq H."
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "V_{w}^{H}(y)=G_{w}(y)-\\lambda+F_{w_{L}}^{H}(y)+F_{w_{R}}^{H}(y),\\qquad F_{w}^{H}(y)=\\max\\{0,V_{w}^{H}(y)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{w}^{H}(y)=G_{w}(y)-\\lambda+F_{w_{L}}^{H}(y)+F_{w_{R}}^{H}(y),\\qquad F_{w}^{H}(y)=\\max\\{0,V_{w}^{H}(y)\\}."
+      ]
+    },
+    {
+      "id": "S3.Ex4",
+      "tex": [
+        "J(z)=\\mathcal{T}_{\\gamma}^{\\rm grow}(z)\\cap\\{t:d^{2}t^{2}>\\delta_{\\gamma}(z)\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "J(z)=\\mathcal{T}_{\\gamma}^{\\rm grow}(z)\\cap\\{t:d^{2}t^{2}>\\delta_{\\gamma}(z)\\},"
+      ]
+    },
+    {
+      "id": "S4.E7",
+      "tex": [
+        "\\theta_{s}=\\sum_{i\\in I_{R}:A_{i}=1}\\eta_{s,i}\\tau(X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\theta_{s}=\\sum_{i\\in I_{R}:A_{i}=1}\\eta_{s,i}\\tau(X_{i})."
+      ]
+    },
+    {
+      "id": "S4.E8",
+      "tex": [
+        "v_{s}^{\\mathsf{T}}Wv_{r}=0,\\qquad\\ell_{s}^{\\mathsf{T}}V\\ell_{r}=u_{s}^{\\mathsf{T}}u_{r}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{s}^{\\mathsf{T}}Wv_{r}=0,\\qquad\\ell_{s}^{\\mathsf{T}}V\\ell_{r}=u_{s}^{\\mathsf{T}}u_{r}=0."
+      ]
+    },
+    {
+      "id": "S4.E9",
+      "tex": [
+        "\\displaystyle T",
+        "\\displaystyle=\\eta^{\\mathsf{T}}Y,\\qquad c=\\frac{V\\eta}{\\eta^{\\mathsf{T}}V\\eta}=v,",
+        "\\displaystyle Z",
+        "\\displaystyle=Y-vT,\\qquad\\omega^{2}=\\sigma^{2}\\eta^{\\mathsf{T}}V\\eta=\\sigma^{2}/d^{2}."
+      ]
+    },
+    {
+      "id": "S4.E9X",
+      "tex": [
+        "\\displaystyle T",
+        "\\displaystyle=\\eta^{\\mathsf{T}}Y,\\qquad c=\\frac{V\\eta}{\\eta^{\\mathsf{T}}V\\eta}=v,"
+      ]
+    },
+    {
+      "id": "S4.E9Xa",
+      "tex": [
+        "\\displaystyle Z",
+        "\\displaystyle=Y-vT,\\qquad\\omega^{2}=\\sigma^{2}\\eta^{\\mathsf{T}}V\\eta=\\sigma^{2}/d^{2}."
+      ]
+    },
+    {
+      "id": "S4.E10",
+      "tex": [
+        "\\mathcal{W}_{R,s}=\\bigcap_{r\\prec s}\\{G_{s}(Y)>G_{r}(Y)\\}\\ \\cap\\!\\bigcap_{s\\prec r}\\{G_{s}(Y)\\geq G_{r}(Y)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{W}_{R,s}=\\bigcap_{r\\prec s}\\{G_{s}(Y)>G_{r}(Y)\\}\\ \\cap\\!\\bigcap_{s\\prec r}\\{G_{s}(Y)\\geq G_{r}(Y)\\}."
+      ]
+    },
+    {
+      "id": "S4.E11",
+      "tex": [
+        "E_{\\gamma}^{\\rm grow}=\\bigcap_{j=0}^{k}\\mathcal{W}_{R_{j},s_{j}},\\qquad\\mathcal{T}_{\\gamma}^{\\rm grow}(z)=\\{t:y_{z}(t)\\in E_{\\gamma}^{\\rm grow}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{\\gamma}^{\\rm grow}=\\bigcap_{j=0}^{k}\\mathcal{W}_{R_{j},s_{j}},\\qquad\\mathcal{T}_{\\gamma}^{\\rm grow}(z)=\\{t:y_{z}(t)\\in E_{\\gamma}^{\\rm grow}\\}."
+      ]
+    },
+    {
+      "id": "S4.E12",
+      "tex": [
+        "\\displaystyle\\widehat{H}(y_{z}(t))",
+        "\\displaystyle=H_{\\gamma}(z),",
+        "\\displaystyle G_{\\star}(y_{z}(t))",
+        "\\displaystyle=d^{2}t^{2},",
+        "\\displaystyle G_{w}(y_{z}(t))",
+        "\\displaystyle=G_{w}(z)\\quad(w\\in I(H_{\\gamma}(z)),\\ w\\neq\\star)."
+      ]
+    },
+    {
+      "id": "S4.E12X",
+      "tex": [
+        "\\displaystyle\\widehat{H}(y_{z}(t))",
+        "\\displaystyle=H_{\\gamma}(z),"
+      ]
+    },
+    {
+      "id": "S4.E12Xa",
+      "tex": [
+        "\\displaystyle G_{\\star}(y_{z}(t))",
+        "\\displaystyle=d^{2}t^{2},"
+      ]
+    },
+    {
+      "id": "S4.E12Xb",
+      "tex": [
+        "\\displaystyle G_{w}(y_{z}(t))",
+        "\\displaystyle=G_{w}(z)\\quad(w\\in I(H_{\\gamma}(z)),\\ w\\neq\\star)."
+      ]
+    },
+    {
+      "id": "S4.Ex5",
+      "tex": [
+        "F_{w}^{\\gamma}(z)=F_{w}^{H_{\\gamma}(z)}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F_{w}^{\\gamma}(z)=F_{w}^{H_{\\gamma}(z)}(z)."
+      ]
+    },
+    {
+      "id": "S4.EGx1",
+      "tex": [
+        "\\displaystyle a_{k}(z)",
+        "\\displaystyle=-\\lambda+F_{w_{k,L}}^{\\gamma}(z)+F_{w_{k,R}}^{\\gamma}(z),",
+        "\\displaystyle a_{j}(z)",
+        "\\displaystyle=a_{j+1}(z)+G_{w_{j}}(z)-\\lambda+F_{b_{j}}^{\\gamma}(z),\\qquad j=k-1,\\ldots,0,",
+        "\\displaystyle\\delta_{\\gamma}(z)",
+        "\\displaystyle=\\max_{0\\leq j\\leq k}\\{-a_{j}(z)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle a_{k}(z)",
+        "\\displaystyle=-\\lambda+F_{w_{k,L}}^{\\gamma}(z)+F_{w_{k,R}}^{\\gamma}(z),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle a_{j}(z)",
+        "\\displaystyle=a_{j+1}(z)+G_{w_{j}}(z)-\\lambda+F_{b_{j}}^{\\gamma}(z),\\qquad j=k-1,\\ldots,0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\delta_{\\gamma}(z)",
+        "\\displaystyle=\\max_{0\\leq j\\leq k}\\{-a_{j}(z)\\}."
+      ]
+    },
+    {
+      "id": "S4.E16",
+      "tex": [
+        "E_{\\gamma}^{\\rm ret}=E_{\\gamma}^{\\rm grow}\\cap\\{d^{2}T^{2}>\\delta_{\\gamma}(Z)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{\\gamma}^{\\rm ret}=E_{\\gamma}^{\\rm grow}\\cap\\{d^{2}T^{2}>\\delta_{\\gamma}(Z)\\}."
+      ]
+    },
+    {
+      "id": "S4.E17",
+      "tex": [
+        "\\boxed{\\quad\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)=\\mathcal{T}_{\\gamma}^{\\rm grow}(z)\\cap\\{t:d^{2}t^{2}>\\delta_{\\gamma}(z)\\}.\\quad}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\boxed{\\quad\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)=\\mathcal{T}_{\\gamma}^{\\rm grow}(z)\\cap\\{t:d^{2}t^{2}>\\delta_{\\gamma}(z)\\}.\\quad}"
+      ]
+    },
+    {
+      "id": "S4.E18",
+      "tex": [
+        "\\{a_{s}-a_{r}+(b_{s}-b_{r})t\\}\\{a_{s}+a_{r}+(b_{s}+b_{r})t\\}\\geq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\{a_{s}-a_{r}+(b_{s}-b_{r})t\\}\\{a_{s}+a_{r}+(b_{s}+b_{r})t\\}\\geq 0."
+      ]
+    },
+    {
+      "id": "S4.E19",
+      "tex": [
+        "F^{J}_{a,\\omega}(t)=\\frac{\\displaystyle\\int_{J\\cap(-\\infty,t]}\\phi_{\\omega}(w-a)\\,dw}{\\displaystyle\\int_{J}\\phi_{\\omega}(w-a)\\,dw},\\qquad\\phi_{\\omega}(x)=\\frac{1}{\\sqrt{2\\pi}\\,\\omega}\\exp\\left(-\\frac{x^{2}}{2\\omega^{2}}\\right)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F^{J}_{a,\\omega}(t)=\\frac{\\displaystyle\\int_{J\\cap(-\\infty,t]}\\phi_{\\omega}(w-a)\\,dw}{\\displaystyle\\int_{J}\\phi_{\\omega}(w-a)\\,dw},\\qquad\\phi_{\\omega}(x)=\\frac{1}{\\sqrt{2\\pi}\\,\\omega}\\exp\\left(-\\frac{x^{2}}{2\\omega^{2}}\\right)."
+      ]
+    },
+    {
+      "id": "S4.E20",
+      "tex": [
+        "T\\mid(Z=z,E_{\\gamma}^{\\rm ret},\\mathcal{D})\\sim N(\\theta,\\omega^{2})\\text{ restricted to }\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "T\\mid(Z=z,E_{\\gamma}^{\\rm ret},\\mathcal{D})\\sim N(\\theta,\\omega^{2})\\text{ restricted to }\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)."
+      ]
+    },
+    {
+      "id": "S4.E21",
+      "tex": [
+        "F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{\\theta,\\omega}(T)\\mid(E_{\\gamma}^{\\rm ret},\\mathcal{D})\\sim\\operatorname{Unif}(0,1)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{\\theta,\\omega}(T)\\mid(E_{\\gamma}^{\\rm ret},\\mathcal{D})\\sim\\operatorname{Unif}(0,1)."
+      ]
+    },
+    {
+      "id": "S4.E22",
+      "tex": [
+        "p_{\\theta_{0}}=2\\min\\left\\{F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{\\theta_{0},\\omega}(T),1-F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{\\theta_{0},\\omega}(T)\\right\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "p_{\\theta_{0}}=2\\min\\left\\{F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{\\theta_{0},\\omega}(T),1-F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{\\theta_{0},\\omega}(T)\\right\\}."
+      ]
+    },
+    {
+      "id": "S4.E23",
+      "tex": [
+        "\\mathcal{C}_{\\gamma,\\lambda}(Y)=\\left\\{a\\in\\mathbb{R}:\\frac{\\alpha}{2}\\leq F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{a,\\omega}(T)\\leq 1-\\frac{\\alpha}{2}\\right\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{C}_{\\gamma,\\lambda}(Y)=\\left\\{a\\in\\mathbb{R}:\\frac{\\alpha}{2}\\leq F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{a,\\omega}(T)\\leq 1-\\frac{\\alpha}{2}\\right\\}"
+      ]
+    },
+    {
+      "id": "S4.E24",
+      "tex": [
+        "F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{L,\\omega}(T)=1-\\alpha/2,\\qquad F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{U,\\omega}(T)=\\alpha/2."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{L,\\omega}(T)=1-\\alpha/2,\\qquad F^{\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(Z)}_{U,\\omega}(T)=\\alpha/2."
+      ]
+    },
+    {
+      "id": "S4.E25",
+      "tex": [
+        "\\widehat{H}(y_{z}(t))=H_{\\gamma}(z),\\qquad\\widehat{P}_{\\lambda}(y_{z}(t))=P_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{H}(y_{z}(t))=H_{\\gamma}(z),\\qquad\\widehat{P}_{\\lambda}(y_{z}(t))=P_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": "S4.Ex6",
+      "tex": [
+        "E_{P}=\\{\\widehat{P}_{\\lambda}(Y)=P\\},\\qquad\\mathcal{A}_{P}^{\\gamma}=\\{z\\in\\eta^{\\perp}:P_{\\gamma}(z)=P\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{P}=\\{\\widehat{P}_{\\lambda}(Y)=P\\},\\qquad\\mathcal{A}_{P}^{\\gamma}=\\{z\\in\\eta^{\\perp}:P_{\\gamma}(z)=P\\}."
+      ]
+    },
+    {
+      "id": "S4.E26",
+      "tex": [
+        "\\boxed{\\quad E_{P}=E_{\\gamma}^{\\rm ret}\\cap\\{Z\\in\\mathcal{A}_{P}^{\\gamma}\\}.\\quad}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\boxed{\\quad E_{P}=E_{\\gamma}^{\\rm ret}\\cap\\{Z\\in\\mathcal{A}_{P}^{\\gamma}\\}.\\quad}"
+      ]
+    },
+    {
+      "id": "S4.Ex7",
+      "tex": [
+        "E_{H,P}=\\{\\widehat{H}(Y)=H,\\ \\widehat{P}_{\\lambda}(Y)=P\\},\\qquad\\mathcal{A}_{H,P}^{\\gamma}=\\{z:H_{\\gamma}(z)=H,\\ P_{\\gamma}(z)=P\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{H,P}=\\{\\widehat{H}(Y)=H,\\ \\widehat{P}_{\\lambda}(Y)=P\\},\\qquad\\mathcal{A}_{H,P}^{\\gamma}=\\{z:H_{\\gamma}(z)=H,\\ P_{\\gamma}(z)=P\\}."
+      ]
+    },
+    {
+      "id": "S4.E27",
+      "tex": [
+        "E_{H,P}=E_{\\gamma}^{\\rm ret}\\cap\\{Z\\in\\mathcal{A}_{H,P}^{\\gamma}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "E_{H,P}=E_{\\gamma}^{\\rm ret}\\cap\\{Z\\in\\mathcal{A}_{H,P}^{\\gamma}\\}."
+      ]
+    },
+    {
+      "id": "S4.E28",
+      "tex": [
+        "\\mathcal{T}_{K}(z):=\\{t:y_{z}(t)\\in E_{K}\\}=\\begin{cases}\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z),&z\\in\\mathcal{A}_{K}^{\\gamma},\\\\\n\\varnothing,&z\\notin\\mathcal{A}_{K}^{\\gamma}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{T}_{K}(z):=\\{t:y_{z}(t)\\in E_{K}\\}=\\begin{cases}\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z),&z\\in\\mathcal{A}_{K}^{\\gamma},\\\\\n\\varnothing,&z\\notin\\mathcal{A}_{K}^{\\gamma}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "S4.E29",
+      "tex": [
+        "\\mathcal{T}_{K}(z)=\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{T}_{K}(z)=\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)."
+      ]
+    },
+    {
+      "id": "S5.Ex8",
+      "tex": [
+        "X_{ij}\\overset{\\mathrm{iid}}{\\sim}\\operatorname{Unif}(-1,1),\\quad j=1,\\ldots,5,\\qquad A_{i}\\sim\\operatorname{Bernoulli}(1/2),\\qquad\\varepsilon_{i}\\sim N(0,1),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "X_{ij}\\overset{\\mathrm{iid}}{\\sim}\\operatorname{Unif}(-1,1),\\quad j=1,\\ldots,5,\\qquad A_{i}\\sim\\operatorname{Bernoulli}(1/2),\\qquad\\varepsilon_{i}\\sim N(0,1),"
+      ]
+    },
+    {
+      "id": "S5.E30",
+      "tex": [
+        "Y_{i}=m_{0}(X_{i})+A_{i}\\tau(X_{i})+\\sqrt{1+(\\rho-1)A_{i}}\\,\\varepsilon_{i},\\qquad m_{0}(x)=2x_{3}+x_{4}-x_{5}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{i}=m_{0}(X_{i})+A_{i}\\tau(X_{i})+\\sqrt{1+(\\rho-1)A_{i}}\\,\\varepsilon_{i},\\qquad m_{0}(x)=2x_{3}+x_{4}-x_{5}."
+      ]
+    },
+    {
+      "id": "S5.E31",
+      "tex": [
+        "\\tau(x)=0.5+\\gamma\\mathbf{1}\\{x_{1}\\leq 0\\}\\left[1+a\\mathbf{1}\\{x_{2}>0\\}+\\mathbf{1}\\{x_{2}x_{3}>0\\}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\tau(x)=0.5+\\gamma\\mathbf{1}\\{x_{1}\\leq 0\\}\\left[1+a\\mathbf{1}\\{x_{2}>0\\}+\\mathbf{1}\\{x_{2}x_{3}>0\\}\\right]."
+      ]
+    },
+    {
+      "id": "S5.Ex9",
+      "tex": [
+        "(\\gamma,a)\\in\\{(0,1),(0.5,1),(1,1),(2,1),(1,0.5)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(\\gamma,a)\\in\\{(0,1),(0.5,1),(1,1),(2,1),(1,0.5)\\}."
+      ]
+    },
+    {
+      "id": "S5.E32",
+      "tex": [
+        "\\widehat{\\sigma}^{2}=\\frac{\\RSS_{0}}{n_{0}-\\operatorname{rank}(B_{0})},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\sigma}^{2}=\\frac{\\RSS_{0}}{n_{0}-\\operatorname{rank}(B_{0})},"
+      ]
+    },
+    {
+      "id": "A1.Ex1",
+      "tex": [
+        "r_{s}=(I-P_{\\widetilde{C}_{s}})\\widetilde{g}_{s}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "r_{s}=(I-P_{\\widetilde{C}_{s}})\\widetilde{g}_{s}."
+      ]
+    },
+    {
+      "id": "A1.Ex2",
+      "tex": [
+        "C_{s}^{\\mathsf{T}}W_{R}v_{s}=C_{s}^{\\mathsf{T}}V_{R}^{-1/2}r_{s}=\\widetilde{C}_{s}^{\\mathsf{T}}r_{s}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{s}^{\\mathsf{T}}W_{R}v_{s}=C_{s}^{\\mathsf{T}}V_{R}^{-1/2}r_{s}=\\widetilde{C}_{s}^{\\mathsf{T}}r_{s}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex3",
+      "tex": [
+        "v_{s}^{\\mathsf{T}}W_{R}g_{s}=v_{s}^{\\mathsf{T}}W_{R}(v_{s}+C_{s}a_{s})=v_{s}^{\\mathsf{T}}W_{R}v_{s}=d_{s}^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{s}^{\\mathsf{T}}W_{R}g_{s}=v_{s}^{\\mathsf{T}}W_{R}(v_{s}+C_{s}a_{s})=v_{s}^{\\mathsf{T}}W_{R}v_{s}=d_{s}^{2}."
+      ]
+    },
+    {
+      "id": "A1.Ex4",
+      "tex": [
+        "\\eta_{s,R}^{\\mathsf{T}}C_{s}=0,\\qquad\\eta_{s,R}^{\\mathsf{T}}g_{s}=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta_{s,R}^{\\mathsf{T}}C_{s}=0,\\qquad\\eta_{s,R}^{\\mathsf{T}}g_{s}=1."
+      ]
+    },
+    {
+      "id": "A1.Ex5",
+      "tex": [
+        "\\mathcal{I}_{aL}=\\{i\\in I_{R}:A_{i}=a,\\ h_{s,i}=1\\},\\qquad\\mathcal{I}_{aR}=\\{i\\in I_{R}:A_{i}=a,\\ h_{s,i}=0\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{I}_{aL}=\\{i\\in I_{R}:A_{i}=a,\\ h_{s,i}=1\\},\\qquad\\mathcal{I}_{aR}=\\{i\\in I_{R}:A_{i}=a,\\ h_{s,i}=0\\},"
+      ]
+    },
+    {
+      "id": "A1.Ex6",
+      "tex": [
+        "\\displaystyle w_{1L}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}g_{s}=1,",
+        "\\displaystyle w_{0L}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}h_{s}-w_{1L}=0-1=-1,",
+        "\\displaystyle w_{1R}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}A_{R}-w_{1L}=0-1=-1,",
+        "\\displaystyle w_{0R}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}\\mathbf{1}_{I_{R}}-w_{1L}-w_{0L}-w_{1R}=0-1+1+1=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle w_{1L}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}g_{s}=1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle w_{0L}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}h_{s}-w_{1L}=0-1=-1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle w_{1R}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}A_{R}-w_{1L}=0-1=-1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle w_{0R}",
+        "\\displaystyle=\\eta_{s,R}^{\\mathsf{T}}\\mathbf{1}_{I_{R}}-w_{1L}-w_{0L}-w_{1R}=0-1+1+1=1."
+      ]
+    },
+    {
+      "id": "A1.Ex7",
+      "tex": [
+        "\\displaystyle\\theta_{s}",
+        "\\displaystyle=\\eta_{s}^{\\mathsf{T}}\\mu=\\eta_{s}^{\\mathsf{T}}B\\beta+\\eta_{s}^{\\mathsf{T}}(A\\odot\\tau_{X})",
+        "\\displaystyle=\\sum_{i\\in I_{R}:A_{i}=1}\\eta_{s,i}\\tau(X_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\theta_{s}",
+        "\\displaystyle=\\eta_{s}^{\\mathsf{T}}\\mu=\\eta_{s}^{\\mathsf{T}}B\\beta+\\eta_{s}^{\\mathsf{T}}(A\\odot\\tau_{X})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{i\\in I_{R}:A_{i}=1}\\eta_{s,i}\\tau(X_{i})."
+      ]
+    },
+    {
+      "id": "A1.Ex8",
+      "tex": [
+        "\\theta_{s}=\\tau_{L}w_{1L}+\\tau_{R}w_{1R}=\\tau_{L}-\\tau_{R}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\theta_{s}=\\tau_{L}w_{1L}+\\tau_{R}w_{1R}=\\tau_{L}-\\tau_{R}."
+      ]
+    },
+    {
+      "id": "A1.Ex9",
+      "tex": [
+        "v_{q,Q}=V_{Q}^{1/2}(I-P_{\\widetilde{C}_{q}})\\widetilde{g}_{q}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{q,Q}=V_{Q}^{1/2}(I-P_{\\widetilde{C}_{q}})\\widetilde{g}_{q}."
+      ]
+    },
+    {
+      "id": "A1.Ex10",
+      "tex": [
+        "C_{q}^{\\mathsf{T}}W_{Q}v_{q,Q}=\\widetilde{C}_{q}^{\\mathsf{T}}(I-P_{\\widetilde{C}_{q}})\\widetilde{g}_{q}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{q}^{\\mathsf{T}}W_{Q}v_{q,Q}=\\widetilde{C}_{q}^{\\mathsf{T}}(I-P_{\\widetilde{C}_{q}})\\widetilde{g}_{q}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex11",
+      "tex": [
+        "v_{q,Q}=g_{q}-C_{q}a_{q}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{q,Q}=g_{q}-C_{q}a_{q}."
+      ]
+    },
+    {
+      "id": "A1.Ex12",
+      "tex": [
+        "v_{s,D^{\\prime}}=eA_{D^{\\prime}}-B_{D^{\\prime}}a_{s,B}-A_{D^{\\prime}}a_{s,A}-ea_{s,h}\\mathbf{1}_{I_{D^{\\prime}}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{s,D^{\\prime}}=eA_{D^{\\prime}}-B_{D^{\\prime}}a_{s,B}-A_{D^{\\prime}}a_{s,A}-ea_{s,h}\\mathbf{1}_{I_{D^{\\prime}}}."
+      ]
+    },
+    {
+      "id": "A1.Ex13",
+      "tex": [
+        "v_{s,D^{\\prime}}\\in\\col([B_{D^{\\prime}},A_{D^{\\prime}}])."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{s,D^{\\prime}}\\in\\col([B_{D^{\\prime}},A_{D^{\\prime}}])."
+      ]
+    },
+    {
+      "id": "A1.Ex14",
+      "tex": [
+        "[B_{D^{\\prime}},A_{D^{\\prime}}]^{\\mathsf{T}}W_{D^{\\prime}}v_{r,D^{\\prime}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "[B_{D^{\\prime}},A_{D^{\\prime}}]^{\\mathsf{T}}W_{D^{\\prime}}v_{r,D^{\\prime}}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex15",
+      "tex": [
+        "v_{s}^{\\mathsf{T}}Wv_{r}=\\sum_{i\\in I_{D^{\\prime}}}W_{ii}v_{s,i}v_{r,i}=v_{s,D^{\\prime}}^{\\mathsf{T}}W_{D^{\\prime}}v_{r,D^{\\prime}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "v_{s}^{\\mathsf{T}}Wv_{r}=\\sum_{i\\in I_{D^{\\prime}}}W_{ii}v_{s,i}v_{r,i}=v_{s,D^{\\prime}}^{\\mathsf{T}}W_{D^{\\prime}}v_{r,D^{\\prime}}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex16",
+      "tex": [
+        "\\ell_{s}^{\\mathsf{T}}V\\ell_{r}=\\frac{v_{s}^{\\mathsf{T}}WVWv_{r}}{d_{s}d_{r}}=\\frac{v_{s}^{\\mathsf{T}}Wv_{r}}{d_{s}d_{r}}=u_{s}^{\\mathsf{T}}u_{r}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{s}^{\\mathsf{T}}V\\ell_{r}=\\frac{v_{s}^{\\mathsf{T}}WVWv_{r}}{d_{s}d_{r}}=\\frac{v_{s}^{\\mathsf{T}}Wv_{r}}{d_{s}d_{r}}=u_{s}^{\\mathsf{T}}u_{r}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex17",
+      "tex": [
+        "u_{q}^{\\mathsf{T}}u_{q}=\\ell_{q}^{\\mathsf{T}}V\\ell_{q}=\\frac{v_{q}^{\\mathsf{T}}Wv_{q}}{d_{q}^{2}}=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "u_{q}^{\\mathsf{T}}u_{q}=\\ell_{q}^{\\mathsf{T}}V\\ell_{q}=\\frac{v_{q}^{\\mathsf{T}}Wv_{q}}{d_{q}^{2}}=1."
+      ]
+    },
+    {
+      "id": "A1.Ex18",
+      "tex": [
+        "u_{w}^{\\mathsf{T}}V^{-1/2}C_{0}=\\frac{v_{w}^{\\mathsf{T}}WC_{0}}{d_{w}}=\\frac{v_{w,Q_{w}}^{\\mathsf{T}}W_{Q_{w}}[B_{Q_{w}},A_{Q_{w}}]}{d_{w}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "u_{w}^{\\mathsf{T}}V^{-1/2}C_{0}=\\frac{v_{w}^{\\mathsf{T}}WC_{0}}{d_{w}}=\\frac{v_{w,Q_{w}}^{\\mathsf{T}}W_{Q_{w}}[B_{Q_{w}},A_{Q_{w}}]}{d_{w}}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex19",
+      "tex": [
+        "\\operatorname{Cov}(S_{w},S_{w^{\\prime}}\\mid\\mathcal{D})=\\sigma^{2}\\ell_{w}^{\\mathsf{T}}V\\ell_{w^{\\prime}}=\\begin{cases}\\sigma^{2},&w=w^{\\prime},\\\\\n0,&w\\neq w^{\\prime}.\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{Cov}(S_{w},S_{w^{\\prime}}\\mid\\mathcal{D})=\\sigma^{2}\\ell_{w}^{\\mathsf{T}}V\\ell_{w^{\\prime}}=\\begin{cases}\\sigma^{2},&w=w^{\\prime},\\\\\n0,&w\\neq w^{\\prime}.\\end{cases}"
+      ]
+    },
+    {
+      "id": "A1.Ex20",
+      "tex": [
+        "\\ell_{r}^{\\mathsf{T}}v=\\frac{v_{r}^{\\mathsf{T}}Wv}{d_{r}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{r}^{\\mathsf{T}}v=\\frac{v_{r}^{\\mathsf{T}}Wv}{d_{r}}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex21",
+      "tex": [
+        "\\ell_{r}^{\\mathsf{T}}y=\\ell_{r}^{\\mathsf{T}}z+t\\ell_{r}^{\\mathsf{T}}v=\\ell_{r}^{\\mathsf{T}}z,\\qquad G_{r}(y)=G_{r}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{r}^{\\mathsf{T}}y=\\ell_{r}^{\\mathsf{T}}z+t\\ell_{r}^{\\mathsf{T}}v=\\ell_{r}^{\\mathsf{T}}z,\\qquad G_{r}(y)=G_{r}(z)."
+      ]
+    },
+    {
+      "id": "A1.Ex22",
+      "tex": [
+        "\\widehat{H}(y_{z}(t))=H_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{H}(y_{z}(t))=H_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": "A1.Ex23",
+      "tex": [
+        "\\ell_{w}^{\\mathsf{T}}v=\\frac{v_{w}^{\\mathsf{T}}Wv}{d_{w}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell_{w}^{\\mathsf{T}}v=\\frac{v_{w}^{\\mathsf{T}}Wv}{d_{w}}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex24",
+      "tex": [
+        "\\eta^{\\mathsf{T}}v=\\frac{v^{\\mathsf{T}}Wv}{d^{2}}=1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta^{\\mathsf{T}}v=\\frac{v^{\\mathsf{T}}Wv}{d^{2}}=1."
+      ]
+    },
+    {
+      "id": "A1.Ex25",
+      "tex": [
+        "\\ell^{\\mathsf{T}}y_{z}(t)=d\\eta^{\\mathsf{T}}(z+vt)=dt,\\qquad G_{\\star}(y_{z}(t))=d^{2}t^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\ell^{\\mathsf{T}}y_{z}(t)=d\\eta^{\\mathsf{T}}(z+vt)=dt,\\qquad G_{\\star}(y_{z}(t))=d^{2}t^{2}."
+      ]
+    },
+    {
+      "id": "A1.Ex26",
+      "tex": [
+        "F_{q}^{H}(y)=F_{q}^{H}(z)=F_{q}^{\\gamma}(z)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F_{q}^{H}(y)=F_{q}^{H}(z)=F_{q}^{\\gamma}(z)"
+      ]
+    },
+    {
+      "id": "A1.Ex27",
+      "tex": [
+        "V_{j}(t)=V_{w_{j}}^{H}(y),\\qquad F_{j}(t)=F_{w_{j}}^{H}(y)=\\max\\{0,V_{j}(t)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{j}(t)=V_{w_{j}}^{H}(y),\\qquad F_{j}(t)=F_{w_{j}}^{H}(y)=\\max\\{0,V_{j}(t)\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex28",
+      "tex": [
+        "\\displaystyle V_{k}(t)",
+        "\\displaystyle=x-\\lambda+F_{w_{k,L}}^{\\gamma}(z)+F_{w_{k,R}}^{\\gamma}(z)=x+a_{k}(z),",
+        "\\displaystyle V_{j}(t)",
+        "\\displaystyle=G_{w_{j}}(z)-\\lambda+F_{j+1}(t)+F_{b_{j}}^{\\gamma}(z),\\qquad j=k-1,\\ldots,0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle V_{k}(t)",
+        "\\displaystyle=x-\\lambda+F_{w_{k,L}}^{\\gamma}(z)+F_{w_{k,R}}^{\\gamma}(z)=x+a_{k}(z),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle V_{j}(t)",
+        "\\displaystyle=G_{w_{j}}(z)-\\lambda+F_{j+1}(t)+F_{b_{j}}^{\\gamma}(z),\\qquad j=k-1,\\ldots,0."
+      ]
+    },
+    {
+      "id": "A1.Ex29",
+      "tex": [
+        "V_{j}(t)>0\\qquad\\text{for every }j=0,\\ldots,k."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{j}(t)>0\\qquad\\text{for every }j=0,\\ldots,k."
+      ]
+    },
+    {
+      "id": "A1.Ex30",
+      "tex": [
+        "\\displaystyle V_{j}(t)",
+        "\\displaystyle=G_{w_{j}}(z)-\\lambda+x+a_{j+1}(z)+F_{b_{j}}^{\\gamma}(z)",
+        "\\displaystyle=x+a_{j}(z)>0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle V_{j}(t)",
+        "\\displaystyle=G_{w_{j}}(z)-\\lambda+x+a_{j+1}(z)+F_{b_{j}}^{\\gamma}(z)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=x+a_{j}(z)>0,"
+      ]
+    },
+    {
+      "id": "A1.Ex31",
+      "tex": [
+        "V_{j}(t)=F_{j}(t)=x+a_{j}(z)>0\\qquad(j=k-1,\\ldots,0)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{j}(t)=F_{j}(t)=x+a_{j}(z)>0\\qquad(j=k-1,\\ldots,0)."
+      ]
+    },
+    {
+      "id": "A1.Ex32",
+      "tex": [
+        "x>\\max_{0\\leq j\\leq k}\\{-a_{j}(z)\\}=\\delta_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "x>\\max_{0\\leq j\\leq k}\\{-a_{j}(z)\\}=\\delta_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": "A1.Ex33",
+      "tex": [
+        "G_{q}(y_{z}(t))=(a_{q}+b_{q}t)^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "G_{q}(y_{z}(t))=(a_{q}+b_{q}t)^{2}."
+      ]
+    },
+    {
+      "id": "A1.Ex34",
+      "tex": [
+        "\\displaystyle p_{s,r}(t)",
+        "\\displaystyle=(a_{s}+b_{s}t)^{2}-(a_{r}+b_{r}t)^{2}",
+        "\\displaystyle=\\{a_{s}-a_{r}+(b_{s}-b_{r})t\\}\\{a_{s}+a_{r}+(b_{s}+b_{r})t\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle p_{s,r}(t)",
+        "\\displaystyle=(a_{s}+b_{s}t)^{2}-(a_{r}+b_{r}t)^{2}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\{a_{s}-a_{r}+(b_{s}-b_{r})t\\}\\{a_{s}+a_{r}+(b_{s}+b_{r})t\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex35",
+      "tex": [
+        "h(t)=d^{2}t^{2}-\\delta_{\\gamma}(z)>0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h(t)=d^{2}t^{2}-\\delta_{\\gamma}(z)>0."
+      ]
+    },
+    {
+      "id": "A1.Ex36",
+      "tex": [
+        "|\\mathcal{B}|\\leq 2m_{\\gamma}+2."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|\\mathcal{B}|\\leq 2m_{\\gamma}+2."
+      ]
+    },
+    {
+      "id": "A1.Ex37",
+      "tex": [
+        "H_{\\gamma}(z_{\\rm obs})=\\widehat{H}(y),\\qquad G_{w}(z_{\\rm obs})=G_{w}(y)\\quad(w\\neq\\star)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H_{\\gamma}(z_{\\rm obs})=\\widehat{H}(y),\\qquad G_{w}(z_{\\rm obs})=G_{w}(y)\\quad(w\\neq\\star)"
+      ]
+    },
+    {
+      "id": "A1.Ex38",
+      "tex": [
+        "V\\eta=\\frac{v}{d^{2}},\\qquad\\eta^{\\mathsf{T}}V\\eta=\\frac{v^{\\mathsf{T}}Wv}{d^{4}}=\\frac{1}{d^{2}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V\\eta=\\frac{v}{d^{2}},\\qquad\\eta^{\\mathsf{T}}V\\eta=\\frac{v^{\\mathsf{T}}Wv}{d^{4}}=\\frac{1}{d^{2}}."
+      ]
+    },
+    {
+      "id": "A1.Ex39",
+      "tex": [
+        "\\operatorname{Cov}(T,Z\\mid\\mathcal{D})=\\sigma^{2}\\eta^{\\mathsf{T}}V-\\omega^{2}v^{\\mathsf{T}}=\\frac{\\sigma^{2}}{d^{2}}v^{\\mathsf{T}}-\\frac{\\sigma^{2}}{d^{2}}v^{\\mathsf{T}}=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\operatorname{Cov}(T,Z\\mid\\mathcal{D})=\\sigma^{2}\\eta^{\\mathsf{T}}V-\\omega^{2}v^{\\mathsf{T}}=\\frac{\\sigma^{2}}{d^{2}}v^{\\mathsf{T}}-\\frac{\\sigma^{2}}{d^{2}}v^{\\mathsf{T}}=0."
+      ]
+    },
+    {
+      "id": "A1.Ex40",
+      "tex": [
+        "q_{\\theta}(z)=\\int_{J(z)}\\phi_{\\omega}(t-\\theta)\\,dt."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "q_{\\theta}(z)=\\int_{J(z)}\\phi_{\\omega}(t-\\theta)\\,dt."
+      ]
+    },
+    {
+      "id": "A1.Ex41",
+      "tex": [
+        "\\mathbb{P}\\bigl(E\\cap\\{q_{\\theta}(Z)=0\\}\\mid\\mathcal{D}\\bigr)=\\mathbb{E}\\!\\left[\\mathbf{1}\\{q_{\\theta}(Z)=0\\}q_{\\theta}(Z)\\mid\\mathcal{D}\\right]=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\bigl(E\\cap\\{q_{\\theta}(Z)=0\\}\\mid\\mathcal{D}\\bigr)=\\mathbb{E}\\!\\left[\\mathbf{1}\\{q_{\\theta}(Z)=0\\}q_{\\theta}(Z)\\mid\\mathcal{D}\\right]=0."
+      ]
+    },
+    {
+      "id": "A1.Ex42",
+      "tex": [
+        "\\mathbb{P}(T\\in B\\mid Z=z,E,\\mathcal{D})=\\frac{\\displaystyle\\int_{B\\cap J(z)}\\phi_{\\omega}(t-\\theta)\\,dt}{q_{\\theta}(z)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(T\\in B\\mid Z=z,E,\\mathcal{D})=\\frac{\\displaystyle\\int_{B\\cap J(z)}\\phi_{\\omega}(t-\\theta)\\,dt}{q_{\\theta}(z)}."
+      ]
+    },
+    {
+      "id": "A1.Ex43",
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid Z=z,E,\\mathcal{D})=u,\\qquad 0\\leq u\\leq 1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid Z=z,E,\\mathcal{D})=u,\\qquad 0\\leq u\\leq 1,"
+      ]
+    },
+    {
+      "id": "A1.Ex44",
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid E,\\mathcal{D})=\\mathbb{E}\\!\\left[\\mathbb{P}(U_{\\theta}\\leq u\\mid Z,E,\\mathcal{D})\\mid E,\\mathcal{D}\\right]=u."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid E,\\mathcal{D})=\\mathbb{E}\\!\\left[\\mathbb{P}(U_{\\theta}\\leq u\\mid Z,E,\\mathcal{D})\\mid E,\\mathcal{D}\\right]=u."
+      ]
+    },
+    {
+      "id": "A1.Ex45",
+      "tex": [
+        "\\mathbb{P}(p_{\\theta_{0}}\\leq r\\mid Z=z,E,\\mathcal{D})=\\frac{r}{2}+\\frac{r}{2}=r."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(p_{\\theta_{0}}\\leq r\\mid Z=z,E,\\mathcal{D})=\\frac{r}{2}+\\frac{r}{2}=r."
+      ]
+    },
+    {
+      "id": "A1.Ex46",
+      "tex": [
+        "\\{\\theta\\in\\mathcal{C}_{\\gamma,\\lambda}(Y)\\}=\\{\\alpha/2\\leq U_{\\theta}\\leq 1-\\alpha/2\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\{\\theta\\in\\mathcal{C}_{\\gamma,\\lambda}(Y)\\}=\\{\\alpha/2\\leq U_{\\theta}\\leq 1-\\alpha/2\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex47",
+      "tex": [
+        "\\phi_{\\omega}(w-a)=\\exp\\left\\{\\frac{aw}{\\omega^{2}}-\\frac{a^{2}}{2\\omega^{2}}\\right\\}\\phi_{\\omega}(w)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\phi_{\\omega}(w-a)=\\exp\\left\\{\\frac{aw}{\\omega^{2}}-\\frac{a^{2}}{2\\omega^{2}}\\right\\}\\phi_{\\omega}(w)."
+      ]
+    },
+    {
+      "id": "A1.Ex48",
+      "tex": [
+        "M(a)=\\int_{J}e^{aw/\\omega^{2}}\\phi_{\\omega}(w)\\,dw,\\qquad f_{a}(w)=\\frac{\\mathbf{1}\\{w\\in J\\}e^{aw/\\omega^{2}}\\phi_{\\omega}(w)}{M(a)},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "M(a)=\\int_{J}e^{aw/\\omega^{2}}\\phi_{\\omega}(w)\\,dw,\\qquad f_{a}(w)=\\frac{\\mathbf{1}\\{w\\in J\\}e^{aw/\\omega^{2}}\\phi_{\\omega}(w)}{M(a)},"
+      ]
+    },
+    {
+      "id": "A1.Ex49",
+      "tex": [
+        "H(a)=F^{J}_{a,\\omega}(t)=\\int_{-\\infty}^{t}f_{a}(w)\\,dw."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H(a)=F^{J}_{a,\\omega}(t)=\\int_{-\\infty}^{t}f_{a}(w)\\,dw."
+      ]
+    },
+    {
+      "id": "A1.Ex50",
+      "tex": [
+        "(1+|w|)e^{A|w|/\\omega^{2}}\\phi_{\\omega}(w),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(1+|w|)e^{A|w|/\\omega^{2}}\\phi_{\\omega}(w),"
+      ]
+    },
+    {
+      "id": "A1.Ex51",
+      "tex": [
+        "H^{\\prime}(a)=\\frac{1}{\\omega^{2}}\\operatorname{Cov}_{a}\\bigl(\\mathbf{1}\\{Q_{a}\\leq t\\},Q_{a}\\bigr)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H^{\\prime}(a)=\\frac{1}{\\omega^{2}}\\operatorname{Cov}_{a}\\bigl(\\mathbf{1}\\{Q_{a}\\leq t\\},Q_{a}\\bigr)."
+      ]
+    },
+    {
+      "id": "A1.Ex52",
+      "tex": [
+        "m_{-,a}=\\mathbb{E}_{a}[Q_{a}\\mid Q_{a}\\leq t],\\qquad m_{+,a}=\\mathbb{E}_{a}[Q_{a}\\mid Q_{a}>t]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "m_{-,a}=\\mathbb{E}_{a}[Q_{a}\\mid Q_{a}\\leq t],\\qquad m_{+,a}=\\mathbb{E}_{a}[Q_{a}\\mid Q_{a}>t]."
+      ]
+    },
+    {
+      "id": "A1.Ex53",
+      "tex": [
+        "H^{\\prime}(a)=\\frac{p_{a}(1-p_{a})}{\\omega^{2}}\\bigl(m_{-,a}-m_{+,a}\\bigr)<0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H^{\\prime}(a)=\\frac{p_{a}(1-p_{a})}{\\omega^{2}}\\bigl(m_{-,a}-m_{+,a}\\bigr)<0."
+      ]
+    },
+    {
+      "id": "A1.Ex54",
+      "tex": [
+        "K_{-}\\subset J\\cap(-\\infty,t-\\varepsilon],\\qquad K_{+}\\subset J\\cap[t+\\varepsilon,\\infty)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "K_{-}\\subset J\\cap(-\\infty,t-\\varepsilon],\\qquad K_{+}\\subset J\\cap[t+\\varepsilon,\\infty)."
+      ]
+    },
+    {
+      "id": "A1.Ex55",
+      "tex": [
+        "0\\leq H(a)\\leq\\frac{e^{at/\\omega^{2}}}{b_{+}e^{a(t+\\varepsilon)/\\omega^{2}}}=b_{+}^{-1}e^{-a\\varepsilon/\\omega^{2}}\\longrightarrow 0\\quad(a\\to+\\infty)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0\\leq H(a)\\leq\\frac{e^{at/\\omega^{2}}}{b_{+}e^{a(t+\\varepsilon)/\\omega^{2}}}=b_{+}^{-1}e^{-a\\varepsilon/\\omega^{2}}\\longrightarrow 0\\quad(a\\to+\\infty)."
+      ]
+    },
+    {
+      "id": "A1.Ex56",
+      "tex": [
+        "0\\leq 1-H(a)\\leq\\frac{e^{at/\\omega^{2}}}{b_{-}e^{a(t-\\varepsilon)/\\omega^{2}}}=b_{-}^{-1}e^{a\\varepsilon/\\omega^{2}}\\longrightarrow 0\\quad(a\\to-\\infty)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "0\\leq 1-H(a)\\leq\\frac{e^{at/\\omega^{2}}}{b_{-}e^{a(t-\\varepsilon)/\\omega^{2}}}=b_{-}^{-1}e^{a\\varepsilon/\\omega^{2}}\\longrightarrow 0\\quad(a\\to-\\infty)."
+      ]
+    },
+    {
+      "id": "A1.Ex57",
+      "tex": [
+        "H(L)=1-\\alpha/2,\\qquad H(U)=\\alpha/2"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "H(L)=1-\\alpha/2,\\qquad H(U)=\\alpha/2"
+      ]
+    },
+    {
+      "id": "A1.Ex58",
+      "tex": [
+        "\\frac{\\alpha}{2}\\leq H(a)\\leq 1-\\frac{\\alpha}{2}\\quad\\Longleftrightarrow\\quad L\\leq a\\leq U."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\alpha}{2}\\leq H(a)\\leq 1-\\frac{\\alpha}{2}\\quad\\Longleftrightarrow\\quad L\\leq a\\leq U."
+      ]
+    },
+    {
+      "id": "A1.Ex59",
+      "tex": [
+        "\\mathcal{V}=\\bigcup_{\\gamma\\in\\Gamma_{\\rm addr}}E_{\\gamma},\\qquad E_{\\gamma}\\cap E_{\\gamma^{\\prime}}=\\varnothing\\quad(\\gamma\\neq\\gamma^{\\prime})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{V}=\\bigcup_{\\gamma\\in\\Gamma_{\\rm addr}}E_{\\gamma},\\qquad E_{\\gamma}\\cap E_{\\gamma^{\\prime}}=\\varnothing\\quad(\\gamma\\neq\\gamma^{\\prime})."
+      ]
+    },
+    {
+      "id": "A1.Ex60",
+      "tex": [
+        "\\Theta_{\\rm sel}(Y)=\\theta_{\\widehat{\\gamma}(Y)},\\qquad C_{\\rm sel}(Y)=C_{\\widehat{\\gamma}(Y)}(Y)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Theta_{\\rm sel}(Y)=\\theta_{\\widehat{\\gamma}(Y)},\\qquad C_{\\rm sel}(Y)=C_{\\widehat{\\gamma}(Y)}(Y)."
+      ]
+    },
+    {
+      "id": "A1.Ex61",
+      "tex": [
+        "\\Gamma_{+}=\\{\\gamma\\in\\Gamma_{\\rm addr}:\\mathbb{P}(E_{\\gamma}\\mid\\mathcal{D})>0\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\Gamma_{+}=\\{\\gamma\\in\\Gamma_{\\rm addr}:\\mathbb{P}(E_{\\gamma}\\mid\\mathcal{D})>0\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex62",
+      "tex": [
+        "\\mathbb{P}\\{\\theta_{\\gamma}\\in C_{\\gamma}(Y)\\mid E_{\\gamma},\\mathcal{D}\\}=1-\\alpha."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\{\\theta_{\\gamma}\\in C_{\\gamma}(Y)\\mid E_{\\gamma},\\mathcal{D}\\}=1-\\alpha."
+      ]
+    },
+    {
+      "id": "A1.Ex63",
+      "tex": [
+        "\\displaystyle\\mathbb{P}\\{\\Theta_{\\rm sel}(Y)\\in C_{\\rm sel}(Y)\\mid\\mathcal{V},\\mathcal{D}\\}",
+        "\\displaystyle=\\frac{\\displaystyle\\sum_{\\gamma\\in\\Gamma_{+}}\\mathbb{P}\\{\\theta_{\\gamma}\\in C_{\\gamma}(Y),\\ E_{\\gamma}\\mid\\mathcal{D}\\}}{\\mathbb{P}(\\mathcal{V}\\mid\\mathcal{D})}",
+        "\\displaystyle=\\frac{(1-\\alpha)\\displaystyle\\sum_{\\gamma\\in\\Gamma_{+}}\\mathbb{P}(E_{\\gamma}\\mid\\mathcal{D})}{\\mathbb{P}(\\mathcal{V}\\mid\\mathcal{D})}=1-\\alpha."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{P}\\{\\Theta_{\\rm sel}(Y)\\in C_{\\rm sel}(Y)\\mid\\mathcal{V},\\mathcal{D}\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\displaystyle\\sum_{\\gamma\\in\\Gamma_{+}}\\mathbb{P}\\{\\theta_{\\gamma}\\in C_{\\gamma}(Y),\\ E_{\\gamma}\\mid\\mathcal{D}\\}}{\\mathbb{P}(\\mathcal{V}\\mid\\mathcal{D})}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{(1-\\alpha)\\displaystyle\\sum_{\\gamma\\in\\Gamma_{+}}\\mathbb{P}(E_{\\gamma}\\mid\\mathcal{D})}{\\mathbb{P}(\\mathcal{V}\\mid\\mathcal{D})}=1-\\alpha."
+      ]
+    },
+    {
+      "id": "A1.Ex64",
+      "tex": [
+        "\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)\\subseteq\\mathcal{T}_{\\gamma}^{\\rm grow}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{T}_{\\gamma,\\lambda}^{\\rm ret}(z)\\subseteq\\mathcal{T}_{\\gamma}^{\\rm grow}(z)."
+      ]
+    },
+    {
+      "id": "A1.Ex65",
+      "tex": [
+        "\\widehat{H}(y)=H,\\qquad G_{\\star}(y)=x,\\qquad G_{q}(y)=G_{q}(z)\\quad(q\\in I(H),\\ q\\neq\\star)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{H}(y)=H,\\qquad G_{\\star}(y)=x,\\qquad G_{q}(y)=G_{q}(z)\\quad(q\\in I(H),\\ q\\neq\\star)."
+      ]
+    },
+    {
+      "id": "A1.Ex66",
+      "tex": [
+        "\\mathcal{R}_{\\gamma}=\\{w_{k,L},w_{k,R}\\}\\cup\\{b_{j}:0\\leq j<k\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{R}_{\\gamma}=\\{w_{k,L},w_{k,R}\\}\\cup\\{b_{j}:0\\leq j<k\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex67",
+      "tex": [
+        "\\displaystyle V_{q}^{H}(y)",
+        "\\displaystyle=G_{q}(y)-\\lambda+F_{q_{L}}^{H}(y)+F_{q_{R}}^{H}(y)",
+        "\\displaystyle=G_{q}(z)-\\lambda+F_{q_{L}}^{H}(z)+F_{q_{R}}^{H}(z)=V_{q}^{H}(z),",
+        "\\displaystyle F_{q}^{H}(y)",
+        "\\displaystyle=\\max\\{0,V_{q}^{H}(y)\\}=\\max\\{0,V_{q}^{H}(z)\\}=F_{q}^{H}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle V_{q}^{H}(y)",
+        "\\displaystyle=G_{q}(y)-\\lambda+F_{q_{L}}^{H}(y)+F_{q_{R}}^{H}(y)"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=G_{q}(z)-\\lambda+F_{q_{L}}^{H}(z)+F_{q_{R}}^{H}(z)=V_{q}^{H}(z),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle F_{q}^{H}(y)",
+        "\\displaystyle=\\max\\{0,V_{q}^{H}(y)\\}=\\max\\{0,V_{q}^{H}(z)\\}=F_{q}^{H}(z)."
+      ]
+    },
+    {
+      "id": "A1.Ex68",
+      "tex": [
+        "\\mathbf{1}\\{V_{q}^{H}(y)>0\\}=\\mathbf{1}\\{V_{q}^{H}(z)>0\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{1}\\{V_{q}^{H}(y)>0\\}=\\mathbf{1}\\{V_{q}^{H}(z)>0\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex69",
+      "tex": [
+        "P_{r}^{H}(y)=P_{r}^{H}(z)\\qquad(r\\in\\mathcal{R}_{\\gamma}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{r}^{H}(y)=P_{r}^{H}(z)\\qquad(r\\in\\mathcal{R}_{\\gamma}),"
+      ]
+    },
+    {
+      "id": "A1.Ex70",
+      "tex": [
+        "x>\\delta_{\\gamma}(z)=\\max_{0\\leq j\\leq k}\\{-a_{j}(z)\\},\\qquad x+a_{j}(z)>0\\quad(j=0,\\ldots,k)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "x>\\delta_{\\gamma}(z)=\\max_{0\\leq j\\leq k}\\{-a_{j}(z)\\},\\qquad x+a_{j}(z)>0\\quad(j=0,\\ldots,k)."
+      ]
+    },
+    {
+      "id": "A1.Ex71",
+      "tex": [
+        "V_{w_{j}}^{H}(y)=F_{w_{j}}^{H}(y)=x+a_{j}(z)>0\\qquad(j=0,\\ldots,k),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "V_{w_{j}}^{H}(y)=F_{w_{j}}^{H}(y)=x+a_{j}(z)>0\\qquad(j=0,\\ldots,k),"
+      ]
+    },
+    {
+      "id": "A1.Ex72",
+      "tex": [
+        "\\displaystyle I(\\widehat{P}_{\\lambda}(y))",
+        "\\displaystyle=I_{\\gamma}\\cup\\bigcup_{r\\in\\mathcal{R}_{\\gamma}}I(P_{r}^{H}(y))",
+        "\\displaystyle=I_{\\gamma}\\cup\\bigcup_{r\\in\\mathcal{R}_{\\gamma}}I(P_{r}^{H}(z))",
+        "\\displaystyle=I(P_{\\gamma}(z))."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle I(\\widehat{P}_{\\lambda}(y))",
+        "\\displaystyle=I_{\\gamma}\\cup\\bigcup_{r\\in\\mathcal{R}_{\\gamma}}I(P_{r}^{H}(y))"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=I_{\\gamma}\\cup\\bigcup_{r\\in\\mathcal{R}_{\\gamma}}I(P_{r}^{H}(z))"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=I(P_{\\gamma}(z))."
+      ]
+    },
+    {
+      "id": "A1.Ex73",
+      "tex": [
+        "\\widehat{P}_{\\lambda}(y_{z}(t))=P_{\\gamma}(z),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{P}_{\\lambda}(y_{z}(t))=P_{\\gamma}(z),"
+      ]
+    },
+    {
+      "id": "A1.Ex74",
+      "tex": [
+        "\\eta^{\\mathsf{T}}Z(y)=0,\\qquad y=y_{Z(y)}(T(y))."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta^{\\mathsf{T}}Z(y)=0,\\qquad y=y_{Z(y)}(T(y))."
+      ]
+    },
+    {
+      "id": "A1.Ex75",
+      "tex": [
+        "y\\in E\\quad\\Longrightarrow\\quad\\begin{cases}\\widehat{H}(y)=H_{\\gamma}(Z(y)),\\\\\n\\widehat{P}_{\\lambda}(y)=P_{\\gamma}(Z(y)).\\end{cases}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "y\\in E\\quad\\Longrightarrow\\quad\\begin{cases}\\widehat{H}(y)=H_{\\gamma}(Z(y)),\\\\\n\\widehat{P}_{\\lambda}(y)=P_{\\gamma}(Z(y)).\\end{cases}"
+      ]
+    },
+    {
+      "id": "A1.Ex76",
+      "tex": [
+        "P_{\\gamma}(Z(y))=\\widehat{P}_{\\lambda}(y)=P,\\qquad Z(y)\\in\\mathcal{A}_{P}^{\\gamma}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{\\gamma}(Z(y))=\\widehat{P}_{\\lambda}(y)=P,\\qquad Z(y)\\in\\mathcal{A}_{P}^{\\gamma}."
+      ]
+    },
+    {
+      "id": "A1.Ex77",
+      "tex": [
+        "\\widehat{P}_{\\lambda}(y)=P_{\\gamma}(Z(y))=P,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{P}_{\\lambda}(y)=P_{\\gamma}(Z(y))=P,"
+      ]
+    },
+    {
+      "id": "A1.Ex78",
+      "tex": [
+        "\\displaystyle E_{H,P}",
+        "\\displaystyle=\\{y\\in E:H_{\\gamma}(Z(y))=H,\\ P_{\\gamma}(Z(y))=P\\}",
+        "\\displaystyle=E\\cap\\{Z\\in\\mathcal{A}_{H,P}^{\\gamma}\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle E_{H,P}",
+        "\\displaystyle=\\{y\\in E:H_{\\gamma}(Z(y))=H,\\ P_{\\gamma}(Z(y))=P\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=E\\cap\\{Z\\in\\mathcal{A}_{H,P}^{\\gamma}\\},"
+      ]
+    },
+    {
+      "id": "A1.Ex79",
+      "tex": [
+        "\\displaystyle\\mathcal{A}_{P}^{\\gamma}",
+        "\\displaystyle=P_{\\gamma}^{-1}(\\{P\\}),",
+        "\\displaystyle\\mathcal{A}_{H,P}^{\\gamma}",
+        "\\displaystyle=H_{\\gamma}^{-1}(\\{H\\})\\cap P_{\\gamma}^{-1}(\\{P\\})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{A}_{P}^{\\gamma}",
+        "\\displaystyle=P_{\\gamma}^{-1}(\\{P\\}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathcal{A}_{H,P}^{\\gamma}",
+        "\\displaystyle=H_{\\gamma}^{-1}(\\{H\\})\\cap P_{\\gamma}^{-1}(\\{P\\})"
+      ]
+    },
+    {
+      "id": "A1.Ex80",
+      "tex": [
+        "T(y_{z}(t))=t,\\qquad Z(y_{z}(t))=z."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "T(y_{z}(t))=t,\\qquad Z(y_{z}(t))=z."
+      ]
+    },
+    {
+      "id": "A1.Ex81",
+      "tex": [
+        "\\displaystyle\\mathbf{1}\\{y_{z}(t)\\in E_{K}\\}",
+        "\\displaystyle=\\mathbf{1}\\{z\\in\\mathcal{A}_{K}^{\\gamma}\\}\\,\\mathbf{1}\\{y_{z}(t)\\in E\\}",
+        "\\displaystyle=\\mathbf{1}\\{z\\in\\mathcal{A}_{K}^{\\gamma}\\}\\,\\mathbf{1}\\{t\\in J(z)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbf{1}\\{y_{z}(t)\\in E_{K}\\}",
+        "\\displaystyle=\\mathbf{1}\\{z\\in\\mathcal{A}_{K}^{\\gamma}\\}\\,\\mathbf{1}\\{y_{z}(t)\\in E\\}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\mathbf{1}\\{z\\in\\mathcal{A}_{K}^{\\gamma}\\}\\,\\mathbf{1}\\{t\\in J(z)\\}."
+      ]
+    },
+    {
+      "id": "A1.Ex82",
+      "tex": [
+        "\\nu_{K}(B)=\\frac{\\nu_{E}(B\\cap\\mathcal{A}_{K}^{\\gamma})}{\\nu_{E}(\\mathcal{A}_{K}^{\\gamma})},\\qquad\\nu_{E}(\\mathcal{A}_{K}^{\\gamma})=\\frac{\\mathbb{P}(E_{K}\\mid\\mathcal{D})}{\\mathbb{P}(E\\mid\\mathcal{D})}>0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nu_{K}(B)=\\frac{\\nu_{E}(B\\cap\\mathcal{A}_{K}^{\\gamma})}{\\nu_{E}(\\mathcal{A}_{K}^{\\gamma})},\\qquad\\nu_{E}(\\mathcal{A}_{K}^{\\gamma})=\\frac{\\mathbb{P}(E_{K}\\mid\\mathcal{D})}{\\mathbb{P}(E\\mid\\mathcal{D})}>0."
+      ]
+    },
+    {
+      "id": "A1.Ex83",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(T\\in C\\mid Z=z,E_{K},\\mathcal{D})",
+        "\\displaystyle=\\mathbb{P}(T\\in C\\mid Z=z,E,\\mathcal{D})",
+        "\\displaystyle=\\frac{\\displaystyle\\int_{C\\cap J(z)}\\phi_{\\omega}(s-\\theta)\\,ds}{\\displaystyle\\int_{J(z)}\\phi_{\\omega}(s-\\theta)\\,ds}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{P}(T\\in C\\mid Z=z,E_{K},\\mathcal{D})",
+        "\\displaystyle=\\mathbb{P}(T\\in C\\mid Z=z,E,\\mathcal{D})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\frac{\\displaystyle\\int_{C\\cap J(z)}\\phi_{\\omega}(s-\\theta)\\,ds}{\\displaystyle\\int_{J(z)}\\phi_{\\omega}(s-\\theta)\\,ds}."
+      ]
+    },
+    {
+      "id": "A1.Ex84",
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid Z=z,E_{K},\\mathcal{D})=u,\\qquad 0\\leq u\\leq 1,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid Z=z,E_{K},\\mathcal{D})=u,\\qquad 0\\leq u\\leq 1,"
+      ]
+    },
+    {
+      "id": "A1.Ex85",
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid E_{K},\\mathcal{D})=\\int u\\,\\nu_{K}(dz)=u."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(U_{\\theta}\\leq u\\mid E_{K},\\mathcal{D})=\\int u\\,\\nu_{K}(dz)=u."
+      ]
+    },
+    {
+      "id": "A1.Ex86",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(p_{\\theta_{0}}\\leq\\alpha\\mid E_{K},\\mathcal{D})",
+        "\\displaystyle=\\alpha\\quad\\text{when }\\theta=\\theta_{0},",
+        "\\displaystyle\\mathbb{P}\\{\\theta\\in\\mathcal{C}_{\\gamma,\\lambda}(Y)\\mid E_{K},\\mathcal{D}\\}",
+        "\\displaystyle=1-\\alpha."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{P}(p_{\\theta_{0}}\\leq\\alpha\\mid E_{K},\\mathcal{D})",
+        "\\displaystyle=\\alpha\\quad\\text{when }\\theta=\\theta_{0},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{P}\\{\\theta\\in\\mathcal{C}_{\\gamma,\\lambda}(Y)\\mid E_{K},\\mathcal{D}\\}",
+        "\\displaystyle=1-\\alpha."
+      ]
+    },
+    {
+      "id": "A1.Ex87",
+      "tex": [
+        "F^{\\mathcal{T}_{K}(z)}_{a,\\omega}(t_{\\rm obs})=F^{J(z)}_{a,\\omega}(t_{\\rm obs})\\qquad(a\\in\\mathbb{R})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "F^{\\mathcal{T}_{K}(z)}_{a,\\omega}(t_{\\rm obs})=F^{J(z)}_{a,\\omega}(t_{\\rm obs})\\qquad(a\\in\\mathbb{R})."
+      ]
+    },
+    {
+      "id": "A1.Ex88",
+      "tex": [
+        "\\mathbb{P}\\left(\\bigcup_{v\\in\\mathcal{I}_{0}(P;\\mu)}\\{p_{v}\\leq\\alpha/K\\}\\,\\middle|\\,E_{P},\\mathcal{D}\\right)\\leq|\\mathcal{I}_{0}(P;\\mu)|\\alpha/K\\leq\\alpha."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}\\left(\\bigcup_{v\\in\\mathcal{I}_{0}(P;\\mu)}\\{p_{v}\\leq\\alpha/K\\}\\,\\middle|\\,E_{P},\\mathcal{D}\\right)\\leq|\\mathcal{I}_{0}(P;\\mu)|\\alpha/K\\leq\\alpha."
+      ]
+    },
+    {
+      "id": "A2.E1",
+      "tex": [
+        "\\displaystyle P_{V^{-1/2}[C_{0},D_{S}]}",
+        "\\displaystyle=P_{V^{-1/2}C_{0}}+U_{S}U_{S}^{\\mathsf{T}},",
+        "\\displaystyle\\RSS_{W}(C_{0};y)-\\RSS_{W}([C_{0},D_{S}];y)",
+        "\\displaystyle=\\sum_{w\\in S}G_{w}(y),"
+      ]
+    },
+    {
+      "id": "A2.E1X",
+      "tex": [
+        "\\displaystyle P_{V^{-1/2}[C_{0},D_{S}]}",
+        "\\displaystyle=P_{V^{-1/2}C_{0}}+U_{S}U_{S}^{\\mathsf{T}},"
+      ]
+    },
+    {
+      "id": "A2.E1Xa",
+      "tex": [
+        "\\displaystyle\\RSS_{W}(C_{0};y)-\\RSS_{W}([C_{0},D_{S}];y)",
+        "\\displaystyle=\\sum_{w\\in S}G_{w}(y),"
+      ]
+    },
+    {
+      "id": "A2.Ex1",
+      "tex": [
+        "C_{P}(z)=\\sum_{w\\in I(P)\\setminus\\{\\star\\}}G_{w}(z)-\\lambda|I(P)|."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{P}(z)=\\sum_{w\\in I(P)\\setminus\\{\\star\\}}G_{w}(z)-\\lambda|I(P)|."
+      ]
+    },
+    {
+      "id": "A2.E2",
+      "tex": [
+        "Q_{\\lambda}(P;y_{z}(t))=C_{P}(z)+\\mathbf{1}\\{\\star\\in I(P)\\}d^{2}t^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q_{\\lambda}(P;y_{z}(t))=C_{P}(z)+\\mathbf{1}\\{\\star\\in I(P)\\}d^{2}t^{2}."
+      ]
+    },
+    {
+      "id": "A2.E3",
+      "tex": [
+        "C_{\\rm in}(z)=a_{0}(z),\\qquad C_{\\rm out}(z)=\\max_{0\\leq j\\leq k}\\{a_{0}(z)-a_{j}(z)\\},\\qquad C_{\\rm out}(z)-C_{\\rm in}(z)=\\delta_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{\\rm in}(z)=a_{0}(z),\\qquad C_{\\rm out}(z)=\\max_{0\\leq j\\leq k}\\{a_{0}(z)-a_{j}(z)\\},\\qquad C_{\\rm out}(z)-C_{\\rm in}(z)=\\delta_{\\gamma}(z)."
+      ]
+    },
+    {
+      "id": "A2.Ex2",
+      "tex": [
+        "Q(P;y)=\\sum_{w\\in I(P)}G_{w}(y)-\\rho_{H}(P),\\qquad P\\in\\mathcal{F}_{H}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q(P;y)=\\sum_{w\\in I(P)}G_{w}(y)-\\rho_{H}(P),\\qquad P\\in\\mathcal{F}_{H}."
+      ]
+    },
+    {
+      "id": "A2.Ex3",
+      "tex": [
+        "C_{P}(z)=\\sum_{w\\in I(P)\\setminus\\{\\star\\}}G_{w}(z)-\\rho_{H_{\\gamma}(z)}(P),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "C_{P}(z)=\\sum_{w\\in I(P)\\setminus\\{\\star\\}}G_{w}(z)-\\rho_{H_{\\gamma}(z)}(P),"
+      ]
+    },
+    {
+      "id": "A2.E4",
+      "tex": [
+        "\\{t:d^{2}t^{2}>\\Delta(z)\\}\\ \\cup\\ \\{t:d^{2}t^{2}=\\Delta(z),\\ P_{\\rm in}(z)\\prec P_{\\rm out}(z)\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\{t:d^{2}t^{2}>\\Delta(z)\\}\\ \\cup\\ \\{t:d^{2}t^{2}=\\Delta(z),\\ P_{\\rm in}(z)\\prec P_{\\rm out}(z)\\}."
+      ]
+    },
+    {
+      "id": "A2.Ex4",
+      "tex": [
+        "Q(P;y_{z}(t))=C_{P}(z)+\\mathbf{1}\\{\\star\\in I(P)\\}d^{2}t^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q(P;y_{z}(t))=C_{P}(z)+\\mathbf{1}\\{\\star\\in I(P)\\}d^{2}t^{2}."
+      ]
+    },
+    {
+      "id": "A2.Ex5",
+      "tex": [
+        "\\frac{\\alpha}{2\\{1-\\Phi(1)\\}}>\\alpha."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{\\alpha}{2\\{1-\\Phi(1)\\}}>\\alpha."
+      ]
+    },
+    {
+      "id": "A2.Ex6",
+      "tex": [
+        "T=\\eta^{\\mathsf{T}}Y,\\qquad c=\\frac{\\Sigma\\eta}{\\eta^{\\mathsf{T}}\\Sigma\\eta},\\qquad Z=Y-cT"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "T=\\eta^{\\mathsf{T}}Y,\\qquad c=\\frac{\\Sigma\\eta}{\\eta^{\\mathsf{T}}\\Sigma\\eta},\\qquad Z=Y-cT"
+      ]
+    },
+    {
+      "id": "A2.Ex7",
+      "tex": [
+        "(v_{s}^{\\rm O})^{\\mathsf{T}}v_{r}^{\\rm O}=0,\\qquad(v_{s}^{\\rm O})^{\\mathsf{T}}\\Sigma v_{r}^{\\rm O}\\neq 0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(v_{s}^{\\rm O})^{\\mathsf{T}}v_{r}^{\\rm O}=0,\\qquad(v_{s}^{\\rm O})^{\\mathsf{T}}\\Sigma v_{r}^{\\rm O}\\neq 0,"
+      ]
+    },
+    {
+      "id": "A2.Ex8",
+      "tex": [
+        "x=(0,1,2,4,1,3,5,8,0,2,6,7)^{\\mathsf{T}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "x=(0,1,2,4,1,3,5,8,0,2,6,7)^{\\mathsf{T}}."
+      ]
+    },
+    {
+      "id": "A2.Ex9",
+      "tex": [
+        "(v_{s}^{\\rm O})^{\\mathsf{T}}v_{r}^{\\rm O}=0,\\qquad(v_{s}^{\\rm O})^{\\mathsf{T}}\\operatorname{diag}(1+A)v_{r}^{\\rm O}=\\frac{16}{2915}\\neq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(v_{s}^{\\rm O})^{\\mathsf{T}}v_{r}^{\\rm O}=0,\\qquad(v_{s}^{\\rm O})^{\\mathsf{T}}\\operatorname{diag}(1+A)v_{r}^{\\rm O}=\\frac{16}{2915}\\neq 0."
+      ]
+    },
+    {
+      "id": "A2.Ex10",
+      "tex": [
+        "G_{\\rm root}=d^{2}t^{2},\\qquad G_{\\rm child}=(\\sqrt{2}+bt)^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "G_{\\rm root}=d^{2}t^{2},\\qquad G_{\\rm child}=(\\sqrt{2}+bt)^{2}."
+      ]
+    },
+    {
+      "id": "A2.Ex11",
+      "tex": [
+        "d^{2}t^{2}+\\max\\{0,(\\sqrt{2}+bt)^{2}-1\\}>1."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "d^{2}t^{2}+\\max\\{0,(\\sqrt{2}+bt)^{2}-1\\}>1."
+      ]
+    },
+    {
+      "id": "A2.Ex12",
+      "tex": [
+        "\\displaystyle x",
+        "\\displaystyle=(-3,3,1,-4,-2,-4,3,2)^{\\mathsf{T}},",
+        "\\displaystyle A",
+        "\\displaystyle=(1,1,0,0,1,1,0,0)^{\\mathsf{T}},",
+        "\\displaystyle h",
+        "\\displaystyle=(1,1,1,1,0,0,0,0)^{\\mathsf{T}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle x",
+        "\\displaystyle=(-3,3,1,-4,-2,-4,3,2)^{\\mathsf{T}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle A",
+        "\\displaystyle=(1,1,0,0,1,1,0,0)^{\\mathsf{T}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle h",
+        "\\displaystyle=(1,1,1,1,0,0,0,0)^{\\mathsf{T}}."
+      ]
+    },
+    {
+      "id": "A2.Ex13",
+      "tex": [
+        "\\begin{array}[]{c|ccc}\\rho&1/4&1&4\\\\\n\\hline\\cr\\theta_{s}&-413/62&-35/22&119/24.\\end{array}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\begin{array}[]{c|ccc}\\rho&1/4&1&4\\\\\n\\hline\\cr\\theta_{s}&-413/62&-35/22&119/24.\\end{array}"
+      ]
+    },
+    {
+      "id": "A2.Ex14",
+      "tex": [
+        "\\frac{c_{r}}{1-a_{r}},\\qquad-\\frac{c_{r}}{1+a_{r}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\frac{c_{r}}{1-a_{r}},\\qquad-\\frac{c_{r}}{1+a_{r}}."
+      ]
+    },
+    {
+      "id": "A2.Ex15",
+      "tex": [
+        "|u_{r}^{\\mathsf{T}}u_{s}|>1-10^{-12}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "|u_{r}^{\\mathsf{T}}u_{s}|>1-10^{-12}"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Selective inference for one retained treatment interaction",
+      "images": []
+    },
+    {
+      "id": "S5.T1",
+      "caption": "Table 1:  Splitwise false-positive rates under a constant treatment effect with known variances,  D = 3 D=3  and  ρ = 1 \\rho=1 . Rates and Monte Carlo standard errors in parentheses are in percent and percentage points, respectively.",
+      "images": []
+    },
+    {
+      "id": "S5.F1",
+      "caption": "Figure 1:  Constant-effect FPR across maximum growth depths  D = 1 , 2 , 3 D=1,2,3 , with fixed  λ = 4 \\lambda=4 . Rows specify variance ratio and columns sample size. Rates pool successfully computed retained splits, with each method’s own denominator; the three full-data procedures share their targets. Bars are pointwise trial-cluster Monte Carlo intervals and the dashed line is  0.05 0.05 . These are individual-split rates, not tree-wide error probabilities.",
+      "images": []
+    },
+    {
+      "id": "S5.F2",
+      "caption": "Figure 2:  Reference-root partition matching and joint recovery, successful inference and rejection, as  γ \\gamma  varies with  a = 1 a=1 ,  ρ = 1 \\rho=1 ,  D = 3 D=3  and  λ = 4 \\lambda=4 . Each probability uses all 1,000 trials; bars are pointwise Wilson Monte Carlo intervals. Recovery means ARI greater than  0.75 0.75  under the prespecified common evaluation design, not exact cut-point equality or complete-tree recovery. The two procedures need not infer the same finite-design target.",
+      "images": []
+    },
+    {
+      "id": "S5.T2",
+      "caption": "Table 2:  Interval widths by actual split stage with known variances, for  γ = a = ρ = 1 \\gamma=a=\\rho=1 ,  D = 3 D=3  and  λ = 4 \\lambda=4 . Stage 1 is the root and stage 3 corresponds to node depth two.",
+      "images": []
+    },
+    {
+      "id": "S5.F3",
+      "caption": "Figure 3:  Individual 95% interval widths by actual split stage (root  = 1 =1 ) for  ( γ , a ) = ( 1 , 1 ) (\\gamma,a)=(1,1) ,  D = 3 D=3 ,  λ = 4 \\lambda=4 . Rows specify variance ratio and columns sample size. Curves give medians and 90th percentiles on a logarithmic scale, using all successful endpoints at the fixed indices 1–500 without trimming or capping. Sparse groups with fewer than 30 intervals are flagged; unavailable groups remain missing. These are own-target procedural summaries, not common-parameter efficiency comparisons.",
+      "images": []
+    },
+    {
+      "id": "S5.T3",
+      "caption": "Table 3:  Coverage after substituting the estimated common scale, for  γ = a = 1 \\gamma=a=1 ,  D = 3 D=3  and  λ = 4 \\lambda=4 .",
+      "images": []
+    },
+    {
+      "id": "S5.F4",
+      "caption": "Figure 4:  Known and estimated common-scale coverage by actual split stage for  ( γ , a ) = ( 1 , 1 ) (\\gamma,a)=(1,1) ,  ρ = 1 \\rho=1 ,  D = 3 D=3  and  λ = 4 \\lambda=4 . Panels specify sample size. Known/estimated comparisons use identical trees, targets and eligibility within a procedure; Honest has its own holdout targets. Bars are pointwise trial-cluster Monte Carlo intervals; rings mark fewer than 100 computed targets or 30 contributing trials. The dashed reference is  0.95 0.95 . The displayed vertical range is a viewing window, not a truncation of the computed rates; full estimates and intervals remain in the reproducibility summaries. No exactness claim is made for scale substitution.",
+      "images": []
+    },
+    {
+      "id": "S6.F5",
+      "caption": "Figure 5:  ACTG 175 all-midpoint unpruned trees at  λ = 0 \\lambda=0  and maximum depth three. Full-data growth gives 6 internal splits; Honest training gives 4. Labels show the learned rules and arm counts, with  n 0 n_{0}  for ZDV+zal and  n 1 n_{1}  for ZDV+ddI. Honest counts are training counts. Each part generates its candidate thresholds from its own covariates. Addresses label each tree’s own regions and do not identify shared targets across trees.",
+      "images": []
+    },
+    {
+      "id": "S6.T4",
+      "caption": "Table 4:  ACTG 175 full-midpoint unpruned display at maximum depth three and  λ = 0 \\lambda=0 : 6 full-data splits and 4 Honest training splits. All intervals and  p p -values are individual nominal working-model calculations. Growth-only and Selective coincide at zero penalty and are displayed once as Selective. CD4 units are cells per cubic millimeter.",
+      "images": []
+    },
+    {
+      "id": "S6.F6",
+      "caption": "Figure 6:  All 16 primary-display nominal individual 95% intervals from the full-midpoint analysis. Naive and Selective share the 6 full-data targets; their zero-penalty Growth-only duplicates are not drawn separately. Honest has 4 available holdout-design targets learned from training data. Both panels use the same horizontal scale. Dots are unadjusted GLS point estimates, and every finite confidence endpoint is shown. The displayed working-model intervals with estimated covariance are neither established exact nor simultaneous clinical intervals.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML",
+    "https://github.com/tomoshige/selective-inference-for-interaction-tree"
+  ]
+}

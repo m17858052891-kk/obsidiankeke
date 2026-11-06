@@ -1,0 +1,918 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Online Metric Matching with Unknown i.i.d. Arrivals",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "1.1  Our result",
+      "id": "S1.SS1"
+    },
+    {
+      "title": "1.2  Algorithm overview",
+      "id": "S1.SS2"
+    },
+    {
+      "title": "1.3  Related work",
+      "id": "S1.SS3"
+    },
+    {
+      "title": "Adversarial online metric matching.",
+      "id": "S1.SS3.SSS0.Px1"
+    },
+    {
+      "title": "Random order and known i.i.d. arrivals.",
+      "id": "S1.SS3.SSS0.Px2"
+    },
+    {
+      "title": "In Euclidean spaces.",
+      "id": "S1.SS3.SSS0.Px3"
+    },
+    {
+      "title": "Separation between arrival models in other matching problems.",
+      "id": "S1.SS3.SSS0.Px4"
+    },
+    {
+      "title": "2  Preliminaries",
+      "id": "S2"
+    },
+    {
+      "title": "2.1  The model and benchmark",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "Reduction to finite metric spaces.",
+      "id": "S2.SS1.SSS0.Px1"
+    },
+    {
+      "title": "2.2  Transport costs",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "3  The Fair-Bias algorithm",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Definition of  Fair-Bias",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Properties and competitive-ratio bounds",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "4  Comparing cumulative transport costs",
+      "id": "S4"
+    },
+    {
+      "title": "5  Generating virtual requests",
+      "id": "S5"
+    },
+    {
+      "title": "5.1  The algorithm and plan-selection rules",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "5.2  Independence of the virtual sequence",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "5.3  The conversion cost",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "6  Competitive analysis",
+      "id": "S6"
+    },
+    {
+      "title": "7  Comparison with random-order arrivals",
+      "id": "S7"
+    },
+    {
+      "title": "AI Disclaimer",
+      "id": "Sx1"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Appendix A  Leaving common mass in place",
+      "id": "A1"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S1.Ex1",
+      "tex": [
+        "\\mathbb{E}[\\mathrm{ALG}]\\leq O((\\log\\log\\log n)^{2})\\,\\mathbb{E}[\\mathrm{OPT}]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[\\mathrm{ALG}]\\leq O((\\log\\log\\log n)^{2})\\,\\mathbb{E}[\\mathrm{OPT}]"
+      ]
+    },
+    {
+      "id": "S1.Ex2",
+      "tex": [
+        "\\nu=\\frac{1}{n}\\sum_{j=1}^{n}\\delta_{s_{j}}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nu=\\frac{1}{n}\\sum_{j=1}^{n}\\delta_{s_{j}}"
+      ]
+    },
+    {
+      "id": "S1.Ex3",
+      "tex": [
+        "\\widehat{D}_{t}=\\frac{1}{t}\\sum_{i=1}^{t}\\delta_{r_{i}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{D}_{t}=\\frac{1}{t}\\sum_{i=1}^{t}\\delta_{r_{i}},"
+      ]
+    },
+    {
+      "id": "S2.E1",
+      "tex": [
+        "\\mathrm{OPT}(R,S)=\\min_{\\sigma\\in\\mathfrak{S}_{n}}\\sum_{t=1}^{n}d(r_{t},s_{\\sigma(t)}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{OPT}(R,S)=\\min_{\\sigma\\in\\mathfrak{S}_{n}}\\sum_{t=1}^{n}d(r_{t},s_{\\sigma(t)}),"
+      ]
+    },
+    {
+      "id": "S2.Ex1",
+      "tex": [
+        "\\mu=\\sum_{i\\in I}p_{i}\\delta_{x_{i}},\\qquad\\eta=\\sum_{j\\in J}q_{j}\\delta_{y_{j}},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu=\\sum_{i\\in I}p_{i}\\delta_{x_{i}},\\qquad\\eta=\\sum_{j\\in J}q_{j}\\delta_{y_{j}},"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "\\displaystyle W_{1}(\\mu,\\eta)=\\min_{\\gamma\\geq 0}",
+        "\\displaystyle\\sum_{i\\in I}\\sum_{j\\in J}\\gamma(i,j)d(x_{i},y_{j})",
+        "\\displaystyle\\text{subject to}",
+        "\\displaystyle\\sum_{j\\in J}\\gamma(i,j)=p_{i}",
+        "\\displaystyle(i\\in I),",
+        "\\displaystyle\\sum_{i\\in I}\\gamma(i,j)=q_{j}",
+        "\\displaystyle(j\\in J)."
+      ]
+    },
+    {
+      "id": "S2.E2X",
+      "tex": [
+        "\\displaystyle W_{1}(\\mu,\\eta)=\\min_{\\gamma\\geq 0}",
+        "\\displaystyle\\sum_{i\\in I}\\sum_{j\\in J}\\gamma(i,j)d(x_{i},y_{j})"
+      ]
+    },
+    {
+      "id": "S2.E2Xa",
+      "tex": [
+        "\\displaystyle\\text{subject to}",
+        "\\displaystyle\\sum_{j\\in J}\\gamma(i,j)=p_{i}",
+        "\\displaystyle(i\\in I),"
+      ]
+    },
+    {
+      "id": "S2.E2Xb",
+      "tex": [
+        "\\displaystyle\\sum_{i\\in I}\\gamma(i,j)=q_{j}",
+        "\\displaystyle(j\\in J)."
+      ]
+    },
+    {
+      "id": "S2.E3",
+      "tex": [
+        "\\nu=\\frac{1}{n}\\sum_{j=1}^{n}\\delta_{s_{j}},\\qquad\\widehat{D}_{t}=\\frac{1}{t}\\sum_{i=1}^{t}\\delta_{r_{i}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nu=\\frac{1}{n}\\sum_{j=1}^{n}\\delta_{s_{j}},\\qquad\\widehat{D}_{t}=\\frac{1}{t}\\sum_{i=1}^{t}\\delta_{r_{i}}."
+      ]
+    },
+    {
+      "id": "S2.Ex2",
+      "tex": [
+        "nW_{1}(\\widehat{D}_{n},\\nu)=\\mathrm{OPT}(R,S)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "nW_{1}(\\widehat{D}_{n},\\nu)=\\mathrm{OPT}(R,S)."
+      ]
+    },
+    {
+      "id": "S2.E4",
+      "tex": [
+        "\\widehat{\\nu}_{t}=\\frac{1}{t}\\sum_{i=1}^{t}\\delta_{z_{i}},\\qquad f_{t}=\\mathbb{E}[W_{1}(\\widehat{\\nu}_{t},\\nu)]\\quad(1\\leq t\\leq n)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\nu}_{t}=\\frac{1}{t}\\sum_{i=1}^{t}\\delta_{z_{i}},\\qquad f_{t}=\\mathbb{E}[W_{1}(\\widehat{\\nu}_{t},\\nu)]\\quad(1\\leq t\\leq n)."
+      ]
+    },
+    {
+      "id": "S2.Ex3",
+      "tex": [
+        "\\nu_{A}=\\frac{1}{|A|}\\sum_{i\\in A}\\delta_{s_{i}}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nu_{A}=\\frac{1}{|A|}\\sum_{i\\in A}\\delta_{s_{i}}."
+      ]
+    },
+    {
+      "id": "S2.E5",
+      "tex": [
+        "g_{k}=\\mathbb{E}_{A\\sim\\mathcal{U}_{k}}[W_{1}(\\nu_{A},\\nu)]\\quad(1\\leq k\\leq n)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "g_{k}=\\mathbb{E}_{A\\sim\\mathcal{U}_{k}}[W_{1}(\\nu_{A},\\nu)]\\quad(1\\leq k\\leq n)."
+      ]
+    },
+    {
+      "id": "S2.E6",
+      "tex": [
+        "\\mathbb{E}[\\mathrm{OPT}_{\\nu}]=nf_{n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[\\mathrm{OPT}_{\\nu}]=nf_{n}."
+      ]
+    },
+    {
+      "id": "S3.E1",
+      "tex": [
+        "\\displaystyle\\min_{\\rho_{F}\\geq 0}",
+        "\\displaystyle\\sum_{j=1}^{n}\\sum_{i\\in F}\\rho_{F}(j,i)d(s_{j},s_{i})",
+        "\\displaystyle\\text{subject to}",
+        "\\displaystyle\\sum_{i\\in F}\\rho_{F}(j,i)=\\frac{1}{n}",
+        "\\displaystyle(j\\in[n]),",
+        "\\displaystyle\\sum_{j=1}^{n}\\rho_{F}(j,i)=\\frac{1}{k}",
+        "\\displaystyle(i\\in F)."
+      ]
+    },
+    {
+      "id": "S3.E1X",
+      "tex": [
+        "\\displaystyle\\min_{\\rho_{F}\\geq 0}",
+        "\\displaystyle\\sum_{j=1}^{n}\\sum_{i\\in F}\\rho_{F}(j,i)d(s_{j},s_{i})"
+      ]
+    },
+    {
+      "id": "S3.E1Xa",
+      "tex": [
+        "\\displaystyle\\text{subject to}",
+        "\\displaystyle\\sum_{i\\in F}\\rho_{F}(j,i)=\\frac{1}{n}",
+        "\\displaystyle(j\\in[n]),"
+      ]
+    },
+    {
+      "id": "S3.E1Xb",
+      "tex": [
+        "\\displaystyle\\sum_{j=1}^{n}\\rho_{F}(j,i)=\\frac{1}{k}",
+        "\\displaystyle(i\\in F)."
+      ]
+    },
+    {
+      "id": "S3.E2",
+      "tex": [
+        "A_{t}\\sim\\mathcal{U}_{t},\\qquad\\mathbb{E}[L_{t}]=\\sum_{k=n-t+1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "A_{t}\\sim\\mathcal{U}_{t},\\qquad\\mathbb{E}[L_{t}]=\\sum_{k=n-t+1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": "S3.Ex1",
+      "tex": [
+        "\\sum_{j=1}^{n}\\frac{1}{n}\\,n\\rho_{F}(j,i)=\\frac{1}{|F|}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{j=1}^{n}\\frac{1}{n}\\,n\\rho_{F}(j,i)=\\frac{1}{|F|}."
+      ]
+    },
+    {
+      "id": "S3.Ex2",
+      "tex": [
+        "\\sum_{j=1}^{n}\\frac{1}{n}\\sum_{i\\in F}n\\rho_{F}(j,i)d(s_{j},s_{i})=W_{1}(\\nu_{F},\\nu)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{j=1}^{n}\\frac{1}{n}\\sum_{i\\in F}n\\rho_{F}(j,i)d(s_{j},s_{i})=W_{1}(\\nu_{F},\\nu)."
+      ]
+    },
+    {
+      "id": "S3.E3",
+      "tex": [
+        "\\sum_{k=1}^{n}g_{k}=\\mathbb{E}[L_{n}]\\leq\\alpha(n)\\mathbb{E}[\\mathrm{OPT}_{\\nu}],\\qquad\\alpha(n)=O((\\log\\log\\log n)^{2})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{k=1}^{n}g_{k}=\\mathbb{E}[L_{n}]\\leq\\alpha(n)\\mathbb{E}[\\mathrm{OPT}_{\\nu}],\\qquad\\alpha(n)=O((\\log\\log\\log n)^{2})."
+      ]
+    },
+    {
+      "id": "S4.E1",
+      "tex": [
+        "kW_{1}(\\nu_{A},\\nu)=(n-k)W_{1}(\\nu_{A^{c}},\\nu)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "kW_{1}(\\nu_{A},\\nu)=(n-k)W_{1}(\\nu_{A^{c}},\\nu)."
+      ]
+    },
+    {
+      "id": "S4.E2",
+      "tex": [
+        "kg_{k}=(n-k)g_{n-k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "kg_{k}=(n-k)g_{n-k}."
+      ]
+    },
+    {
+      "id": "S4.E3",
+      "tex": [
+        "\\sum_{j\\in A^{c}}\\gamma_{ij}=\\frac{1}{k}-\\frac{1}{n}=\\frac{n-k}{kn}\\quad(i\\in A),\\qquad\\sum_{i\\in A}\\gamma_{ij}=\\frac{1}{n}\\quad(j\\in A^{c})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{j\\in A^{c}}\\gamma_{ij}=\\frac{1}{k}-\\frac{1}{n}=\\frac{n-k}{kn}\\quad(i\\in A),\\qquad\\sum_{i\\in A}\\gamma_{ij}=\\frac{1}{n}\\quad(j\\in A^{c})."
+      ]
+    },
+    {
+      "id": "S4.E4",
+      "tex": [
+        "\\sum_{i\\in A}\\eta_{ji}=\\frac{1}{n-k}-\\frac{1}{n}=\\frac{k}{n(n-k)}\\quad(j\\in A^{c}),\\qquad\\sum_{j\\in A^{c}}\\eta_{ji}=\\frac{1}{n}\\quad(i\\in A)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{i\\in A}\\eta_{ji}=\\frac{1}{n-k}-\\frac{1}{n}=\\frac{k}{n(n-k)}\\quad(j\\in A^{c}),\\qquad\\sum_{j\\in A^{c}}\\eta_{ji}=\\frac{1}{n}\\quad(i\\in A)."
+      ]
+    },
+    {
+      "id": "S4.Ex1",
+      "tex": [
+        "\\eta_{ji}=\\frac{k}{n-k}\\gamma_{ij}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\eta_{ji}=\\frac{k}{n-k}\\gamma_{ij}."
+      ]
+    },
+    {
+      "id": "S4.Ex2",
+      "tex": [
+        "\\sum_{i\\in A}\\eta_{ji}=\\frac{k}{n-k}\\cdot\\frac{1}{n}=\\frac{k}{n(n-k)},\\qquad\\sum_{j\\in A^{c}}\\eta_{ji}=\\frac{k}{n-k}\\cdot\\frac{n-k}{kn}=\\frac{1}{n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{i\\in A}\\eta_{ji}=\\frac{k}{n-k}\\cdot\\frac{1}{n}=\\frac{k}{n(n-k)},\\qquad\\sum_{j\\in A^{c}}\\eta_{ji}=\\frac{k}{n-k}\\cdot\\frac{n-k}{kn}=\\frac{1}{n}."
+      ]
+    },
+    {
+      "id": "S4.Ex3",
+      "tex": [
+        "\\sum_{j\\in A^{c}}\\sum_{i\\in A}\\eta_{ji}d(s_{j},s_{i})=\\frac{k}{n-k}\\sum_{i\\in A}\\sum_{j\\in A^{c}}\\gamma_{ij}d(s_{i},s_{j})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{j\\in A^{c}}\\sum_{i\\in A}\\eta_{ji}d(s_{j},s_{i})=\\frac{k}{n-k}\\sum_{i\\in A}\\sum_{j\\in A^{c}}\\gamma_{ij}d(s_{i},s_{j})."
+      ]
+    },
+    {
+      "id": "S4.E5",
+      "tex": [
+        "f_{t}\\leq g_{t}+\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "f_{t}\\leq g_{t}+\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": "S4.Ex4",
+      "tex": [
+        "W_{1}(\\widehat{\\nu}_{t},\\nu_{A_{t}})\\leq\\frac{L_{t}}{t},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{1}(\\widehat{\\nu}_{t},\\nu_{A_{t}})\\leq\\frac{L_{t}}{t},"
+      ]
+    },
+    {
+      "id": "S4.Ex5",
+      "tex": [
+        "W_{1}(\\widehat{\\nu}_{t},\\nu)\\leq\\frac{L_{t}}{t}+W_{1}(\\nu_{A_{t}},\\nu)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{1}(\\widehat{\\nu}_{t},\\nu)\\leq\\frac{L_{t}}{t}+W_{1}(\\nu_{A_{t}},\\nu)."
+      ]
+    },
+    {
+      "id": "S4.Ex6",
+      "tex": [
+        "f_{t}\\leq\\frac{1}{t}\\mathbb{E}[L_{t}]+g_{t}=\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}+g_{t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "f_{t}\\leq\\frac{1}{t}\\mathbb{E}[L_{t}]+g_{t}=\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}+g_{t}."
+      ]
+    },
+    {
+      "id": "S4.E6",
+      "tex": [
+        "\\sum_{t=1}^{n}f_{t}\\leq 2\\sum_{k=1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{t=1}^{n}f_{t}\\leq 2\\sum_{k=1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": "S4.E7",
+      "tex": [
+        "\\sum_{t=1}^{n}f_{t}\\leq\\sum_{t=1}^{n}g_{t}+\\sum_{t=1}^{n}\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{t=1}^{n}f_{t}\\leq\\sum_{t=1}^{n}g_{t}+\\sum_{t=1}^{n}\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": "S4.Ex7",
+      "tex": [
+        "\\sum_{t=1}^{n}\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}=\\sum_{k=1}^{n-1}g_{k}\\sum_{t=n-k+1}^{n}\\frac{1}{t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{t=1}^{n}\\frac{1}{t}\\sum_{k=n-t+1}^{n}g_{k}=\\sum_{k=1}^{n-1}g_{k}\\sum_{t=n-k+1}^{n}\\frac{1}{t}."
+      ]
+    },
+    {
+      "id": "S4.EGx1",
+      "tex": [
+        "\\displaystyle\\sum_{k=1}^{n-1}g_{k}\\sum_{t=n-k+1}^{n}\\frac{1}{t}",
+        "\\displaystyle\\leq\\sum_{k=1}^{n-1}\\frac{k}{n-k+1}g_{k}",
+        "\\displaystyle=\\sum_{k=1}^{n-1}\\frac{n-k}{n-k+1}g_{n-k}",
+        "\\displaystyle=\\sum_{j=1}^{n-1}\\frac{j}{j+1}g_{j}\\leq\\sum_{j=1}^{n}g_{j}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\sum_{k=1}^{n-1}g_{k}\\sum_{t=n-k+1}^{n}\\frac{1}{t}",
+        "\\displaystyle\\leq\\sum_{k=1}^{n-1}\\frac{k}{n-k+1}g_{k}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{k=1}^{n-1}\\frac{n-k}{n-k+1}g_{n-k}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{j=1}^{n-1}\\frac{j}{j+1}g_{j}\\leq\\sum_{j=1}^{n}g_{j}."
+      ]
+    },
+    {
+      "id": "S4.E8",
+      "tex": [
+        "\\sum_{t=1}^{n}f_{t}\\leq 2\\alpha(n)\\mathbb{E}[\\mathrm{OPT}_{\\nu}]=2\\alpha(n)nf_{n}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{t=1}^{n}f_{t}\\leq 2\\alpha(n)\\mathbb{E}[\\mathrm{OPT}_{\\nu}]=2\\alpha(n)nf_{n}."
+      ]
+    },
+    {
+      "id": "S5.Ex1",
+      "tex": [
+        "\\sum_{j=1}^{n}\\pi_{t}(i,j)=\\frac{1}{t}\\quad(i\\in[t]),\\qquad\\sum_{i=1}^{t}\\pi_{t}(i,j)=\\frac{1}{n}\\quad(j\\in[n])."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\sum_{j=1}^{n}\\pi_{t}(i,j)=\\frac{1}{t}\\quad(i\\in[t]),\\qquad\\sum_{i=1}^{t}\\pi_{t}(i,j)=\\frac{1}{n}\\quad(j\\in[n])."
+      ]
+    },
+    {
+      "id": "S5.E1",
+      "tex": [
+        "\\mathbb{P}(J_{t}=j\\mid r_{1},\\ldots,r_{t})=t\\pi_{t}(t,j),\\qquad j\\in[n],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(J_{t}=j\\mid r_{1},\\ldots,r_{t})=t\\pi_{t}(t,j),\\qquad j\\in[n],"
+      ]
+    },
+    {
+      "id": "S5.E2",
+      "tex": [
+        "\\mathbb{P}(J_{1}=j_{1},\\ldots,J_{t}=j_{t})=n^{-t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(J_{1}=j_{1},\\ldots,J_{t}=j_{t})=n^{-t}."
+      ]
+    },
+    {
+      "id": "S5.E3",
+      "tex": [
+        "\\mathbb{P}(J_{1}=j_{1},\\ldots,J_{t-1}=j_{t-1}\\mid K=i)=n^{-(t-1)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(J_{1}=j_{1},\\ldots,J_{t-1}=j_{t-1}\\mid K=i)=n^{-(t-1)}."
+      ]
+    },
+    {
+      "id": "S5.E4",
+      "tex": [
+        "\\mathbb{P}(J_{t}=j_{t}\\mid K=i,J_{1}=j_{1},\\ldots,J_{t-1}=j_{t-1})=t\\pi_{M}(i,j_{t})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(J_{t}=j_{t}\\mid K=i,J_{1}=j_{1},\\ldots,J_{t-1}=j_{t-1})=t\\pi_{M}(i,j_{t})."
+      ]
+    },
+    {
+      "id": "S5.EGx2",
+      "tex": [
+        "\\displaystyle\\mathbb{P}(J_{1}=j_{1},\\ldots,J_{t}=j_{t})",
+        "\\displaystyle=\\sum_{i=1}^{t}\\frac{1}{t}\\,n^{-(t-1)}\\,t\\pi_{M}(i,j_{t})=n^{-(t-1)}\\sum_{i=1}^{t}\\pi_{M}(i,j_{t})=n^{-t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{P}(J_{1}=j_{1},\\ldots,J_{t}=j_{t})",
+        "\\displaystyle=\\sum_{i=1}^{t}\\frac{1}{t}\\,n^{-(t-1)}\\,t\\pi_{M}(i,j_{t})=n^{-(t-1)}\\sum_{i=1}^{t}\\pi_{M}(i,j_{t})=n^{-t}."
+      ]
+    },
+    {
+      "id": "S5.E5",
+      "tex": [
+        "\\mathbb{E}[d(r_{t},r^{\\prime}_{t})]=\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[d(r_{t},r^{\\prime}_{t})]=\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]."
+      ]
+    },
+    {
+      "id": "S5.EGx3",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[d(r_{t},r^{\\prime}_{t})\\mid M_{t}=M]",
+        "\\displaystyle=\\frac{1}{t}\\sum_{i=1}^{t}\\sum_{j=1}^{n}t\\pi_{M}(i,j)d(x_{i},s_{j})",
+        "\\displaystyle=\\sum_{i=1}^{t}\\sum_{j=1}^{n}\\pi_{M}(i,j)d(x_{i},s_{j})=W_{1}(\\widehat{D}_{t},\\nu)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[d(r_{t},r^{\\prime}_{t})\\mid M_{t}=M]",
+        "\\displaystyle=\\frac{1}{t}\\sum_{i=1}^{t}\\sum_{j=1}^{n}t\\pi_{M}(i,j)d(x_{i},s_{j})"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle=\\sum_{i=1}^{t}\\sum_{j=1}^{n}\\pi_{M}(i,j)d(x_{i},s_{j})=W_{1}(\\widehat{D}_{t},\\nu)."
+      ]
+    },
+    {
+      "id": "S5.E6",
+      "tex": [
+        "\\mathbb{E}[\\mathrm{ALG}]\\leq\\sum_{t=1}^{n}\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]+\\mathbb{E}[\\mathrm{ALG}_{\\nu}]=\\sum_{t=1}^{n}\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]+\\sum_{k=1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[\\mathrm{ALG}]\\leq\\sum_{t=1}^{n}\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]+\\mathbb{E}[\\mathrm{ALG}_{\\nu}]=\\sum_{t=1}^{n}\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]+\\sum_{k=1}^{n}g_{k}."
+      ]
+    },
+    {
+      "id": "S6.EGx4",
+      "tex": [
+        "\\displaystyle nW_{1}(D,\\nu)",
+        "\\displaystyle\\leq\\mathbb{E}[\\mathrm{OPT}],",
+        "\\displaystyle\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]",
+        "\\displaystyle\\leq W_{1}(D,\\nu)+f_{t}",
+        "\\displaystyle(1\\leq t\\leq n),",
+        "\\displaystyle\\mathbb{E}[\\mathrm{OPT}_{\\nu}]",
+        "\\displaystyle\\leq\\mathbb{E}[\\mathrm{OPT}]+nW_{1}(D,\\nu)\\leq 2\\mathbb{E}[\\mathrm{OPT}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle nW_{1}(D,\\nu)",
+        "\\displaystyle\\leq\\mathbb{E}[\\mathrm{OPT}],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]",
+        "\\displaystyle\\leq W_{1}(D,\\nu)+f_{t}",
+        "\\displaystyle(1\\leq t\\leq n),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[\\mathrm{OPT}_{\\nu}]",
+        "\\displaystyle\\leq\\mathbb{E}[\\mathrm{OPT}]+nW_{1}(D,\\nu)\\leq 2\\mathbb{E}[\\mathrm{OPT}]."
+      ]
+    },
+    {
+      "id": "S6.Ex1",
+      "tex": [
+        "\\beta_{R}(a,j)=\\frac{1}{n}\\sum_{i=1}^{n}\\mathbf{1}\\{r_{i}=x_{a},\\ \\sigma_{R}(i)=j\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\beta_{R}(a,j)=\\frac{1}{n}\\sum_{i=1}^{n}\\mathbf{1}\\{r_{i}=x_{a},\\ \\sigma_{R}(i)=j\\}."
+      ]
+    },
+    {
+      "id": "S6.Ex2",
+      "tex": [
+        "\\mathbb{P}(U_{i}=a,V_{i}=j)=\\gamma(a,j)\\quad(a\\in[m],\\ j\\in[n]),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{P}(U_{i}=a,V_{i}=j)=\\gamma(a,j)\\quad(a\\in[m],\\ j\\in[n]),"
+      ]
+    },
+    {
+      "id": "S6.E4",
+      "tex": [
+        "\\lambda_{t}(i,j)=\\frac{1}{t}\\mathbf{1}\\{i=j\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\lambda_{t}(i,j)=\\frac{1}{t}\\mathbf{1}\\{i=j\\}."
+      ]
+    },
+    {
+      "id": "S6.E5",
+      "tex": [
+        "W_{1}(\\widehat{D}_{t},\\widehat{\\nu}_{t})\\leq\\frac{1}{t}\\sum_{i=1}^{t}d(\\widetilde{r}_{i},z_{i})."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "W_{1}(\\widehat{D}_{t},\\widehat{\\nu}_{t})\\leq\\frac{1}{t}\\sum_{i=1}^{t}d(\\widetilde{r}_{i},z_{i})."
+      ]
+    },
+    {
+      "id": "S6.Ex3",
+      "tex": [
+        "\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]\\leq W_{1}(D,\\nu)+f_{t},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]\\leq W_{1}(D,\\nu)+f_{t},"
+      ]
+    },
+    {
+      "id": "S6.EGx5",
+      "tex": [
+        "\\displaystyle\\mathrm{OPT}((z_{1},\\ldots,z_{n}),S)",
+        "\\displaystyle\\leq\\sum_{i=1}^{n}d(z_{i},s_{\\sigma(i)})\\leq\\sum_{i=1}^{n}d(z_{i},\\widetilde{r}_{i})+\\mathrm{OPT}((\\widetilde{r}_{1},\\ldots,\\widetilde{r}_{n}),S)."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathrm{OPT}((z_{1},\\ldots,z_{n}),S)",
+        "\\displaystyle\\leq\\sum_{i=1}^{n}d(z_{i},s_{\\sigma(i)})\\leq\\sum_{i=1}^{n}d(z_{i},\\widetilde{r}_{i})+\\mathrm{OPT}((\\widetilde{r}_{1},\\ldots,\\widetilde{r}_{n}),S)."
+      ]
+    },
+    {
+      "id": "S6.E6",
+      "tex": [
+        "\\mathbb{E}[\\mathrm{ALG}]\\leq(1+6\\alpha(n))\\mathbb{E}[\\mathrm{OPT}]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[\\mathrm{ALG}]\\leq(1+6\\alpha(n))\\mathbb{E}[\\mathrm{OPT}]"
+      ]
+    },
+    {
+      "id": "S6.EGx6",
+      "tex": [
+        "\\displaystyle\\mathbb{E}[\\mathrm{ALG}]",
+        "\\displaystyle\\leq\\sum_{t=1}^{n}\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]+\\sum_{k=1}^{n}g_{k}\\leq nW_{1}(D,\\nu)+\\sum_{t=1}^{n}f_{t}+\\sum_{k=1}^{n}g_{k}",
+        "\\displaystyle\\leq nW_{1}(D,\\nu)+3\\sum_{k=1}^{n}g_{k}\\leq nW_{1}(D,\\nu)+3\\alpha(n)\\mathbb{E}[\\mathrm{OPT}_{\\nu}]",
+        "\\displaystyle\\leq\\mathbb{E}[\\mathrm{OPT}]+6\\alpha(n)\\mathbb{E}[\\mathrm{OPT}]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\mathbb{E}[\\mathrm{ALG}]",
+        "\\displaystyle\\leq\\sum_{t=1}^{n}\\mathbb{E}[W_{1}(\\widehat{D}_{t},\\nu)]+\\sum_{k=1}^{n}g_{k}\\leq nW_{1}(D,\\nu)+\\sum_{t=1}^{n}f_{t}+\\sum_{k=1}^{n}g_{k}"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq nW_{1}(D,\\nu)+3\\sum_{k=1}^{n}g_{k}\\leq nW_{1}(D,\\nu)+3\\alpha(n)\\mathbb{E}[\\mathrm{OPT}_{\\nu}]"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\leq\\mathbb{E}[\\mathrm{OPT}]+6\\alpha(n)\\mathbb{E}[\\mathrm{OPT}]."
+      ]
+    },
+    {
+      "id": "S7.Ex1",
+      "tex": [
+        "\\mathrm{OPT}(M,S)=0,\\qquad W_{1}(D_{M},\\nu)=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathrm{OPT}(M,S)=0,\\qquad W_{1}(D_{M},\\nu)=0."
+      ]
+    },
+    {
+      "id": "S7.Ex2",
+      "tex": [
+        "\\mathbb{E}[\\mathrm{OPT}_{\\nu}]=\\frac{1}{2}>\\mathrm{OPT}(M,S)+nW_{1}(D_{M},\\nu)=0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}[\\mathrm{OPT}_{\\nu}]=\\frac{1}{2}>\\mathrm{OPT}(M,S)+nW_{1}(D_{M},\\nu)=0."
+      ]
+    },
+    {
+      "id": "A1.Ex1",
+      "tex": [
+        "\\gamma(i,i)=\\min\\{p_{i},q_{i}\\}\\quad\\text{for every }i."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma(i,i)=\\min\\{p_{i},q_{i}\\}\\quad\\text{for every }i."
+      ]
+    },
+    {
+      "id": "A1.Ex2",
+      "tex": [
+        "\\varepsilon=\\min\\{\\gamma(u,v),\\gamma(v,w)\\}>0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon=\\min\\{\\gamma(u,v),\\gamma(v,w)\\}>0."
+      ]
+    },
+    {
+      "id": "A1.Ex3",
+      "tex": [
+        "\\varepsilon\\bigl(d(s_{u},s_{w})-d(s_{u},s_{v})-d(s_{v},s_{w})\\bigr)\\leq 0."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\varepsilon\\bigl(d(s_{u},s_{w})-d(s_{u},s_{v})-d(s_{v},s_{w})\\bigr)\\leq 0."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S1.T1",
+      "caption": "Table 1:  Competitive-ratio bounds for general and tree metrics.",
+      "images": []
+    },
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1    Online metric matching for unknown i.i.d. requests in a finite metric space",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

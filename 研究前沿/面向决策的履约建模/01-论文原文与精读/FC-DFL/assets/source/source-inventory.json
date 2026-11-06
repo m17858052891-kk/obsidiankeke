@@ -1,0 +1,854 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Frequency-Calibrated Decision-Focused Learning for BESS Dispatch Under Renewable Uncertainty",
+      "id": null
+    },
+    {
+      "title": "I  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "II  Forecast-Coupled BESS Regulation Model",
+      "id": "S2"
+    },
+    {
+      "title": "II-A   Renewable Variability and Forecast Errors",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "II-B   BESS Regulation Model",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "II-C   Forecast-Coupled Dispatch and Realized Decision Cost",
+      "id": "S2.SS3"
+    },
+    {
+      "title": "III  Frequency-Calibrated Decision-Focused Learning",
+      "id": "S3"
+    },
+    {
+      "title": "III-A   Gaussian-Smoothed Realized Decision Cost",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "III-B   Zeroth-Order Decision Feedback",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "III-C   FC-DFL Predictor Training",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "IV  Decision-Oriented Explainability",
+      "id": "S4"
+    },
+    {
+      "title": "IV-A   Decision-Oriented Feature Importance",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "IV-B   Estimation of Decision-Oriented Importance Scores",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "IV-C   Operational Faithfulness",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "V  Case Studies",
+      "id": "S5"
+    },
+    {
+      "title": "V-A   Experimental Settings",
+      "id": "S5.SS1"
+    },
+    {
+      "title": "V-B   Forecast Accuracy and Realized Regulation Performance",
+      "id": "S5.SS2"
+    },
+    {
+      "title": "V-C   Forecast-Induced BESS Operation",
+      "id": "S5.SS3"
+    },
+    {
+      "title": "V-D   Robustness Across BESS and Renewable Conditions",
+      "id": "S5.SS4"
+    },
+    {
+      "title": "V-E   Decision-Oriented Importance and Operational Faithfulness",
+      "id": "S5.SS5"
+    },
+    {
+      "title": "V-F   Sensitivity to Smoothing Radius and Perturbation Budget",
+      "id": "S5.SS6"
+    },
+    {
+      "title": "VI  Conclusion",
+      "id": "S6"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "\\displaystyle r_{i,t}",
+        "\\displaystyle=r_{i,t}^{\\mathrm{w}}+r_{i,t}^{\\mathrm{pv}},\\qquad t\\in\\mathcal{T},",
+        "\\displaystyle\\Delta_{\\tau}r_{i,t}",
+        "\\displaystyle=r_{i,t}-r_{i,t-\\tau},\\qquad t=\\tau+1,\\ldots,T."
+      ]
+    },
+    {
+      "id": "S2.E1.1",
+      "tex": [
+        "\\displaystyle r_{i,t}",
+        "\\displaystyle=r_{i,t}^{\\mathrm{w}}+r_{i,t}^{\\mathrm{pv}},\\qquad t\\in\\mathcal{T},"
+      ]
+    },
+    {
+      "id": "S2.E1.2",
+      "tex": [
+        "\\displaystyle\\Delta_{\\tau}r_{i,t}",
+        "\\displaystyle=r_{i,t}-r_{i,t-\\tau},\\qquad t=\\tau+1,\\ldots,T."
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "\\displaystyle\\epsilon_{i,t}",
+        "\\displaystyle=\\hat{r}_{i,t}-r_{i,t},",
+        "\\displaystyle\\bm{\\epsilon}_{i}",
+        "\\displaystyle=\\hat{\\bm{r}}_{i}-\\bm{r}_{i},",
+        "\\displaystyle\\epsilon_{i,t,\\tau}^{\\mathrm{ramp}}",
+        "\\displaystyle=\\Delta_{\\tau}\\hat{r}_{i,t}-\\Delta_{\\tau}r_{i,t}=\\epsilon_{i,t}-\\epsilon_{i,t-\\tau},",
+        "\\displaystyle\\mathcal{L}_{i}^{\\mathrm{MSE}}",
+        "\\displaystyle=\\frac{1}{T}\\left\\|\\bm{\\epsilon}_{i}\\right\\|_{2}^{2}."
+      ]
+    },
+    {
+      "id": "S2.E2.1",
+      "tex": [
+        "\\displaystyle\\epsilon_{i,t}",
+        "\\displaystyle=\\hat{r}_{i,t}-r_{i,t},"
+      ]
+    },
+    {
+      "id": "S2.E2.2",
+      "tex": [
+        "\\displaystyle\\bm{\\epsilon}_{i}",
+        "\\displaystyle=\\hat{\\bm{r}}_{i}-\\bm{r}_{i},"
+      ]
+    },
+    {
+      "id": "S2.E2.3",
+      "tex": [
+        "\\displaystyle\\epsilon_{i,t,\\tau}^{\\mathrm{ramp}}",
+        "\\displaystyle=\\Delta_{\\tau}\\hat{r}_{i,t}-\\Delta_{\\tau}r_{i,t}=\\epsilon_{i,t}-\\epsilon_{i,t-\\tau},"
+      ]
+    },
+    {
+      "id": "S2.E2.4",
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{i}^{\\mathrm{MSE}}",
+        "\\displaystyle=\\frac{1}{T}\\left\\|\\bm{\\epsilon}_{i}\\right\\|_{2}^{2}."
+      ]
+    },
+    {
+      "id": "S2.E3",
+      "tex": [
+        "\\displaystyle p_{i,t}^{\\mathrm{bess}}",
+        "\\displaystyle=p_{i,t}^{\\mathrm{dch}}-p_{i,t}^{\\mathrm{ch}},",
+        "\\displaystyle P^{\\mathrm{use}}",
+        "\\displaystyle=\\bar{P}-P^{\\mathrm{res}},",
+        "\\displaystyle 0",
+        "\\displaystyle\\leq p_{i,t}^{\\mathrm{ch}}\\leq u_{i,t}P^{\\mathrm{use}},",
+        "\\displaystyle 0",
+        "\\displaystyle\\leq p_{i,t}^{\\mathrm{dch}}\\leq(1-u_{i,t})P^{\\mathrm{use}},",
+        "\\displaystyle u_{i,t}",
+        "\\displaystyle\\in\\{0,1\\},",
+        "\\displaystyle s_{i,t+1}",
+        "\\displaystyle=s_{i,t}+\\frac{\\Delta t}{\\bar{E}}\\left(\\eta^{\\mathrm{ch}}p_{i,t}^{\\mathrm{ch}}-\\frac{p_{i,t}^{\\mathrm{dch}}}{\\eta^{\\mathrm{dch}}}\\right),",
+        "\\displaystyle\\underline{s}",
+        "\\displaystyle\\leq s_{i,t}\\leq\\bar{s},\\quad t\\in\\mathcal{T}\\cup\\{T+1\\},",
+        "\\displaystyle s_{i,1}",
+        "\\displaystyle=s_{i,T+1}=s^{\\mathrm{init}},",
+        "\\displaystyle p_{i,0}^{\\mathrm{bess}}",
+        "\\displaystyle=p_{i,T+1}^{\\mathrm{bess}}=0,",
+        "\\displaystyle\\left|p_{i,t}^{\\mathrm{bess}}-p_{i,t-1}^{\\mathrm{bess}}\\right|",
+        "\\displaystyle\\leq R^{\\mathrm{bess}}\\Delta t,\\quad t\\in\\mathcal{T}\\cup\\{T+1\\}."
+      ]
+    },
+    {
+      "id": "S2.E3.1",
+      "tex": [
+        "\\displaystyle p_{i,t}^{\\mathrm{bess}}",
+        "\\displaystyle=p_{i,t}^{\\mathrm{dch}}-p_{i,t}^{\\mathrm{ch}},"
+      ]
+    },
+    {
+      "id": "S2.E3.2",
+      "tex": [
+        "\\displaystyle P^{\\mathrm{use}}",
+        "\\displaystyle=\\bar{P}-P^{\\mathrm{res}},"
+      ]
+    },
+    {
+      "id": "S2.E3.3",
+      "tex": [
+        "\\displaystyle 0",
+        "\\displaystyle\\leq p_{i,t}^{\\mathrm{ch}}\\leq u_{i,t}P^{\\mathrm{use}},"
+      ]
+    },
+    {
+      "id": "S2.E3.4",
+      "tex": [
+        "\\displaystyle 0",
+        "\\displaystyle\\leq p_{i,t}^{\\mathrm{dch}}\\leq(1-u_{i,t})P^{\\mathrm{use}},"
+      ]
+    },
+    {
+      "id": "S2.E3.5",
+      "tex": [
+        "\\displaystyle u_{i,t}",
+        "\\displaystyle\\in\\{0,1\\},"
+      ]
+    },
+    {
+      "id": "S2.E3.6",
+      "tex": [
+        "\\displaystyle s_{i,t+1}",
+        "\\displaystyle=s_{i,t}+\\frac{\\Delta t}{\\bar{E}}\\left(\\eta^{\\mathrm{ch}}p_{i,t}^{\\mathrm{ch}}-\\frac{p_{i,t}^{\\mathrm{dch}}}{\\eta^{\\mathrm{dch}}}\\right),"
+      ]
+    },
+    {
+      "id": "S2.E3.7",
+      "tex": [
+        "\\displaystyle\\underline{s}",
+        "\\displaystyle\\leq s_{i,t}\\leq\\bar{s},\\quad t\\in\\mathcal{T}\\cup\\{T+1\\},"
+      ]
+    },
+    {
+      "id": "S2.E3.8",
+      "tex": [
+        "\\displaystyle s_{i,1}",
+        "\\displaystyle=s_{i,T+1}=s^{\\mathrm{init}},"
+      ]
+    },
+    {
+      "id": "S2.E3.9",
+      "tex": [
+        "\\displaystyle p_{i,0}^{\\mathrm{bess}}",
+        "\\displaystyle=p_{i,T+1}^{\\mathrm{bess}}=0,"
+      ]
+    },
+    {
+      "id": "S2.E3.10",
+      "tex": [
+        "\\displaystyle\\left|p_{i,t}^{\\mathrm{bess}}-p_{i,t-1}^{\\mathrm{bess}}\\right|",
+        "\\displaystyle\\leq R^{\\mathrm{bess}}\\Delta t,\\quad t\\in\\mathcal{T}\\cup\\{T+1\\}."
+      ]
+    },
+    {
+      "id": "S2.E4",
+      "tex": [
+        "\\displaystyle p_{i,t}^{\\mathrm{net}}(\\bm{\\rho})",
+        "\\displaystyle=p_{i,t}^{\\mathrm{load}}-\\rho_{t},",
+        "\\displaystyle e_{i,t}(z_{i};\\bm{\\rho})",
+        "\\displaystyle=p_{i,t}^{\\mathrm{net}}(\\bm{\\rho})-p_{i,t}^{\\mathrm{bess}},",
+        "\\displaystyle\\Delta f_{i,t}",
+        "\\displaystyle=-\\frac{e_{i,t}(z_{i};\\bm{\\rho})}{B^{\\mathrm{sys}}},",
+        "\\displaystyle\\kappa",
+        "\\displaystyle=1+\\frac{\\lambda_{f}}{B^{\\mathrm{sys}}},",
+        "\\displaystyle\\Psi_{i}(z_{i};\\bm{\\rho})",
+        "\\displaystyle=\\Delta t\\sum_{t=1}^{T}\\Big[\\kappa\\left|e_{i,t}(z_{i};\\bm{\\rho})\\right|",
+        "\\displaystyle\\qquad+\\lambda_{p}\\left(p_{i,t}^{\\mathrm{ch}}+p_{i,t}^{\\mathrm{dch}}\\right)\\Big],",
+        "\\displaystyle z_{i}^{\\star}(\\bm{\\rho})",
+        "\\displaystyle\\in\\argmin_{z_{i}\\in\\mathcal{X}_{i}^{\\mathrm{BESS}}}\\Psi_{i}(z_{i};\\bm{\\rho})."
+      ]
+    },
+    {
+      "id": "S2.E4.1",
+      "tex": [
+        "\\displaystyle p_{i,t}^{\\mathrm{net}}(\\bm{\\rho})",
+        "\\displaystyle=p_{i,t}^{\\mathrm{load}}-\\rho_{t},"
+      ]
+    },
+    {
+      "id": "S2.E4.2",
+      "tex": [
+        "\\displaystyle e_{i,t}(z_{i};\\bm{\\rho})",
+        "\\displaystyle=p_{i,t}^{\\mathrm{net}}(\\bm{\\rho})-p_{i,t}^{\\mathrm{bess}},"
+      ]
+    },
+    {
+      "id": "S2.E4.3",
+      "tex": [
+        "\\displaystyle\\Delta f_{i,t}",
+        "\\displaystyle=-\\frac{e_{i,t}(z_{i};\\bm{\\rho})}{B^{\\mathrm{sys}}},"
+      ]
+    },
+    {
+      "id": "S2.E4.4",
+      "tex": [
+        "\\displaystyle\\kappa",
+        "\\displaystyle=1+\\frac{\\lambda_{f}}{B^{\\mathrm{sys}}},"
+      ]
+    },
+    {
+      "id": "S2.E4.x1",
+      "tex": [
+        "\\displaystyle\\Psi_{i}(z_{i};\\bm{\\rho})",
+        "\\displaystyle=\\Delta t\\sum_{t=1}^{T}\\Big[\\kappa\\left|e_{i,t}(z_{i};\\bm{\\rho})\\right|"
+      ]
+    },
+    {
+      "id": "S2.E4.5",
+      "tex": [
+        "\\displaystyle\\qquad+\\lambda_{p}\\left(p_{i,t}^{\\mathrm{ch}}+p_{i,t}^{\\mathrm{dch}}\\right)\\Big],"
+      ]
+    },
+    {
+      "id": "S2.E4.6",
+      "tex": [
+        "\\displaystyle z_{i}^{\\star}(\\bm{\\rho})",
+        "\\displaystyle\\in\\argmin_{z_{i}\\in\\mathcal{X}_{i}^{\\mathrm{BESS}}}\\Psi_{i}(z_{i};\\bm{\\rho})."
+      ]
+    },
+    {
+      "id": "S2.E5",
+      "tex": [
+        "\\displaystyle p_{i,t}^{\\mathrm{bess}}+\\delta_{i,t}^{\\mathrm{def}}-\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle=p_{i,t}^{\\mathrm{net}}(\\bm{\\rho}),",
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{def}},\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle\\geq 0,",
+        "\\displaystyle\\min_{z_{i},\\bm{\\delta}_{i}^{\\mathrm{def}},\\bm{\\delta}_{i}^{\\mathrm{sur}}}\\quad",
+        "\\displaystyle\\Delta t\\sum_{t=1}^{T}\\Big[\\kappa\\left(\\delta_{i,t}^{\\mathrm{def}}+\\delta_{i,t}^{\\mathrm{sur}}\\right)",
+        "\\displaystyle\\qquad+\\lambda_{p}\\left(p_{i,t}^{\\mathrm{ch}}+p_{i,t}^{\\mathrm{dch}}\\right)\\Big]",
+        "\\displaystyle z_{i}\\in\\mathcal{X}_{i}^{\\mathrm{BESS}},\\quad\\eqref{eq:native_balance},\\quad\\eqref{eq:imbalance_variables}."
+      ]
+    },
+    {
+      "id": "S2.E5.1",
+      "tex": [
+        "\\displaystyle p_{i,t}^{\\mathrm{bess}}+\\delta_{i,t}^{\\mathrm{def}}-\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle=p_{i,t}^{\\mathrm{net}}(\\bm{\\rho}),"
+      ]
+    },
+    {
+      "id": "S2.E5.2",
+      "tex": [
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{def}},\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle\\geq 0,"
+      ]
+    },
+    {
+      "id": "S2.E5.x1",
+      "tex": [
+        "\\displaystyle\\min_{z_{i},\\bm{\\delta}_{i}^{\\mathrm{def}},\\bm{\\delta}_{i}^{\\mathrm{sur}}}\\quad",
+        "\\displaystyle\\Delta t\\sum_{t=1}^{T}\\Big[\\kappa\\left(\\delta_{i,t}^{\\mathrm{def}}+\\delta_{i,t}^{\\mathrm{sur}}\\right)"
+      ]
+    },
+    {
+      "id": "S2.E5.3",
+      "tex": [
+        "\\displaystyle\\qquad+\\lambda_{p}\\left(p_{i,t}^{\\mathrm{ch}}+p_{i,t}^{\\mathrm{dch}}\\right)\\Big]"
+      ]
+    },
+    {
+      "id": "S2.E5.x2",
+      "tex": [
+        "\\displaystyle z_{i}\\in\\mathcal{X}_{i}^{\\mathrm{BESS}},\\quad\\eqref{eq:native_balance},\\quad\\eqref{eq:imbalance_variables}."
+      ]
+    },
+    {
+      "id": "S2.E6",
+      "tex": [
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{def}}",
+        "\\displaystyle=\\max\\left\\{e_{i,t}(z_{i};\\bm{\\rho}),0\\right\\},",
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle=\\max\\left\\{-e_{i,t}(z_{i};\\bm{\\rho}),0\\right\\},",
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{def}}+\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle=\\left|e_{i,t}(z_{i};\\bm{\\rho})\\right|."
+      ]
+    },
+    {
+      "id": "S2.E6.1",
+      "tex": [
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{def}}",
+        "\\displaystyle=\\max\\left\\{e_{i,t}(z_{i};\\bm{\\rho}),0\\right\\},"
+      ]
+    },
+    {
+      "id": "S2.E6.2",
+      "tex": [
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle=\\max\\left\\{-e_{i,t}(z_{i};\\bm{\\rho}),0\\right\\},"
+      ]
+    },
+    {
+      "id": "S2.E6.3",
+      "tex": [
+        "\\displaystyle\\delta_{i,t}^{\\mathrm{def}}+\\delta_{i,t}^{\\mathrm{sur}}",
+        "\\displaystyle=\\left|e_{i,t}(z_{i};\\bm{\\rho})\\right|."
+      ]
+    },
+    {
+      "id": "S2.E7",
+      "tex": [
+        "\\displaystyle F_{i}(\\bm{\\rho})",
+        "\\displaystyle=\\Psi_{i}\\left(z_{i}^{\\star}(\\bm{\\rho});\\bm{r}_{i}\\right),",
+        "\\displaystyle z_{i}^{\\mathrm{ref}}",
+        "\\displaystyle=z_{i}^{\\star}(\\bm{r}_{i}),",
+        "\\displaystyle F_{i}(\\bm{r}_{i})",
+        "\\displaystyle=\\min_{z_{i}\\in\\mathcal{X}_{i}^{\\mathrm{BESS}}}\\Psi_{i}(z_{i};\\bm{r}_{i}),",
+        "\\displaystyle\\ell_{i}^{\\mathrm{dec}}(\\bm{\\rho})",
+        "\\displaystyle=F_{i}(\\bm{\\rho})-F_{i}(\\bm{r}_{i}),",
+        "\\displaystyle\\mathrm{IAFD}_{i}(z_{i})",
+        "\\displaystyle=\\frac{\\Delta t}{B^{\\mathrm{sys}}}\\sum_{t=1}^{T}\\left|p_{i,t}^{\\mathrm{load}}-r_{i,t}-p_{i,t}^{\\mathrm{bess}}\\right|."
+      ]
+    },
+    {
+      "id": "S2.E7.1",
+      "tex": [
+        "\\displaystyle F_{i}(\\bm{\\rho})",
+        "\\displaystyle=\\Psi_{i}\\left(z_{i}^{\\star}(\\bm{\\rho});\\bm{r}_{i}\\right),"
+      ]
+    },
+    {
+      "id": "S2.E7.2",
+      "tex": [
+        "\\displaystyle z_{i}^{\\mathrm{ref}}",
+        "\\displaystyle=z_{i}^{\\star}(\\bm{r}_{i}),"
+      ]
+    },
+    {
+      "id": "S2.E7.3",
+      "tex": [
+        "\\displaystyle F_{i}(\\bm{r}_{i})",
+        "\\displaystyle=\\min_{z_{i}\\in\\mathcal{X}_{i}^{\\mathrm{BESS}}}\\Psi_{i}(z_{i};\\bm{r}_{i}),"
+      ]
+    },
+    {
+      "id": "S2.E7.4",
+      "tex": [
+        "\\displaystyle\\ell_{i}^{\\mathrm{dec}}(\\bm{\\rho})",
+        "\\displaystyle=F_{i}(\\bm{\\rho})-F_{i}(\\bm{r}_{i}),"
+      ]
+    },
+    {
+      "id": "S2.E7.5",
+      "tex": [
+        "\\displaystyle\\mathrm{IAFD}_{i}(z_{i})",
+        "\\displaystyle=\\frac{\\Delta t}{B^{\\mathrm{sys}}}\\sum_{t=1}^{T}\\left|p_{i,t}^{\\mathrm{load}}-r_{i,t}-p_{i,t}^{\\mathrm{bess}}\\right|."
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "\\displaystyle\\hat{\\bm{r}}_{i}",
+        "\\displaystyle=g_{\\theta}(\\bm{x}_{i})\\in\\mathbb{R}^{T},",
+        "\\displaystyle\\bar{F}_{i}(\\bm{y})",
+        "\\displaystyle=F_{i}\\left(\\Pi_{\\mathcal{R}}(\\bm{y})\\right),\\quad\\bm{y}\\in\\mathbb{R}^{T},",
+        "\\displaystyle\\widetilde{F}_{i,\\sigma}(\\bm{\\rho})",
+        "\\displaystyle=\\mathbb{E}_{\\bm{U}}\\left[\\bar{F}_{i}(\\bm{\\rho}+\\sigma\\bm{U})\\right],",
+        "\\displaystyle\\widetilde{\\ell}_{i,\\sigma}^{\\mathrm{dec}}(\\bm{\\rho})",
+        "\\displaystyle=\\widetilde{F}_{i,\\sigma}(\\bm{\\rho})-F_{i}(\\bm{r}_{i})."
+      ]
+    },
+    {
+      "id": "S3.E8.1",
+      "tex": [
+        "\\displaystyle\\hat{\\bm{r}}_{i}",
+        "\\displaystyle=g_{\\theta}(\\bm{x}_{i})\\in\\mathbb{R}^{T},"
+      ]
+    },
+    {
+      "id": "S3.E8.2",
+      "tex": [
+        "\\displaystyle\\bar{F}_{i}(\\bm{y})",
+        "\\displaystyle=F_{i}\\left(\\Pi_{\\mathcal{R}}(\\bm{y})\\right),\\quad\\bm{y}\\in\\mathbb{R}^{T},"
+      ]
+    },
+    {
+      "id": "S3.E8.3",
+      "tex": [
+        "\\displaystyle\\widetilde{F}_{i,\\sigma}(\\bm{\\rho})",
+        "\\displaystyle=\\mathbb{E}_{\\bm{U}}\\left[\\bar{F}_{i}(\\bm{\\rho}+\\sigma\\bm{U})\\right],"
+      ]
+    },
+    {
+      "id": "S3.E8.4",
+      "tex": [
+        "\\displaystyle\\widetilde{\\ell}_{i,\\sigma}^{\\mathrm{dec}}(\\bm{\\rho})",
+        "\\displaystyle=\\widetilde{F}_{i,\\sigma}(\\bm{\\rho})-F_{i}(\\bm{r}_{i})."
+      ]
+    },
+    {
+      "id": "S3.EGx9",
+      "tex": [
+        "\\displaystyle\\nabla_{\\bm{\\rho}}\\widetilde{F}_{i,\\sigma}(\\bm{\\rho})",
+        "\\displaystyle=\\frac{1}{\\sigma}\\mathbb{E}_{\\bm{U}}\\left[\\bar{F}_{i}(\\bm{\\rho}+\\sigma\\bm{U})\\bm{U}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\nabla_{\\bm{\\rho}}\\widetilde{F}_{i,\\sigma}(\\bm{\\rho})",
+        "\\displaystyle=\\frac{1}{\\sigma}\\mathbb{E}_{\\bm{U}}\\left[\\bar{F}_{i}(\\bm{\\rho}+\\sigma\\bm{U})\\bm{U}\\right]."
+      ]
+    },
+    {
+      "id": "S3.EGx10",
+      "tex": [
+        "\\displaystyle g_{i}^{\\mathrm{opt}}",
+        "\\displaystyle=\\nabla_{\\hat{\\bm{r}}_{i}}\\widetilde{F}_{i,\\sigma}\\left(\\hat{\\bm{r}}_{i}\\right)\\in\\mathbb{R}^{T}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle g_{i}^{\\mathrm{opt}}",
+        "\\displaystyle=\\nabla_{\\hat{\\bm{r}}_{i}}\\widetilde{F}_{i,\\sigma}\\left(\\hat{\\bm{r}}_{i}\\right)\\in\\mathbb{R}^{T}."
+      ]
+    },
+    {
+      "id": "S3.E11",
+      "tex": [
+        "\\displaystyle\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}",
+        "\\displaystyle=\\frac{1}{K\\sigma}\\sum_{k=1}^{K}\\Big[\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}+\\sigma\\bm{u}_{i,k}\\right)",
+        "\\displaystyle\\qquad-\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}\\right)\\Big]\\bm{u}_{i,k},",
+        "\\displaystyle\\widehat{g}_{i,\\mathrm{anti}}^{\\mathrm{opt}}",
+        "\\displaystyle=\\frac{1}{2K\\sigma}\\sum_{k=1}^{K}\\Big[\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}+\\sigma\\bm{u}_{i,k}\\right)",
+        "\\displaystyle\\qquad-\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}-\\sigma\\bm{u}_{i,k}\\right)\\Big]\\bm{u}_{i,k}."
+      ]
+    },
+    {
+      "id": "S3.E11.x1",
+      "tex": [
+        "\\displaystyle\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}",
+        "\\displaystyle=\\frac{1}{K\\sigma}\\sum_{k=1}^{K}\\Big[\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}+\\sigma\\bm{u}_{i,k}\\right)"
+      ]
+    },
+    {
+      "id": "S3.E11.1",
+      "tex": [
+        "\\displaystyle\\qquad-\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}\\right)\\Big]\\bm{u}_{i,k},"
+      ]
+    },
+    {
+      "id": "S3.E11.x2",
+      "tex": [
+        "\\displaystyle\\widehat{g}_{i,\\mathrm{anti}}^{\\mathrm{opt}}",
+        "\\displaystyle=\\frac{1}{2K\\sigma}\\sum_{k=1}^{K}\\Big[\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}+\\sigma\\bm{u}_{i,k}\\right)"
+      ]
+    },
+    {
+      "id": "S3.E11.2",
+      "tex": [
+        "\\displaystyle\\qquad-\\bar{F}_{i}\\left(\\hat{\\bm{r}}_{i}-\\sigma\\bm{u}_{i,k}\\right)\\Big]\\bm{u}_{i,k}."
+      ]
+    },
+    {
+      "id": "S3.E12",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}\\mid\\theta,\\bm{x}_{i},\\bm{r}_{i}\\right]",
+        "\\displaystyle=g_{i}^{\\mathrm{opt}},",
+        "\\displaystyle\\mathbb{E}\\left[\\widehat{g}_{i,\\mathrm{anti}}^{\\mathrm{opt}}\\mid\\theta,\\bm{x}_{i},\\bm{r}_{i}\\right]",
+        "\\displaystyle=g_{i}^{\\mathrm{opt}}."
+      ]
+    },
+    {
+      "id": "S3.E12.1",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}\\mid\\theta,\\bm{x}_{i},\\bm{r}_{i}\\right]",
+        "\\displaystyle=g_{i}^{\\mathrm{opt}},"
+      ]
+    },
+    {
+      "id": "S3.E12.2",
+      "tex": [
+        "\\displaystyle\\mathbb{E}\\left[\\widehat{g}_{i,\\mathrm{anti}}^{\\mathrm{opt}}\\mid\\theta,\\bm{x}_{i},\\bm{r}_{i}\\right]",
+        "\\displaystyle=g_{i}^{\\mathrm{opt}}."
+      ]
+    },
+    {
+      "id": "S3.Ex1",
+      "tex": [
+        "\\mathbb{E}\\left[\\bar{F}_{i}(\\hat{\\bm{r}}_{i}-\\sigma\\bm{U})\\bm{U}\\right]=-\\mathbb{E}\\left[\\bar{F}_{i}(\\hat{\\bm{r}}_{i}+\\sigma\\bm{U})\\bm{U}\\right]."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\left[\\bar{F}_{i}(\\hat{\\bm{r}}_{i}-\\sigma\\bm{U})\\bm{U}\\right]=-\\mathbb{E}\\left[\\bar{F}_{i}(\\hat{\\bm{r}}_{i}+\\sigma\\bm{U})\\bm{U}\\right]."
+      ]
+    },
+    {
+      "id": "S3.E13",
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\mathrm{FC}}(\\theta)",
+        "\\displaystyle=\\frac{1}{N}\\sum_{i=1}^{N}\\widetilde{\\ell}_{i,\\sigma}^{\\mathrm{dec}}\\left(g_{\\theta}(\\bm{x}_{i})\\right),",
+        "\\displaystyle\\nabla_{\\theta}\\mathcal{L}_{\\mathrm{FC}}(\\theta)",
+        "\\displaystyle=\\frac{1}{N}\\sum_{i=1}^{N}\\left[\\nabla_{\\theta}g_{\\theta}(\\bm{x}_{i})\\right]^{\\top}g_{i}^{\\mathrm{opt}},",
+        "\\displaystyle\\mathcal{L}_{i}^{\\mathrm{back}}",
+        "\\displaystyle=\\left\\langle\\operatorname{sg}\\left(\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}\\right),\\hat{\\bm{r}}_{i}\\right\\rangle,",
+        "\\displaystyle\\nabla_{\\theta}\\mathcal{L}_{i}^{\\mathrm{back}}",
+        "\\displaystyle=\\left[\\nabla_{\\theta}g_{\\theta}(\\bm{x}_{i})\\right]^{\\top}\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}."
+      ]
+    },
+    {
+      "id": "S3.E13.1",
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{\\mathrm{FC}}(\\theta)",
+        "\\displaystyle=\\frac{1}{N}\\sum_{i=1}^{N}\\widetilde{\\ell}_{i,\\sigma}^{\\mathrm{dec}}\\left(g_{\\theta}(\\bm{x}_{i})\\right),"
+      ]
+    },
+    {
+      "id": "S3.E13.2",
+      "tex": [
+        "\\displaystyle\\nabla_{\\theta}\\mathcal{L}_{\\mathrm{FC}}(\\theta)",
+        "\\displaystyle=\\frac{1}{N}\\sum_{i=1}^{N}\\left[\\nabla_{\\theta}g_{\\theta}(\\bm{x}_{i})\\right]^{\\top}g_{i}^{\\mathrm{opt}},"
+      ]
+    },
+    {
+      "id": "S3.E13.3",
+      "tex": [
+        "\\displaystyle\\mathcal{L}_{i}^{\\mathrm{back}}",
+        "\\displaystyle=\\left\\langle\\operatorname{sg}\\left(\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}\\right),\\hat{\\bm{r}}_{i}\\right\\rangle,"
+      ]
+    },
+    {
+      "id": "S3.E13.4",
+      "tex": [
+        "\\displaystyle\\nabla_{\\theta}\\mathcal{L}_{i}^{\\mathrm{back}}",
+        "\\displaystyle=\\left[\\nabla_{\\theta}g_{\\theta}(\\bm{x}_{i})\\right]^{\\top}\\widehat{g}_{i,\\mathrm{one}}^{\\mathrm{opt}}."
+      ]
+    },
+    {
+      "id": "S4.E14",
+      "tex": [
+        "\\displaystyle J_{i}^{\\mathrm{pred}}",
+        "\\displaystyle=\\nabla_{\\bm{x}_{i}}g_{\\theta}(\\bm{x}_{i})\\in\\mathbb{R}^{T\\times d},",
+        "\\displaystyle G_{i,j,t}^{\\mathrm{pred}}",
+        "\\displaystyle=\\left|\\left[J_{i}^{\\mathrm{pred}}\\right]_{t,j}\\right|,",
+        "\\displaystyle H_{i}(\\bm{x})",
+        "\\displaystyle=\\widetilde{F}_{i,\\sigma}\\left(g_{\\theta}(\\bm{x})\\right),",
+        "\\displaystyle\\frac{\\partial H_{i}(\\bm{x}_{i})}{\\partial x_{i,j}}",
+        "\\displaystyle=\\sum_{t\\in\\mathcal{T}}g_{i,t}^{\\mathrm{opt}}\\left[J_{i}^{\\mathrm{pred}}\\right]_{t,j}."
+      ]
+    },
+    {
+      "id": "S4.E14.1",
+      "tex": [
+        "\\displaystyle J_{i}^{\\mathrm{pred}}",
+        "\\displaystyle=\\nabla_{\\bm{x}_{i}}g_{\\theta}(\\bm{x}_{i})\\in\\mathbb{R}^{T\\times d},"
+      ]
+    },
+    {
+      "id": "S4.E14.2",
+      "tex": [
+        "\\displaystyle G_{i,j,t}^{\\mathrm{pred}}",
+        "\\displaystyle=\\left|\\left[J_{i}^{\\mathrm{pred}}\\right]_{t,j}\\right|,"
+      ]
+    },
+    {
+      "id": "S4.E14.3",
+      "tex": [
+        "\\displaystyle H_{i}(\\bm{x})",
+        "\\displaystyle=\\widetilde{F}_{i,\\sigma}\\left(g_{\\theta}(\\bm{x})\\right),"
+      ]
+    },
+    {
+      "id": "S4.E14.4",
+      "tex": [
+        "\\displaystyle\\frac{\\partial H_{i}(\\bm{x}_{i})}{\\partial x_{i,j}}",
+        "\\displaystyle=\\sum_{t\\in\\mathcal{T}}g_{i,t}^{\\mathrm{opt}}\\left[J_{i}^{\\mathrm{pred}}\\right]_{t,j}."
+      ]
+    },
+    {
+      "id": "S4.E15",
+      "tex": [
+        "\\displaystyle\\bar{g}_{i,t}^{\\mathrm{opt}}",
+        "\\displaystyle=\\begin{cases}\\dfrac{|g_{i,t}^{\\mathrm{opt}}|}{\\displaystyle\\sum_{\\tau\\in\\mathcal{T}}|g_{i,\\tau}^{\\mathrm{opt}}|},&\\|g_{i}^{\\mathrm{opt}}\\|_{1}>0,\\\\[5.69054pt]\n0,&\\|g_{i}^{\\mathrm{opt}}\\|_{1}=0,\\end{cases}",
+        "\\displaystyle S_{i,j,t}^{\\mathrm{E2E}}",
+        "\\displaystyle=\\bar{g}_{i,t}^{\\mathrm{opt}}G_{i,j,t}^{\\mathrm{pred}},",
+        "\\displaystyle S_{i,j}^{\\mathrm{feat}}",
+        "\\displaystyle=\\sum_{t\\in\\mathcal{T}}S_{i,j,t}^{\\mathrm{E2E}},",
+        "\\displaystyle S_{i,t}^{\\mathrm{time}}",
+        "\\displaystyle=\\bar{g}_{i,t}^{\\mathrm{opt}}."
+      ]
+    },
+    {
+      "id": "S4.E15.1",
+      "tex": [
+        "\\displaystyle\\bar{g}_{i,t}^{\\mathrm{opt}}",
+        "\\displaystyle=\\begin{cases}\\dfrac{|g_{i,t}^{\\mathrm{opt}}|}{\\displaystyle\\sum_{\\tau\\in\\mathcal{T}}|g_{i,\\tau}^{\\mathrm{opt}}|},&\\|g_{i}^{\\mathrm{opt}}\\|_{1}>0,\\\\[5.69054pt]\n0,&\\|g_{i}^{\\mathrm{opt}}\\|_{1}=0,\\end{cases}"
+      ]
+    },
+    {
+      "id": "S4.E15.2",
+      "tex": [
+        "\\displaystyle S_{i,j,t}^{\\mathrm{E2E}}",
+        "\\displaystyle=\\bar{g}_{i,t}^{\\mathrm{opt}}G_{i,j,t}^{\\mathrm{pred}},"
+      ]
+    },
+    {
+      "id": "S4.E15.3",
+      "tex": [
+        "\\displaystyle S_{i,j}^{\\mathrm{feat}}",
+        "\\displaystyle=\\sum_{t\\in\\mathcal{T}}S_{i,j,t}^{\\mathrm{E2E}},"
+      ]
+    },
+    {
+      "id": "S4.E15.4",
+      "tex": [
+        "\\displaystyle S_{i,t}^{\\mathrm{time}}",
+        "\\displaystyle=\\bar{g}_{i,t}^{\\mathrm{opt}}."
+      ]
+    },
+    {
+      "id": "S4.E16",
+      "tex": [
+        "\\displaystyle\\widehat{g}_{i}^{\\mathrm{xai}}",
+        "\\displaystyle=\\left.\\widehat{g}_{i,\\mathrm{anti}}^{\\mathrm{opt}}\\right|_{K=K_{\\mathrm{xai}}},",
+        "\\displaystyle\\widehat{\\bar{g}}_{i,t}^{\\mathrm{opt}}",
+        "\\displaystyle=\\begin{cases}\\dfrac{|\\widehat{g}_{i,t}^{\\mathrm{xai}}|}{\\displaystyle\\sum_{\\tau\\in\\mathcal{T}}|\\widehat{g}_{i,\\tau}^{\\mathrm{xai}}|},&\\|\\widehat{g}_{i}^{\\mathrm{xai}}\\|_{1}>0,\\\\[5.69054pt]\n0,&\\|\\widehat{g}_{i}^{\\mathrm{xai}}\\|_{1}=0,\\end{cases}",
+        "\\displaystyle\\widehat{S}_{i,j,t}^{\\mathrm{E2E}}",
+        "\\displaystyle=\\widehat{\\bar{g}}_{i,t}^{\\mathrm{opt}}G_{i,j,t}^{\\mathrm{pred}}."
+      ]
+    },
+    {
+      "id": "S4.E16.1",
+      "tex": [
+        "\\displaystyle\\widehat{g}_{i}^{\\mathrm{xai}}",
+        "\\displaystyle=\\left.\\widehat{g}_{i,\\mathrm{anti}}^{\\mathrm{opt}}\\right|_{K=K_{\\mathrm{xai}}},"
+      ]
+    },
+    {
+      "id": "S4.E16.2",
+      "tex": [
+        "\\displaystyle\\widehat{\\bar{g}}_{i,t}^{\\mathrm{opt}}",
+        "\\displaystyle=\\begin{cases}\\dfrac{|\\widehat{g}_{i,t}^{\\mathrm{xai}}|}{\\displaystyle\\sum_{\\tau\\in\\mathcal{T}}|\\widehat{g}_{i,\\tau}^{\\mathrm{xai}}|},&\\|\\widehat{g}_{i}^{\\mathrm{xai}}\\|_{1}>0,\\\\[5.69054pt]\n0,&\\|\\widehat{g}_{i}^{\\mathrm{xai}}\\|_{1}=0,\\end{cases}"
+      ]
+    },
+    {
+      "id": "S4.E16.3",
+      "tex": [
+        "\\displaystyle\\widehat{S}_{i,j,t}^{\\mathrm{E2E}}",
+        "\\displaystyle=\\widehat{\\bar{g}}_{i,t}^{\\mathrm{opt}}G_{i,j,t}^{\\mathrm{pred}}."
+      ]
+    },
+    {
+      "id": "S4.E17",
+      "tex": [
+        "\\displaystyle Q_{i}(\\bm{x})=F_{i}\\left(\\Pi_{\\mathcal{R}}\\left[g_{\\theta}(\\bm{x})\\right]\\right),",
+        "\\displaystyle\\begin{aligned} \\Delta_{i,A}^{\\mathrm{feat}}=\\frac{1}{2}\\sum_{\\nu\\in\\{-1,+1\\}}\\Big|Q_{i}\\left(\\bm{x}_{i}+\\nu\\delta_{x}\\sum_{j\\in A}\\bm{e}_{j}^{(d)}\\right)-Q_{i}(\\bm{x}_{i})\\Big|.\\end{aligned}"
+      ]
+    },
+    {
+      "id": "S4.E17.1",
+      "tex": [
+        "\\displaystyle Q_{i}(\\bm{x})=F_{i}\\left(\\Pi_{\\mathcal{R}}\\left[g_{\\theta}(\\bm{x})\\right]\\right),"
+      ]
+    },
+    {
+      "id": "S4.E17.2",
+      "tex": [
+        "\\displaystyle\\begin{aligned} \\Delta_{i,A}^{\\mathrm{feat}}=\\frac{1}{2}\\sum_{\\nu\\in\\{-1,+1\\}}\\Big|Q_{i}\\left(\\bm{x}_{i}+\\nu\\delta_{x}\\sum_{j\\in A}\\bm{e}_{j}^{(d)}\\right)-Q_{i}(\\bm{x}_{i})\\Big|.\\end{aligned}"
+      ]
+    },
+    {
+      "id": "S4.E18",
+      "tex": [
+        "\\displaystyle\\bm{\\rho}_{i}^{0}=\\Pi_{\\mathcal{R}}\\left(\\hat{\\bm{r}}_{i}\\right),",
+        "\\displaystyle\\begin{aligned} \\Delta_{i,A}^{\\mathrm{time}}=\\frac{1}{2}\\sum_{\\nu\\in\\{-1,+1\\}}\\Big|F_{i}\\left(\\bm{\\rho}_{i}^{0}+\\nu\\delta_{r,i}\\sum_{t\\in A}\\bm{e}_{t}^{(T)}\\right)-F_{i}(\\bm{\\rho}_{i}^{0})\\Big|.\\end{aligned}"
+      ]
+    },
+    {
+      "id": "S4.E18.1",
+      "tex": [
+        "\\displaystyle\\bm{\\rho}_{i}^{0}=\\Pi_{\\mathcal{R}}\\left(\\hat{\\bm{r}}_{i}\\right),"
+      ]
+    },
+    {
+      "id": "S4.E18.2",
+      "tex": [
+        "\\displaystyle\\begin{aligned} \\Delta_{i,A}^{\\mathrm{time}}=\\frac{1}{2}\\sum_{\\nu\\in\\{-1,+1\\}}\\Big|F_{i}\\left(\\bm{\\rho}_{i}^{0}+\\nu\\delta_{r,i}\\sum_{t\\in A}\\bm{e}_{t}^{(T)}\\right)-F_{i}(\\bm{\\rho}_{i}^{0})\\Big|.\\end{aligned}"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S2.F1",
+      "caption": "Fig. 1:  Framework of FC-DFL for\nrenewable forecasting, BESS regulation,\nand decision-oriented explainability.",
+      "images": [
+        "2610.41238v1/framework.png"
+      ]
+    },
+    {
+      "id": "alg1",
+      "caption": "Algorithm 1     FC-DFL Training and Decision-Oriented Explainability",
+      "images": []
+    },
+    {
+      "id": "S5.T1",
+      "caption": "TABLE I:  Forecast accuracy and realized BESS regulation performance.",
+      "images": []
+    },
+    {
+      "id": "S5.F2",
+      "caption": "Fig. 2:  Held-out test-window IAFD distributions.",
+      "images": []
+    },
+    {
+      "id": "S5.F3",
+      "caption": "Fig. 3:  Forecast-induced BESS operation in the representative test window: (a) renewable forecasts; (b) FC-DFL and Scenario SD BESS power and SOC; (c) FC-DFL and ERM-PTO/DS-DFL BESS power and SOC; and (d) realized frequency deviations.",
+      "images": []
+    },
+    {
+      "id": "S5.F4",
+      "caption": "Fig. 4:  Robustness to BESS operating limits and\nrenewable forecast-error stress, which reductions are\nrelative to ERM-PTO.",
+      "images": []
+    },
+    {
+      "id": "S5.F5",
+      "caption": "Fig. 5:  Decision-oriented importance and operational faithfulness: (a) feature-time importance and (b) matched-perturbation faithfulness.",
+      "images": [
+        "2610.41238v1/fig_case4_xai_faithfulness.png"
+      ]
+    },
+    {
+      "id": "S5.T2",
+      "caption": "TABLE II:  Decision-Oriented XAI Evaluation",
+      "images": []
+    },
+    {
+      "id": "S5.F6",
+      "caption": "Fig. 6:  Sensitivity of FC-DFL to the Gaussian smoothing radius and perturbation budget.",
+      "images": []
+    },
+    {
+      "id": "S5.T3",
+      "caption": "TABLE III:  Sensitivity of FC-DFL to Smoothing Radius and Perturbation Budget",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

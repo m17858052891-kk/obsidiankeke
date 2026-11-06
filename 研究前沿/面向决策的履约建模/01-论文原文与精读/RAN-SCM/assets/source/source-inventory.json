@@ -1,0 +1,285 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "From Confounding to Counterfactuals: A Cross-Layer Causal Model for RAN Scheduling",
+      "id": null
+    },
+    {
+      "title": "I  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "I-A   Related Work",
+      "id": "S1.SS1"
+    },
+    {
+      "title": "I-B   Contributions",
+      "id": "S1.SS2"
+    },
+    {
+      "title": "II  System Model and Scheduling Motivation",
+      "id": "S2"
+    },
+    {
+      "title": "II-A   Wireless RAN System Model",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "II-B   Conventional Scheduling",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "III  Proposed H-SCM Framework for Causal Resource Allocation",
+      "id": "S3"
+    },
+    {
+      "title": "III-A   Three Rungs of Causal Inference",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "III-B   Counterfactual Scheduling Problem",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "III-C   Proposed Solution via a Causal Inference Pipeline",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "III-C 1  Causal Discovery",
+      "id": "S3.SS3.SSS1"
+    },
+    {
+      "title": "III-C 2  Structural Equation Fitting",
+      "id": "S3.SS3.SSS2"
+    },
+    {
+      "title": "III-C 3  Counterfactual Inference",
+      "id": "S3.SS3.SSS3"
+    },
+    {
+      "title": "IV  Simulation Results and Analysis",
+      "id": "S4"
+    },
+    {
+      "title": "V  Conclusion",
+      "id": "S5"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "\\gamma_{\\mathrm{eff}}=\\gamma_{0}+\\xi_{\\mathrm{sf}}-\\beta_{L}L-\\Delta_{\\mathrm{D}}(f_{\\mathrm{D}})-\\Delta_{\\tau}(\\tau_{\\mathrm{rms}})+\\varepsilon_{\\gamma}.\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\gamma_{\\mathrm{eff}}=\\gamma_{0}+\\xi_{\\mathrm{sf}}-\\beta_{L}L-\\Delta_{\\mathrm{D}}(f_{\\mathrm{D}})-\\Delta_{\\tau}(\\tau_{\\mathrm{rms}})+\\varepsilon_{\\gamma}.\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "T=\\min\\!\\left\\{N_{\\mathrm{PRB}},\\max\\!\\left\\{1,\\,\\left\\lfloor N_{\\mathrm{PRB}}(1-\\alpha_{L}L)\\right\\rfloor+\\varepsilon_{T}\\right\\}\\right\\},\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "T=\\min\\!\\left\\{N_{\\mathrm{PRB}},\\max\\!\\left\\{1,\\,\\left\\lfloor N_{\\mathrm{PRB}}(1-\\alpha_{L}L)\\right\\rfloor+\\varepsilon_{T}\\right\\}\\right\\},\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": "S2.E3",
+      "tex": [
+        "\\mathbb{E}\\!\\left[N_{\\mathrm{retx}}\\right]=\\sum_{k=1}^{K_{\\mathrm{H}}}\\Pr\\!\\left(N_{\\mathrm{retx}}\\geq k\\right)=\\sum_{k=1}^{K_{\\mathrm{H}}}p^{k}.\\vskip-5.69054pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbb{E}\\!\\left[N_{\\mathrm{retx}}\\right]=\\sum_{k=1}^{K_{\\mathrm{H}}}\\Pr\\!\\left(N_{\\mathrm{retx}}\\geq k\\right)=\\sum_{k=1}^{K_{\\mathrm{H}}}p^{k}.\\vskip-5.69054pt"
+      ]
+    },
+    {
+      "id": "S2.E4",
+      "tex": [
+        "Q=\\left[\\frac{\\rho^{2}\\xi_{\\mathrm{tb}}}{2(1-\\rho)}+\\varepsilon_{3}\\right]_{+},\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q=\\left[\\frac{\\rho^{2}\\xi_{\\mathrm{tb}}}{2(1-\\rho)}+\\varepsilon_{3}\\right]_{+},\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": "S2.E5",
+      "tex": [
+        "P_{\\mathrm{loss}}=1-\\left(1-p^{\\,1+K_{\\mathrm{H}}}\\right)\\exp\\!\\left(-\\frac{[Q-q_{\\mathrm{th}}]_{+}}{q_{\\mathrm{scale}}}\\right).\\vskip-5.69054pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "P_{\\mathrm{loss}}=1-\\left(1-p^{\\,1+K_{\\mathrm{H}}}\\right)\\exp\\!\\left(-\\frac{[Q-q_{\\mathrm{th}}]_{+}}{q_{\\mathrm{scale}}}\\right).\\vskip-5.69054pt"
+      ]
+    },
+    {
+      "id": "S2.E6",
+      "tex": [
+        "\\displaystyle\\max_{\\{t^{(u)}\\}}",
+        "\\displaystyle\\sum_{u\\in\\mathcal{U}_{s}}w^{(u)}\\mathbb{E}\\!\\left[Y^{(u)}\\mid T^{(u)}=t^{(u)},\\bm{x}^{(u)}\\right]",
+        "\\displaystyle\\mathrm{s.t.}",
+        "\\displaystyle\\sum_{u}t^{(u)}\\leq B,\\qquad t^{(u)}\\in\\mathcal{T}."
+      ]
+    },
+    {
+      "id": "S2.E6X",
+      "tex": [
+        "\\displaystyle\\max_{\\{t^{(u)}\\}}",
+        "\\displaystyle\\sum_{u\\in\\mathcal{U}_{s}}w^{(u)}\\mathbb{E}\\!\\left[Y^{(u)}\\mid T^{(u)}=t^{(u)},\\bm{x}^{(u)}\\right]"
+      ]
+    },
+    {
+      "id": "S2.E6Xa",
+      "tex": [
+        "\\displaystyle\\mathrm{s.t.}",
+        "\\displaystyle\\sum_{u}t^{(u)}\\leq B,\\qquad t^{(u)}\\in\\mathcal{T}."
+      ]
+    },
+    {
+      "id": "S3.E7",
+      "tex": [
+        "\\mu_{\\mathrm{obs}}(t)=\\mathbb{E}[Y\\mid T=t],\\vskip-5.69054pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{\\mathrm{obs}}(t)=\\mathbb{E}[Y\\mid T=t],\\vskip-5.69054pt"
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "\\mu_{\\mathrm{int}}(t)=\\mathbb{E}[Y\\mid\\mathrm{do}(T=t)]=\\mathbb{E}_{L}\\!\\left[\\mathbb{E}[Y\\mid T=t,L]\\right].\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mu_{\\mathrm{int}}(t)=\\mathbb{E}[Y\\mid\\mathrm{do}(T=t)]=\\mathbb{E}_{L}\\!\\left[\\mathbb{E}[Y\\mid T=t,L]\\right].\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": "S3.E9",
+      "tex": [
+        "\\displaystyle\\max_{\\{t^{(u)}\\}}",
+        "\\displaystyle\\sum_{u\\in\\mathcal{U}_{s}}w^{(u)}\\,\\hat{Y}_{t^{(u)}}^{(u)}",
+        "\\displaystyle\\mathrm{s.t.}",
+        "\\displaystyle\\sum_{u}t^{(u)}\\leq B,\\qquad t^{(u)}\\in\\mathcal{T}."
+      ]
+    },
+    {
+      "id": "S3.E9X",
+      "tex": [
+        "\\displaystyle\\max_{\\{t^{(u)}\\}}",
+        "\\displaystyle\\sum_{u\\in\\mathcal{U}_{s}}w^{(u)}\\,\\hat{Y}_{t^{(u)}}^{(u)}"
+      ]
+    },
+    {
+      "id": "S3.E9Xa",
+      "tex": [
+        "\\displaystyle\\mathrm{s.t.}",
+        "\\displaystyle\\sum_{u}t^{(u)}\\leq B,\\qquad t^{(u)}\\in\\mathcal{T}."
+      ]
+    },
+    {
+      "id": "S3.E10",
+      "tex": [
+        "\\displaystyle\\Delta_{ij}={}",
+        "\\displaystyle\\mathbb{E}\\!\\left[V_{j}\\mid\\mathrm{do}(V_{i}=x_{1}),\\mathrm{do}(\\bm{M}_{ij}=\\bm{m})\\right]",
+        "\\displaystyle-\\mathbb{E}\\!\\left[V_{j}\\mid\\mathrm{do}(V_{i}=x_{0}),\\mathrm{do}(\\bm{M}_{ij}=\\bm{m})\\right]."
+      ]
+    },
+    {
+      "id": "S3.E10X",
+      "tex": [
+        "\\displaystyle\\Delta_{ij}={}",
+        "\\displaystyle\\mathbb{E}\\!\\left[V_{j}\\mid\\mathrm{do}(V_{i}=x_{1}),\\mathrm{do}(\\bm{M}_{ij}=\\bm{m})\\right]"
+      ]
+    },
+    {
+      "id": "S3.E10Xa",
+      "tex": [
+        "\\displaystyle-\\mathbb{E}\\!\\left[V_{j}\\mid\\mathrm{do}(V_{i}=x_{0}),\\mathrm{do}(\\bm{M}_{ij}=\\bm{m})\\right]."
+      ]
+    },
+    {
+      "id": "S3.E11",
+      "tex": [
+        "\\vskip-5.69054pt\\hat{f}_{i}=\\arg\\min_{f}\\frac{1}{N}\\sum_{n=1}^{N}\\left(v_{i}^{(n)}-f\\!\\left(\\mathrm{Pa}(v_{i}^{(n)})\\right)\\right)^{2}.\\vskip-2.84526pt"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\vskip-5.69054pt\\hat{f}_{i}=\\arg\\min_{f}\\frac{1}{N}\\sum_{n=1}^{N}\\left(v_{i}^{(n)}-f\\!\\left(\\mathrm{Pa}(v_{i}^{(n)})\\right)\\right)^{2}.\\vskip-2.84526pt"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S3.F1",
+      "caption": "Fig. 1:  Causal DAG spanning the PHY, MAC, and network layers. The DAG represents the simulated setting; operational RAN datasets may require additional nodes and dependencies.\n",
+      "images": [
+        "2611.00635v1/figures/fig1_dag.png"
+      ]
+    },
+    {
+      "id": "S4.T1",
+      "caption": "TABLE I:  Key Simulation Parameters",
+      "images": []
+    },
+    {
+      "id": "S4.F2",
+      "caption": "Fig. 2:  Confounding analysis.\n(a) Goodput versus PRB allocation.\n(b) Full-PRB goodput estimates compared with\ninterventional ground truth.\n(c) Goodput distributions.\n(d) Mean goodput by cell-load range.",
+      "images": [
+        "2611.00635v1/figures/fig2_confounding.png"
+      ]
+    },
+    {
+      "id": "S4.F3",
+      "caption": "Fig. 3:  Counterfactual goodput gains:\n(a)–(c) sorted UE gains, where  n n  is the number of UEs selected\nby each query, and (d)–(f) mean gains by inferred residual range.\nDashed lines show the mean gain. Bar labels give UE counts.",
+      "images": [
+        "2611.00635v1/figures/fig3_counterfactual_gains.png"
+      ]
+    },
+    {
+      "id": "S4.F4",
+      "caption": "Fig. 4:  Scheduling performance across four environments:\n(a) loss relative to the ground-truth optimum and (b) realized cell goodput. Error bars show approximate  95 % 95\\%  confidence intervals\nover  50 50  realizations.",
+      "images": [
+        "2611.00635v1/figures/fig4_scheduling.png"
+      ]
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}

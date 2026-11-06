@@ -1,0 +1,854 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "PrimeSim: A Generalist World Model Simulator from Large-Scale Cross-Embodiment Demonstrations",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Data Engine",
+      "id": "S2"
+    },
+    {
+      "title": "Robot Data Pooling.",
+      "id": "S2.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Dataset Staging.",
+      "id": "S2.SS0.SSS0.Px2"
+    },
+    {
+      "title": "2.1  Data Pipeline",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.1.1  Stage 1: Video Quality Filtering",
+      "id": "S2.SS1.SSS1"
+    },
+    {
+      "title": "Spatiotemporal validity.",
+      "id": "S2.SS1.SSS1.Px1"
+    },
+    {
+      "title": "Artifact detection.",
+      "id": "S2.SS1.SSS1.Px2"
+    },
+    {
+      "title": "Episode length filtering.",
+      "id": "S2.SS1.SSS1.Px3"
+    },
+    {
+      "title": "2.1.2  Stage 2: Action Quality Filtering",
+      "id": "S2.SS1.SSS2"
+    },
+    {
+      "title": "Embodiment-type filtering.",
+      "id": "S2.SS1.SSS2.Px1"
+    },
+    {
+      "title": "Anomaly detection.",
+      "id": "S2.SS1.SSS2.Px2"
+    },
+    {
+      "title": "Missing action detection.",
+      "id": "S2.SS1.SSS2.Px3"
+    },
+    {
+      "title": "2.1.3  Stage 3: Data Alignment",
+      "id": "S2.SS1.SSS3"
+    },
+    {
+      "title": "Frequency alignment.",
+      "id": "S2.SS1.SSS3.Px1"
+    },
+    {
+      "title": "Camera alignment.",
+      "id": "S2.SS1.SSS3.Px2"
+    },
+    {
+      "title": "Prompt alignment.",
+      "id": "S2.SS1.SSS3.Px3"
+    },
+    {
+      "title": "Format conversion.",
+      "id": "S2.SS1.SSS3.Px4"
+    },
+    {
+      "title": "2.1.4  Stage 4: Action Alignment",
+      "id": "S2.SS1.SSS4"
+    },
+    {
+      "title": "End-effector unification.",
+      "id": "S2.SS1.SSS4.Px1"
+    },
+    {
+      "title": "PrimeSim action unification.",
+      "id": "S2.SS1.SSS4.Px2"
+    },
+    {
+      "title": "Relative action chunk.",
+      "id": "S2.SS1.SSS4.Px3"
+    },
+    {
+      "title": "3  PrimeSim",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Pretrain",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Midtrain",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "Problem Formulation.",
+      "id": "S3.SS2.SSS0.Px1"
+    },
+    {
+      "title": "3.2.1  Action Representation",
+      "id": "S3.SS2.SSS1"
+    },
+    {
+      "title": "General Action Representation.",
+      "id": "S3.SS2.SSS1.Px1"
+    },
+    {
+      "title": "Relative Action Chunk.",
+      "id": "S3.SS2.SSS1.Px2"
+    },
+    {
+      "title": "3.2.2  Action Conditioning",
+      "id": "S3.SS2.SSS2"
+    },
+    {
+      "title": "Action Tokenizer.",
+      "id": "S3.SS2.SSS2.Px1"
+    },
+    {
+      "title": "Framewise Action-Conditioning.",
+      "id": "S3.SS2.SSS2.Px2"
+    },
+    {
+      "title": "Action-Frame Adapter.",
+      "id": "S3.SS2.SSS2.Px3"
+    },
+    {
+      "title": "3.2.3  Multiview Adaption",
+      "id": "S3.SS2.SSS3"
+    },
+    {
+      "title": "3.2.4  Training Objective",
+      "id": "S3.SS2.SSS4"
+    },
+    {
+      "title": "3.3  Posttrain",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "3.3.1  Stage 1: Autoregressive Modelling",
+      "id": "S3.SS3.SSS1"
+    },
+    {
+      "title": "3.3.2  Stage 2: Causal Consistency Distillation",
+      "id": "S3.SS3.SSS2"
+    },
+    {
+      "title": "3.3.3  Stage 3: Clip-Level Self-Rollout with Asymmetric DMD",
+      "id": "S3.SS3.SSS3"
+    },
+    {
+      "title": "3.3.4  Stage 4: Episode-Level Long-Horizon Adaptation",
+      "id": "S3.SS3.SSS4"
+    },
+    {
+      "title": "Episode-level self-rollout.",
+      "id": "S3.SS3.SSS4.Px1"
+    },
+    {
+      "title": "Hierarchical temporal memory.",
+      "id": "S3.SS3.SSS4.Px2"
+    },
+    {
+      "title": "Latent-space continuation.",
+      "id": "S3.SS3.SSS4.Px3"
+    },
+    {
+      "title": "Amortized supervision.",
+      "id": "S3.SS3.SSS4.Px4"
+    },
+    {
+      "title": "Action re-anchoring.",
+      "id": "S3.SS3.SSS4.Px5"
+    },
+    {
+      "title": "4  Experiments",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Comparison to the State of the Art",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.1.1  WorldSimProbe Evaluation",
+      "id": "S4.SS1.SSS1"
+    },
+    {
+      "title": "4.1.2  EWMBench Evaluation",
+      "id": "S4.SS1.SSS2"
+    },
+    {
+      "title": "4.1.3  Inference Speed Comparison",
+      "id": "S4.SS1.SSS3"
+    },
+    {
+      "title": "Protocol.",
+      "id": "S4.SS1.SSS3.Px1"
+    },
+    {
+      "title": "Results.",
+      "id": "S4.SS1.SSS3.Px2"
+    },
+    {
+      "title": "Caveats.",
+      "id": "S4.SS1.SSS3.Px3"
+    },
+    {
+      "title": "4.2  What Midtraining Learns",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "Embodiment Generalisation.",
+      "id": "S4.SS2.SSS0.Px1"
+    },
+    {
+      "title": "Scene and Camera-Pose Generalisation.",
+      "id": "S4.SS2.SSS0.Px2"
+    },
+    {
+      "title": "4.3  Posttraining Analysis",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.3.1  Distillation Efficiency and Short-Horizon Fidelity",
+      "id": "S4.SS3.SSS1"
+    },
+    {
+      "title": "4.3.2  Long-Horizon Robustness",
+      "id": "S4.SS3.SSS2"
+    },
+    {
+      "title": "Episode-level adaptation.",
+      "id": "S4.SS3.SSS2.Px1"
+    },
+    {
+      "title": "Memory configuration ablation.",
+      "id": "S4.SS3.SSS2.Px2"
+    },
+    {
+      "title": "4.4  PrimeSim as Policy Simulator",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "Setup.",
+      "id": "S4.SS4.SSS0.Px1"
+    },
+    {
+      "title": "4.4.1  Policy Evaluation Fidelity",
+      "id": "S4.SS4.SSS1"
+    },
+    {
+      "title": "4.4.2  RL Post-training inside PrimeSim",
+      "id": "S4.SS4.SSS2"
+    },
+    {
+      "title": "Scope of this experiment.",
+      "id": "S4.SS4.SSS2.Px1"
+    },
+    {
+      "title": "4.5  Ablation Study",
+      "id": "S4.SS5"
+    },
+    {
+      "title": "4.5.1  Action Representation",
+      "id": "S4.SS5.SSS1"
+    },
+    {
+      "title": "4.5.2  Action Conditioning",
+      "id": "S4.SS5.SSS2"
+    },
+    {
+      "title": "4.5.3  Multiview Consistency",
+      "id": "S4.SS5.SSS3"
+    },
+    {
+      "title": "4.6  Qualitative Results",
+      "id": "S4.SS6"
+    },
+    {
+      "title": "5  Related Work",
+      "id": "S5"
+    },
+    {
+      "title": "Video Generation in Robotics",
+      "id": "S5.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Interactive World Models",
+      "id": "S5.SS0.SSS0.Px2"
+    },
+    {
+      "title": "6  Limitations and Conclusions",
+      "id": "S6"
+    },
+    {
+      "title": "Limitations.",
+      "id": "S6.SS0.SSS0.Px1"
+    },
+    {
+      "title": "Conclusions.",
+      "id": "S6.SS0.SSS0.Px2"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": ".1  Corpus Composition",
+      "id": "A0.SS1"
+    },
+    {
+      "title": "Appendix A  Training Details",
+      "id": "A1"
+    },
+    {
+      "title": "A.1  Architecture Hyperparameters",
+      "id": "A1.SS1"
+    },
+    {
+      "title": "A.2  Training Hyperparameters",
+      "id": "A1.SS2"
+    },
+    {
+      "title": "A.3  Distillation Hyperparameters",
+      "id": "A1.SS3"
+    },
+    {
+      "title": "Appendix B  Latency Benchmark Details",
+      "id": "A2"
+    },
+    {
+      "title": "B.1  Environment and Timing Scope",
+      "id": "A2.SS1"
+    },
+    {
+      "title": "B.2  Warm-up, Repeats and Chunk Semantics",
+      "id": "A2.SS2"
+    },
+    {
+      "title": "B.3  Per-model Configurations",
+      "id": "A2.SS3"
+    },
+    {
+      "title": "PrimeSim Stage-3 (ours).",
+      "id": "A2.SS3.SSS0.Px1"
+    },
+    {
+      "title": "GE-Sim 2.0.",
+      "id": "A2.SS3.SSS0.Px2"
+    },
+    {
+      "title": "BWM, fair-aligned.",
+      "id": "A2.SS3.SSS0.Px3"
+    },
+    {
+      "title": "BWM, official configuration.",
+      "id": "A2.SS3.SSS0.Px4"
+    },
+    {
+      "title": "Ctrl-World.",
+      "id": "A2.SS3.SSS0.Px5"
+    },
+    {
+      "title": "CausalWM.",
+      "id": "A2.SS3.SSS0.Px6"
+    },
+    {
+      "title": "B.4  Latent-token Proxy",
+      "id": "A2.SS4"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "M(V)=\\frac{1}{T-1}\\sum_{t=1}^{T-1}\\frac{1}{|\\Omega|}\\sum_{p\\in\\Omega}\\|\\mathbf{u}_{t}(p)\\|_{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "M(V)=\\frac{1}{T-1}\\sum_{t=1}^{T-1}\\frac{1}{|\\Omega|}\\sum_{p\\in\\Omega}\\|\\mathbf{u}_{t}(p)\\|_{2},"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "\\tilde{q}_{t}=q_{t}-q_{0}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\tilde{q}_{t}=q_{t}-q_{0}."
+      ]
+    },
+    {
+      "id": "S2.EGx1",
+      "tex": [
+        "\\displaystyle\\tilde{p}_{t}",
+        "\\displaystyle=R_{0}^{\\top}(p_{t}-p_{0}),",
+        "\\displaystyle\\tilde{R}_{t}",
+        "\\displaystyle=R_{0}^{\\top}R_{t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\tilde{p}_{t}",
+        "\\displaystyle=R_{0}^{\\top}(p_{t}-p_{0}),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\displaystyle\\tilde{R}_{t}",
+        "\\displaystyle=R_{0}^{\\top}R_{t}."
+      ]
+    },
+    {
+      "id": "S3.E5",
+      "tex": [
+        "\\mathbf{I}_{t+1:t+H}\\sim\\mathcal{W}_{\\mathrm{BD}}(\\cdot\\mid\\mathcal{O}_{t},A_{t},\\ell),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathbf{I}_{t+1:t+H}\\sim\\mathcal{W}_{\\mathrm{BD}}(\\cdot\\mid\\mathcal{O}_{t},A_{t},\\ell),"
+      ]
+    },
+    {
+      "id": "S3.E6",
+      "tex": [
+        "x_{\\tau}=(1-\\tau)x_{0}+\\tau\\epsilon,\\qquad v_{\\tau}=\\epsilon-x_{0}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "x_{\\tau}=(1-\\tau)x_{0}+\\tau\\epsilon,\\qquad v_{\\tau}=\\epsilon-x_{0}."
+      ]
+    },
+    {
+      "id": "S3.E7",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{flow}}(\\theta_{\\mathrm{BD}})=\\mathbb{E}_{(x_{0},c),\\epsilon,\\tau}\\left[\\left\\|u_{\\theta_{\\mathrm{BD}}}(x_{\\tau},\\tau,c)-v_{\\tau}\\right\\|_{2}^{2}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{flow}}(\\theta_{\\mathrm{BD}})=\\mathbb{E}_{(x_{0},c),\\epsilon,\\tau}\\left[\\left\\|u_{\\theta_{\\mathrm{BD}}}(x_{\\tau},\\tau,c)-v_{\\tau}\\right\\|_{2}^{2}\\right],"
+      ]
+    },
+    {
+      "id": "S3.E8",
+      "tex": [
+        "\\mathcal{S}\\!\\left(B_{i,\\mathrm{noisy}}\\right)=\\left\\{B_{j,\\mathrm{clean}}:j<i\\right\\}\\cup\\left\\{B_{i,\\mathrm{noisy}}\\right\\},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{S}\\!\\left(B_{i,\\mathrm{noisy}}\\right)=\\left\\{B_{j,\\mathrm{clean}}:j<i\\right\\}\\cup\\left\\{B_{i,\\mathrm{noisy}}\\right\\},"
+      ]
+    },
+    {
+      "id": "S3.E9",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{CD}}(\\theta)=\\mathbb{E}_{x_{t},t,\\Delta t}\\left[w(t)\\,d\\!\\left(G_{\\theta}(x_{t},\\hat{x}_{0,\\mathrm{C}},t),x_{t-\\Delta t}^{\\mathrm{C}}\\right)\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{CD}}(\\theta)=\\mathbb{E}_{x_{t},t,\\Delta t}\\left[w(t)\\,d\\!\\left(G_{\\theta}(x_{t},\\hat{x}_{0,\\mathrm{C}},t),x_{t-\\Delta t}^{\\mathrm{C}}\\right)\\right],"
+      ]
+    },
+    {
+      "id": "S3.E10",
+      "tex": [
+        "D_{\\mathrm{KL}}\\left(p_{\\theta}(\\cdot\\mid c)\\,\\|\\,p_{\\mathrm{BD}}(\\cdot\\mid c)\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "D_{\\mathrm{KL}}\\left(p_{\\theta}(\\cdot\\mid c)\\,\\|\\,p_{\\mathrm{BD}}(\\cdot\\mid c)\\right),"
+      ]
+    },
+    {
+      "id": "S3.E11",
+      "tex": [
+        "\\nabla_{\\mathrm{KL}}=\\frac{\\hat{x}_{0,\\phi}-\\hat{x}_{0,\\mathrm{BD}}}{\\max\\!\\left(\\mathbb{E}\\left|\\tilde{x}_{0}-\\hat{x}_{0,\\mathrm{BD}}\\right|,\\delta\\right)},\\qquad\\delta=10^{-8},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\nabla_{\\mathrm{KL}}=\\frac{\\hat{x}_{0,\\phi}-\\hat{x}_{0,\\mathrm{BD}}}{\\max\\!\\left(\\mathbb{E}\\left|\\tilde{x}_{0}-\\hat{x}_{0,\\mathrm{BD}}\\right|,\\delta\\right)},\\qquad\\delta=10^{-8},"
+      ]
+    },
+    {
+      "id": "S3.E12",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{gen}}(\\theta)=\\frac{1}{2}\\left\\|\\tilde{x}_{0}-\\operatorname{sg}\\left(\\tilde{x}_{0}-\\nabla_{\\mathrm{KL}}\\right)\\right\\|_{2}^{2},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{gen}}(\\theta)=\\frac{1}{2}\\left\\|\\tilde{x}_{0}-\\operatorname{sg}\\left(\\tilde{x}_{0}-\\nabla_{\\mathrm{KL}}\\right)\\right\\|_{2}^{2},"
+      ]
+    },
+    {
+      "id": "S3.E13",
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{critic}}(\\phi)=\\mathbb{E}_{\\tilde{x}_{0},\\epsilon,\\tau}\\left[\\left\\|v_{\\phi}(x_{\\tau},\\tau,c)-(\\epsilon-\\tilde{x}_{0})\\right\\|_{2}^{2}\\right],"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{L}_{\\mathrm{critic}}(\\phi)=\\mathbb{E}_{\\tilde{x}_{0},\\epsilon,\\tau}\\left[\\left\\|v_{\\phi}(x_{\\tau},\\tau,c)-(\\epsilon-\\tilde{x}_{0})\\right\\|_{2}^{2}\\right],"
+      ]
+    },
+    {
+      "id": "A2.E14",
+      "tex": [
+        "\\widehat{\\#\\text{tokens}}\\;\\approx\\;V\\times\\Big(\\big\\lfloor\\tfrac{T_{\\text{lat}}-1}{4}\\big\\rfloor+1\\Big)\\times\\big\\lfloor\\tfrac{H}{8}\\big\\rfloor\\times\\big\\lfloor\\tfrac{W}{8}\\big\\rfloor,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\widehat{\\#\\text{tokens}}\\;\\approx\\;V\\times\\Big(\\big\\lfloor\\tfrac{T_{\\text{lat}}-1}{4}\\big\\rfloor+1\\Big)\\times\\big\\lfloor\\tfrac{H}{8}\\big\\rfloor\\times\\big\\lfloor\\tfrac{W}{8}\\big\\rfloor,"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S1.F1",
+      "caption": "Figure 1 :  PrimeSim.  (a)  The midtraining corpus: roughly\n30.1K hours of curated robot data spanning humanoid, dual-arm, single-arm and\nhandheld UMI  [ 14 ,  3 ]  platforms, mixing real and simulated footage.  (b)  The\nmodel is conditioned on a language prompt, a unified action representation over\nhead, torso, waist, end-effector, gripper and chassis, and three camera views,\nand predicts future frames; post-training makes generation autoregressive with\na selected KV-cache memory at four denoising steps.  (c)  Capabilities:\nfidelity against prior systems, action following measured against simulation\nground truth, few-shot adaptation to an unseen embodiment, and use as a\nsimulator: success rate in PrimeSim predicts success rate in the LIBERO  [ 51 ]  physics\nsimulator with  r = 0.99 r=0.99 , so policies can be trained in the model and\nthe result carried back to the robot.",
+      "images": [
+        "2611.04870v1/images/primesim_teaser.png"
+      ]
+    },
+    {
+      "id": "S2.F2",
+      "caption": "Figure 2 :  Overview of the data pipeline. Raw demonstrations from\nteleoperation, UMI, and simulation are converted through four stages:\nvideo quality filtering, action quality filtering, action preprocessing,\nand data alignment. Each stage lists the operations applied to the incoming\ndata. The pipeline produces a unified corpus of 30,110 hours across 20\ndataset families and 22 robot platforms\n(Table  12 ).",
+      "images": [
+        "2611.04870v1/images/pipeline.png"
+      ]
+    },
+    {
+      "id": "S2.F3",
+      "caption": "Figure 3 :  Overview of the PrimeSim training corpus: 30,110 hours, 2.38B\nframes and 1.52M episodes from 1,773 repositories over 22 robot platforms, at\nan 84:16 real-to-simulated ratio.  Left:  the task-category and\nembodiment distributions.  Right:  example frames from each of the\nfive embodiment classes.",
+      "images": [
+        "2611.04870v1/images/data4.png"
+      ]
+    },
+    {
+      "id": "S2.F4",
+      "caption": "Figure 4 :  The PrimeSim model architecture.  Left:  the whole system,\nincluding the input data modalities, the VAE, the text encoder and the\nPrimeSim decoder.  Right:  the action conditioning mechanisms, a\nframewise attention mask and a frame-action adaptor.",
+      "images": [
+        "2611.04870v1/images/architecture.png"
+      ]
+    },
+    {
+      "id": "S3.F5",
+      "caption": "Figure 5 :  General action representation in PrimeSim, covering single-arm,\nbimanual, UMI, and wheeled humanoid embodiments.",
+      "images": [
+        "2611.04870v1/images/primesim_action.png"
+      ]
+    },
+    {
+      "id": "S3.F6",
+      "caption": "Figure 6 :  Overview of the post-training pipeline, from the midtrained\nbase model through the four adaptation stages to the deployed simulator.",
+      "images": [
+        "2611.04870v1/images/posttrain.png"
+      ]
+    },
+    {
+      "id": "S4.T1",
+      "caption": "Table 1 :  WorldSimProbe results on LIBERO  [ 51 ] , against five open-source\naction-conditioned world models. T1–T3 measure action realization (local action\ncalibration, global trajectory coverage, action-source behavior preservation);\nT4–T5 measure interaction response (interaction grounding, interaction dynamics).\nBold marks the best value per suite; higher is better. PrimeSim leads four of the\nfive, all but local action calibration.",
+      "images": []
+    },
+    {
+      "id": "S4.T2",
+      "caption": "Table 2 :  EWMBench scores. Higher is better; Overall is the sum of the eight\ndimensions. The first block is action-conditioned like ours; the second\nblock is instruction- or text-conditioned and therefore not iso-protocol\nwith ours (e.g. Thinker-WM generates at 5 FPS upsampled to 30 FPS for\nscoring). GE-Sim rows are computed from the published Genie Envisioner\nsimulation evaluation  [ 50 ] , aligned to the standard\nEWMBench column names. Thinker-WM, Qwen-RobotWorld, LVP, Sora2 and Kling26\nrows are as reported on the same 21-episode split in  [ 24 ] ,\ncompiled there from  [ 95 ] .  † EnerVerse-FT is from\nthe EWMBench paper’s own evaluation  [ 93 ] .\n ‡ Thinker-WM (action-cond.) conditions on the ground-truth action\nsequence; only its motion dimensions and Overall are\nreported  [ 24 ] , averaged over the evaluated checkpoints.",
+      "images": []
+    },
+    {
+      "id": "S4.T3",
+      "caption": "Table 3 :  Inference throughput on a single NVIDIA A100-80GB (bfloat16),\nmeasured as steady-state wall-clock throughput per autoregressive chunk under\neach method’s released inference recipe. TempFPS counts rollout time steps\nper second; ViewFPS counts each camera view as one frame and coincides with\nTempFPS for single-view models. Rows are not matched in resolution, horizon\nor denoising steps. PrimeSim is measured at  288 × 384 288\\times 384  per view under the\nRoboTwin 2.0 Stage-3 contract (33-frame windows, continuous KV, 32 usable\nframes per window), a different geometry from the  192 × 256 192\\times 256  setting of\nthe quality evaluations above.  † CausalWM is text- and\nfirst-frame-conditioned, not action-conditioned.",
+      "images": []
+    },
+    {
+      "id": "S4.T4",
+      "caption": "Table 4 :  Few-shot adaptation to held-out embodiments. Both initialisations are\nfinetuned under an identical recipe with single-trajectory batches at a batch\nsize of 1 and a learning rate of  3 × 10 − 5 3\\times 10^{-5} , and neither receives an\nembodiment identifier or any embodiment-specific parameters. Entries are gradient steps to an\naction-following rollout, meaning one in which the arm tracks the commanded\ntrajectory and the scene responds to the motion actually realized.\n † No action-following rollout was reached within this budget.",
+      "images": []
+    },
+    {
+      "id": "S4.F7",
+      "caption": "(a)   xArm 7 , midtrained, 200 gradient steps. (b)   xArm 7 , pretrained backbone, 2000 gradient steps. (c)   ViperX 300 , midtrained, 100 gradient steps. (d)   ViperX 300 , pretrained backbone, 2000 gradient steps. (e)   Original Stanford UMI gripper  [ 14 ] , midtrained, 200\ngradient steps. (f)   Original Stanford UMI gripper  [ 14 ] , pretrained backbone,\n2000 gradient steps. Figure 7 :  Few-shot adaptation to unseen embodiments. Each pair shows the\nmidtrained model above the pretrained backbone for one platform held out\nfrom training: a single 7-DoF arm ( xArm 7 ) drawn from Open\nX-Embodiment  [ 17 ] , a bimanual platform ( ViperX 300 , as used by\nALOHA  [ 98 ] ) and the original Stanford UMI gripper  [ 14 ] . Similar\nembodiments do occur in the corpus, and they are what make\ntransfer possible at all, since a wholly alien platform would leave nothing to\nbuild on. They are still new embodiments, however, and adaptation between\nembodiments does not happen for free: each brings its own kinematics, camera\nmounting and data distribution, which have to be acquired rather than\ninherited. All initialisations are finetuned\nunder an identical recipe with single-trajectory batches at a batch size of 1,\nand none receives an embodiment identifier or any embodiment-specific\nparameters. The midtrained model reaches an action-following rollout within\n100 to 200 gradient steps on all three platforms. The pretrained backbone,\nwhich must initialise the action-conditioning and multiview modules from\nscratch, does not reach the same regime even at ten to twenty times that\nbudget.",
+      "images": [
+        "2611.04870v1/images/fewshot_midtrained_200steps.png",
+        "2611.04870v1/images/top_generated_7frames.png",
+        "2611.04870v1/images/few-shot-aloha.png",
+        "2611.04870v1/images/aloha-pretrain.png",
+        "2611.04870v1/images/umi-fewshot.png",
+        "2611.04870v1/images/umi-pretrain.png"
+      ]
+    },
+    {
+      "id": "S4.F7.sf1",
+      "caption": "(a)   xArm 7 , midtrained, 200 gradient steps.",
+      "images": [
+        "2611.04870v1/images/fewshot_midtrained_200steps.png"
+      ]
+    },
+    {
+      "id": "S4.F7.sf2",
+      "caption": "(b)   xArm 7 , pretrained backbone, 2000 gradient steps.",
+      "images": [
+        "2611.04870v1/images/top_generated_7frames.png"
+      ]
+    },
+    {
+      "id": "S4.F7.sf3",
+      "caption": "(c)   ViperX 300 , midtrained, 100 gradient steps.",
+      "images": [
+        "2611.04870v1/images/few-shot-aloha.png"
+      ]
+    },
+    {
+      "id": "S4.F7.sf4",
+      "caption": "(d)   ViperX 300 , pretrained backbone, 2000 gradient steps.",
+      "images": [
+        "2611.04870v1/images/aloha-pretrain.png"
+      ]
+    },
+    {
+      "id": "S4.F7.sf5",
+      "caption": "(e)   Original Stanford UMI gripper  [ 14 ] , midtrained, 200\ngradient steps.",
+      "images": [
+        "2611.04870v1/images/umi-fewshot.png"
+      ]
+    },
+    {
+      "id": "S4.F7.sf6",
+      "caption": "(f)   Original Stanford UMI gripper  [ 14 ] , pretrained backbone,\n2000 gradient steps.",
+      "images": [
+        "2611.04870v1/images/umi-pretrain.png"
+      ]
+    },
+    {
+      "id": "S4.F8",
+      "caption": "(a)   Before adaptation: zero-shot. (b)   After 200 gradient steps at batch size 1. Figure 8 :  Zero-shot and few-shot generation on an unseen setting and camera\npose. Both subfigures show the  AgileX Piper  bimanual arm on XVLA\n [ 100 ] , held out of pre-training entirely: the embodiment is in the\ncorpus, but the scene, the garments and the camera placements are not. Rows are\ncameras (head, left wrist, right wrist) and columns are seven frames sampled\nuniformly from a single rollout. (a) Without adaptation the model controls the\narms and renders the cloth, but the generated cloth state drifts from the\ncommanded action once the motion becomes contact-rich. (b) After 200 gradient\nsteps the arm trajectories and the cloth deformation track the commanded\nactions much more closely and the three views stay mutually consistent, so most\nof the cost of the transfer is recovered.",
+      "images": [
+        "2611.04870v1/images/zero-shot.png",
+        "2611.04870v1/images/200-finetune.png"
+      ]
+    },
+    {
+      "id": "S4.F8.sf1",
+      "caption": "(a)   Before adaptation: zero-shot.",
+      "images": [
+        "2611.04870v1/images/zero-shot.png"
+      ]
+    },
+    {
+      "id": "S4.F8.sf2",
+      "caption": "(b)   After 200 gradient steps at batch size 1.",
+      "images": [
+        "2611.04870v1/images/200-finetune.png"
+      ]
+    },
+    {
+      "id": "S4.T5",
+      "caption": "Table 5 :  Zero-shot transfer to a held-out dataset. Both rows share the\ncheckpoint, sampler (50 steps, seed 42) and metrics at  192 × 256 192\\times 256  over\nthree jointly generated views; only the data differs. XR2  [ 82 ]  is held-out episodes\nof repositories seen in pre-training; XVLA is excluded and differs in scene,\ngarments and camera placement. Means  ± \\pm  std over eight validation windows.\nSSIM is not comparable across the two datasets, so only PSNR and LPIPS should\nbe read as a degradation.",
+      "images": []
+    },
+    {
+      "id": "S4.T6",
+      "caption": "Table 6 :  Distillation results. Stage 1 is the causal autoregressive teacher at\n50 sampling steps. Stage 2 applies causal KV consistency distillation and\nStage 3 causal KV distribution matching distillation (DMD), both reducing\ninference to 4 steps.",
+      "images": []
+    },
+    {
+      "id": "S4.T7",
+      "caption": "Table 7 :  Long-horizon generation quality averaged over ten held-out RoboTwin 2.0\nepisodes. Stage 3 uses fixed-length self-rollout training, while Stage 4\nextends self-rollout training to complete episodes. The Stage 4 result uses the rolling  ( 3 + 18 ) (3+18)  cache configuration.",
+      "images": []
+    },
+    {
+      "id": "S4.T8",
+      "caption": "Table 8 :  KV-cache organization ablation for long-horizon generation.",
+      "images": []
+    },
+    {
+      "id": "S4.F9",
+      "caption": "Figure 9 :  (a)  Each point is one OpenVLA-OFT policy, evaluated on the\nsame 300 LIBERO-Spatial initial states in the world model (x) and in the\nLIBERO simulator (y). The dotted line marks perfect agreement; points above\nit mean the world model under-estimates the policy.  (b)  Success rate\nof the SFT policy before and after 200 steps of GRPO post-training inside\nPrimeSim, measured in the simulator (solid) and in PrimeSim (hatched).",
+      "images": []
+    },
+    {
+      "id": "S4.T9",
+      "caption": "Table 9 :  Ablation study on action representation. Best result per metric in\n bold .  ↑ \\uparrow : higher is better;  ↓ \\downarrow : lower is better.",
+      "images": []
+    },
+    {
+      "id": "S4.F10",
+      "caption": "(a)   (b)   Figure 10 :  Counterfactual action following on LIBERO. Each row shows seven\nframes sampled uniformly from a single PrimeSim rollout, generated\nconditional on an action sequence rather than a task prompt. Our evaluation\nis built on counterfactual commands, meaning action trajectories that do not\ncorrespond to the demonstrated behaviour. Faithful generation therefore\nrequires the model to respond to the commanded motion rather than replay the\nrecorded one. Static scene elements remain stable across the rollout while\nthe commanded motion is carried out, indicating that the generated future is\ndriven by the action rather than by visual plausibility alone.",
+      "images": [
+        "2611.04870v1/images/kongzhua_7frames.png",
+        "2611.04870v1/images/kongzhua2_7frames.png"
+      ]
+    },
+    {
+      "id": "S4.F10.sf1",
+      "caption": "(a)  ",
+      "images": [
+        "2611.04870v1/images/kongzhua_7frames.png"
+      ]
+    },
+    {
+      "id": "S4.F10.sf2",
+      "caption": "(b)  ",
+      "images": [
+        "2611.04870v1/images/kongzhua2_7frames.png"
+      ]
+    },
+    {
+      "id": "S4.T10",
+      "caption": "Table 10 :  Ablation study on action conditioning. The  Baseline  column\nuses vanilla cross-attention for framewise conditioning and Adaptive LayerNorm\n(AdaLN) for the adapter;  Ours  uses modified cross-attention and\ntoken fusion and shifting, respectively. The final row combines both\nmechanisms. Higher PSNR is better.",
+      "images": []
+    },
+    {
+      "id": "S4.F11",
+      "caption": "Figure 11 :  Joint multiview generation. Rows are cameras, from top to bottom\nhead, left wrist and right wrist; columns are seven frames sampled uniformly\nacross a single 33-frame PrimeSim rollout. The three views are generated\ntogether under a single action sequence rather than independently, and all\nrespond to the same commanded motion. The wrist views change most over the\ninterval, consistent with their proximity to the manipulation, while the head\nview tracks the arms throughout.",
+      "images": [
+        "2611.04870v1/images/multiview.png"
+      ]
+    },
+    {
+      "id": "S4.T11",
+      "caption": "Table 11 :  Ablation study on multiview consistency. Components are added\nincrementally from naive frame concatenation. Best result in  bold .",
+      "images": []
+    },
+    {
+      "id": "S4.F12",
+      "caption": "Figure 12 :  Memory under occlusion.  Five frames from a single\nRoboTwin 2.0 rollout, head camera. The arm sweeps across the workspace and its hand\npasses in front of the shoe in the lower left (fourth frame), so the shoe leaves\nthe camera’s view entirely. When the hand clears, the shoe is present again at\nthe same position, scale and orientation rather than being re-invented or\ndropped. Each window is conditioned on a selected KV-cache memory rather than on\nthe previous frame alone, so an object occluded for several seconds is carried\nforward instead of being lost when it re-enters view.",
+      "images": [
+        "2611.04870v1/images/robotwin_memory.png"
+      ]
+    },
+    {
+      "id": "S4.F13",
+      "caption": "Figure 13 :  Cloth manipulation rollouts, seven frames sampled uniformly\nfrom each. All three are AgiBot G2 humanoid episodes shown from the head camera:\na white cloth on a bamboo table beside a metal bowl (top two rows), and a blue\ncloth on a bedding surface with a folded garment to its right (bottom row). The\ngarment deforms continuously across each rollout and stays distinguishable from\nthe surface beneath it rather than dissolving into the background, which is the\nfailure mode deformable objects expose over long horizons.",
+      "images": [
+        "2611.04870v1/images/cloth_rollouts.png"
+      ]
+    },
+    {
+      "id": "S4.F14",
+      "caption": "Figure 14 :  Generated rollouts on two EWMBench tasks, the qualitative companion\nof Table  2  (Sec.  4.1.2 ). Each row shows\nseven frames sampled uniformly from a single rollout, generated open-loop at\n10 FPS from the first frame, the task instruction and the ground-truth\naction trajectory, and shown at the  480 × 640 480\\times 640  frame size used for\nscoring. Top: the arm picks a bottle from the conveyor and packs it into a\ncardboard box already holding other items. Bottom: the arm places a slice of\nbread onto the plate beside the toaster.",
+      "images": [
+        "2611.04870v1/images/ewmbench_rollout_bottle_box.jpg",
+        "2611.04870v1/images/ewmbench_rollout_bread_plate.jpg"
+      ]
+    },
+    {
+      "id": "A0.T12",
+      "caption": "Table 12:  Training data mixture, measured from dataset metadata rather than from\nupstream release figures. Hours are derived as\n frames / fps / 3600 \\text{frames}/\\text{fps}/3600  and so are consistent with the frame counts\nby construction. The mixture spans 20 dataset families, 1,773 LeRobot\nrepositories, 1.52M episodes and 22 distinct robot platforms; it is\n84% real by trajectory time.  Real  and  Sim  split\neach family by data source, and two families contribute both.\n",
+      "images": []
+    },
+    {
+      "id": "A1.T13",
+      "caption": "Table 13 :  Model architecture.",
+      "images": []
+    },
+    {
+      "id": "A1.T14",
+      "caption": "Table 14 :  Midtraining hyperparameters. The architecture is initialized from the Wan2.2-TI2V-5B checkpoint, whose own training is not reported here.",
+      "images": []
+    },
+    {
+      "id": "A1.T15",
+      "caption": "Table 15 :  Stage 1 autoregressive modelling hyperparameters. The model is\ninitialized from the midtrained PrimeSim checkpoint and adapted to\nchunk-causal generation using teacher forcing.",
+      "images": []
+    },
+    {
+      "id": "A1.T16",
+      "caption": "Table 16 :  Stage 2 causal consistency distillation hyperparameters. Stage 2\ninitializes both teacher and student from the Stage 1 causal model and\ndistills the 50-step teacher into a four-step causal student using one online\nteacher ODE step per iteration.",
+      "images": []
+    },
+    {
+      "id": "A1.T17",
+      "caption": "Table 17 :  Stage 3 asymmetric distribution matching distillation\nhyperparameters. Stage 3 initializes the generator from the four-step causal\nstudent produced by Stage 2 and refines it using a frozen bidirectional\nmidtrained model as the real-score teacher and a trainable fake-score network\nthat tracks the student’s generated distribution.",
+      "images": []
+    },
+    {
+      "id": "A1.T18",
+      "caption": "Table 18 :  Stage 4 episode-level rollout and hierarchical temporal memory\nhyperparameters. Cache capacities are measured in temporal latent slots.",
+      "images": []
+    },
+    {
+      "id": "A2.T19",
+      "caption": "Table 19 :  Timing environment. All reported numbers use a single GPU at batch\nsize one.",
+      "images": []
+    },
+    {
+      "id": "A2.T20",
+      "caption": "Table 20 :  Warm-up schedule, timed repetitions and aggregation per model.",
+      "images": []
+    },
+    {
+      "id": "A2.T21",
+      "caption": "Table 21 :  Chunk semantics per model: conditioning history, future frames per\nchunk  T T , number of camera views  V V  and denoising steps.",
+      "images": []
+    },
+    {
+      "id": "A2.T22",
+      "caption": "Table 22 :  Approximate latent tokens per forward (Eq.  14 ).\nGE-Sim 2.0 counts its effective temporal extent including memory; Ctrl-World\nuses its stacked  576 × 320 576\\times 320  canvas; CausalWM’s temporal stride may\ndiffer, so its value is an estimate.",
+      "images": []
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML",
+    "https://huggingface.co/datasets/agibot-world/AgiBotWorldChallenge-2026",
+    "https://zenodo.org/record/1207631"
+  ]
+}

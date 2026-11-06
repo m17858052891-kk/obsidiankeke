@@ -1,0 +1,307 @@
+{
+  "sections": [
+    {
+      "title": "Report GitHub Issue",
+      "id": null
+    },
+    {
+      "title": "Transformer-Based Reinforcement Learning for Phase I Dose Allocation",
+      "id": null
+    },
+    {
+      "title": "1  Introduction",
+      "id": "S1"
+    },
+    {
+      "title": "2  Methods",
+      "id": "S2"
+    },
+    {
+      "title": "2.1  Sequential dose-allocation framework",
+      "id": "S2.SS1"
+    },
+    {
+      "title": "2.2  Trial-conditioned cross-attention",
+      "id": "S2.SS2"
+    },
+    {
+      "title": "2.3  Prespecified final MTD selection",
+      "id": "S2.SS3"
+    },
+    {
+      "title": "2.4  Simulation and training protocol",
+      "id": "S2.SS4"
+    },
+    {
+      "title": "2.5  Operating characteristics and comparator interpretation",
+      "id": "S2.SS5"
+    },
+    {
+      "title": "3  Results",
+      "id": "S3"
+    },
+    {
+      "title": "3.1  Safety–accuracy trade-off under toxicity penalties",
+      "id": "S3.SS1"
+    },
+    {
+      "title": "3.2  Behavioral effect of the DLT penalty",
+      "id": "S3.SS2"
+    },
+    {
+      "title": "3.3  Performance across dose-grid sizes",
+      "id": "S3.SS3"
+    },
+    {
+      "title": "3.4  Training stability across learning rates and seeds",
+      "id": "S3.SS4"
+    },
+    {
+      "title": "3.5  Robustness to PPO optimization settings",
+      "id": "S3.SS5"
+    },
+    {
+      "title": "3.6  Separating allocation and final-selection error",
+      "id": "S3.SS6"
+    },
+    {
+      "title": "3.7  Summary of empirical findings",
+      "id": "S3.SS7"
+    },
+    {
+      "title": "4  Discussion",
+      "id": "S4"
+    },
+    {
+      "title": "4.1  Interpretation of findings",
+      "id": "S4.SS1"
+    },
+    {
+      "title": "4.2  Practical implications",
+      "id": "S4.SS2"
+    },
+    {
+      "title": "4.3  Limitations",
+      "id": "S4.SS3"
+    },
+    {
+      "title": "4.4  Future work",
+      "id": "S4.SS4"
+    },
+    {
+      "title": "Appendix A  Standard cross-attention details",
+      "id": "A1"
+    },
+    {
+      "title": "References",
+      "id": "bib"
+    },
+    {
+      "title": "Instructions for reporting errors",
+      "id": null
+    }
+  ],
+  "equations": [
+    {
+      "id": "S2.E1",
+      "tex": [
+        "z_{j,t}=\\left(\\bar{d}_{j},n_{j,t},x_{j,t},\\mathbb{I}\\{j=j_{t}\\}\\right),\\qquad\\bar{d}_{j}=\\frac{j-1}{J-1},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "z_{j,t}=\\left(\\bar{d}_{j},n_{j,t},x_{j,t},\\mathbb{I}\\{j=j_{t}\\}\\right),\\qquad\\bar{d}_{j}=\\frac{j-1}{J-1},"
+      ]
+    },
+    {
+      "id": "S2.E2",
+      "tex": [
+        "c_{t}=\\left(\\phi,N_{\\max},n_{t},\\bar{d}_{j_{t}},J,b\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "c_{t}=\\left(\\phi,N_{\\max},n_{t},\\bar{d}_{j_{t}},J,b\\right),"
+      ]
+    },
+    {
+      "id": "S2.E3",
+      "tex": [
+        "\\mathcal{A}=\\{-1,0,+1\\}=\\{\\text{de-escalate},\\text{stay},\\text{escalate}\\}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\mathcal{A}=\\{-1,0,+1\\}=\\{\\text{de-escalate},\\text{stay},\\text{escalate}\\}."
+      ]
+    },
+    {
+      "id": "S2.E4",
+      "tex": [
+        "Y_{t,r}\\sim\\operatorname{Bernoulli}(p_{j_{t}}),\\qquad r=1,\\ldots,b_{t},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Y_{t,r}\\sim\\operatorname{Bernoulli}(p_{j_{t}}),\\qquad r=1,\\ldots,b_{t},"
+      ]
+    },
+    {
+      "id": "S2.E5",
+      "tex": [
+        "n_{j_{t},t+1}=n_{j_{t},t}+b_{t},\\qquad x_{j_{t},t+1}=x_{j_{t},t}+X_{t}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "n_{j_{t},t+1}=n_{j_{t},t}+b_{t},\\qquad x_{j_{t},t+1}=x_{j_{t},t}+X_{t}."
+      ]
+    },
+    {
+      "id": "S2.E6",
+      "tex": [
+        "h_{\\mathrm{trial},t}=\\operatorname{MHA}\\!\\left(q_{t},H_{t},H_{t};\\,M_{t}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{\\mathrm{trial},t}=\\operatorname{MHA}\\!\\left(q_{t},H_{t},H_{t};\\,M_{t}\\right),"
+      ]
+    },
+    {
+      "id": "S2.E7",
+      "tex": [
+        "(\\widetilde{p}_{j})_{j\\in\\mathcal{O}}=\\arg\\min_{q_{j}\\ \\mathrm{nondecreasing}}\\sum_{j\\in\\mathcal{O}}n_{j}(q_{j}-\\widehat{p}_{j})^{2}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "(\\widetilde{p}_{j})_{j\\in\\mathcal{O}}=\\arg\\min_{q_{j}\\ \\mathrm{nondecreasing}}\\sum_{j\\in\\mathcal{O}}n_{j}(q_{j}-\\widehat{p}_{j})^{2}."
+      ]
+    },
+    {
+      "id": "S2.E8",
+      "tex": [
+        "p_{j}=\\operatorname{logit}^{-1}\\left(\\alpha+\\beta\\frac{j-1}{J-1}\\right),\\qquad\\beta>0,"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "p_{j}=\\operatorname{logit}^{-1}\\left(\\alpha+\\beta\\frac{j-1}{J-1}\\right),\\qquad\\beta>0,"
+      ]
+    },
+    {
+      "id": "S2.E9",
+      "tex": [
+        "R=R_{\\mathrm{terminal}}-\\lambda_{\\mathrm{DLT}}D_{T},"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "R=R_{\\mathrm{terminal}}-\\lambda_{\\mathrm{DLT}}D_{T},"
+      ]
+    },
+    {
+      "id": "A1.E10",
+      "tex": [
+        "Q_{t}^{(m)}=q_{t}W_{Q}^{(m)},\\qquad K_{t}^{(m)}=H_{t}W_{K}^{(m)},\\qquad V_{t}^{(m)}=H_{t}W_{V}^{(m)}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "Q_{t}^{(m)}=q_{t}W_{Q}^{(m)},\\qquad K_{t}^{(m)}=H_{t}W_{K}^{(m)},\\qquad V_{t}^{(m)}=H_{t}W_{V}^{(m)}."
+      ]
+    },
+    {
+      "id": "A1.E11",
+      "tex": [
+        "\\alpha_{t}^{(m)}=\\operatorname{softmax}\\left(\\frac{Q_{t}^{(m)}K_{t}^{(m)\\top}}{\\sqrt{d_{k}}}+M_{t}\\right),"
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "\\alpha_{t}^{(m)}=\\operatorname{softmax}\\left(\\frac{Q_{t}^{(m)}K_{t}^{(m)\\top}}{\\sqrt{d_{k}}}+M_{t}\\right),"
+      ]
+    },
+    {
+      "id": "A1.E12",
+      "tex": [
+        "h_{\\mathrm{trial},t}=\\operatorname{Concat}\\left(u_{t}^{(1)},\\ldots,u_{t}^{(M)}\\right)W_{O}."
+      ]
+    },
+    {
+      "id": null,
+      "tex": [
+        "h_{\\mathrm{trial},t}=\\operatorname{Concat}\\left(u_{t}^{(1)},\\ldots,u_{t}^{(M)}\\right)W_{O}."
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "id": "S2.F1",
+      "caption": "Figure 1:  Overall Transformer dose-allocation schematic. Variable-length dose-level tokens are encoded into\ndose representations, while fixed-length trial context forms the query for masked multi-head cross-attention.\nThe resulting trial representation feeds the policy and value heads.",
+      "images": [
+        ""
+      ]
+    },
+    {
+      "id": "S3.T1",
+      "caption": "Table 1:  Primary five-seed v2-selection comparison with a DLT penalty. POS is the probability of selecting\nabove the true MTD; PCA and POA are the proportions of patients allocated at and above the true MTD,\nrespectively. RL values are mean  ± \\pm  standard deviation across seeds; benchmark-design values are single\nmatched simulation summaries. All methods use the same final selection rule.",
+      "images": []
+    },
+    {
+      "id": "S3.F2",
+      "caption": "Figure 2:  Operating characteristics by number of dose levels for the toxicity-penalized RL policies\n( λ DLT = 0.05 \\lambda_{\\mathrm{DLT}}=0.05 ) and matched benchmark designs. The RL curves show means and seed variability;\nthe benchmark lines are single simulation summaries.",
+      "images": [
+        ""
+      ]
+    },
+    {
+      "id": "S3.T2",
+      "caption": "Table 2:  Sensitivity of RL operating characteristics to the DLT penalty. POS is the probability of selecting\nabove the true MTD; PCA and POA are the proportions of patients allocated at and above the true MTD,\nrespectively. Values are mean  ± \\pm  standard deviation across five seeds.",
+      "images": []
+    },
+    {
+      "id": "S3.F3",
+      "caption": "Figure 3:  Operating characteristics by number of dose levels when the RL DLT penalty is removed\n( λ DLT = 0 \\lambda_{\\mathrm{DLT}}=0 ). Selection accuracy increases, but mean DLTs and the fraction of patients\ntreated above the MTD also increase.",
+      "images": [
+        ""
+      ]
+    },
+    {
+      "id": "S3.F4",
+      "caption": "Figure 4:  Validation training curves for the five-seed long runs with  λ DLT = 0.05 \\lambda_{\\mathrm{DLT}}=0.05 . Thin\nlines show individual seeds and thicker lines show the aggregate trajectory; horizontal reference lines are\nbenchmark-design summaries.",
+      "images": [
+        ""
+      ]
+    },
+    {
+      "id": "S3.T3",
+      "caption": "Table 3:  Optimization sensitivity sweep. Values are mean  ± \\pm  standard deviation across three seeds. The\nsweep used the original rule-based selection settings for its comparator simulations; only RL rows are shown.",
+      "images": []
+    },
+    {
+      "id": "S3.F5",
+      "caption": "Figure 5:  Validation PCS and mean DLT trajectories for the completed batch-size and entropy-coefficient sweep.\nShaded regions show seed variability.",
+      "images": [
+        ""
+      ]
+    }
+  ],
+  "code_links": [
+    "https://github.com/arXiv/html_feedback/issues",
+    "https://github.com/brucemiller/LaTeXML/issues",
+    "https://github.com/brucemiller/LaTeXML/wiki/Porting-LaTeX-packages-for-LaTeXML"
+  ]
+}
