@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seeing Beyond the Next Step</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Seeing Beyond the Next Step: World-Model-Guided Human-Like Navigation in Multi-Agent Scenes (NeurIPS 2026)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,600&family=Source+Code+Pro:wght@400&display=swap">
+<style>
+/* Layout: conventional paper page. Centered header, then a side-by-side result viewer built from the paper's own rollouts. */
+:root{
+  --bg:#FFFFFF;
+  --fg:#1C1F23;
+  --muted:#5F6670;
+  --line:#E3E6EA;
+  --soft:#F4F5F7;
+  --stage:#ECEEF1;
+  --accent:#D9362C;
+  --btn:#33373C;
+  --btn-fg:#FFFFFF;
+  --f-title:"Source Serif 4",Georgia,serif;
+  --f-body:"Noto Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --f-mono:"Source Code Pro",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--stage:#181C20;--accent:#FF5A4E;--btn:#E4E7EB;--btn-fg:#121417;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121417;--fg:#E4E7EB;--muted:#9AA3AD;--line:#2A2F35;--soft:#1A1E22;--stage:#181C20;--accent:#FF5A4E;--btn:#E4E7EB;--btn-fg:#121417;color-scheme:dark}
+
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0}
+img{max-width:100%}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.7 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.col{max-width:960px;margin:0 auto}
+p{margin:0}
+
+header{padding-block:56px 32px;text-align:center}
+h1{font:600 clamp(28px,4.4vw,42px)/1.2 var(--f-title);margin:0 0 6px;text-wrap:balance;letter-spacing:-.01em}
+.sub{font:600 clamp(18px,2.4vw,24px)/1.35 var(--f-title);color:var(--muted);margin:0 0 22px;text-wrap:balance}
+.authors{font-size:18px;margin:0 0 4px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 20px}
+.authors sup,.affil sup{font-size:11px}
+.affil{color:var(--muted);margin:0 0 2px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 20px}
+.note{font-size:13px;color:var(--muted);margin:0 0 14px}
+.venue{font-weight:700;font-size:17px;margin:0 0 20px}
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.links span{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:999px;font-size:15px;font-weight:500;
+  background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.links svg{width:16px;height:16px;fill:currentColor}
+
+/* result viewer */
+.viewer{background:var(--stage);border-radius:8px;padding:18px clamp(12px,2.4vw,24px) 16px;display:grid;gap:14px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--bg);border-radius:999px;padding:4px}
+.seg button{font:500 14px/1 var(--f-body);color:var(--muted);background:none;border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--btn);color:var(--btn-fg)}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]:hover{color:var(--btn-fg)}
+.vs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.vs button{position:relative;overflow:hidden;font:500 13px/1 var(--f-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer}
+.vs button[aria-pressed="true"]{border-color:var(--fg)}
+.vs button i{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--fg)}
+.vs button[aria-pressed="true"] i.run{animation:fill var(--dur) linear forwards}
+@keyframes fill{to{width:100%}}
+
+.rows{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:center}
+.row .who{font:700 14px/1.3 var(--f-body);text-align:right}
+.row.ours .who{color:var(--accent)}
+.frames{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.frames img{display:block;width:100%;height:auto;border-radius:3px;background:var(--soft);transition:opacity .25s}
+.frames img.swap{opacity:0}
+.row.ours .frames img{box-shadow:0 0 0 2px var(--accent)}
+.time{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;font:400 12px/1 var(--f-mono);color:var(--muted)}
+.time div{display:flex;align-items:center;gap:8px}
+.time div::after{content:"";flex:1;height:1px;background:currentColor;margin-right:2px}
+.time div span:last-child{order:2}
+.vcap{font-size:13.5px;color:var(--muted);text-align:center}
+@media (max-width:600px){.row,.time{grid-template-columns:minmax(0,1fr)}.row .who{text-align:left}.time>span{display:none}}
+
+section{padding-block:48px 8px}
+h2{font:700 24px/1.3 var(--f-body);margin:0 0 16px;text-align:center}
+.lead{font-size:18px;line-height:1.6;text-align:center;max-width:640px;margin:0 auto 20px;text-wrap:balance}
+figure{margin:0}
+figure img{display:block;width:100%;height:auto;border-radius:3px;background:#fff}
+
+section figure img{box-shadow:0 0 0 1px var(--line)}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:640px;margin:0 auto 18px}
+.duo div{display:grid;gap:2px;text-align:center;padding:14px 12px;border-radius:8px;background:var(--stage)}
+.duo b{font-size:16px}
+.duo span{font-size:14px;color:var(--muted)}
+.segview{display:grid;gap:14px;justify-items:center}
+.segview figure{width:100%}
+.seg.small{background:var(--stage)}
+footer{padding-block:48px 40px;font-size:13px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){.frames img{transition:none}.vs button i.run{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="col">
+  <h1>Seeing Beyond the Next Step</h1>
+  <p class="sub">World-Model-Guided Human-Like Navigation in Multi-Agent Scenes</p>
+  <div class="authors">
+    <span>Seong-Eun Hong<sup>1*</sup></span>
+    <span>JuYeong Hwang<sup>1*</sup></span>
+    <span>Jinhyun Kim<sup>1</sup></span>
+    <span>Hanyoung Jang<sup>2</sup></span>
+    <span>HyeongYeop Kang<sup>1†</sup></span>
+  </div>
+  <div class="affil"><span><sup>1</sup>Korea University</span><span><sup>2</sup>NC AI</span></div>
+  <p class="note">*Equal contribution &nbsp; †Corresponding author</p>
+  <p class="venue">NeurIPS 2026</p>
+  <div class="links">
+    <span><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/></svg>Paper (coming soon)</span>
+    <span><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>arXiv (coming soon)</span>
+    <span><svg viewBox="0 0 24 24"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.300 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.3 18.3 4.6 18.3 4.6c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg>Code (coming soon)</span>
+  </div>
+</header>
+
+<div class="col">
+  <div class="viewer" id="viewer">
+    <div class="bar">
+      <div class="seg" id="scenes" role="group" aria-label="Scene"></div>
+      <div class="vs" id="baselines" role="group" aria-label="Compare with"><span>vs</span></div>
+    </div>
+    <div class="rows">
+      <div class="row"><div class="who" id="base-name"></div><div class="frames" id="base-frames"></div></div>
+      <div class="row ours"><div class="who">Ours</div><div class="frames" id="ours-frames"></div></div>
+    </div>
+    <div class="time"><span></span><div><span>time</span><span>→</span></div></div>
+    <p class="vcap" id="vcap"></p>
+  </div>
+</div>
+
+<section class="col">
+  <h2>Method</h2>
+  <p class="lead">World models are used only at training time, as a preference oracle. At deployment they are removed and the policy acts in a single forward pass.</p>
+  <figure><img src="static/teaser.png" alt="Overview of the two-stage training pipeline" loading="lazy"></figure>
+</section>
+
+<section class="col">
+  <h2>Dual World Models</h2>
+  <div class="duo">
+    <div><b>State Transition</b><span>who moves where</span></div>
+    <div><b>Semantic Transition</b><span>what the scene affords</span></div>
+  </div>
+  <div class="segview">
+    <div class="seg small" id="seg-tabs" role="group" aria-label="Scene">
+      <button type="button" id="seg-zara" data-src="static/seg_zara.png" aria-pressed="true">Zara01</button>
+      <button type="button" id="seg-hotel" data-src="static/seg_hotel.png" aria-pressed="false">ETH_Hotel</button>
+      <button type="button" id="seg-eth" data-src="static/seg_eth.png" aria-pressed="false">ETH</button>
+    </div>
+    <figure><img id="seg-img" src="static/seg_zara.png" alt="Input images, ground-truth segmentation, and Semantic Transition World Model predictions over time" loading="lazy"></figure>
+  </div>
+</section>
+
+<section class="col">
+  <h2>Scenes</h2>
+  <figure><img src="static/scenes.png" alt="Students003, Hotel, Zara01, ETH, ETH_Hallway and ETH_Intersection rebuilt in Unity" loading="lazy"></figure>
+</section>
+
+<footer class="col">Contact: seong_eun@korea.ac.kr</footer>
+
+<script>
+(function(){
+const SC={
+  crosswalk:{name:"Crosswalk",p:"cw",ours:"cw_ours",base:[["gbm","GBM"],["ccp","CCP"],["cedrl","CEDRL"]],
+    cap:"Baselines leave the crosswalk and cut across the road (blue). Ours stays on the crosswalk."},
+  group:{name:"Group",p:"gr",ours:"gr_ours",base:[["gbm","GBM"],["ccp","CCP"],["cedrl","CEDRL"]],
+    cap:"Baselines split the group or drift onto the road. Ours keeps the group together."},
+  alley:{name:"Narrow alley",p:"al",ours:"al_ours",base:[["gbm","GBM"],["ccp","CCP"],["cedrl","CEDRL"],["nowm","w/o world models"]],
+    cap:"A car approaches in a narrow alley. Ours steps aside in time (green)."},
+  ablation:{name:"w/o world models",p:"ab",ours:"ab_ours",base:[["nowm","w/o world models"]],
+    cap:"Without the dual world models, the policy wanders off the crosswalk."}
+};
+const DUR=3800;
+const scenesEl=document.getElementById("scenes"),baseEl=document.getElementById("baselines"),
+  bName=document.getElementById("base-name"),bF=document.getElementById("base-frames"),oF=document.getElementById("ours-frames"),cap=document.getElementById("vcap");
+let cur="crosswalk",bi=0,auto=true,timer=null;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function imgs(el,key,alt){
+  if(!el.children.length)for(let i=0;i<3;i++){const im=document.createElement("img");im.width=320;im.height=220;el.appendChild(im)}
+  [...el.children].forEach((im,i)=>{const src=`static/f/${key}_${i+1}.jpg`;if(im.getAttribute("src")===src)return;
+    im.classList.add("swap");const pre=new Image();pre.onload=pre.onerror=()=>{im.src=src;im.alt=`${alt}, frame ${i+1}`;im.classList.remove("swap")};pre.src=src})
+}
+function render(){
+  const s=SC[cur],[k,label]=s.base[bi];
+  [...scenesEl.children].forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===cur));
+  baseEl.querySelectorAll("button").forEach(b=>b.remove());
+  s.base.forEach(([kk,ll],j)=>{const b=document.createElement("button");b.type="button";b.id=`base-${cur}-${kk}`;b.innerHTML=`${ll}<i></i>`;
+    b.setAttribute("aria-pressed",j===bi);b.onclick=()=>{auto=false;bi=j;render()};baseEl.appendChild(b)});
+  bName.textContent=label;
+  imgs(bF,`${s.p}_${k}`,label);imgs(oF,s.ours,"Ours");
+  cap.textContent=s.cap;
+  clearTimeout(timer);
+  const live=baseEl.querySelector('button[aria-pressed="true"] i');
+  if(auto&&!reduce&&s.base.length>1){baseEl.style.setProperty("--dur",DUR+"ms");requestAnimationFrame(()=>live.classList.add("run"));
+    timer=setTimeout(()=>{bi=(bi+1)%s.base.length;render()},DUR)}
+}
+for(const k in SC){const b=document.createElement("button");b.type="button";b.id="scene-"+k;b.dataset.k=k;b.textContent=SC[k].name;
+  b.onclick=()=>{cur=k;bi=0;render()};scenesEl.appendChild(b)}
+render();
+
+const segImg=document.getElementById("seg-img"),segBtns=document.querySelectorAll("#seg-tabs button");
+segBtns.forEach(b=>b.onclick=()=>{segBtns.forEach(x=>x.setAttribute("aria-pressed",x===b));segImg.src=b.dataset.src});
+})();
+</script>
+</body>
+</html>

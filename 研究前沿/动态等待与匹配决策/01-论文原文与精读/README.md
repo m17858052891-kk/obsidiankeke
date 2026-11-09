@@ -61,3 +61,16 @@ created: "2026-11-04"
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/PolicySampleRisk/精读|PolicySampleRisk]] — 复用唯一正文。
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/LatentForesight/精读|LatentForesight]] — 复用唯一正文。
 - [[研究前沿/uplift模型迭代/01-论文原文与精读/DoubleDiagonal/精读|DoubleDiagonal]] — 复用唯一正文。
+
+## 2026-11-09 新增与关联
+
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/PerturbedGreedy/精读|Online Matching with Arbitrary Stochastic Rewards]]
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/StructuredStoppingQ/精读|Continuous-time q-Learning for Finite-Horizon Portfolio Choice with Optimal Stopping in Jump-Diffusion Markets]]
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/AdaptiveMatchingQueries/精读|Adaptive Stochastic Matching: An Expected Query Bound and the Cost of Mandatory Batching]]
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/NonlinearStoppingDual/精读|Nonlinear optimal stopping and domineering claims]]
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/DFQI/精读|DFQI · 把相邻市场样本纳入每一次动作价值更新]]
+- 跨方向 · [[研究前沿/面向决策的履约建模/01-论文原文与精读/DD-LS/精读|DD-LS · 让分配方案决定需求分布，再用容量上界加速求解]]
+
+- 旧文修订 · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/DisclosureAgents/版本更新-2026-11-09|When Disclosure Is Compulsory: Evaluating Ride-Hailing Rebalancing Policies with Self-Interested LLM Driver Agents v3]]
+
+- 旧文修订 · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/DecentralizedMatching/版本更新-2026-11-09|Decentralized Dynamic Stable Matching v2]]

@@ -1,0 +1,923 @@
+
+
+RecGPT-Mobile: On-Device Large Language Models for User Intent Understanding in Taobao Feed Recommendation
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract.
+1 Introduction
+2 Related Work
+3 Methodology
+
+3.1 System Overview
+3.2 Preliminaries
+3.3 Supervised Fine-tuning
+3.4 Adaptive Prompt Construction
+3.5 Mobile Device Inference Optimization
+
+4 Experiments
+
+4.1 Offline Evaluation
+4.2 Online A/B Testing
+
+5 Conclusion
+References
+
+ License: arXiv.org perpetual non-exclusive license
+
+arXiv:2605.04726v1 [cs.IR] 06 May 2026
+
+RecGPT-Mobile: On-Device Large Language Models for User Intent Understanding in Taobao Feed Recommendation
+
+Conference: Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval; July 20–24, 2026; Melbourne, VIC, AustraliaProceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR ’26), July 20–24, 2026, Melbourne, VIC, AustraliaDOI: 10.1145/3805712.3808410ISBN: 979-8-4007-2599-9/2026/07CCS: Information systems Language models
+
+Bin Zhang
+
+Note: Both authors contributed equally to this research.
+
+email: tianji.zb@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Weipeng Huang
+
+email: weipeng.hwp@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Dimin Wang
+
+email: dimin.wdm@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Jialin Zhu
+
+email: xiafei.zjl@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Yuning Jiang
+
+email: mengzhu.jyn@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Zhaode Wang
+
+email: zhaode.wzd@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Chengfei Lv
+
+email: chengfei.lcf@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Jian Wang
+
+email: krod.wj@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Qichao Ma
+
+email: maqichao.mqc@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Li Chen
+
+email: cl121469@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+, 
+Junqing Wu
+
+email: junqing.wjq@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+ and 
+Yipeng Yu
+
+email: linxin.yyp@taobao.com
+
+Affiliation: Taobao & Tmall Group of Alibaba, HangZhou, China
+
+© cc
+
+Abstract.
+
+Predicting a user’s next search query from recent interaction behaviors is a critical problem in modern e-commerce systems, particularly in scenarios where user intent evolves rapidly. Large Language Models (LLMs) offer strong semantic reasoning capabilities and have recently been adopted to enhance training data construction for next-query prediction. However, due to resource constraints on mobile devices, existing applications are deployed on cloud servers, resulting in high inference costs. In this paper, we propose RecGPT-Mobile, a framework that designs a lightweight LLM-based intent understanding agent to improve recommendation quality in mobile e-commerce scenarios. By deploying LLM directly on mobile devices, our approach can capture the evolving interests of users more quickly and adjust the recommendation results in real time. Extensive offline analyzes and online experiments demonstrate that our method significantly improves the accuracy of recommendation results, laying a practical path for LLM deployment in production-scale recommendation systems on mobile devices, as well as a scalable solution for integrating LLMs into real-world next-query prediction systems.
+
+Keywords: 
+On-device LLMs, User Intent Understanding, Feed Recommendation
+††cc-license: by
+
+1. Introduction
+
+The exponential growth of digital content have made personalized recommendation systems indispensable in modern applications. Although traditional cloud-based recommendation systems (Covington et al., 2016; Guo et al., 2017; Zhou et al., 2018) can utilize user behaviors effectively, it still struggles to meet the requirements for low-latency real-time inference in the mobile environment. Besides, centralized architectures introduce unavoidable communication delays between edge devices and remote servers and impede the perception of rapidly changing user intents.
+
+By building feature centers and collecting user behaviors locally, device-level recommendation systems (Gong et al., 2020; Gong et al., 2022; Yin et al., 2025; Gu et al., 2022) make the results more real-time. However, deploying sophisticated model directly on resource-constrained devices presents significant challenges: LLMs (Bai et al., 2023; Achiam et al., 2023; Liu et al., 2024; Yu, 2026) are typically too massive in size and computationally intensive for direct mobile deployment. Recent advances in model compression techniques such as quantization (Frantar et al., 2023), pruning (Han et al., 2015), knowledge distillation (Hinton et al., 2015) have emerged to bridge this gap, making it possible to deploy complex models on mobile devices.
+
+To address these limitations, we propose RecGPT-Mobile, a novel device-level framework that deploys a lightweight LLM as an intent agent directly on the user’s mobile device.
+In summary, our contributions are as follows:
+
+• 
+
+To our knowledge, this work presents the first implementation of an LLM-based recommendation system on mobile devices. We apply preference-based optimization and lightweight model compression to enable efficient deployment of LLM-based retrieval systems.
+
+• 
+
+We design an intent agent that translates implicit user behaviors into explicit intent queries, as well as a frequency control mechanism to reduce redundant inference on the client device and improve resource utilization.
+
+• 
+
+We conducted extensive experiments on Mobile Taobao, involving millions of real users and diverse shopping sessions. The results show that RecGPT-Mobile significantly improves the relevance and interpretability of recommendations.
+
+Figure 1. Framework of RecGPT-Mobile.
+
+2. Related Work
+
+On-device recommendation Systems. EdgeRec (Gong et al., 2020) was the first to implement ranking models directly on mobile devices to reduce signal latency. Gong et al. (Gong et al., 2022) implemented a real-time recommendation framework in the Kuaishou app, which processes user feedback locally on the device. To tackle the limitations of delayed processing in cloud-based re-ranking, DIR (Xi et al., 2023) directly integrates re-ranking framework on mobile devices.
+
+Cloud-based LLMs for recommendation Systems. HSTU (Zhai et al., 2024) reformulated recommendation as a sequential transduction task within a generative framework. OneRec (Deng et al., 2025) is a unified end-to-end generative framework that replaces the traditional cascaded strategy. RecGPT (Yi et al., 2025) is a LLM-based production-scale recommendation framework that replaces log-fitting methods with intent-centric reasoning. It integrates user interest mining, item tagging, retrieval, and explanation generation into a closed loop.
+
+Mobile LLMs. Deploying LLMs on resource-constrained edge devices (Xu et al., 2024; Wang et al., 2025; Lu et al., 2025; Wang et al., 2024) is crucial for low latency and data locality, necessitating advances in architecture and compression to reduce memory use. Collaborative edge-cloud deployment and hardware-aware optimizations, such as leveraging mobile GPUs and NPUs, help balance resource usage and inference speed.
+
+3. Methodology
+
+3.1. System Overview
+
+Fig 1 shows the overall architecture of RecGPT-Mobile framework. User Behavior Collection Module functions as a local repository to collect and cache user behavior data. Triggered by specific high-intent actions, Prompt Construction Module synthesizes raw behavior and profile data into a structured prompt. By processing the synthesized prompt, the Intent Agent transforms complex behavioral signals into a clear user intent query. Upon receiving a request from the intent agent, Item Retrieval Module executes a search based on the generated intent query, and returns a set of interested items back to the client side. The LLM Training Module employs supervised fine-tuning, prompt adaptation and inference optimization to ensure the model remains both adaptive and accurate. In the following sections, we focus on the design and implementation of the LLM Training Module.
+
+3.2. Preliminaries
+
+We focus on the next-query prediction task given heterogeneous user behavior sequences. Formally, let a user behavior sequence be:
+
+ | (1)
+ | 
+ | \small\mathcal{B}=\{(i_{1},a_{1},t_{1}),(i_{2},a_{2},t_{2}),\dots,(i_{T},a_{T},t_{T})\},
+ | 
+
+where i_{T} denotes the item interacted with at timestamp T, a_{T}\in\{\text{click},\text{cart},\text{favorite},\text{purchase}\} denotes the action type, and t_{T} denotes the action time. Given the observed behavior sequence \mathcal{B}, the task is to predict the next potential search query q\in\mathcal{Q}, where \mathcal{Q} is the space of search queries. The objective can be expressed as:
+
+ | (2)
+ | 
+ | \small q^{*}=\arg\max_{q\in\mathcal{Q}}P(q\mid\mathcal{B})\text{ s.t. Resource Constrains},
+ | 
+
+where P(q\mid\mathcal{B}) captures the conditional probability of a search query given the user’s recent behaviors.
+
+Table 1. Training Sample Construction and Composition
+
+ | 
+
+Sample Type
+
+ | 
+
+Data Source
+
+ | 
+
+Ratio
+
+ | 
+
+Behavior-driven
+
+ | 
+
+Purchase & search logs
+
+ | 
+
+60%
+
+ | 
+
+Co-purchase
+
+ | 
+
+Co-purchase item matrix
+
+ | 
+
+20%
+
+ | 
+
+LLM-based
+
+ | 
+
+GPT-based rewriting
+
+ | 
+
+15%
+
+ | 
+
+Human-annotated
+
+ | 
+
+Manually annotated data
+
+ | 
+
+5%
+
+3.3. Supervised Fine-tuning
+
+To effectively model next-query prediction from heterogeneous user behavior sequences, we construct training data from multiple complementary sources, each capturing different aspects of user intent. As shown in Table 1, our training set consists of four types of samples: behavior-driven samples, extracted from purchase logs and search logs by linking purchased items to post-purchase queries and inferring complementary relations; co-purchase relation samples, automatically generated from the item-level co-purchase matrix to capture complementary signals from purchase co-occurrence; LLM-based augmentation, which rewrites rule-based samples with LLM to increase linguistic diversity while preserving semantics; and human-annotated samples, a small manually reviewed set used for quality calibration and reliable evaluation. Prompt 1 below is used for supervised fine-tuning of the intent agent.
+
+Prompt 1: Next-query Prediction Prompt.
+Input:
+Given a timestamp t and a user behavior sequence
+\mathcal{B}=\{(i_{1},a_{1},t_{1}),(i_{2},a_{2},t_{2}),\ldots,(i_{n},a_{n},t_{n})\}, please infer the user’s next search intent, and generate the most likely search query that reflects the user’s latent requirement.
+Output:
+<Predicted search query>.
+
+3.4. Adaptive Prompt Construction
+
+Algorithm 1 Adaptive Prompt Construction with Template & Structural Adaptation
+
+ 1:
+
+ Input: Behavior sequence \mathcal{B}=\{(i_{t},a_{t},t_{t})\}_{t=1}^{T}; scenario s;
+template pool \mathcal{T}; component set \mathcal{C}; scorer M_{\mathrm{score}};
+on-device budget C_{\max} (latency/memory/token).
+
+ 2:
+
+ Output: Adaptive prompt P^{\ast}.
+
+ 3:
+
+ 4:
+
+ Stage 1: Feature Extraction
+
+ 5:
+
+ Compute behavior features \Phi\leftarrow\Phi(\mathcal{B})=[\Phi_{\mathrm{act}},\Phi_{\mathrm{rec}},\Phi_{\mathrm{div}},\Phi_{\mathrm{freq}}],
+where \Phi_{\mathrm{act}} represents action type, \Phi_{\mathrm{rec}} encodes recency, \Phi_{\mathrm{div}} denotes diversity, and \Phi_{\mathrm{freq}} is the action frequency.
+
+ 6:
+
+ Stage 2: Template-level Adaptation
+
+ 7:
+
+ for all T_{k}\in\mathcal{T}_{s} do
+
+ 8:
+
+   \alpha_{k}\leftarrow M_{\mathrm{score}}(T_{k},\Phi,s)
+
+ 9:
+
+ end for
+
+ 10:
+
+ p_{k}\leftarrow\exp(\beta\alpha_{k})\,/\,\sum_{j}\exp(\beta\alpha_{j})
+
+ 11:
+
+ T^{\ast}\leftarrow\arg\max_{T_{k}\in\mathcal{T}_{s}}p_{k}
+
+ 12:
+
+ Initialize prompt P\leftarrow T^{\ast}
+
+ 13:
+
+ Stage 3: Structural-level Adaptation
+
+ 14:
+
+ for all c\in\mathcal{C} do
+
+ 15:
+
+   \Delta(c)\leftarrow M_{\mathrm{score}}(P\oplus c,\Phi,s)-M_{\mathrm{score}}(P,\Phi,s)
+
+ 16:
+
+   if \Delta(c)>\tau and \mathrm{Cost}(P\oplus c)\leq C_{\max} then
+
+ 17:
+
+    P\leftarrow P\oplus c
+
+ 18:
+
+   end if
+
+ 19:
+
+ end for
+
+ 20:
+
+ Stage 4: Budget Enforcement & Finalization
+
+ 21:
+
+ P^{\ast}\leftarrow\arg\max_{P^{\prime}\subseteq P}M_{\mathrm{score}}(P^{\prime},\Phi,s) s.t. \mathrm{Cost}(P^{\prime})\leq C_{\max}
+
+ 22:
+
+ Instantiate behavior tokens from \mathcal{B} into P^{\ast}
+
+ 23:
+
+ return P^{\ast}
+
+Algorithm 1 describes the adaptive prompt construction procedure for next-query prediction under on-device constraints.
+Given a user behavior sequence \mathcal{B} and the scenario context s, the algorithm first summarizes heterogeneous user interactions into a compact behavior feature vector \Phi(\mathcal{B}), which captures action distribution, temporal recency, semantic diversity, and interaction frequency.
+
+Based on the extracted features, the algorithm performs template-level adaptation by scoring candidate prompt templates using a lightweight scoring model and selecting the most suitable template conditioned on both the behavior characteristics and scenario context. After the template is selected, structural-level adaptation is applied to incrementally refine the prompt structure. Specifically, candidate structural components are evaluated according to their marginal utility gain, and only those that contribute positively while satisfying the on-device budget constraints are incorporated into the prompt. Finally, a budget-aware pruning step is conducted to ensure that the constructed prompt maximizes utility under strict latency, memory, and token constraints. The resulting prompt is instantiated with concrete behavior tokens and used as the input to the on-device language model for next-query prediction.
+
+Figure 2. Mobile Intent Agent Trigger Pipeline.
+
+3.5. Mobile Device Inference Optimization
+
+The core objective of the Intent Agent is to update semantic representation when the user’s intent changes, while avoiding frequent computation when behavior is stable, thus achieving a balance between on-device running performance and recommendation accuracy. To this end, we designed the intent agent trigger pipeline, as shown in Fig 2.
+
+Given a user behavior sequence \mathcal{B} within a sliding window, each interaction is mapped to a discrete semantic tag (e.g., category, brand, or intent type). This yields a normalized tag distribution P_{\mathcal{B}} over the current window. Let P_{\mathcal{B}}^{(t)} and P_{\mathcal{B}}^{(t-1)} denote the tag distributions at the current step and the previous trigger point, respectively. We quantify intent drift from three complementary perspectives. First, we measure the change in uncertainty of user intent using entropy:
+
+ | (3)
+ | 
+ | \small H(P_{\mathcal{B}})=-\sum_{k}P_{\mathcal{B}}(k)\log P_{\mathcal{B}}(k).
+ | 
+
+The absolute entropy difference
+
+ | (4)
+ | 
+ | \small\Delta H=\big|H(P_{\mathcal{B}}^{(t)})-H(P_{\mathcal{B}}^{(t-1)})\big|
+ | 
+
+captures whether the user intent becomes more focused or more exploratory. Second, we assess semantic overlap between consecutive behavior windows using Jaccard similarity:
+
+ | (5)
+ | 
+ | \small JA(\mathcal{Z}^{(t)},\mathcal{Z}^{(t-1)})=\frac{|\mathcal{Z}^{(t)}\cap\mathcal{Z}^{(t-1)}|}{|\mathcal{Z}^{(t)}\cup\mathcal{Z}^{(t-1)}|},
+ | 
+
+where \mathcal{Z}^{(t)} denotes the set of observed tags. A lower Jaccard score indicates a larger shift in semantic focus. Finally, we explicitly model distributional drift using Jensen–Shannon (JS) divergence:
+
+ | (6)
+ | 
+ | \small\mathrm{JS}\!\left(P_{\mathcal{B}}^{(t)},P_{\mathcal{B}}^{(t-1)}\right)=\frac{1}{2}\mathrm{KL}\!\left(P_{\mathcal{B}}^{(t)}\,\middle\|\,M\right)+\frac{1}{2}\mathrm{KL}\!\left(P_{\mathcal{B}}^{(t-1)}\,\middle\|\,M\right),
+ | 
+
+where M=\frac{1}{2}\left(P_{\mathcal{B}}^{(t)}+P_{\mathcal{B}}^{(t-1)}\right). We fuse the above signals into a single intent drift score:
+
+ | (7)
+ | 
+ | \small\Delta_{\text{intent}}=\lambda_{1}\cdot\Delta H+\lambda_{2}\cdot\big(1-JA(\mathcal{Z}^{(t)},\mathcal{Z}^{(t-1)})\big)+\lambda_{3}\cdot\mathrm{JS}\!\left(P_{\mathcal{B}}^{(t)},P_{\mathcal{B}}^{(t-1)}\right),
+ | 
+
+where \lambda_{1},\lambda_{2},\lambda_{3}\geq 0 and \lambda_{1}+\lambda_{2}+\lambda_{3}=1 control the relative importance of uncertainty change, semantic overlap, and distributional drift. The LLM is triggered to update the prompt and generate a new prediction only if
+
+ | (8)
+ | 
+ | \small\Delta_{\text{intent}}>\tau,
+ | 
+
+with \tau being a predefined threshold.
+
+4. Experiments
+
+4.1. Offline Evaluation
+
+Prompt 2 is designed to evaluate and decompose generation quality into three complementary dimensions: semantic relevance (S_{\text{sem}}), logical consistency (S_{\text{logic}}), and linguistic style (S_{\text{style}}). The final score is computed as a weighted aggregation of the three sub-scores, providing a holistic assessment of generation quality.
+
+Prompt 2: LLM-based Evaluation Prompt.
+Input:
+Given a user behavior sequence
+\mathcal{B}=\{(i_{1},a_{1},t_{1}),(i_{2},a_{2},t_{2}),\ldots,(i_{n},a_{n},t_{n})\},
+and a candidate search query q generated for next-query prediction,
+please evaluate the quality of q from the following three aspects:
+
+• 
+
+Semantic Consistency: whether q is semantically aligned with the latent intent implied by \mathcal{B}.
+
+• 
+
+Logical Coherence: whether q reflects a reasonable intent transition given the behavior sequence.
+
+• 
+
+Expression Quality: whether q avoids trivial template reuse and is expressed in a natural manner.
+
+Output:
+Three normalized scores
+S_{\text{sem}},S_{\text{logic}},S_{\text{style}}\in[0,1]
+
+Table 2 reports the automatic evaluation results across different evaluation model sizes and deployment settings. We use Qwen3-0.6B as the base model and compare to LoRA-adapted models(Hu et al., 2022), and quantized LoRA models (Dettmers et al., 2022) under the same evaluation protocol. Overall, LoRA models achieve the highest scores across most dimensions, indicating the effectiveness of lightweight fine-tuning. Notably, quantized LoRA models consistently preserve a large portion of the semantic, logical, and stylistic quality of their full-precision counterparts, with only marginal degradation in total scores. This shows that our approach remains robust under resource-constrained deployment scenarios, validating the practicality of on-device inference with minimal quality loss.
+
+Table 2. LLM-based Automatic Evaluation Results
+
+ | 
+
+Eval. Model
+
+ | 
+
+Target
+
+ | S_{\text{sem}}
+ | S_{\text{logic}}
+ | S_{\text{style}}
+ | Total
+
+ | 
+
+Qwen3-4B
+
+ | 
+
+Base
+
+ | 0.752
+ | 0.621
+ | 0.657
+ | 0.677
+
+ | 
+ | 
+
+LoRA
+
+ | 0.885
+ | 0.792
+ | 0.811
+ | 0.829
+
+ | 
+ | 
+
+LoRA+Quant
+
+ | 0.844
+ | 0.754
+ | 0.785
+ | 0.794
+
+ | 
+
+Qwen3-8B
+
+ | 
+
+Base
+
+ | 0.657
+ | 0.554
+ | 0.627
+ | 0.613
+
+ | 
+ | 
+
+LoRA
+
+ | 0.807
+ | 0.755
+ | 0.786
+ | 0.783
+
+ | 
+ | 
+
+LoRA+Quant
+
+ | 0.780
+ | 0.746
+ | 0.754
+ | 0.760
+
+ | 
+
+Qwen3-30B
+
+ | 
+
+Base
+
+ | 0.671
+ | 0.654
+ | 0.663
+ | 0.654
+
+ | 
+ | 
+
+LoRA
+
+ | 0.839
+ | 0.797
+ | 0.787
+ | 0.808
+
+ | 
+ | 
+
+LoRA+Quant
+
+ | 0.812
+ | 0.774
+ | 0.762
+ | 0.780
+
+4.2. Online A/B Testing
+
+We conducted online experiments in four scenarios of mobile Taobao during a one-month testing, covering tens of millions of users. Considering storage limitations, RecGPT-Mobile adopts Qwen3-0.6B-Quant as mobile deployment model, with hyperparameter settings of \lambda_{1}=0.4,\lambda_{2}=0.3,\lambda_{3}=0.3,\tau=0.8, which were determined via experimental heuristic search. As shown in Table 3, RecGPT-Mobile achieves a definitely significant improvement across all four feed scenarios, contributing 1.8% CLICK, 2.7% PAY and 2.5% GMV promotions on average.
+Fig 3 presents the on-device inference latency across multiple percentiles on different dates. While higher percentiles exhibit increased latency as expected, the overall temporal trends remain consistent across P50 to P95. This indicates that the model maintains stable execution behavior even under amplified tail-latency conditions. Moreover, the moderate divergence among percentile curves reflects realistic device-level variance rather than systematic performance degradation, suggesting that the proposed deployment is robust to runtime fluctuations commonly encountered in real-world client environments.
+
+Table 3. Results of online experiment.
+
+ | Scenario
+ | CLICK
+ | PAY
+ | GMV
+
+ | Payment Success Page
+ | +1.3%
+ | +2.3%
+ | +2.5%
+
+ | Shipment Tracking Page
+ | +2.4%
+ | +2.9%
+ | +3.0%
+
+ | Shopping Cart Page
+ | +2.5%
+ | +2.7%
+ | +2.9%
+
+ | Order List Page
+ | +0.8%
+ | +1.8%
+ | +1.8%
+
+ | Average
+ | +1.8%
+ | +2.7%
+ | +2.5%
+
+ | 
+ | 
+ | 
+ | 
+
+Figure 3. Running latency on real-world mobile devices under different percentile
+
+5. Conclusion
+
+This paper presents an on-device framework for next-query intent prediction from user behavior sequences, leveraging large language models with adaptive prompt construction under strict resource constraints. By dynamically adjusting prompt templates and structures, and incorporating a mobile device trigger optimization scheme, the proposed approach enables effective training and robust inference without extensive human supervision. Experimental results show that the model maintains strong intent understanding ability while preserving stable runtime performance across various tail-latency conditions, demonstrating its practicality for deploying recommendation systems on mobile devices.
+
+Presenter Biography
+
+Bin Zhang is an algorithm expert at Taobao, focusing on researching and applying large language models in recommendation systems that enhance user experience through a deeper understanding of user intent. During his work at Taobao, he has applied large language models to develop innovative methods for user intent understanding in recommendations.
+
+References
+
+Achiam et al. (2023)
+J. Achiam, S. Adler, S. Agarwal, L. Ahmad, I. Akkaya, F. L. Aleman, D. Almeida, J. Altenschmidt, S. Altman, S. Anadkat, et al.
+
+Gpt-4 technical report.
+
+arXiv preprint arXiv:2303.08774.
+
+Cited by: §1.
+
+Bai et al. (2023)
+J. Bai, S. Bai, Y. Chu, Z. Cui, K. Dang, X. Deng, Y. Fan, W. Ge, Y. Han, F. Huang, et al.
+
+Qwen technical report.
+
+arXiv preprint arXiv:2309.16609.
+
+Cited by: §1.
+
+Covington et al. (2016)
+P. Covington, J. Adams, and E. Sargin
+
+Deep neural networks for youtube recommendations.
+
+In Proceedings of the 10th ACM conference on recommender systems,
+
+pp. 191–198.
+
+Cited by: §1.
+
+Deng et al. (2025)
+J. Deng, S. Wang, K. Cai, L. Ren, Q. Hu, W. Ding, Q. Luo, and G. Zhou
+
+Onerec: unifying retrieve and rank with generative recommender and iterative preference alignment.
+
+arXiv preprint arXiv:2502.18965.
+
+Cited by: §2.
+
+Dettmers et al. (2022)
+T. Dettmers, M. Lewis, Y. Belkada, and L. Zettlemoyer
+
+Gpt3. int8 (): 8-bit matrix multiplication for transformers at scale.
+
+Advances in neural information processing systems 35, pp. 30318–30332.
+
+Cited by: §4.1.
+
+Frantar et al. (2023)
+E. Frantar, S. Ashkboos, T. Hoefler, and D. Alistarh
+
+GPTQ: accurate post-training quantization for generative pre-trained transformers.
+
+External Links: 2210.17323,
+Link
+
+Cited by: §1.
+
+Gong et al. (2022)
+X. Gong, Q. Feng, Y. Zhang, J. Qin, W. Ding, B. Li, P. Jiang, and K. Gai
+
+Real-time short video recommendation on mobile devices.
+
+In Proceedings of the 31st ACM international conference on information & knowledge management,
+
+pp. 3103–3112.
+
+Cited by: §1,
+§2.
+
+Gong et al. (2020)
+Y. Gong, Z. Jiang, Y. Feng, B. Hu, K. Zhao, Q. Liu, and W. Ou
+
+EdgeRec: recommender system on edge in mobile taobao.
+
+In Proceedings of the 29th ACM International Conference on Information & Knowledge Management,
+
+pp. 2477–2484.
+
+Cited by: §1,
+§2.
+
+Gu et al. (2022)
+R. Gu, C. Niu, Y. Yan, F. Wu, S. Tang, R. Jia, C. Lyu, and G. Chen
+
+On-device learning with cloud-coordinated data augmentation for extreme model personalization in recommender systems.
+
+arXiv preprint arXiv:2201.10382.
+
+Cited by: §1.
+
+Guo et al. (2017)
+H. Guo, R. Tang, Y. Ye, Z. Li, and X. He
+
+DeepFM: a factorization-machine based neural network for ctr prediction.
+
+arXiv preprint arXiv:1703.04247.
+
+Cited by: §1.
+
+Han et al. (2015)
+S. Han, J. Pool, J. Tran, and W. J. Dally
+
+Learning both weights and connections for efficient neural networks.
+
+External Links: 1506.02626,
+Link
+
+Cited by: §1.
+
+Hinton et al. (2015)
+G. Hinton, O. Vinyals, and J. Dean
+
+Distilling the knowledge in a neural network.
+
+External Links: 1503.02531,
+Link
+
+Cited by: §1.
+
+Hu et al. (2022)
+E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen, et al.
+
+Lora: low-rank adaptation of large language models..
+
+Iclr 1 (2), pp. 3.
+
+Cited by: §4.1.
+
+Liu et al. (2024)
+A. Liu, B. Feng, B. Xue, B. Wang, B. Wu, C. Lu, C. Zhao, C. Deng, C. Zhang, C. Ruan, et al.
+
+Deepseek-v3 technical report.
+
+arXiv preprint arXiv:2412.19437.
+
+Cited by: §1.
+
+Lu et al. (2025)
+Z. Lu, X. Li, D. Cai, R. Yi, F. Liu, W. Liu, J. Luan, X. Zhang, N. D. Lane, and M. Xu
+
+Demystifying small language models for edge deployment.
+
+In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers),
+
+pp. 14747–14764.
+
+Cited by: §2.
+
+Wang et al. (2025)
+X. Wang, Z. Tang, J. Guo, T. Meng, C. Wang, T. Wang, and W. Jia
+
+Empowering edge intelligence: a comprehensive survey on on-device ai models.
+
+ACM Computing Surveys 57 (9), pp. 1–39.
+
+Cited by: §2.
+
+Wang et al. (2024)
+Z. Wang, J. Yang, X. Qian, S. Xing, X. Jiang, C. Lv, and S. Zhang
+
+MNN-llm: a generic inference engine for fast large language model deployment on mobile devices.
+
+In MMAsia ’24 Workshops,
+
+Cited by: §2.
+
+Xi et al. (2023)
+Y. Xi, W. Liu, Y. Wang, R. Tang, W. Zhang, Y. Zhu, R. Zhang, and Y. Yu
+
+On-device integrated re-ranking with heterogeneous behavior modeling.
+
+In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 5225–5236.
+
+Cited by: §2.
+
+Xu et al. (2024)
+J. Xu, Z. Li, W. Chen, Q. Wang, X. Gao, Q. Cai, and Z. Ling
+
+On-device language models: a comprehensive review.
+
+External Links: 2409.00088,
+Link
+
+Cited by: §2.
+
+Yi et al. (2025)
+C. Yi, D. Chen, G. Guo, J. Tang, J. Wu, J. Yu, M. Zhang, S. Dai, W. Chen, W. Yang, Y. Jiang, Z. Gao, B. Zheng, C. Li, D. Wang, D. Wang, F. Li, F. Zhang, H. Chen, H. Liu, J. Zhu, J. Wang, J. Wu, J. Cui, J. Huang, K. Zhang, K. Liu, L. Tian, L. Rao, L. Li, L. Zhao, N. He, P. Wang, Q. Huang, T. Luo, W. Su, X. He, X. Tong, X. Chen, X. Xi, Y. Li, Y. Wu, Y. Yang, Y. Hu, Y. Song, Y. Li, Y. Luo, Y. Yuan, Y. Yan, Z. Wang, Z. Xiao, Z. Ma, Z. Zhou, and Z. Zhang
+
+RecGPT technical report.
+
+External Links: 2507.22879,
+Link
+
+Cited by: §2.
+
+Yin et al. (2025)
+H. Yin, L. Qu, T. Chen, W. Yuan, R. Zheng, J. Long, X. Xia, Y. Shi, and C. Zhang
+
+On-device recommender systems: a comprehensive survey.
+
+Data Science and Engineering, pp. 1–30.
+
+Cited by: §1.
+
+Yu (2026)
+Y. Yu
+
+Deep research of deep research: from transformer to agent, from ai to ai for science.
+
+External Links: 2603.28361,
+Link
+
+Cited by: §1.
+
+Zhai et al. (2024)
+J. Zhai, L. Liao, X. Liu, Y. Wang, R. Li, X. Cao, L. Gao, Z. Gong, F. Gu, M. He, et al.
+
+Actions speak louder than words: trillion-parameter sequential transducers for generative recommendations.
+
+arXiv preprint arXiv:2402.17152.
+
+Cited by: §2.
+
+Zhou et al. (2018)
+G. Zhou, X. Zhu, C. Song, Y. Fan, H. Zhu, X. Ma, Y. Yan, J. Jin, H. Li, and K. Gai
+
+Deep interest network for click-through rate prediction.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1059–1068.
+
+Cited by: §1.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

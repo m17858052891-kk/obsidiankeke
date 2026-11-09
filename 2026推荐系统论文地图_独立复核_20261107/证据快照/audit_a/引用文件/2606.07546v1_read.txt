@@ -1,0 +1,669 @@
+
+
+Beyond Item IDs: Scaling Short-Form-Video Recommendation via Semantic-Native Long Sequence Modeling
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract.
+1 Introduction
+2 Methodology
+
+2.1 System Architecture
+2.2 Semantic-Native Representation
+
+2.2.1 Infrastructure: Hierarchical Quantization
+2.2.2 Strategic Adaptation: Asymmetric Semantic Modeling
+
+2.3 Global-Aware Compressed Transformer
+
+2.3.1 Parameter-Free Temporal Folding
+2.3.2 Global-Local Representation Fusion
+
+3 Experiments
+
+3.1 Experimental Setup
+3.2 Semantic-Native Representations Eval
+3.3 Scalability Analysis
+3.4 Efficiency & Performance Analysis
+3.5 Full System Production Impact
+
+4 Conclusion
+References
+
+ License: CC BY 4.0
+
+arXiv:2606.07546v1 [cs.IR] 04 May 2026
+
+Beyond Item IDs: Scaling Short-Form-Video Recommendation via Semantic-Native Long Sequence Modeling
+
+Conference: Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval; July 20–24, 2026; Melbourne, VIC, AustraliaProceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR ’26), July 20–24, 2026, Melbourne, VIC, AustraliaCCS: Information systems Recommender systemsCCS: Information systems Personalization
+
+Ruixiao Sun
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Diego Uribe Mora
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Zhimeng Jiang
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Yuanzhen Lin
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Jiarui Wang
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Yuening Li
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Danfeng Guo
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Zhizhong Chen
+
+Affiliation: Google, Mountain View, USA
+
+, 
+Chuan He
+
+Affiliation: Google, Mountain View, USA
+
+ and 
+Liang Liu
+
+Affiliation: Google, Mountain View, USA
+
+© none
+
+Abstract.
+
+Capturing user interests across extensive watch histories is critical for short-form video recommendation, yet scaling sequence length is limited by two bottlenecks: the semantic sparsity of atomic Video IDs and the quadratic computational complexity of Transformers. Traditional orthogonal Video IDs fail to capture content relationships and demand large embedding tables, while the quadratic complexity of self-attention restricts the maximum sequence length under strict industrial latency and resource constraints. In this work, we present a production-deployed framework for modeling ultra-long user behavior sequences at a billion-user scale.
+We first address the representation bottleneck by adopting content-native Semantic IDs. By utilizing depth-truncated, coarse-grained Semantic IDs, we shrink the embedding table size from corpus cardinality. This compact representation naturally generalizes to cold-start content through shared semantic prefixes. Second, to overcome the sequence scaling barrier, we introduce a Global-Aware Compression Transformer that leverages non-parametric temporal folding and unified global query integration to effectively condense the sequence, alleviating both the memory and computational bottlenecks of standard self-attention. Offline profiling on our computing infrastructure demonstrates an order-of-magnitude reduction in peak memory footprint and a drastic decrease in computational overhead. This efficiency gain enables supporting longer sequence lengths at an affordable cost in production, yielding substantial online gains in satisfied user engagement and satisfied content consumption in large-scale online A/B tests.
+
+Keywords: 
+Semantic Representation, User Long Sequence Modeling, Efficient Transformer, Large Scale Recommendation System
+
+1. Introduction
+
+Sequential user behavior modeling is a cornerstone of modern recommendation systems, particularly in short-form video feeds where sequences of length L>10^{3} are necessary to encapsulate both long-term stable preferences and immediate short-term intent (Covington et al., 2016; Hidasi et al., 2016). However, scaling to these lengths presents a dual challenge: a representation bottleneck caused by traditional item indexing and a computational bottleneck inherent in Transformer architectures.
+
+Sequential recommendation has evolved from early RNNs (Hidasi et al., 2016; Donkers et al., 2017) to self-attention mechanisms (Kang and McAuley, 2018; Sun et al., 2019), but the quadratic complexity of Transformers necessitated two-stage industrial solutions. Beyond target-aware attention (DIN (Zhou et al., 2018), DIEN (Zhou et al., 2019)), methods scaling to longer histories employ either heuristic filtering (SIM (Pi et al., 2020), TWIN (Chang et al., 2023)) or hierarchical clustering (TWIN-V2 (Si et al., 2024)). However, these decoupled strategies either incur information loss by discarding signals or require complex offline pre-computation.
+
+Consequently, recent efforts have pivoted toward optimizing architectures to model full sequences directly in an end-to-end manner. Following the early validation of Transformers in BST (Chen et al., 2019), recent industrial powerhouses have introduced sophisticated optimizations to push the sequence length boundaries. For instance, ByteDance introduced LONGER (Chai et al., 2025) to scale sequence length and HyFormer (Huang et al., 2026) to unify sequential behaviors with non-sequential interactions. Simultaneously, Meta pushed the boundaries of generative and representation learning with DV365 (Lyu et al., 2025), HSTU (Zhai et al., 2024) and VISTA (Chen et al., 2025) for universal user sequence representation.
+
+The Semantic-Native Representation Gap. Parallel to architectural scaling, item representation is undergoing a paradigm shift. Early solutions like TDM (Zhu et al., 2018) and Deep Retrieval (Gao et al., 2020) relied on hashed IDs, presenting two major flaws: (1) Semantic fragmentation: Treating IDs as orthogonal tokens forces models to "memorize" interactions, leading to poor generalization on cold-start content. (2) Storage and sparsity: Hashed IDs create prohibitively large embedding tables that scale unboundedly with corpus size. Recently, the field has evolved towards content-native Semantic Identifiers (SIDs) via RQ-VAE (Rajput et al., 2023). While works like PLUM (He et al., 2025) and TRM (Zhao et al., 2026) explore hierarchical SIDs, their synergy with ultra-long sequence modeling remains under-explored.
+
+In this work, we present a framework that bridges this gap by synergizing the generalization power of hierarchical SIDs with a Global-Aware Compressed Transformer. By adopting content-native SIDs, we enhance the model’s generalization from semantic representation. Concurrently, we leverage a parameter-free temporal folding strategy that explicitly trades temporal resolution for feature dimensionality. This structural reorganization allows us to scale user histories to thousands of interactions while drastically reducing memory footprint, effectively supporting production deployment. To summarize, our main contributions are as follows:
+
+• 
+
+Semantic-Native Representation at Scale: We present a large-scale industrial deployment of SIDs based on RQ-VAE within a billion-user recommendation system. By implementing a Depth-Truncated Bi-gram strategy, we effectively resolve the vocabulary and sparsity bottlenecks inherent in traditional Video IDs. This approach decouples embedding storage from corpus size while significantly improving generalization to cold-start content.
+
+• 
+
+High-Expressivity Efficient Sequence Architecture: We design a Global-Aware Compressed Transformer that leverages non-parametric temporal folding to condense sequence length. This achieves a performance-preserving reduction in computational complexity while simultaneously enhancing representational expressivity. By stacking windows into super-tokens, the model expands the feature dimension to capture complex local interactions within ultra-long user sequences.
+
+• 
+
+Large-Scale Industrial Validation: We provide rigorous offline and online evaluations on a major short-video platform serving billions of users. Our results demonstrate a substantial reduction in both peak memory and computational cost within the sequence modeling component. These efficiency gains allow us to scale sequence lengths, yielding significant online gains in satisfied watch time.
+
+2. Methodology
+
+We present a high-performance sequence modeling framework deployed on a global short-video platform serving billions of active users. The system is designed to capture user interests over horizons spanning thousands of interactions while adhering to strict millisecond-level inference latency constraints.
+
+2.1. System Architecture
+
+To reconcile real-time responsiveness with long-term memory, our system adopts Hybrid Synchronous-Asynchronous Framework(Li et al., 2024), decoupling user interests modeling into two modules:
+
+• 
+
+Synchronous Short-Term Module: A real-time component embedded in the serving graph. It encodes the immediate interaction tail \mathcal{S}_{short} to capture emerging interests via real-time feature ingestion.
+
+• 
+
+Asynchronous Long-Term Module: An asynchronous component modeling the ultra-long user sequence \mathcal{S}_{long}=\{v_{1},\dots,v_{L}\}. Crucially, by utilizing a shared backbone and optimization objective in our core ranking model system, we ensure that asynchronously computed representations are intrinsically mapped to a shared latent space. This prevents feature misalignment between long-term historical signals and real-time ranking features.
+
+2.2. Semantic-Native Representation
+
+To transcend the sparsity and cold-start limitations of traditional orthogonal Video IDs, we transition to a content-native paradigm utilizing the Semantic Identifier (SID) infrastructure (Rajput et al., 2023).
+
+2.2.1. Infrastructure: Hierarchical Quantization
+
+Our system ingests SIDs generated via an upstream Residual Quantized VAE (RQ-VAE) framework. This infrastructure projects high-dimensional, multi-modal content embeddings into a discrete, hierarchical latent space. Specifically, the RQ-VAE produces a tuple of discrete codes s_{v}=(c_{1},c_{2},\dots,c_{D}) for each video, encoding a coarse-to-fine semantic hierarchy where initial codes capture broad categories and subsequent codes encode granular residuals.
+
+2.2.2. Strategic Adaptation: Asymmetric Semantic Modeling
+
+Using full-depth tokens for ultra-long user sequences (\mathcal{S}_{u}) is computationally prohibitive due to vocabulary explosion. We therefore implement an Asymmetric Granularity Strategy:
+
+• 
+
+Target & Non-sequence Side (Fine-Grained): Both Candidate items and pivotal interaction features (e.g., the last-watched ID) retain extended semantic hierarchies for precise discriminative matching.
+
+• 
+
+Sequence Side (Coarse-Grained): Videos in user sequence are restricted to a Depth-Truncated Bigram (c_{1},c_{2}).
+
+Figure 1. Semantic ID generation. Raw videos are quantized via RQ-VAE, followed by Bi-gram Truncation to flatten the path into a unified integer ID, preserving category-level semantics for sequence modeling.
+
+As illustrated in Figure 1, we project the vertical (c_{1}) and sub-vertical (c_{2}) codes into a unified identifier space
+ID_{seq}=c_{1}\cdot|V|+c_{2}, where |V| denotes the codebook vocabulary size.
+
+This design achieves a critical efficiency-expressivity trade-off. Unlike atomic Video IDs that scale unboundedly with corpus expansion, this approach bounds the embedding table size by regulating hierarchy depth. It drastically reduces memory footprint while preserving the semantic gist, effectively clustering interactions into discriminative sub-verticals (e.g., "Gaming-Sandbox" vs. "Gaming-Shooter") without the burden of full-depth modeling.
+
+2.3. Global-Aware Compressed Transformer
+
+Standard self-attention incurs O(L^{2}) complexity, which is prohibitive for L\sim 10^{3}. We propose a Global-Aware Compressed Transformer, as shown in Figure 2, that ensures computational tractability through lossless structural reorganization.
+
+2.3.1. Parameter-Free Temporal Folding
+
+Unlike pooling methods that reduce sequence length via lossy aggregation, Temporal Folding performs a non-destructive reshaping to mitigate quadratic complexity. We partition the input \mathbf{X}\in\mathbb{R}^{L\times d} into windows of size k and stack them channel-wise to form super-tokens:
+
+ | (1)
+ | 
+ | \mathbf{H}_{i}^{super}=\text{Concat}(\mathbf{x}_{(i-1)k+1},\dots,\mathbf{x}_{ik})
+ | 
+
+This zero-parameter operation transforms the input from (L,d) to (L/k,k\cdot d), explicitly trading temporal resolution for feature expressivity to capture dense dependencies between "super-events".
+
+2.3.2. Global-Local Representation Fusion
+
+To synthesize a holistic user representation, we prepend a learnable Global Query Token \mathbf{G}_{init}\in\mathbb{R}^{N_{g}\times d} to the compressed sequence input. Distinguishing our approach from user profile-based initialization, we instantiate \mathbf{g}_{init} as a strictly feature-agnostic anchor. This forces the attention mechanism to derive representations solely from dynamic interactions. Furthermore, acting as an attention sink (Xiao et al., 2023), it naturally absorbs low-entropy signals, stabilizing optimization.
+We fuse this global state (\mathbf{g}_{final}) with granular sequential signals via Unified Masked Mean Pooling. Let \mathbf{H}_{out}\in\mathbb{R}^{(L^{\prime}+N_{g})\times d} denote the complete Transformer output, where index 0 corresponds to \mathbf{g}_{final}. The final representation is computed as:
+
+ | (2)
+ | 
+ | \mathbf{u}_{final}=\frac{\sum_{j=1}^{L^{\prime}+N_{g}}(\mathbf{H}_{out}[j]\cdot\mathcal{M}^{\prime}_{j})}{\sum_{j=1}^{L^{\prime}+N_{g}}\mathcal{M}^{\prime}_{j}+\epsilon}
+ | 
+
+where \mathcal{M}^{\prime}\in\{0,1\}^{L^{\prime}+N_{g}} is the extended validity mask (\mathcal{M}^{\prime}_{[1:N_{g}]}=1). This operation effectively balances global intent with local details, while the normalization ensures magnitude invariance across diverse history lengths.
+
+Figure 2. Global-Aware Compressed Transformer Overview.
+
+3. Experiments
+
+3.1. Experimental Setup
+
+We evaluate our framework on the production traffic of a major short-form video platform. Our experiments are designed to validate the effectiveness of the Semantic IDs, the scalability of the sequence modeling architecture, and the system efficiency of our compression strategy. Finally, we measure the end-to-end business impact through large-scale online A/B experiments.
+
+3.2. Semantic-Native Representations Eval
+
+We first investigate the impact of replacing discrete Video IDs with Bi-gram SIDs in sequence modeling. The primary goal is to verify that content-native representations can match the memorization capability of ID-based baselines while improving the generalization of recommendation system.
+
+Online Ablation Results.
+Table 1 presents the relative lift against the Video ID baseline with sequence length L=160.
+The transition to SIDs achieves statistically significant positive lift on core engagement metrics (satisfied views). This confirms that compressed SID preserve the specific interaction signals previously captured by individual Video IDs.
+Crucially, SIDs drive +6.81\% gain in Freshness (satisfied views with recently uploaded content). This confirms that content-native representations effectively alleviate the cold-start problem, improving generalization of recommendation system. Furthermore, by bounding the vocabulary to the Bi-gram space, we achieve a substantial reduction in both embedding parameters and physical storage size
+
+Table 1. Online Ablation Test (L=160). Semantic IDs yield positive top-line metrics and significant cold-start gains (all p<0.05).
+
+ | Metric
+ | Relative Lift (\Delta\%)
+
+ | Satisfied Views
+ | +0.86%
+
+ | Freshness
+ | +6.81%
+
+ | Embedding Parameters
+ | -38.07%
+
+ | Storage Size
+ | -39.33%
+
+3.3. Scalability Analysis
+
+With the representation bottleneck addressed, we next validate how the Global-Aware Compressed Transformer handles ultra-long sequences. We first assess whether the model capacity is sufficient to capture complex user interests, and then investigate the gains from scaling the input sequence length.
+
+Impact of Model Capacity.
+We examine our model’s scaling capacity by conducting experiments on the model dimensions (Hidden Dimension d and number of transformer layers N).
+Table 2 demonstrates that the sequence modeling with SID benefits significantly from deeper and wider networks. The consistent AUC lift confirms that the architecture effectively utilizes additional parameters to capture intricate interaction patterns, validating its capability to scale with available compute budget.
+
+Table 2. Model Capacity Scaling (L=800). The architecture benefits consistently from expanded width and depth across tasks.
+
+ | Hidden Dim (d)
+ | Layers (N)
+ | Task 1 \Delta AUC
+ | Task 2 \Delta AUC
+
+ | Impact of Hidden Dimension (Fixed Layers = 2)
+
+ | 128 (Base)
+ | 2
+ | –
+ | –
+
+ | 256
+ | 2
+ | +0.04%
+ | +0.00%
+
+ | 1024
+ | 2
+ | +0.10%
+ | +0.15%
+
+ | Impact of Layer Depth (Fixed Dim = 128)
+
+ | 128 (Base)
+ | 2
+ | –
+ | –
+
+ | 128
+ | 4
+ | +0.16%
+ | +0.27%
+
+ | 128
+ | 6
+ | +0.23%
+ | +0.36%
+
+Impact of Sequence Length.
+We now examine how the sequence model with SID performance scales with the user watch history length in {400, 800, 1200, 2000}. As shown in Figure 3, we observe a consistent monotonic increase in offline AUC for different tasks. The gain from L=1200 to L=2000 indicates that ultra-long historical interactions contain valuable signals that are not captured by shorter windows with training speed drawdown. Figure 4 also shows power-law scaling function of relative LogLoss w.r.t. training time in the form \frac{LogLoss_{L}}{LogLoss_{400}}=\frac{(T_{L}/D)^{k}}{(T_{400}/D)^{k}}=(\frac{T_{L}}{T_{400}})^{k}. The exponential coefficients for task 1 and 2 are -0.634 and -0.056, respectively.
+
+Figure 3. AUC Improvements vs. Sequence Length.
+
+Figure 4. Empirical Normalized Scaling Law Analysis: The power-law fit (dashed lines) follows \delta LogLoss\propto(\delta T)^{k}, with scaling exponent k, relative loss \delta LogLoss=\frac{LogLoss_{L}}{LogLoss_{400}}, \delta T=\frac{T_{L}}{T_{400}}.
+
+3.4. Efficiency & Performance Analysis
+
+To validate the trade-off between computational cost and model accuracy, we profile the sequence modeling component (L=800) on 64 chips within our computing infrastructure.
+
+As shown in Table 3, our Global-Aware Compression (k=4) achieves a Pareto improvement. Specifically within the sequence modeling module, it reduces the training step time by 83.9% and peak activation memory by 92.2%, while lifting overall AUC by +0.06% (Task 1) and +0.15% (Task 2). We attribute this accuracy gain to local denoising and expanded feature expressivity resulting from temporal folding. By directly concatenating k neighboring tokens (where k is a tunable hyperparameter), the effective hidden dimension increases by a factor of k, allowing the attention mechanism to capture richer local feature correlations.
+
+However, further increasing compression to k=6 causes an AUC regression (Task 1 \Delta: -0.04%). This confirms that k=4 represents the optimal efficiency-resolution trade-off—sufficiently aggressive to unblock computational bottlenecks, yet retaining the temporal resolution needed to distinguish fine-grained sequential patterns.
+
+Table 3. Efficiency & Cost Profile (L=800). Temporal Folding (k=4) drastically reduces computational cost of the sequence component while slightly improving AUC on multiple tasks.
+
+ | Metric
+ | Vanilla Transformer
+ | Ours (k=4)
+
+ | Task 1 \Delta AUC
+ | – (Base)
+ | +0.06%
+
+ | Task 2 \Delta AUC
+ | – (Base)
+ | +0.15%
+
+ | Training Step Time (ms)
+ | 41.1
+ | 6.6 (-83.9%)
+
+ | Peak HBM (MiB)
+ | 5758
+ | 448 (-92.2%)
+
+3.5. Full System Production Impact
+
+Finally, we presented the online A/B experiment results utilizing Semantic IDs and Global-Aware Compression to model ultra-long sequences (L=2000)—against the previous state-of-the-art production baseline (L=800 Video ID).
+
+Notably, the superior efficiency of SIDs and our compression strategy released significant computational headroom. This allowed us to scale up the model capacity within the asynchronous modeling component, further boosting the system’s ability to capture complex user interests.
+Table 4 reports top-line metrics lift by this holistic system upgrade.
+By synergizing content-native representations with a deeper, longer-context architecture, the new system yields substantial gains across all key metrics.
+The significant lift in Actively Engaged Users, Satisfied Watch Time and Satisfied Views confirms that the upgraded system captures richer, long-term user interest signals that were previously inaccessible to the baseline model.
+
+Table 4. Full System Production Impact. Comparison between the baseline (L=800 Video ID) and the fully optimized system (L=2000 SID). All reported cumulative gains from the system upgrade are statistically significant (p<0.05).
+
+ | Metric
+ | Total Relative Lift (\Delta\%)
+
+ | Actively Engaged Users
+ | +0.52%
+
+ | Satisfied Watch Time
+ | +1.42%
+
+ | Satisfied Views
+ | +1.08%
+
+4. Conclusion
+
+In this work, we presented a scalable framework for modeling ultra-long user sequences using Semantic IDs, effectively resolving vocabulary bottlenecks and improving system generalization. To address computational constraints, we introduced a Global-Aware Compression-based Transformer, which leverages non-parametric temporal folding to significantly reduce memory footprint. This synergy enabled us to scale model capacity within a billion-user short video recommendation system, resulting in substantial cumulative gains in top-line metrics such as satisfied watch time and satisfied views. Our approach provides a practical, efficient blueprint for next-generation infinite-context recommendation engines. Moving forward, we aim to push the boundaries of efficient long-context kernels and hardware-algorithm co-design, further investigating sequence scaling laws as we transition into the era of Large Recommendation Models (LRMs).
+
+Main Presenter Bio
+
+Dr. Ruixiao Sun is a Tech Lead and Machine Learning Scientist at Google, specializing in recommendation systems. Her work primarily focuses on next-generation recommendation systems, including Large Recommendation Models, multi-modal recommendations, LLM-inspired architectures, and user sequence modeling.
+
+Presentation Preference: Talk.
+
+References
+
+Chai et al. (2025)
+Z. Chai, Q. Ren, X. Xiao, H. Yang, B. Han, S. Zhang, D. Chen, H. Lu, W. Zhao, L. Yu, et al.
+
+Longer: scaling up long sequence modeling in industrial recommenders.
+
+In Proceedings of the Nineteenth ACM Conference on Recommender Systems,
+
+pp. 247–256.
+
+Cited by: §1.
+
+Chang et al. (2023)
+J. Chang, C. Zhang, Z. Fu, X. Zang, L. Guan, J. Lu, Y. Hui, D. Leng, Y. Niu, Y. Song, et al.
+
+TWIN: two-stage interest network for lifelong user behavior modeling in ctr prediction at kuaishou.
+
+In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 3785–3794.
+
+Cited by: §1.
+
+Chen et al. (2019)
+Q. Chen, H. Zhao, W. Li, P. Huang, and W. Ou
+
+Behavior sequence transformer for e-commerce recommendation in alibaba.
+
+In Proceedings of the 1st international workshop on deep learning practice for high-dimensional sparse data,
+
+pp. 1–4.
+
+Cited by: §1.
+
+Chen et al. (2025)
+Z. Chen, C. Zhao, K. C. Mo, Y. Jiang, J. H. Lee, S. Chen, K. C. Mahajan, N. Jiang, K. Ren, J. Li, et al.
+
+Massive memorization with hundreds of trillions of parameters for sequential transducer generative recommenders.
+
+arXiv preprint arXiv:2510.22049.
+
+Cited by: §1.
+
+Covington et al. (2016)
+P. Covington, J. Adams, and E. Sargin
+
+Deep neural networks for youtube recommendations.
+
+In Proceedings of the 10th ACM Conference on Recommender Systems,
+
+pp. 191–198.
+
+Cited by: §1.
+
+Donkers et al. (2017)
+T. Donkers, B. Loepp, and J. Ziegler
+
+Sequential user-based recurrent neural network recommendations.
+
+In Proceedings of the eleventh ACM conference on recommender systems,
+
+pp. 152–160.
+
+Cited by: §1.
+
+Gao et al. (2020)
+W. Gao, X. Fan, J. Sun, K. Jia, W. Xiao, C. Wang, and X. Liu
+
+Deep retrieval: an end-to-end learnable structure model for large-scale recommendations.
+
+arXiv preprint arXiv:2007.07203.
+
+Cited by: §1.
+
+He et al. (2025)
+R. He, L. Heldt, L. Hong, R. Keshavan, S. Mao, N. Mehta, Z. Su, A. Tsai, Y. Wang, S. Wang, et al.
+
+Plum: adapting pre-trained language models for industrial-scale generative recommendations.
+
+arXiv preprint arXiv:2510.07784.
+
+Cited by: §1.
+
+Hidasi et al. (2016)
+B. Hidasi, A. Karatzoglou, L. Baltrunas, and D. Tikk
+
+Session-based recommendations with recurrent neural networks.
+
+In International Conference on Learning Representations (ICLR),
+
+Cited by: §1,
+§1.
+
+Huang et al. (2026)
+Y. Huang, S. Hong, X. Xiao, J. Jin, X. Luo, Z. Wang, Z. Chai, S. Wu, Y. Zheng, and J. Lin
+
+HyFormer: revisiting the roles of sequence modeling and feature interaction in ctr prediction.
+
+arXiv preprint arXiv:2601.12681.
+
+Cited by: §1.
+
+Kang and McAuley (2018)
+W. Kang and J. McAuley
+
+Self-attentive sequential recommendation.
+
+In 2018 IEEE international conference on data mining (ICDM),
+
+pp. 197–206.
+
+Cited by: §1.
+
+Li et al. (2024)
+Y. Li, D. Uribe, C. He, J. Tang, Q. Liu, J. Shan, B. Most, K. Kalyan, S. Bi, X. Yi, et al.
+
+Short-form video needs long-term interests: an industrial solution for serving large user sequence models.
+
+In Proceedings of the 18th ACM Conference on Recommender Systems,
+
+pp. 832–834.
+
+Cited by: §2.1.
+
+Lyu et al. (2025)
+W. Lyu, D. Tyagi, Y. Yang, Z. Li, A. Somani, K. Shanmugasundaram, N. Andrejevic, F. Adeputra, C. Zeng, A. K. Singh, et al.
+
+DV365: extremely long user history modeling at instagram.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2,
+
+pp. 4717–4727.
+
+Cited by: §1.
+
+Pi et al. (2020)
+Q. Pi, G. Zhou, Y. Zhang, Z. Wang, L. Ren, Y. Fan, X. Zhu, and K. Gai
+
+Search-based user interest modeling with lifelong sequential behavior data for click-through rate prediction.
+
+In Proceedings of the 29th ACM International Conference on Information & Knowledge Management,
+
+pp. 2685–2692.
+
+Cited by: §1.
+
+Rajput et al. (2023)
+S. Rajput, N. Mehta, A. Singh, R. Hulikal Keshavan, T. Vu, L. Heldt, L. Hong, Y. Tay, V. Tran, J. Samost, et al.
+
+Recommender systems with generative retrieval.
+
+Advances in Neural Information Processing Systems 36, pp. 10299–10315.
+
+Cited by: §1,
+§2.2.
+
+Si et al. (2024)
+Z. Si, L. Guan, Z. Sun, X. Zang, J. Lu, Y. Hui, X. Cao, Z. Yang, Y. Zheng, D. Leng, K. Zheng, C. Zhang, Y. Niu, Y. Song, and K. Gai
+
+TWIN v2: scaling ultra-long user behavior sequence modeling for enhanced ctr prediction at kuaishou.
+
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+
+CIKM ’24, New York, NY, USA, pp. 4890–4897.
+
+External Links: ISBN 9798400701245,
+Link,
+Document
+
+Cited by: §1.
+
+Sun et al. (2019)
+F. Sun, J. Liu, J. Wu, C. Pei, X. Lin, W. Ou, and P. Jiang
+
+BERT4Rec: sequential recommendation with bidirectional encoder representations from transformer.
+
+In Proceedings of the 28th ACM international conference on information and knowledge management,
+
+pp. 1441–1450.
+
+Cited by: §1.
+
+Xiao et al. (2023)
+G. Xiao, Y. Tian, B. Chen, S. Han, and M. Lewis
+
+Efficient streaming language models with attention sinks.
+
+arXiv preprint arXiv:2309.17453.
+
+Cited by: §2.3.2.
+
+Zhai et al. (2024)
+J. Zhai, L. Liao, X. Liu, Y. Wang, R. Li, X. Cao, L. Gao, Z. Gong, F. Gu, M. He, et al.
+
+Actions speak louder than words: trillion-parameter sequential transducers for generative recommendations.
+
+arXiv preprint arXiv:2402.17152.
+
+Cited by: §1.
+
+Zhao et al. (2026)
+Z. Zhao, T. Zhang, J. Xu, Q. Cai, Q. Zhang, L. Yang, D. Xiao, and X. Chang
+
+Farewell to item ids: unlocking the scaling potential of large ranking models via semantic tokens.
+
+arXiv preprint arXiv:2601.22694.
+
+Cited by: §1.
+
+Zhou et al. (2019)
+G. Zhou, N. Mou, Y. Fan, Q. Pi, W. Bian, C. Zhou, X. Zhu, and K. Gai
+
+Deep interest evolution network for click-through rate prediction.
+
+In Proceedings of the AAAI conference on artificial intelligence,
+
+Vol. 33, pp. 5941–5948.
+
+Cited by: §1.
+
+Zhou et al. (2018)
+G. Zhou, X. Zhu, C. Song, Y. Fan, H. Zhu, X. Ma, Y. Yan, J. Jin, H. Li, and K. Gai
+
+Deep interest network for click-through rate prediction.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1059–1068.
+
+Cited by: §1.
+
+Zhu et al. (2018)
+H. Zhu, X. Li, P. Zhang, G. Li, J. He, H. Li, and K. Gai
+
+Learning tree-based deep model for recommender systems.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1079–1088.
+
+Cited by: §1.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

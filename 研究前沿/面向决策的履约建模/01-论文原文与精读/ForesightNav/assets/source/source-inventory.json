@@ -1,0 +1,247 @@
+{
+  "source": "https://arxiv.org/html/2611.07730v1",
+  "pdf_sha256": "51cc7c4987eb8f3f95ac9721883009852e67326f99db8a6f12c3d40006e932ae",
+  "sections": [
+    [
+      "S1",
+      "1 Introduction"
+    ],
+    [
+      "S2",
+      "2 Related Work"
+    ],
+    [
+      "S3",
+      "3 Method"
+    ],
+    [
+      "S3.SS1",
+      "3.1 Action Prior over Motion Anchors"
+    ],
+    [
+      "S3.SS2",
+      "3.2 Navigation-Aligned World Models"
+    ],
+    [
+      "S3.SS3",
+      "3.3 Consequence-Based Preference Refinement"
+    ],
+    [
+      "S4",
+      "4 Experiments"
+    ],
+    [
+      "S4.SS1",
+      "4.1 Data and Evaluation Scenes"
+    ],
+    [
+      "S4.SS2",
+      "4.2 Evaluation Metrics"
+    ],
+    [
+      "S4.SS3",
+      "4.3 Experimental Results and Discussion"
+    ],
+    [
+      "S5",
+      "5 Limitations"
+    ],
+    [
+      "S6",
+      "6 Conclusion"
+    ],
+    [
+      "Sx1",
+      "Acknowledgments and Disclosure of Funding"
+    ],
+    [
+      "A1",
+      "Appendix A Implementation Details"
+    ],
+    [
+      "A2",
+      "Appendix B Score Function Details"
+    ],
+    [
+      "A3",
+      "Appendix C Segmentation Classes"
+    ],
+    [
+      "A4",
+      "Appendix D Anchor Vocabulary Reconstruction Analysis"
+    ],
+    [
+      "A5",
+      "Appendix E World Model Performance and Diagnostics"
+    ],
+    [
+      "A6",
+      "Appendix F Additional Experiments for Motion Fidelity"
+    ],
+    [
+      "A7",
+      "Appendix G User Study"
+    ],
+    [
+      "A8",
+      "Appendix H Qualitative Visualization of Segmentation Image Sequences"
+    ],
+    [
+      "A9",
+      "Appendix I Failure Cases and Limitations"
+    ],
+    [
+      "A10",
+      "Appendix J Runtime and Compute"
+    ],
+    [
+      "A11",
+      "Appendix K Prompt Template"
+    ],
+    [
+      "A12",
+      "Appendix L Additional Qualitative Results"
+    ],
+    [
+      "A13",
+      "Appendix M Comparison with Simpler Pipelines and an Online World-Model Planner"
+    ],
+    [
+      "A14",
+      "Appendix N Input Ablation"
+    ],
+    [
+      "A15",
+      "Appendix O Standard ETH/UCY Forecasting Benchmark"
+    ],
+    [
+      "Ax1",
+      "NeurIPS Paper Checklist"
+    ]
+  ],
+  "figures_tables": [
+    [
+      "S2.F1",
+      "Figure 1: Overview of the proposed training pipeline. In Stage 1, we adapt a pretrained VLM into a VLA policy through supervised learning, grounding agent-centric visual observations and structured navigation context to executable motion-skill actions. In Stage 2, we further refi"
+    ],
+    [
+      "S4.F2",
+      "Figure 2: Overview of the training and evaluation scenes. We use six scenes in our experiments: Students003, ETH_Hotel, Zara01, ETH, ETH_Hallway, and ETH_Intersection."
+    ],
+    [
+      "S4.T1",
+      "Table 1: Closed-loop results on five held-out evaluation scenarios. Higher is better for GSR, while lower is better for SRVR and GD."
+    ],
+    [
+      "S4.F3",
+      "Figure 3: Crosswalk navigation comparison. We compare CCP, CEDRL, GBM, and our method in a road-crossing scene with a marked pedestrian crosswalk. Red curves show each agent’s trajectory over the previous 60 frames. Blue boxes mark frames where the baselines leave the crosswalk a"
+    ],
+    [
+      "S4.T2",
+      "Table 2: Ablation study on five held-out evaluation scenarios. Higher is better for GSR, while lower is better for SRVR and GD."
+    ],
+    [
+      "S4.T3",
+      "Table 3: Comparison with simpler pipelines and an online world-model planner. Trajectory predictors are combined with an MPC planner [33]. Results are averaged over the five held-out evaluation scenarios; per-scene results are in Appendix M. Higher is better for GSR, while lower "
+    ],
+    [
+      "A3.T4",
+      "Table 4: Segmentation classes used by the Semantic Transition World Model. Each class is identified by a semantic tag and a fixed Hex color code. The score role describes how the class is treated by the semantic-validity score in Appendix B."
+    ],
+    [
+      "A3.F4",
+      "Figure 4: Real trajectory clips and nearest-anchor reconstructions. We randomly sample 20 trajectory clips and visualize each real trajectory against its nearest anchor reconstruction from the K=100K=100 vocabulary. Blue solid lines denote real trajectory clips, and red dashed li"
+    ],
+    [
+      "A5.T5",
+      "Table 5: Semantic prediction performance. Class-aware test metrics for the Semantic Transition World Model."
+    ],
+    [
+      "A5.T6",
+      "Table 6: State prediction performance. Test metrics for future relative position and velocity prediction."
+    ],
+    [
+      "A5.F5",
+      "Figure 5: Segmentation image sequence from Zara01. Columns are ordered in time. Rows show the third-person RGB input, the ground-truth segmentation, and the segmentation predicted by the Semantic Transition World Model. The red silhouette marks the controlled agent; other pedestr"
+    ],
+    [
+      "A5.F6",
+      "Figure 6: Segmentation image sequence from ETH_Hotel. Columns are ordered in time; rows are as in Figure 5."
+    ],
+    [
+      "A6.T7",
+      "Table 7: Motion fidelity on held-out trajectories. ADE and FDE (in meters) compare generated trajectories against reference human trajectories. Lower is better for both metrics; bold and underline mark the best and second-best results. Values are reported with 95% confidence inte"
+    ],
+    [
+      "A7.F7",
+      "Figure 7: User study results for motion quality, naturalness, and smoothness. Bars show participant-level mean ratings. Brackets mark Holm-corrected paired Wilcoxon signed-rank tests comparing our method against each baseline (* p<.05p<.05, ** p<.01p<.01)."
+    ],
+    [
+      "A8.F8",
+      "Figure 8: Segmentation image sequence from ETH. Columns are ordered in time; rows are as in Figure 5."
+    ],
+    [
+      "A8.F9",
+      "Figure 9: Failure case of a segmentation image sequence from ETH. Rows are as in Figure 5. White boxes mark regions where the predicted segmentation deviates from the ground truth and loses temporal consistency."
+    ],
+    [
+      "A10.T8",
+      "Table 8: World model and VLA compute and runtime. Runtime is measured per candidate for the world models and per decision for the deployed policy."
+    ],
+    [
+      "A11.T9",
+      "Table 9: Anchor-selection prompt template. The prompt asks the policy to choose the safest and most natural anchor for crowd simulation based on the current image, ego state, goal, nearby agents, and nearby dynamic objects."
+    ],
+    [
+      "A12.F10",
+      "Figure 10: Additional qualitative comparison on group-coherent navigation. We compare CCP, CEDRL, GBM, and our method in a representative group-navigation scene. Each row shows a later timestep in the same rollout, and trajectory traces indicate recent motion over the previous 60"
+    ],
+    [
+      "A12.F11",
+      "Figure 11: Qualitative ablation on the dual world models. We compare our full method with the variant without the dual world models in a representative closed-loop navigation scene; time runs from left to right. Without the dual world models, the agent shows typical failure cases"
+    ],
+    [
+      "A12.F12",
+      "Figure 12: Narrow-alley interaction with an approaching vehicle. Blue highlights indicate collision-prone trajectories produced by existing methods and the ablated variant, while green highlights show the collision-free trajectory produced by our method."
+    ],
+    [
+      "A12.F13",
+      "Figure 13: Screenshot of the Google Form used for the user study. The study was administered through Google Forms. Participants watched anonymized rollout videos and answered three 7-point Likert-scale questions evaluating motion quality, naturalness, and smoothness."
+    ],
+    [
+      "A13.T10",
+      "Table 10: Per-scene comparison with simpler pipelines and an online world-model planner. Trajectory predictors are combined with an MPC planner [33]. Higher is better for GSR, while lower is better for SRVR and GD. Bold marks the best result in each scene among methods other than"
+    ],
+    [
+      "A14.T11",
+      "Table 11: Input ablation on five held-out evaluation scenarios. State only removes the visual input; Vision only removes the hand-crafted state features except the goal. Higher is better for GSR, while lower is better for SRVR and GD."
+    ],
+    [
+      "A15.T12",
+      "Table 12: ETH/UCY forecasting benchmark (ADE/FDE in meters, lower is better). Trajectron++ numbers are those after the evaluation bug fix [43]."
+    ]
+  ],
+  "equation_anchors": [
+    "S3.E1",
+    "S3.E2",
+    "S3.Ex1",
+    "S3.E3",
+    "S3.E4",
+    "S3.E5",
+    "S3.E6",
+    "A2.E7",
+    "A2.E8",
+    "A2.E9",
+    "A2.E10",
+    "A2.E11",
+    "A2.E12",
+    "A2.E13",
+    "A2.E14",
+    "A2.E15",
+    "A2.E16",
+    "A2.E17",
+    "A2.E18",
+    "A2.E19",
+    "A2.Ex2"
+  ]
+}

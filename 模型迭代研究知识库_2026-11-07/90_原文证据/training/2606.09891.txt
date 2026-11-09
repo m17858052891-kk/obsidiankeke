@@ -1,0 +1,734 @@
+=== PAGE 1 ===
+       Representation Curriculum: Stagewise Training for Robust
+                                                     Ranking and Allocation
+
+                                                                   Ehsan Ebrahimzadeh
+                                                                        Sina Baharlouei
+                                                                  Abraham Bagherjeiran
+                                                          eBay Search Ranking and Monetization
+                                                                   San Jose, California, USA
+Abstract                                                                                Keywords
+Ranking in digital marketplaces is a dynamic exposure-allocation                        Learning to Rank; Curriculum Learning; Mechanism Design; Ex-
+mechanism: displayed items shape discovery trajectories and suc-                        ploitation Bias; Cold Start
+cess events, which are logged by the platform to update future                          ACM Reference Format:
+allocation policies. Modern ranking systems therefore rely heav-                        Ehsan Ebrahimzadeh, Sina Baharlouei, and Abraham Bagherjeiran. 2026.
+ily on endogenous, exposure-confounded signals (e.g. popularity                         Representation Curriculum: Stagewise Training for Robust Ranking and
+estimates, CTR/CVR aggregates, and ID-based representation), be-                        Allocation. InProceedings of the 32nd ACM SIGKDD Conference on Knowledge
+cause they are highly predictive under approximately stationary                         Discovery and Data Mining V.2 (KDD ’26), August 09–13, 2026, Jeju Island,
+demand and explain substantial variance in logged outcomes. Yet                         Republic of Korea.ACM, New York, NY, USA, 12 pages. https://doi.org/10.
+this predictive power can become a learning shortcut: early access                      1145/3770855.3818470
+to exposure-dependentbeliefsignals in training steers optimization
+dynamics toward over-reliance on them and away from exposure-
+independentmeritsignals (e.g. content-based competitiveness and                         1    Introduction
+semantic intent affinity estimates). Consequently, the learned policy                   Modern ranking systems in search and recommendation make allo-
+tends to entrench incumbents and degrade cold-start generalization                      cation decisions that shape how consumers discover inventory, how
+and robustness under distribution shift.                                                suppliers receive exposure, and how the marketplace evolves over
+   We proposeRepresentation Curriculum(RC), a semantics-aware                           time. Because these policies mediate outcomes for multiple stake-
+training-time optimization-trajectory intervention that temporally                      holders, they are expected to account for the incentives of suppliers,
+stages  feature  utilization.  RC  foregrounds  content-based  merit                    consumers, and the platform and generalize reliably across hetero-
+signals in the initial stage of training, then introduces exposure-                     geneous traffic segments. This is especially challenging in dynamic
+dependent historic belief signals while anchoring the content path-                     marketplaces, with high novelty, heterogeneity, and churn on the
+way to remain close to the learned merit representation, curbing                        supply side, and non-stationary demand and heterogeneous intent
+shortcut reliance on historical signals and mitigating gradient star-                   on the consumer side. It is therefore crucial to maintain tighter
+vation on content signals. We formalize RC independently of task                        control onhow decision-making primitivesare used to make wel-
+and hypothesis class and provide ranking-specific instantiations. In                    fare aligned allocations. When rankers rely primarily on exposure-
+a Gaussian linear ridge setting, we derive closed-form solutions and                    shaped historical signals that are endogenous to the platform’s past
+verifiable sufficient conditions under which RC strictly reduces pop-                   allocations, they can exhibit self-reinforcing generalization patterns
+ulation risk on a welfare-aligned cold-start target distribution, with                  that disproportionately favor incumbents and weaken discovery,
+a quantified Pareto tradeoff against source performance. Experi-                        fairness, and long-run platform health. Popularity-driven general-
+ments on public learning-to-rank and recommendation benchmarks,                         ization can lead to: (i) cold-start fragility that harms discovery and
+together with randomized online experiments in a large-scale e-                         new supplier on-boarding, (ii) shifting the burden of discovery to
+commerce product search system, show that RC measurably shifts                          users rather than relying on exposure-independent content-based
+reliance from historical belief signals toward content-based merit                      merit signals, (iii) contextual intent misalignment when feedback is
+signals and yields consistent gains on cold populations with a con-                     pooled across contexts to obtain statistically stable estimates, and
+trolled trade-off in head performance.                                                  (iv) self-reinforcing exposure loops that entrench incumbents[4].
+                                                                                            Existing approaches mitigate thispopularity bias[            1, 5] through:
+CCS Concepts                                                                            (i) correcting training data selection effects counterfactual learn-
+•Information systems → Learning to rank;•Applied com-                                   ing techniques like propensity weighting; (ii) shaping supervision
+puting→Online shopping.                                                                 through distillation or reward modeling to encourage desired allo-
+                                                                                        cation behavior; (iii) shrinkage and uncertainty-aware belief estima-
+                                                                                        tion (e.g., empirical Bayes); (iv) architectural constraints that limit
+                                                                                        history–content fusion with content pathways; and (v) stochastic
+This work is licensed under a Creative Commons Attribution 4.0 International License.   masking/dropout as regularization techniques in training. These
+KDD ’26, Jeju Island, Republic of Korea                                                 methods are broadly complementary, but they are typically oblivi-
+©2026 Copyright held by the owner/author(s).                                            ous to data semantics andhowlearning allocates capacity across
+ACM ISBN 979-8-4007-2259-2/2026/08
+https://doi.org/10.1145/3770855.3818470                                                 feature groups over time. We argue, however, that early access to
+
+=== PAGE 2 ===
+KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea                                                                                                                             Ebrahimzadeh, Baharlouei, Bagherjeiran
+
+belief signals can dominate gradients and induce a stable short-                              Theoretical Guarantees with quantified trade-offs and Verifiable
+cut solution that under-learns content-based merit and propose a                           Sufficient Conditions:We analyze RC in linear ridge regression, pro-
+semantics-aware training trajectory intervention: delay access to                          viding verifiable conditions under which RC reduces population risk
+belief signals and protect the content pathway, enabling explicit                          on a target distribution that emphasizes cold/strategic segments,
+tradeoffs between head performance on logged data and robustness                           while remaining competitive on the logged data distribution. We
+on welfare-aligned target segments.                                                        extend the lens to boosted trees via base-margin curricula and to
+                                                                                           neural ranking, where we connect pairwise/listwise saturation to
+1.1    Prior art                                                                           feature starvation and provide practical diagnostics.
+(1) Counterfactual and causal learning from endogenous logs.Coun-
+terfactual learning to rank(LTR) approaches account for biased                                Experimental Evidence on Public Benchmarks and Deployed Sys-
+feedback (e.g., position bias) in empirical risk minimization via                          tems:On MSLR-WEB, we identify highly predictive historic belief
+propensity weighting [12, 19, 24]. Structural causal models treat                          based features that encode behavioral evidence, and show how
+popularity as a confounder and intervene explicitly [29, 33]. The                          RC reduces feature importance on these historic belief signals and
+broader goal of robustness to distribution shift has been studied                          improves cold-item ranking quality with minimal impact on over-
+under invariant prediction[13], invariant risk minimization[3], and                        all performance. On MovieLens, RC shapes neural two-tower rec-
+anchor regression [18]. These works target identification and evalu-                       ommenders toward stronger content reliance and yields stronger
+ation, but typically treat feature representations as given and do not                     frozen-start performance in the absence of historic signals. Finally,
+directly control how the learner utilizes different feature groups.                        an online A/B test in a major e-commerce sponsored search system
+   (2) Supervision-based behavior shaping.Platforms can encode                             establishes that a policy trained via RC increases exposure and sale
+preferences via distillation from a merit-centric teacher [7, 11], con-                    velocity for new listings with neutral aggregate KPIs, situating RC
+strained optimization for exposure fairness [20–22, 25], or reward                         as an effective behavior shaping technique in large scale systems.
+shaping and policy imitation[6]. These methods shape behavior
+through objectives, but do not necessarily prevent shortcut learning                       2    Problem Setup: Robust Policy Updates under
+when belief signals dominate early optimization.                                                 Endogenous History Signals
+   (3) History stabilization and shrinkage.Industrial systems use
+uncertainty-aware belief estimates (e.g., Empirical Bayes smoothing                        We formalize ranking as an allocation mechanism with two semanti-
+with global or content-based priors) to aggregate platform belief                          cally distinct classes of features:exposure-independent, content-based
+for LTR and product search [2, 10, 30, 31]. EB improves the quality                        merit signalsandexposure-dependent historical belief signals. At iter-
+of exposure-dependent signals via reduces variance and calibrated                          ation𝑡, a deployed policy𝜋𝑡  maps a context𝑐 (query, session, user
+uncertainty, but it does not directly address the learning dynamics                        intent state) and a candidate set to a ranked slate(or a distribution
+problem and belief signals can still dominate learning.                                    over rankings). Exposure induces interactions, and a data sampling
+   (4) Architectural constraints and explicit decompositions.Multi-                        policy produces a logged datasetD𝑡 , which is, in turn, used to train
+tower architectures, gating, and limited fusion constrain how his-                         a new policy𝜋    𝑡+1   ; that is
+toric belief and content-based merit representations combine[26,                                                𝜋𝑡 −→ D𝑡∼P(𝜋 𝑡) −→𝜋  𝑡+1 ,                       (1)
+27]. They can enforce interpretable policy structure but may under-                        whereP(𝜋 𝑡) denotes the data distribution induced by deployment
+perform if explicit decomposition is too strict.                                           (including selection effects and feedback). A key challenge is that
+   (5) Optimization-trajectory interventions.Training dynamics in-                         P(𝜋 𝑡) isendogenous: which contexts and items appear, and which
+fluence the learned representations and strong predictors can sup-                         outcomes are observed, are shaped by the deployed policy. Plat-
+press  gradient  signal  for  weaker  cues  in  neural  networks  [14].                    forms  rarely  optimize  solely  for  the  population  represented  in
+Generic regularizers (dropout) and stochastic masking reduce re-                           logged data. Instead, they choose atarget distribution Q that re-
+liance on any single feature group [23, 26, 27], but are usually                           flects strategic or welfare-aligned goals (e.g., improving long-tail
+semantics-agnostic and not welfare aligned. Our approach differs                           coverage, supporting new supply, prioritizing high-value intents,
+from standard curriculum learning[9, 32] in that we shape the prop-                        or meeting fairness constraints). Our aim is to train the next policy
+erties of the model by explicit anchoring to the content pathway.                          so that it generalizes to a platform-chosen target population and
+                                                                                           does not over-rely on endogenous belief features. If each update
+1.2    Contributions                                                                       is robust to theP(𝜋 𝑡)–Q mismatch, then repeated deployment is
+                                                                                           less likely to amplify feedback loops. Over time, this helps maintain
+   A semantics-aware representation curriculum for robust allocation:                      alignment with long-run platform objectives.
+We proposeRepresentation Curriculum(RC), which partitions fea-                                Each training example is a tuplez        =(𝑐,𝑖,𝑦,    x), where𝑐  is a
+tures into content-based merit signals and exposure-dependent his-                         context,𝑖 is an item,𝑦 is a label (e.g., relevance, click, conversion),
+toric belief signals and temporally stages the training. Stage 1 learns                    andxis a feature vector. We assume the features decompose into
+a model trained only on content-based signals. Stage 2 introduces                          two semantic groups,x≡(x      𝐶,x𝐻), where
+historic signals but anchors the optimization so that content-based
+competence is preserved. This feature-access curriculum comple-                                 •  x𝐶 arecontent-based signals, meaning features available
+ments the standard approaches to mitigate over-reliance on historic                                regardless of prior exposure (e.g., query–item affinity, item
+belief signals by controlling how the learner relies on them.                                      attributes, price and logistics signals, content embeddings).
+
+=== PAGE 3 ===
+Representation Curriculum: Stagewise Training for Robust Ranking and Allocation                                                        KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea
+
+     •  x𝐻  areexposure-dependent historical belief signals,                                updates [14], we use the term more broadly here, with a particu-
+        meaning features derived from past exposure and interac-                            lar focus on the semantics-driven case of historical belief versus
+        tions (e.g., stabilized CTR/CVR estimates, historical transac-                      content-based merit signals in ranking and prediction.
+        tions, item IDs, or history-derived embeddings).                                    2.2    Formal objective and problem statement
+
+   Historical belief signalsx      𝐻 are powerful because they compactly                    LetF  be a hypothesis class and let𝑓∈F   be a predictor, which in-
+summarize accumulated interaction evidence under past allocations.                          duces a score-based allocation policy𝜋𝑓  =argsort(𝑓)                 . LetL(𝑓  ;z)
+However, they are alsopolicy-mediated: their distribution depends                           be the task loss (e.g., MSE, cross-entropy, pairwise or listwise rank-
+on the platform’s prior exposure decisions. As a result, for strategic                      ing loss). For any distributionD over examplesz, define the popu-
+segments such as cold-start or under-exposed inventory,x𝐻  can                              lation risk    RD(𝑓) ≡E      z∼D[L(𝑓;z) ].
+differ substantially under the target populationQ, which upweights                          We observe dataD𝑡 ∼P(𝜋 𝑡) but aim to minimize risk under a
+such segments, relative to the logging distributionP(𝜋          𝑡).                         platform-chosen target distributionQ. Let𝑓 Full denote the model
+                                                                                            trained by standard joint empirical risk minimization (ERM) on all
+2.1    Over-Reliance on Endogenous Signals                                                  features(x  𝐶,x𝐻), and let𝑓         Content denote the content-only model
+To motivate semantics-aware control over learning dynamics, we                              trained withx    𝐻  masked. Our goal is to design a training procedure
+first illustrate the pathology in a minimal setting. Consider a linear                      that produces a predictor𝑓 such that:
+predictor𝑓w(x)=  w⊤𝐶x𝐶+ w⊤𝐻 x𝐻 trained to minimize expected loss                                (1)  Target robustness:RQ(𝑓)    improves relative to𝑓 Full, espe-
+under the logged distributionP (induced by deployment). Suppose                                      cially on strategic subpopulations (e.g., cold-start or under-
+x𝐻  is strongly predictive underP because it aggregates exposure-                                    exposed inventory).
+conditioned evidence and explains variance in selected logged con-                              (2)  Source competitiveness:RP(𝜋 𝑡)(𝑓)    remains competitive
+texts, whilex     𝐶  is moderately predictive but broadly available. If                              with𝑓           Full and does not collapse to𝑓      Content.
+the learning algorithm observes(x𝐶, x𝐻) jointly from the start, it                              (3)  Behavioral shaping / fairness:𝑓  reduces excessive depen-
+will typically assign large weight tox  𝐻  because it yields the fastest                             dence onx  𝐻 , mitigating self-reinforcing exposure disparities
+reduction in empirical loss. This can lead toover-reliance:                                          in the induced allocation policy, while preserving overall
+           ∥w 𝐻∥becomes large while∥w      𝐶∥remains small.                                          marketplace KPIs.
+Now consider a target populationQ that deviates fromP, for ex-                                  A clean and widely applicable instantiation is thefrozen-start
+ample by upweighting the cold-start items. In these segments,x        𝐻                     target, where belief signals are unavailable at inference time:
+is a weak predictor, so predictive performance depends dispropor-                                          x𝐻≡0  (or set to a default/prior) underQ.             (3)
+tionately on the learned content pathwayw       𝐶. Thus, a model that                       This yields a controlled notion of distribution shift that isolates
+is highly accurate underPcan generalize poorly underQ.                                      the central question: whether the learner has developed a predic-
+   This effect is beyond merely ‘feature missingness” in the target                         tive content pathway. Although our motivating setting is ranking
+population and reflects a broader shift in the joint distribution                           in dynamic marketplaces, the same problem arises in prediction
+(𝑐,𝑖,𝑦)    : the platform strategically cares about success events for                      tasks whenever a feature group is (i) highly predictive under the
+items and contexts that are underrepresented underP(𝜋      𝑡).                              training distribution and (ii) unstable, missing, or strategically de-
+   The same phenomenon appears sharply in pairwise learning-to-                             emphasized under the target distribution. Our method applies to
+rank. Let𝑠𝜽(𝑐,𝑖)    be a scoring function and consider the standard                         both ranking and pointwise prediction objectives.
+pairwise logistic loss used in LambdaLoss-style training [28]:
+                                                                                            3    Methodology: Representation Curriculum
+         ℓ(𝜽;𝑐,𝑖,𝑗) =log         1+exp       −  𝑠𝜽(𝑐,𝑖)−𝑠       𝜽(𝑐,𝑗)    .       (2)      We proposerepresentation curriculum(RC), a semantics-aware train-
+For brevity, let𝑠𝑖  :=𝑠   𝜽(𝑐,𝑖)    and𝑠𝑗  :=𝑠   𝜽(𝑐,𝑗)   . The gradient mag-               ing time intervention that controls reliance on exposure-dependent
+nitude with respect to the score difference is proportional to𝜎 −                           historical belief signals viatemporal staging. RC is motivated by
+(𝑠 𝑖−𝑠 𝑗), where𝜎is the sigmoid.                                                           the observation that whenx    𝐻  is highly predictive under the logged
+   If exposure-dependent belief signalsx      𝐻  provide a highly pre-                      distribution, standard training can over-invest inx  𝐻  early in opti-
+dictive shortcut, early training can quickly create large score gaps                        mization. This yields a weak content pathway and poor robustness
+|𝑠𝑖−𝑠 𝑗| by exploitingx       𝐻 . Then𝜎 −(𝑠 𝑖−𝑠 𝑗) saturates toward0, and                  under distribution shift in the target population.
+gradients for other parameters are correspondingly downweighted,                                Feature staging via a gating schedule. RC introduces afeature-
+including those that control content representations. As a result,                          gating schedule𝑚(𝑡)∈[      0, 1] over training iterations𝑡, defining the
+content signalsx      𝐶  may bestarved of learning signaleven if they                       gated input
+are predictive and essential for strategic generalization.                                                               ˜x𝑡 ≡ (x 𝐶, 𝑚(𝑡)x    𝐻).                               (4)
+   This starvation mechanism is not tied to a particular hypothe-                           While the schedule can be gradual, we focus on a practical two-stage
+sis class. It follows from loss geometry (saturation) and path de-                          curriculum:
+pendence: once one feature group achieves separation early, the                                    𝑚(𝑡)=0for𝑡≤𝑇                            1        and 𝑚(𝑡)=1for𝑡>𝑇                                    1,
+optimizer has little incentive to develop alternative separating rep-
+resentations. Whilegradient starvationis discussed in the context                           that is, Stage 1 trains on content signals only, then Stage 2 trains
+of over-parameterized neural networks under gradient descent                                on all signals. Stage 1 produces acontent anchor modelthat must
+
+=== PAGE 4 ===
+KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea                                                                                                                             Ebrahimzadeh, Baharlouei, Bagherjeiran
+
+Algorithm 1Representation Curriculum (RC)                                                    Neural models (two-tower + MLP head).In our recommender ex-
+Require:  Stage-1 dataD1∼P1, Stage-2 dataD2∼P2; features                                     periments,𝑓𝜽  is a two-tower model: a user/context tower produces
+     x=(x   𝐶,x𝐻); lossL; regularizerΩ; anchors(𝜇                                                             1,𝜇2).𝑢𝜙, an item-content tower produces𝑣𝜓(x𝐶), and the final score is
+  1:  Stage 1 (content-only):train 𝑓𝜽(1)    on{(x𝐶, 0),𝑦}⊂D     1 by                         computed by an MLP head on the concatenation (and optionally
+     minimizingE[L(𝑓           𝜃(x 𝐶,0);𝑦)]+𝜆Ω(𝜽).                                           explicit interactions),
+
+  2:Initialize Stage 2 at𝜽←𝜽    (1)   .                                                                 𝑠𝜽(x)=𝑔    𝜔  𝑢𝜙, 𝑣𝜓(x 𝐶), 𝑢 𝜙⊙𝑣 𝜓(x 𝐶), 𝜑(x  𝐻),
+  3:  Stage 2 (full + anchors):train       𝑓𝜽  on{(x𝐶, x𝐻),𝑦}⊂D     2 by                     where𝜑(  x𝐻) embeds/scales belief features. We define 𝜽𝐶 as the pa-
+     minimizing (7)                                                                          rameters of the content tower (and, optionally, the content-dependent
+  4:return𝑓                𝜽 .                                                               blocks of the head), soLpar directly protects content representa-
+                                                                                             tions. Prediction anchoringLpred is computed under masked belief
+explain label variation usingx    𝐶, and therefore learns content rep-                       input(x𝐶, 0). Practically, stability in Stage 2 is improved by ini-
+resentations that are more robust to distribution shift.                                     tializing from 𝜽(1)    and using conservative optimization (e.g., not
+                                                                                             increasing learning rate, optionally lowering it for𝜽   𝐶).
+   Anchored Stage 2 for a robust content pathway. Let 𝑓𝜽  denote the
+model class and let 𝜽𝐶 denote the subset of parameters implement-                            Gradient BoostingFor Gradient Boosted Decision Trees (GBDTs),
+ing thecontent pathway(e.g., a content tower in a two-tower neural                           RC uses an integer𝑀 as the stage boundary. Stage 1 fits𝑀 trees
+model, or the Stage 1 component of an additive model). Let 𝜽(1)    be                        using only content features, yielding
+the parameters obtained after Stage 1. Stage 2 optimizes the task                                                                          𝑀∑︁
+loss on full features while anchoring to the Stage 1 content pathway                                                 𝑓(1) (x 𝐶)=𝑓     0+      𝜂ℎ𝑚(x 𝐶).
+in one (or both) of the following ways.                                                                                                  𝑚=1
+(i) Prediction anchoring (masked consistency).We enforce that                                Stage 2 continues boosting from thisfixedcontent pathway by using
+the Stage 2 model remains consistent with the Stage 1 model on                               𝑓(1)    as an initial score / base margin and fitting the remaining trees
+masked inputs:                           h                                i                  using all features:
+        Lpred(𝜽) =E  (x,𝑦)∼P(𝜋   𝑡)       𝑑  𝑓𝜽(x 𝐶,0), 𝑓     𝜽(1) (x 𝐶,0) ,      (5)                                                          𝑇∑︁
+                                                                                                          𝑓 RC(x 𝐶,x𝐻)=𝑓  (1) (x 𝐶)+                𝜂ℎ𝑚(x 𝐶,x𝐻).
+where𝑑(·,·)     is a discrepancy in prediction space. For regression we                                                                     𝑚=𝑀+1
+use squared error; for binary classification we use KL or squared                            This realizes an especially strong form of parameter anchoring: the
+logit differences; for ranking we use squared score differences on                           Stage 1 trees are never modified, so the content pathway cannot be
+query–item pairs (or KL on pairwise probabilities), consistent with                          overwritten. The effective deviation introduced by belief features
+the downstream surrogate loss.                                                               is controlled by𝑇−𝑀      (remaining capacity), shrinkage𝜂, and early
+(ii) Parameter anchoring (content-path protection).We explic-                                stopping. When supported by the training framework, an additional
+itly protect the content pathway parameters:                                                 masked-consistency term analogous to (5) can be implemented
+                          Lpar(𝜽) =∥𝜽     𝐶−𝜽 (1)                                            by adding masked replicas of training instances with a pseudo-
+                                                    𝐶 ∥22.                            (6)    target equal to𝑓(1) (x𝐶); in our main GBDT experiments, tuning
+This is useful when function-space consistency alone is insufficient                         𝑀together with standard boosting regularization is sufficient.
+(e.g., whenx    𝐻 induces strong gradients that substantially alter inter-
+nal representations while keeping masked outputs approximately
+unchanged).                                                                                      Relation to stochastic feature masking.Stochastic feature masking
+   Prediction anchoring preserves function behavior under masked                             / dropout [23] randomly zeros subsets of inputs throughout training.
+belief inputs, while parameter anchoring preserves internal content                          While it can reduce reliance on any single feature, it issemantics-
+representations.Stage 2 objective.Let     L(· ;𝑦)    be the primary                          obliviousand does not ensure a robust content pathway is learned
+supervised loss (MSE, log-loss, pairwise/listwise ranking surrogate).                        beforeexposure-dependent shortcuts are introduced. In contrast,
+RC trains Stage 2 with                                                                       RC explicitly stages access tox  𝐻  and then anchors the model to
+E(x,𝑦)∼P       2[L(𝑓𝜽(x 𝐶,x𝐻);𝑦 )]+𝜆Ω(𝜽)+𝜇                   1Lpred(𝜽)+𝜇        2Lpar(𝜽),    preserve content behavior and/or content parameters. This targeted
+                                                                                  (7)        control is central to improving robustness on strategic populations
+where Ω is standard regularization (weight decay, tree constraints,                          where historic belief signals are not reliable predictors.
+early stopping), and(𝜇  1,𝜇2) control anchoring strength. By default
+we takeP2  =P(𝜋  𝑡) (the logged distribution), but RC naturally                                  Evaluation  and  reliance  diagnostics.RC  aims  to  reduce  over-
+supports stage-specific data choices: Stage 1 can be trained on a                            reliance on exposure-dependent belief signals while maintaining
+broader proxyP1 better aligned with learning content affinity (e.g.,                         overall utility. Accordingly, we report (i) standard in-distribution
+broader traffic), while Stage 2 can use richer contexts where belief                         metrics on held-out splits fromP(𝜋 𝑡), (ii) target robustness met-
+signals are informative (e.g., conversion-heavy traffic).                                    rics onQ—notablyfrozen-startevaluation where belief signals are
+   Key instantiations.RC is model-agnostic; the main design choice                           set to defaults, and (iii) reliance diagnostics such as feature impor-
+is what constitutes thecontent pathway      𝜽𝐶 and how anchoring is                          tance in trees, sensitivity/attribution measures in neural models,
+implemented.                                                                                 and popularity/coverage metrics in ranking (Section 5).
+
+=== PAGE 5 ===
+Representation Curriculum: Stagewise Training for Robust Ranking and Allocation                                                        KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea
+
+4    Theoretical Guarantees                                                                     Lemma 1 makes explicit that𝜇 traces a continuous path between
+We formalize Representation Curriculum in a linear-Gaussian set-                            the full-model content coefficients (𝜇=   0) and the content-only
+ting with ridge regularization. This yields closed-form characteri-                         coefficients (𝜇→∞  ), modulated by the conditioning of the Schur
+zations that make the “shape the update” perspective precise and                            complement𝐴                            0.
+quantify the tradeoff between performance on the logged distri-                                 We evaluate models on two distributions: (i) the logged source
+butionP(𝜋 𝑡) and a strategic targetQ. Letx     =(  x𝐶, x𝐻)∈R 𝑑𝐶+𝑑 𝐻                          P(𝜋 𝑡), and (ii) a strategic targetQ  that assigns higher mass to
+with zero mean. We consider the population model                                            cold/under-exposed inventory. To isolate the core cold-start shift
+       𝑦=x  ⊤𝐶𝛽𝐶+x ⊤𝐻𝛽𝐻+𝜀,     E[𝜀|x]=0, E[𝜀                               2]=𝜎      2.     in a clean form, we analyze the canonical target where
+Let ΣD =E D[xx⊤] denote the covariance under distributionD,                                                             x𝐻≡0  a.s. underQ,                             (15)
+and similarly ΣD,𝐶𝐶   =E D[x𝐶x⊤𝐶]. We compare three estimators                              i.e., historical belief signals are absent/unreliable in the target pop-
+trained on the logged distributionP:                                                        ulation. This corresponds to “frozen-start” evaluation in our neural
+                                                                                            experiments and to the sparse-history segment in MSLR.
+   (i) Full ridge (no curriculum).                                                              For squared loss underD, the excess risk isED(w)=E D[(x⊤(w−
+wFull  =arg  minw𝐶,w𝐻  EP (𝑦−x  ⊤𝐶w𝐶−x ⊤𝐻 w𝐻)2+𝜆(∥w   𝐶∥22+∥w 𝐻∥22).                      𝛽))   2]=(w−𝛽)    ⊤ΣD(w−𝛽).
+                                                                                 (8)        4.2    Main theorem: Pareto tradeoff
+   (ii) Content-only ridge (Stage 1).h 𝑦−x  ⊤𝐶w𝐶2i                                             Theorem 1 (Anchored ridge yields a qantified Pareto
+             w(1)𝐶   =arg minw𝐶  EP                      +𝜆∥w   𝐶∥22,                       tradeoff).Assume        𝐴0≻  0with eigenvalues in [𝑎  min,𝑎max]  and
+                                                                                 (9)        consider the cold target (15). Let Δ𝐶 = w(1)𝐶 −wFull𝐶    . Define the source
+                                 wContent≡(w (1)𝐶 ,0).                                      and target curvature constants
+   (iii) Representation curriculum (anchored ridge, Stage 2).We model                                        𝐿P≡𝜆    max(Σ P),   𝐿 Q≡𝜆    max(Σ Q,𝐶𝐶 ),
+Stage 2 as ridge with acontent-parameter anchorh 𝑦−x  ⊤𝐶w𝐶−x ⊤𝐻 w𝐻2i:                      and the history-coupling factor𝜅𝐻≡ 1+∥𝐴 −1𝐻𝐻𝐴𝐻𝐶∥2op. Then for all
+   wRC(𝜇)=arg  minw𝐶,w𝐻 EP                                                                  𝜇≥0the following hold:
+
+                                                                                                (A) Bounded regret toFullon the sourceP.
+                              +𝜆∥w   𝐶∥22+𝜆∥w   𝐻∥22+𝜇∥w   𝐶−w (1)𝐶 ∥22.                       EP(w  RC(𝜇))−E P(w  Full) ≤𝐿 P𝜅𝐻                 𝜇         2
+                                                                               (10)                                                               𝑎min+𝜇        ∥Δ 𝐶∥2.   (16)
+This is the population analogue of Stage 2 parameter anchoring in
+(7). Prediction anchoring yields closely related bounds; we defer                               (B) Bounded regret toContenton the target     Q.  Sincex    𝐻 ≡  0
+that variant to Appendix A.                                                                 underQ, only the content block matters and
+                                                                                               EQ(w  RC(𝜇))−E Q(w  Content) ≤𝐿 Q              𝑎max        2
+4.1    Closed-form characterization                                                                                                               𝑎max+𝜇         ∥Δ 𝐶∥2.   (17)
+Write the ridge normal equations underP using block covariance
+matrices:                                                                                       (C) Improvement overFullon   Q for large enough𝜇.  If the content-
+𝐴𝐶𝐶 =Σ P,𝐶𝐶 +𝜆𝐼,  𝐴 𝐻𝐻 =Σ P,𝐻𝐻 +𝜆𝐼,  𝐴 𝐶𝐻 =Σ P,𝐶𝐻 ,  𝐴𝐻𝐶 =𝐴 ⊤𝐶𝐻.                            only model is better than the full model on the target by margin
+Define the Schur complement                                                                 𝑚Q≡EQ(w  Full)−EQ(w  Content)>0,then any𝜇satisfying  𝑎max 2
+
+                        𝐴0 ≡𝐴 𝐶𝐶−𝐴 𝐶𝐻𝐴−1𝐻𝐻𝐴𝐻𝐶.                        (11)                                         𝐿Q    𝑎max+𝜇         ∥Δ 𝐶∥2 ≤𝑚 Q,                      (18)
+We assume𝐴0≻  0with eigenvalues in [𝑎  min,𝑎max]. This condi-                               guaranteesE Q(w  RC(𝜇))≤E Q(w  Full).
+tion fails only when content features are perfectly redundant once
+history is present (e.g., perfect collinearity).                                                (D) Improvement overContenton     P for small enough𝜇.  If the full
+   Lemma 1 (Content-path interpolation).Definew          𝜇 =𝜇(𝐴        0+                   model is better than the content-only model on the source by margin
+𝜇𝐼)−1  . letw     Full𝐶     denote the content block ofw    Full andw  (1)                  𝑚P≡EP(w  Content)−EP(w  Full)>0,then any𝜇satisfying   𝜇 2
+                                                                   𝐶    denote the
+Stage 1 solution. Then the content block of the RC solution satisfies                                            𝐿P𝜅𝐻                     ∥Δ 𝐶∥2 ≤𝑚 P                     (19)
+          wRC𝐶 (𝜇) =w         Full𝐶 +𝜇(𝐴        0+𝜇𝐼) −1   w(1)         ,       (12)                                       𝑎min+𝜇
+                                                          𝐶 −w   Full𝐶                      guaranteesE P(w  RC(𝜇))≤E P(w  Content).
+and the history block satisfies                                        .       (13)
+           wRC𝐻(𝜇) =w         Full𝐻 −𝐴 −1𝐻𝐻𝐴𝐻𝐶  wRC𝐶 (𝜇)−w       Full𝐶                          Interpretation (how to read the constants).The theorem formal-
+Moreover,w𝜇 has eigenvalues  𝜇                                                              izes aPareto tradeoffbetween source and target risk as   𝜇 varies. The
+                                      𝑎𝑖+𝜇 ∈[0,1), and thus                                 conditioning of the Schur complement𝐴0 (via𝑎min,𝑎max) governs
+                   wRC𝐶 (𝜇)−w       Full𝐶≤   𝜇                                          how quickly the RC solution moves fromFull(     𝜇=  0) towardCon-
+                    wRC𝐶 (𝜇)−w  (1)   ≤  𝑎max𝑎min+𝜇 ∥Δ 𝐶∥,                 (14)         tent(   𝜇→∞  ). If content and history are perfectly collinear under
+
+                                    𝐶                                                        P, then𝐴0→ 0and no curriculum can uniquely recover content
+                                             𝑎max+𝜇 ∥Δ 𝐶∥.                                  effects. The factor𝜅𝐻  captures how strongly history coefficients
+whereΔ 𝐶≡w (1)𝐶 −w   Full𝐶    .                                                             respond to changes in content coefficients (via cross-covariance
+
+=== PAGE 6 ===
+KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea                                                                                                                             Ebrahimzadeh, Baharlouei, Bagherjeiran
+
+betweenx  𝐶 andx   𝐻 ). Finally, the margins𝑚P,𝑚Q encode the em-
+pirical tension:Fulltypically wins on     P  (history is predictive),
+whileContentcan win onQ(history is absent/unreliable).
+   Corollary 1 (An explicit𝜇-interval and a Pareto curve).
+Let Δ≡∥Δ  𝐶∥. If𝑚Q > 0and 𝑚P > 0, then any 𝜇 satisfying both (18)
+and (19) simultaneously improves overFullon   Q and overContent
+onP. Equivalently, the feasible interval is
+                   wRC𝐶 (𝜇)−w       Full𝐶≤   𝜇
+                    wRC𝐶 (𝜇)−w  (1)   ≤  𝑎max𝑎min+𝜇 ∥Δ 𝐶∥,                 (20)
+
+                                    𝐶        𝑎max+𝜇 ∥Δ 𝐶∥.
+Moreover, (16)–(17) quantify the Pareto curve: as𝜇 increases, target2, while source regret grows as    𝜇2.
+regret decays as   𝑎max𝑎max+𝜇                                         𝑎min+𝜇
+
+   Assumption (15) captures the cleanest cold-start shift (belief sig-                       Figure 1: MSLR: overall NDCG@3 vs. curriculum depth𝑀.
+nals absent). More generally, the targetQ may differ fromP in the
+joint distribution of(context,item,𝑦)                (e.g., the platform strategi-
+cally upweights contexts where cold inventory is valuable), andx   𝐻
+may be present but less correlated with𝑦 than underP. The same
+analysis extends by replacing ΣQ,𝐶𝐶   and the “x 𝐻≡ 0” simplification
+with the appropriate covariance structure; we provide the general
+form and proof details in Appendix A.
+   We additionally derive a conservative risk bound for GBDTs in
+Appendix B, showing that RC inherits the Stage 1 anchor’s target
+performance up to a correction term controlled by Stage 2 capacity,
+yielding a verifiable sufficient condition for improving over a belief-
+dominant baseline onQ.
+5    Experiments
+We evaluate RC as a mechanism for controlling reliance on exposure-
+dependent historical belief signals in learning-to-rank (LTR) and
+response prediction. We consider three representative experimen-
+tal settings: (i) a public LTR benchmark with explicit behavioral                              Figure 2: MSLR: cold NDCG@3 vs. curriculum depth𝑀.
+features (MSLR-WEB10K), (ii) a public recommendation benchmark
+with endogenous interaction aggregates (MovieLens-20M), and                                 in behavioral features. In our main experiments, we define a query–
+(iii) a large-scale production A/B test in sponsored product search.                        URL pair ascoldif     𝑥136 = 0(zero dwell time), which yields a large
+Across all settings, we test the same core hypothesis:delaying access                       cold segment: across the five folds,74–75%of test instances are
+to historical belief signals during training improves robustness on cold                    cold.
+and strategic segments while preserving strong overall performance.
+                                                                                               Models and curriculum.We train LightGBM LambdaMART mod-
+5.1    MSLR-WEB10K: RC for LTR                                                              els with an NDCG objective using2000trees,63leaves, learning
+MSLR-WEB10K is a large-scale supervised learning-to-rank bench-                             rate0   .05, and row/feature subsampling of0   .8. For GBDTs, RC is
+mark released by Microsoft Research [15, 16]. Each instance is a                            implemented as a two-stage boosting schedule: we first fit𝑀 trees
+query–URL pair with graded relevance in{0, 1, 2, 3, 4} and a 136-                           using merit-only features (maskingx                     hist), then fit the remaining
+dimensional feature vector; we follow the official five-fold splits.                        2000−𝑀    trees using all features. We sweep𝑀∈{   0, 100,..., 2000}
+   Content-based merit vs. historical belief signals.A notable as-                          and report overall and cold NDCG@3 and AUC; results for other
+pect of MSLR-WEB10K is that it includes explicit behavioral fea-                            ranking metrics (NDCG@1, MAP@1, MAP@3) follow the same
+tures alongside query–document match features. Following the                                pattern.
+
+dataset documentation [15], we treat features1–133as exposure-                                 Experimental protocol.All MSLR-WEB10K results are averaged
+independentcontent-based meritfeatures and the last three features                          over the official five folds with200independent repeats per fold
+(134–136) as exposure-dependenthistorical belieffeatures derived                            (1000runs total); we report means and use significance testing at
+from user interactions:                                                                     the0.01level.
+          xcont≡(𝑥  1,...,𝑥133),       x   hist≡(𝑥  134,𝑥135,𝑥136).       (21)                 Results and interpretation.RC consistently reduces reliance on
+   Cold vs. warm query–URL pairs.Because MSLR-WEB10K does                                   belief features as𝑀 increases; gain-based importance trends are
+not provide impression logs, we operationalize “cold” using sparsity                        reported in Figure 3. The NDCG curves exhibit the two-distribution
+
+=== PAGE 7 ===
+Representation Curriculum: Stagewise Training for Robust Ranking and Allocation                                                        KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea
+
+tradeoff predicted by Theorem 1. On cold instances (our empir-                                Table 1: RC vs. column subsampling (feature masking) on
+ical proxy forQ, where belief signals are absent or attenuated),                              MSLR-WEB10K. RC achieves substantially stronger reliance
+content-only training (𝑀=   2000) outperforms the full model (   𝑀=   0)                      reduction and cold-start gains.
+on average across five folds and five repeats, and intermediate cur-
+ricula further improve cold NDCG (Figure 2). On the overall test                                   Method              F134 gain     Cold NDCG@3     Overall NDCG@3
+distribution (proxy forP), the full model outperforms the content-                                 Full (𝑀=0)            43,867               0.4049          0.4456
+only baseline, and overall performance declines as 𝑀→     2000                                     col=0.9             42,550               0.4053                      0.4454
+(Figure 1). Thus𝑀 acts as a robustness–accuracy knob: compared                                     col=0.8             37,345               0.4051                      0.4451
+to the full model, RC improves cold-start ranking while keeping                                    col=0.7             36,411               0.4049                      0.4448
+overall performance close; compared to content-only training, RC                                   RC (𝑀=100)       10,025             0.4061          0.4447
+preserves much higher overall quality while retaining most of the                                  RC (𝑀=1000)      4,667              0.4076          0.4441
+cold-start gains.
+   Reliance reduction via feature importance. Figure 3 tracks the
+gain-based importance of the historical belief featuresF134–F136                              loss, AUC exhibits larger variance; accordingly, the full model can
+as𝑀 increases. In the full model (𝑀=   0),   F134 is by far the most                          achieve higher overall AUC than the content-only model even on
+important feature. Under RC its rank drops from1at   𝑀=   0to4at                              cold instances, which does not contradict our main findings.
+𝑀=   100,8at    𝑀=   400, and14at       𝑀=   1000, with the same monotone
+trend holding forF135andF136.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                  Figure 4: MSLR: overall AUC vs. curriculum depth𝑀.
+
+Figure 3: MSLR: gain-based importance of historical belief
+featuresF134–F136vs.𝑀(mean±1 std over 1000 runs).
+
+
+   Comparison with column subsampling (feature masking).Table 1
+shows that varying colsample_bytree∈{                                 0.6, 0.7, 0.8, 0.9} leaves
+the dominant feature gain in the36k–44k range and moves cold
+NDCG@3 only marginally (0.4049–0    .4053), while overall NDCG@3
+stays essentially at the full-model level (0.4455–0    .4456). RC reduces
+the same feature’s gain to10 ,025(  𝑀=   100) and4     ,667(  𝑀=   1000),
+lifting cold NDCG@3 to0 .4061and0     .4076respectively. The gap
+confirms that semantics-aware staging is the key driver: column
+subsampling (feature masking) does not distinguish content-based
+from history-based features and therefore cannot target shortcut
+reliance.
+   AUC.Figures 4 and 5 report overall and cold AUC. The gen-
+eral trend observed for NDCG holds for AUC as well: Represen-
+tation Curriculum (RC) preserves strong overall AUC while im-                                       Figure 5: MSLR: cold AUC vs. curriculum depth𝑀.
+proving cold AUC relative to the full model. Since the underlying
+LambdaMART base model is optimized for NDCG via a pairwise
+
+=== PAGE 8 ===
+KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea                                                                                                                             Ebrahimzadeh, Baharlouei, Bagherjeiran
+
+5.2    MovieLens-20M: RC in a neural                                                       merit-only inputs, and (ii) a parameter anchor on the merit path-
+        recommendation setting                                                            way parameters (towers and merit-related MLP blocks) to prevent
+We next evaluate representation curriculum on a public recommen-                           Stage 2 from washing out learned merit structure. We tie anchoring
+dation benchmark with richitem contentand naturally evolvinghis-                           strengths and sweep𝜇      1,𝜇2∈{0,0.01,0.1}.
+torical interaction evidence. We use MovieLens-20M (timestamped                               Evaluations.MovieLens admits multiple “cold” notions (e.g., low
+ratings) and treat each interaction event(𝑢,𝑖,𝑡,𝑟)    as a supervised                      training interaction count or low event-time evidence), but these
+example. While MovieLens is not collected under a controlled de-                           slices  can  be  brittle  because  missing  ratings  are  not  true  non-
+ployment policy, it provides a convenient testbed to (i) instantiate                       exposures. To make cold-start generalizationcausally interpretable
+historical belief signals asendogenous, exposure-dependent aggre-                          and robust, we reportfrozen-startevaluations that explicitly re-
+gatesand (ii) study how curriculum changes reliance on such ag-                            move belief features at inference time:(a)         frozen-zero: set belief
+gregates under controlled “cold” interventions.                                            features to their default/zero values and replace unseen item-ID
+   Task and split.We use atime-based splitto respect the causality of                      components with OOV;(b)     frozen-prior: set belief features to
+history features: interactions are sorted by timestamp, with the last                      their EB prior values (no evidence). These interventions isolate the
+segment held out for test and a preceding segment for validation. All                      contribution of learned merit structure from belief shortcuts. We
+history features for an event are computed strictly from interactions                      report overall and Frozen start AUC as key evaluation metrics.
+priorto its timestamp. We focus onclassificationwith𝑦=1{𝑟≥                                    Results summary. Given consistent observations across multiple
+4} (“like”), which is standard for implicit-feedback style evaluation                      configurations, we report results from a representative setting and
+and supports AUC and log-loss diagnostics.                                                 differ full report on ablations to subsequent reproducibility studies.
+                                                                                          TheFullmodel achieves the best in-distribution test AUC (0      .678)
+   Content-based merit signals (exposure-independent).We define                            but collapses under frozen start, dropping to AUC0   .580when
+item merit features from content text (movie title and genres). Our                        belief features are removed at inference. A two-stage curriculum
+main configuration uses sentence embeddings, particularly Sen-                             withoutanchoring already improves robustness via a warm-start
+tence BERT[17] (all-MiniLM-L6-v2) reduced to dimension𝑑 and                                effect: initializing Stage 2 from the merit-only anchor (RC with
+concatenated with lightweight metadata (genres as tokens). We also                         𝜇1 =𝜇    2 = 0) raises frozen-start AUC to0  .620(with test AUC0     .669).
+considered representations based on TF-IDF and mean pooling of to-                         Prediction anchoring is the main knob that makes frozen-start
+ken embeddings. On the user side, we consider two representations:                         behavior match the content model: RC with𝜇1 = 0.1and 𝜇2 = 0
+(i) id uses a user ID embedding; (ii) id+profile augments the ID                           reaches frozen-start AUC0   .661, essentially matching the content-
+embedding with atrain-only profilecomputed by mean-pooling the                             only baseline (AUC0   .662), while keeping test AUC0     .664. This is
+content embeddings of items the user interacted with in training.                          the intended behavior-shaping effect: Stage 2 leverages historical
+The profile captures stable preference structure without relying on                        belief signals where available, while preserving a high-quality merit
+item-level exposure aggregates at inference time.                                          pathway that remains predictive when belief is absent.
+
+   Historical belief signals (exposure-dependent).We build item-level                      5.3    Production A/B Test: Sponsored Product
+belief features usingempirical-Bayes stabilizedestimates from in-                                  Search in a Dynamic Marketplace
+teractions prior to time𝑡. For each event(𝑢,𝑖,𝑡)   , we form an EB
+posterior for the Bernoulli label (like/dislike) based on prior out-                      We evaluate representation curriculum (RC) in a production spon-
+comes for item𝑖 and extract: the posterior mean (belief), a clipped                        sored product search system at a major e-commerce marketplace.
+log-count (evidence strength), and an uncertainty proxy (e.g., pos-                        Following the marketplace-evaluation abstraction of [8], we view
+terior variance). We use a content-based prior (nearest-neighbor                           the ranker as anallocation mechanismthat assigns exposure to
+on item content embeddings) with pseudo-count𝛼 (e.g.,𝛼=   10),                             items, and measure relevant exposure and utility metrics that are
+mirroring how industrial systems stabilize sparse belief signals with                      measurable via short horizon randomized experiments. Our goal
+content-conditioned priors.                                                                is to test the paper’s central claim:semantics-aware control of the
+                                                                                           optimization trajectory, implemented by delaying access to a highly
+   Model class.We use the two-tower architecture with MLP head,                            predictive exposure-dependent signal, reduces over-reliance on
+discussed in section 3. Historical belief signals are injected through                     historic belief signals, increases exposure for items with limited his-
+a dedicated scalar pathway (“history head”) that modulates the                             torical evidence, and improves outcomes on strategic cold inventory
+final logit. This decomposition aligns with our semantic split: merit                      segments, while keeping aggregate marketplace KPIs neutral.
+pathways are available for cold items, while belief pathways are                              Policy, baseline, and treatment.The baseline is a standard “full”
+only meaningful when sufficient interaction evidence exists.                               ranker trained on the complete feature set, including both exposure-
+
+   Representation curriculum and anchoring.We train in two stages.                         independentmeritsignals and exposure-dependentbeliefsignals
+Stage 1 learns a merit-only model by masking historical belief sig-                       (history- and ID-derived signals), with no curriculum. The RC treat-
+nals, including item-ID-specific components that do not generalize                         ment uses the same training data, objective, and model capacity as
+to unseen items. Stage 2 introduces belief signals and trains the full                     the baseline, but alters the trainingtrajectoryby masking a single
+model whileanchoringto the Stage 1 solution. We implement two                              highly predictiveID-based belief featureduring the first training
+complementary anchors: (i) a prediction-consistency term (distilla-                        stage. This feature acts as a strong shortcut because it summarizes
+tion) that keeps the Stage 2 model close to the Stage 1 outputs under                      item-specific historic exposure and observed transaction evidence
+
+=== PAGE 9 ===
+Representation Curriculum: Stagewise Training for Robust Ranking and Allocation                                                        KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea
+
+  Inventory segment                                      Search exposure lift             including uncertainty-aware historical estimates (e.g., empirical-
+  No historic impressions                                         neutral                 Bayes style aggregates), remain available, which can attenuate shifts
+  No historic purchases        +0.33%                                                     in the most extreme “no-impression” segments but still meaning-
+  No historic purchases & listing age<𝑋   +0.50%                                          fully affects “no-purchase” segments where belief features can oth-
+                                                                                          erwise dominate. Second, exposure is reported across all placements
+Table 2: Relative lift in exposure under RC vs. baseline for                              while the treatment changes only sponsored ranking; the result-
+cold inventory segments.                                                                  ing reported lifts are directionally diluted, and conservative. Third,
+                                                                                          we observe that exposure increases not only for cold items but
+                                                                                          also for items with very large historical transaction volume (above
+     Items converted within𝑌days    Transaction-volume lift                               a threshold𝑍), alongside reduced exposure for moderately estab-
+                                                                                          lished items; qualitatively, RC appears to reduce reliance on a single
+     Total             +2.25%                                                             strong shortcut and reallocates exposure away from a narrow band
+     Listing age<𝑋          +1.31%                                                        of historically advantaged inventory. Finally, while aggregate mar-
+     Listed by new listers      +4.35%                                                    ketplace KPIs remain neutral, sale velocity improves, aligning with
+Table 3: Relative lift in sale velocity under RC vs. baseline                             a mechanism-design objective in dynamic marketplaces: increase
+on strategic inventory segments.                                                          the probability that new and under-exposed listings earn early ex-
+                                                                                          posure and can demonstrate merit through realized transactions.
+                                                                                          Some segment-level outcome lifts are directionally positive but
+                                                                                          estimated with larger uncertainty due to smaller subpopulation
+and collapses to a prior when an item has no historical purchases;                        mass; we therefore emphasize the robust pattern across exposure
+therefore, it disproportionately advantages items with established                        and sale-velocity metrics rather than over-interpreting any single
+exposure and conversions. In the second stage, we unmask this                             fine-grained slice.
+feature and continue training with the full feature set. (For con-
+fidentiality, we omit platform-specific details such as the exact                         5.4    Reproducibility.
+feature definition and thresholds.)                                                       Code, notebooks, and experiment configurations for MSLR-WEB10K
+   Offline diagnostics (behavioral effect of RC).Before online exper-                     and MovieLens-20M are available at https://github.com/sinaBaharlouei/
+imentation, we validate that RC changes feature reliance in the                           CurriculumRepresentation, including scripts to reproduce the re-
+intended direction. Compared to the baseline, RC reduces the mea-                         ported metrics and figures. Due to privacy and platform constraints,
+sured importance of the masked belief feature by more than70%                             production data and code are not released; we report aggregated
+(gain-based importance), with no material degradation in overall                          A/B results and provide sufficient implementation details to repli-
+offline ranking metrics. On an offline cold slice defined by items                        cate RC on analogous marketplace data.
+with historical impressions below a threshold𝜏, RC yields a lift of                       6    Conclusion
+>1%in offline utility metrics, motivating the online test.                                Exposure-dependent historic belief signals are powerful predictors
+   Online experiment design and metrics.We run a controlled ran-                          in ranking and recommendation, but over-reliance on them can
+domized A/B test over production traffic for approximately two                            yield brittle generalization on strategically important sub-populations.
+weeks, comparing the RC policy to the baseline. We reportrelative                         We introducedRepresentation Curriculum(RC), a semantics-
+liftsin (i) exposure metrics and (ii) outcome metrics, evaluated on                       aware optimization-trajectory intervention that trains a content
+stratified inventory segments designed to isolate cold and strate-                        pathway first (masking belief signals) and then enables all signals
+gic supply. Exposure is measured as the number of times an item                           while anchoring the learned content representation. Our linear anal-
+is shown in search results (aggregated over placements), while                            ysis provides a closed-form characterization and a quantified Pareto
+outcomes are measured viasale velocity: the fraction (or count)                           tradeoff between performance on the logged source distribution
+of listings that obtain at least one transaction within a fixed win-                      and robustness in cold start regimes. Empirically, we show across
+dow of𝑌  days from listing/publish time.1 We measured aggregate                           multiple settings that RC reduces reliance on historic features and
+marketplace KPIs (e.g., transactions and revenue), which remained                         improves the performance cold-segment without material impact
+neutral over the test window.                                                             on overall performance.
+   Results and Discussions.Tables 2 and 3 summarize the primary                              Future work includes (i) combining feature curricula with stan-
+observed effects in the AB test. The RC policy increases exposure                         dard instance-based curricula by choosing stage-specific training
+for items with weak purchase history, particularly newly listed                           distributions to learn intent affinity/content-based merit broadly be-
+inventory, while preserving overall business outcomes.                                    fore specializing with belief signals on (converting) contexts where
+   We make a few remarks to help interpret the magnitude and                              belief signals are most informative (ii) extending guarantees be-
+direction of the observed effects. First, the intervention masks only                     yond frozen start and (iii) advancing a mechanism-design view of
+one strong ID-based belief feature; other historic belief signals,                        controllableallocation policies by developing explicit knobs and
+                                                                                          diagnostics for policy properties, such as exposure elasticity to
+1We use sale velocity because it is sensitive to marketplace coverage and newcomer        popularity, coverage targets, and amortized exposure constraints
+success, and it captures a long-run objective beyond per-impression click/purchase        aligned with marketplace welfare.
+rates.
+
+=== PAGE 10 ===
+KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea                                                                                                                             Ebrahimzadeh, Baharlouei, Bagherjeiran
+
+References                                                                                                   [25]  Jie Tang, Huiji Gao, Liwei He, and Sanjeev Katariya. 2024.   Multi-objective
+ [1]  Himan Abdollahpouri, Robin Burke, and Bamshad Mobasher. 2019. Managing                                        Learning to Rank by Model Distillation. InProceedings of the 30th ACM SIGKDD
+      Popularity Bias in Recommender Systems with Personalized Re-ranking. In                                       Conference on Knowledge Discovery and Data Mining. 5783–5792.
+      Proceedings of the International Florida Artificial Intelligence Research Society                      [26]  Maksims Volkovs, Guangwei Yu, and Tomi Poutanen. 2017.  DropoutNet: Ad-
+      Conference (FLAIRS). 413–418.                                                                                 dressing Cold Start in Recommender Systems. InAdvances in Neural Information
+ [2]  Randy Ardywibowo, Rakesh Sunki, Shin Tsz Lucy Kuo, and Sankalp Nayak.                                         Processing Systems (NeurIPS).
+      2025. BAYESCNS: A Unified Bayesian Approach to Address Cold Start and Non-                             [27]  Cheng Wang, Mathias Niepert, and Hui Li. 2018. LRMM: Learning to Recommend
+      Stationarity in Search Systems at Scale. InProceedings of the AAAI Conference on                              with Missing Modalities.Proceedings of the 2018 Conference on Empirical Methods
+      Artificial Intelligence, Vol. 39. 12–20.                                                                      in Natural Language Processing (EMNLP)(2018), 3360–3370. doi:10.18653/v1/D18-
+ [3]  Martin Arjovsky, Léon Bottou, Ishaan Gulrajani, and David Lopez-Paz. 2019.                                    1372
+      Invariant risk minimization.arXiv preprint arXiv:1907.02893(2019).                                     [28]  Xuanhui Wang, Cheng Li, Nadav Golbandi, Michael Bendersky, and Marc Najork.
+ [4]  Allison JB Chaney, Brandon M Stewart, and Barbara E Engelhardt. 2018. How                                     2018. The lambdaloss framework for ranking metric optimization. InProceedings
+      algorithmic confounding in recommendation systems increases homogeneity                                       of the 27th ACM international conference on information and knowledge manage-
+      and decreases utility. InProceedings of the 12th ACM conference on recommender                                ment. 1313–1322.
+      systems. 224–232.                                                                                      [29]  Tianxin Wei, Fuli Feng, Jiawei Chen, Ziwei Wu, Jinfeng Yi, and Xiangnan He.
+ [5]  Jiawei Chen, Yuxiao Dong, Xiang Wang, Fuli Feng, Meng Wang, and Xiangnan He.                                  2021. Model-agnostic counterfactual reasoning for eliminating popularity bias
+      2023. Bias and Debias in Recommender System: A Survey and Future Directions.                                  in recommender system. InProceedings of the 27th ACM SIGKDD conference on
+      ACM Transactions on Information Systems41, 3, Article 67 (2023).  doi:10.1145/                                knowledge discovery & data mining. 1791–1800.
+      3564284                                                                                                [30]  Tao Yang, Cuize Han, Chen Luo, Parth Gupta, Jeff M. Phillips, and Qingyao Ai.
+ [6]  Minmin Chen, Can Xu, Vince Gatto, Devanshu Jain, Aviral Kumar, and Ed Chi.                                    2024.  Mitigating Exploitation Bias in Learning to Rank with an Uncertainty-
+      2022. Off-policy actor-critic for recommender systems. InProceedings of the 16th                              aware Empirical Bayes Approach. InProceedings of the ACM Web Conference 2024
+      ACM Conference on Recommender Systems. 338–349.                                                               (WWW ’24). 1486–1496. doi:10.1145/3589334.3645487
+ [7]  Ehsan Ebrahimzadeh, Alex Cozzi, and Abraham Bagherjeiran. 2024.  Counter-                              [31]  Tao Yang, Chen Luo, Hanqing Lu, Parth Gupta, Bing Yin, and Qingyao Ai. 2022.
+      factual Learning to Rank via Knowledge Distillation. InProceedings of the ACM                                 Can Clicks Be Both Labels and Features?: Unbiased Behavior Feature Collection
+      SIGIR Workshop on eCommerce (eCom@SIGIR).                                                                     and Uncertainty-aware Learning to Rank. InProceedings of the 45th International
+ [8]  Ehsan Ebrahimzadeh, Nikhil Monga, Hang Gao, Alex Cozzi, and Abraham Bagher-                                   ACM SIGIR Conference on Research and Development in Information Retrieval
+      jeiran. 2024. Ranking Policy Learning via Marketplace Expected Value Estimation                               (SIGIR ’22). 6–17. doi:10.1145/3477495.3531948
+      From Observational Data.  SURE at 18th ACM Conference on Recommender                                   [32]  Hansi Zeng, Hamed Zamani, and Vishwa Vinay. 2022. Curriculum learning for
+      Systems (RecSys).                                                                                             dense retrieval distillation. InProceedings of the 45th International ACM SIGIR
+ [9]  Nicola Ferro, Claudio Lucchese, Maria Maistro, and Raffaele Perego. 2018. Contin-                             Conference on Research and Development in Information Retrieval. 1979–1983.
+      uation methods and curriculum learning for learning to rank. InProceedings of the                      [33]  Yang Zhang, Fuli Feng, Xiangnan He, Tianxin Wei, Chonggang Song, Guohui
+      27th ACM International Conference on Information and Knowledge Management.                                    Ling, and Yongdong Zhang. 2021. Causal intervention for leveraging popularity
+      1523–1526.                                                                                                    bias in recommendation. InProceedings of the 44th international ACM SIGIR
+[10]  Cuize Han, Tao Yang, Zhenduo Wang, Anh Tran, and Qingyao Ai. 2022. Address-                                   conference on research and development in information retrieval. 11–20.
+      ing Cold Start in Product Search via Empirical Bayes. InProceedings of the 31st
+      ACM International Conference on Information and Knowledge Management (CIKM
+      ’22).                                                                                                  A    Proofs for Section 4
+[11]  Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. 2015. Distilling the Knowledge in
+      a Neural Network. arXiv preprint arXiv:1503.02531.                                                     This appendix provides full proofs for Lemma 1, Theorem 1, and
+[12]  Thorsten Joachims, Adith Swaminathan, and Tobias Schnabel. 2017. Unbiased                              Corollary 1. We follow the notation of Section 4:
+      Learning-to-Rank with Biased Feedback. InProceedings of the 10th ACM In-
+      ternational Conference on Web Search and Data Mining (WSDM ’17). 781–789.                                  𝑥=(𝑥   𝐶,𝑥𝐻)∈R 𝑑𝐶+𝑑 𝐻 ,𝑦=𝑥  ⊤𝐶𝛽𝐶+𝑥 ⊤𝐻𝛽𝐻+𝜀    with E[𝜀|𝑥]=           0,
+      doi:10.1145/3018661.3018699                                                                            andΣ  D =E D[𝑥𝑥 ⊤].
+[13]  Jonas Peters, Peter Bühlmann, and Nicolai Meinshausen. 2016. Causal inference
+      by using invariant prediction: identification and confidence intervals.Journal of
+      the Royal Statistical Society Series B: Statistical Methodology78, 5 (2016), 947–1012.                 A.1    Population Normal Equation
+[14]  Mohammad Pezeshki, Oumar Kaba, Yoshua Bengio, Aaron C Courville, Doina
+      Precup, and Guillaume Lajoie. 2021. Gradient starvation: A learning proclivity in                      For any distributionD and any𝑤=(𝑤   𝐶,𝑤𝐻), define the squared-
+      neural networks.Advances in Neural Information Processing Systems34 (2021),                            loss risk𝑅D(𝑤)=E   D[(𝑦−𝑥  ⊤𝐶𝑤𝐶−𝑥 ⊤𝐻𝑤𝐻)2]. Using the model
+      1256–1272.
+[15]  Tao Qin and Tie-Yan Liu. 2010.  LETOR 4.0 Datasets (MSLR-WEB10K / MSLR-                                assumptions andE[𝑥𝜀]=0, we have
+      WEB30K). Microsoft Research dataset page.                                                                                     𝑅D(𝑤)=𝜎            2+(𝑤−𝛽)   ⊤ΣD(𝑤−𝛽).                  (22)
+[16]  Tao Qin and Tie-Yan Liu. 2013. Introducing LETOR 4.0 Datasets. arXiv preprint
+      arXiv:1306.2597.                                                                                       Particularly, theexcess riskin Section 4 is   ED(𝑤)=(𝑤−𝛽)      ⊤ΣD(𝑤−
+[17]  Nils Reimers and Iryna Gurevych. 2019.  Sentence-bert: Sentence embeddings
+      using siamese bert-networks.arXiv preprint arXiv:1908.10084(2019).                                      𝛽).
+[18]  Dominik Rothenhäusler, Nicolai Meinshausen, Peter Bühlmann, and Jonas Peters.
+      2021. Anchor Regression: Heterogeneous Data Meets Causality. Journal of the                                 Full ridge underP. The objective in  (8) is𝑅P(𝑤)+𝜆∥𝑤∥                  22. Dif-
+      Royal Statistical Society: Series B83, 2 (2021), 215–246. doi:10.1111/rssb.12398
+[19]  Tobias Schnabel, Adith Swaminathan, Ashudeep Singh, Navin Chandak, and                                 ferentiating and setting the gradient to zero yields the population
+      Thorsten Joachims. 2016. Recommendations as Treatments: Debiasing Learning                             normal equations
+      and Evaluation. InProceedings of the 33rd International Conference on Machine
+      Learning (ICML). 1670–1679.                                                                                     (Σ P+𝜆𝐼)𝑤       Full  =E P[𝑥𝑦] =E  P[𝑥𝑥 ⊤]𝛽=Σ  P𝛽.        (23)
+[20]  Ashudeep Singh and Thorsten Joachims. 2018. Fairness of Exposure in Rankings.
+      InProceedings of the 24th ACM SIGKDD International Conference on Knowledge                                  Content-only ridge (Stage 1) underP. Similarly, differentiating
+      Discovery and Data Mining (KDD ’18). 2219–2228.
+[21]  Ashudeep Singh and Thorsten Joachims. 2019. Policy Learning for Fairness in                            (9) gives
+      Ranking. InAdvances in Neural Information Processing Systems (NeurIPS).
+[22]  Ashudeep Singh, David Kempe, and Thorsten Joachims. 2021. Fairness in Rank-                                 (Σ P,𝐶𝐶 +𝜆𝐼)𝑤  (1)𝐶    =E P[𝑥 𝐶𝑦] =Σ  P,𝐶𝐶 𝛽𝐶+Σ P,𝐶𝐻 𝛽𝐻.    (24)
+      ing under Uncertainty. InAdvances in Neural Information Processing Systems
+      (NeurIPS).                                                                                                  Anchored ridge (Stage 2) underP. The objective in  (10) is𝑅P(𝑤)+
+[23]  Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
+      Salakhutdinov. 2014. Dropout: A Simple Way to Prevent Neural Networks from                             𝜆(∥𝑤  𝐶∥2+∥𝑤 𝐻∥2)+𝜇∥𝑤   𝐶−𝑤 (1)𝐶 ∥2. Differentiating and setting
+      Overfitting.Journal of Machine Learning Research15 (2014), 1929–1958.                                  the gradient to zero yields
+[24]  Adith Swaminathan and Thorsten Joachims. 2015.  Counterfactual Risk Min-                                                                          𝑤 RC𝐶 (𝜇)                         𝑤(1)
+      imization: Learning from Logged Bandit Feedback. InProceedings of the 32nd                                                                                                             𝐶0
+      International Conference on Machine Learning (ICML). 814–823.                                                  (Σ P+𝜆𝐼)𝑤       RC(𝜇)+𝜇                 0         =Σ P𝛽+𝜇                      .       (25)
+
+=== PAGE 11 ===
+Representation Curriculum: Stagewise Training for Robust Ranking and Allocation                                                        KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea
+
+A.2    Proof of Lemma 1 (interpolation)                                                                  Lemma 2 (From disagreement to excess-risk regret).For
+    Proof of Lemma 1.  Write the (regularized) block covariances                                     any distributionDand any𝑢,𝑣∈R                𝑑𝐶+𝑑 𝐻 ,√︁
+underPas in Section 4.1:                                                                                                     ED(𝑢)−   √︁ED(𝑣)   ≤ √︁DD(𝑢,𝑣).                 (32)
+𝐴𝐶𝐶 =Σ P,𝐶𝐶 +𝜆𝐼,  𝐴 𝐻𝐻 =Σ P,𝐻𝐻 +𝜆𝐼,  𝐴 𝐶𝐻 =Σ P,𝐶𝐻 ,  𝐴𝐻𝐶 =𝐴 ⊤𝐶𝐻.                                     Consequently,
+Let𝑏=E  P[𝑥𝑦]=Σ   P𝛽 and write its blocks as𝑏𝐶 =E P[𝑥 𝐶𝑦]   and                                                                           √︁                               2,                 (33)
+𝑏𝐻 =E P[𝑥 𝐻𝑦]. Then (23) is equivalent to the block system                                                                ED(𝑢) ≤            ED(𝑣)+  √︁DD(𝑢,𝑣)
+                          𝐴𝐶𝐶𝑤 Full𝐶 +𝐴 𝐶𝐻𝑤 Full𝐻    =𝑏 𝐶,                                           and symmetrically with𝑢and𝑣swapped. In particular,ED(𝑢)−E D(𝑣)   ≤2  √︁
+                         𝐴𝐻𝐶𝑤 Full𝐶 +𝐴 𝐻𝐻𝑤 Full𝐻    =𝑏 𝐻.                        (26)                                                        ED(𝑣)  √︁DD(𝑢,𝑣)+D D(𝑢,𝑣).     (34)
+
+Since𝐴𝐻𝐻 ≻  0, we can eliminate 𝑤 Full𝐻    =𝐴 −1𝐻𝐻(𝑏 𝐻−𝐴 𝐻𝐶𝑤 Full𝐶 )                                 √︁  Proof.  Let 𝑆D  =Σ    1/2D   be  the  symmetric  square  root.  Then
+and obtain                                                                                              ED(𝑢) =∥𝑆   D(𝑢−𝛽)∥           2  and √︁DD(𝑢,𝑣) =∥𝑆   D(𝑢−𝑣)∥           2. By
+                         𝐴0𝑤 Full𝐶     =𝑏 𝐶−𝐴 𝐶𝐻𝐴−1𝐻𝐻𝑏𝐻,                      (27)                   the reverse triangle inequality,∥𝑆 D(𝑢−𝛽)∥           2−∥𝑆 D(𝑣−𝛽)∥          2≤∥𝑆 D(𝑢−𝑣)∥           2,
+where𝐴   0 =𝐴 𝐶𝐶−𝐴 𝐶𝐻𝐴−1𝐻𝐻𝐴𝐻𝐶 is the Schur complement (11).
+    Next, the anchored system (25) can be written in blocks as                                       which proves (32). Inequality (33) follows from the (forward) tri-
+            (𝐴 𝐶𝐶+𝜇𝐼)𝑤       RC𝐶 (𝜇)+𝐴   𝐶𝐻𝑤 RC𝐻 (𝜇)=𝑏    𝐶+𝜇𝑤 (1)𝐶 ,                                angle inequality:∥𝑆(𝑢−𝛽)∥≤∥𝑆(𝑣−𝛽)∥+∥𝑆(𝑢−𝑣)∥                                   and squar-
+                     𝐴𝐻𝐶𝑤 RC𝐶 (𝜇)+𝐴   𝐻𝐻𝑤 RC𝐻 (𝜇)=𝑏    𝐻.                      (28)                  ing both sides. Finally, (34) follows from (33) by expanding the
+Eliminating𝑤                           RC𝐻 (𝜇)=𝐴  −1𝐻𝐻(𝑏 𝐻−𝐴 𝐻𝐶𝑤 RC𝐶 (𝜇))gives                       square.                                                                □
+
+             (𝐴  0+𝜇𝐼)𝑤       RC𝐶 (𝜇) =𝑏    𝐶+𝜇𝑤 (1)                                                 A.4    Proof of Theorem 1
+                                                      𝐶 −𝐴 𝐶𝐻𝐴−1𝐻𝐻𝑏𝐻.        (29)
+Comparing (29) with (27), we have𝑏𝐶−𝐴 𝐶𝐻𝐴−1𝐻𝐻𝑏𝐻  =𝐴    0𝑤 Full𝐶    ,                                     Proof of Theorem 1.  We prove each item in turn, using Lemma 1
+hence                                                                                                and the disagreement quantity (31).
+                    (𝐴  0+𝜇𝐼)𝑤       RC𝐶 (𝜇)=𝐴          0𝑤 Full𝐶 +𝜇𝑤 (1)𝐶 .                 (30)         Step  1:  A  bound  on  the  content  displacement.Lemma 1 gives
+Multiplying by(𝐴        0+𝜇𝐼) −1   yields                                                            𝑤 RC𝐶 (𝜇)−𝑤        Full𝐶    =𝑊 𝜇Δ𝐶 with∥𝑊     𝜇∥op≤𝜇/(𝑎        min+𝜇). Hence
+
+          𝑤 RC𝐶 (𝜇)=(𝐴            0+𝜇𝐼) −1 𝐴0𝑤 Full𝐶 +(𝐴  0+𝜇𝐼) −1 𝜇𝑤(1)𝐶 .                                                ∥𝑤   RC𝐶 (𝜇)−𝑤        Full𝐶 ∥≤   𝜇𝑎min+𝜇 ∥Δ 𝐶∥.                  (35)
+Using(𝐴  0+𝜇𝐼) −1 𝐴0 =𝐼−𝜇(𝐴             0+𝜇𝐼) −1  , we obtain the interpolation                          Step 2: History responds linearly to content changes.Lemma 1
+identity                                                                    ,                       also gives𝑤 RC𝐻 (𝜇)−𝑤        Full𝐻    =−𝐴  −1𝐻𝐻𝐴𝐻𝐶(𝑤  RC𝐶 (𝜇)−𝑤        Full𝐶 ). Let𝐵 :=
+             𝑤 RC𝐶 (𝜇)=𝑤          Full𝐶 +𝜇(𝐴        0+𝜇𝐼) −1   𝑤(1)𝐶 −𝑤    Full𝐶                     𝐴−1𝐻𝐻𝐴𝐻𝐶. Then the full parameter displacement𝛿(𝜇)      :=𝑤    RC(𝜇)−
+which is (12) with𝑊    𝜇 =𝜇(𝐴        0+𝜇𝐼) −1  .                                                     𝑤 Full satisfies 𝛿𝐶(𝜇)          𝐼
+    For the history block, from (28) and (26) we have 𝑏𝐻−𝐴 𝐻𝐶𝑤 RC𝐶 (𝜇)  ,   𝑤 Full𝐻    =𝐴 −1𝐻𝐻 𝑏𝐻−𝐴 𝐻𝐶𝑤 Full𝐶,𝛿(𝜇)=           =          𝛿𝐶(𝜇),   𝛿  𝐶(𝜇)=𝑤          RC𝐶 (𝜇)−𝑤        Full𝐶  .
+𝑤 RC𝐻 (𝜇)=𝐴  −1𝐻𝐻                                                                                                    𝛿𝐻(𝜇)           −𝐵
+and subtracting gives (13):                                                                          Therefore,
+             𝑤 RC𝐻 (𝜇)−𝑤        Full𝐻    =−𝐴  −1𝐻𝐻𝐴𝐻𝐶 𝑤 RC𝐶 (𝜇)−𝑤        Full𝐶.                               ∥𝛿(𝜇)∥         22    =∥𝛿  𝐶(𝜇)∥     22+∥𝐵𝛿 𝐶(𝜇)∥     22
+                                                                                                                              ≤    1+∥𝐵∥        2op∥𝛿 𝐶(𝜇)∥     22 =𝜅 𝐻∥𝛿 𝐶(𝜇)∥     22,     (36)
+    Finally, since𝐴0 is symmetric with eigenvalues{𝑎 𝑖},𝑊𝜇 is a ma-
+trix function of𝐴0:𝑊𝜇 =𝑓 𝜇(𝐴  0) with𝑓𝜇(𝑎)=𝜇/(𝑎+𝜇)                 . Therefore                       where𝜅 𝐻 =1+∥𝐴  −1𝐻𝐻𝐴𝐻𝐶∥2op.
+𝑊𝜇 has eigenvalues𝑓𝜇(𝑎 𝑖)∈[0, 1). Its operator norm is∥𝑊 𝜇∥op =                                          (A) Bounded regret toFullon the sourceP. By definition,
+max𝑖𝜇/(𝑎  𝑖+𝜇)=𝜇/(𝑎                min+𝜇), which implies
+  ∥𝑤   RC𝐶 (𝜇)−𝑤        Full𝐶 ∥=∥𝑊   𝜇Δ𝐶∥≤∥𝑊 𝜇∥op∥Δ 𝐶∥≤   𝜇                                                  DP(𝑤  RC(𝜇),𝑤       Full)=𝛿(𝜇)   ⊤ΣP𝛿(𝜇)
+                                                                      𝑎min+𝜇 ∥Δ 𝐶∥.                                                      ≤𝜆    max(Σ P)∥𝛿(𝜇)∥         22 =𝐿 P∥𝛿(𝜇)∥         22.
+Moreover,𝑤 RC𝐶 (𝜇)−𝑤  (1)𝐶   =(𝑊  𝜇−𝐼)Δ  𝐶 =−𝐴       0(𝐴  0+𝜇𝐼) −1  Δ𝐶 and                               Combining with (36) and (35) yields
+∥𝐴  0(𝐴  0+𝜇𝐼) −1 ∥op =max 𝑖𝑎𝑖/(𝑎 𝑖+𝜇)=𝑎            max/(𝑎  max+𝜇)    , giving                                                                               𝜇           2
+the second inequality in (20).                                   □                                                DP(𝑤  RC(𝜇),𝑤       Full)≤𝐿 P𝜅𝐻           𝑎min+𝜇          ∥Δ 𝐶∥2.       (37)
+A.3    An Auxiliary Inequality: Excess Risk vs.                                                      To translate this into an excess-risk regret statement, apply Lemma 2
+          Model Disagreement                                                                         with(𝑢,𝑣)=(𝑤                      RC(𝜇),𝑤       Full):EP(𝑤  RC(𝜇))−E P(𝑤  Full)≤2  √︁
+Theorem 1 controls how far𝑤 RC(𝜇)    moves from𝑤 Full (onP) and                                                                                     EP(𝑤  Full) √︁DP(𝑤  RC(𝜇),𝑤       Full)
+from𝑤 Content (onQ). A convenient quantity for this is thepredic-                                                                               +DP(𝑤  RC(𝜇),𝑤       Full),
+tion disagreement                                                                                    and substituting (37) yields an explicit bound controlled by𝜇.
+    DD(𝑢,𝑣) :=E   D(𝑥 ⊤(𝑢−𝑣))           2  =(𝑢−𝑣)   ⊤ΣD(𝑢−𝑣),    (31)                                  (B) Bounded regret toContenton the target     Q. Under the cold
+which is exactly the expected squared change in predictions be-                                      target (15),𝑥𝐻≡ 0a.s., hence only the content block contributes to
+tween𝑢and𝑣underD.                                                                                    prediction disagreement and excess risk. Let  ˜𝛿𝐶(𝜇)     :=𝑤    RC𝐶 (𝜇)−𝑤  (1)
+                                                                                                                                                                                             𝐶   .
+
+=== PAGE 12 ===
+KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea                                                                                                                             Ebrahimzadeh, Baharlouei, Bagherjeiran
+
+From Lemma 1 we have  ˜𝛿𝐶(𝜇)=−(𝐼−𝑊      𝜇)Δ 𝐶 =−𝐴       0(𝐴  0+𝜇𝐼) −1  Δ𝐶                         the disagreement bounds (37) and (39): the source disagreement in-2, while the target disagreement decreases
+and                                                                                               creases with𝜇 as    𝜇𝑎min+𝜇
+                           ∥ ˜𝛿𝐶(𝜇)∥≤   𝑎max                                                      as   𝑎max    2. The existence of a feasible𝜇 interval that satisfies both
+                                          𝑎max+𝜇 ∥Δ 𝐶∥.                          (38)                  𝑎max+𝜇
+Therefore, withΣ   Q,𝐶𝐶    the content covariance underQ,                                         improvement conditions follows from parts (C) and (D) of Theo-
+ DQ(𝑤  RC(𝜇),𝑤       Content)=   ˜𝛿𝐶(𝜇) ⊤ΣQ,𝐶𝐶    ˜𝛿𝐶(𝜇)                                          rem 1 whenever the corresponding margins are positive.        □
+
+                                 ≤𝜆    max(Σ Q,𝐶𝐶 )∥ ˜𝛿𝐶(𝜇)∥     2 =𝐿 Q∥ ˜𝛿𝐶(𝜇)∥     2,           B    GBDT Risk Bound
+   and by (38) we obtain                                                                         We now state a conservative guarantee that parallels the “controlled
+                                                     𝑎max         2                               refinement” interpretation of Theorem 1. Because boosting is non-
+           DQ(𝑤  RC(𝜇),𝑤       Content)≤𝐿 Q          𝑎max+𝜇         ∥Δ 𝐶∥2.       (39)            convex in tree structure, we do not attempt to characterize the
+                                                                                                  optimaljoint model. Instead, we show that RCinheritsthe anchor’s
+Applying Lemma 2 with(𝑢,𝑣) =(𝑤            RC(𝜇),𝑤       Content)  yields an                       target performance up to a correction term that is explicitly con-
+excess-risk regret bound of the same form (up to the additional                                   trolled by Stage 2 capacity. This already yields a verifiable sufficient
+factor involving √︁EQ(𝑤  Content)).                                                               condition for improving over a belief-dominant baseline on the
+                                                                                                  target population.
+   (C) Improvement overFullon   Q  for large enough 𝜇. Assume                                        Proposition 1 (Base-margin RC: target-risk stability under
+𝑚Q  :=E Q(𝑤  Full)−EQ(𝑤  Content)>   0. A sufficient condition for                                bounded correction).Consider squared loss and a target popula-
+EQ(𝑤  RC(𝜇))≤E Q(𝑤  Full)is                                                                       tionQ over merit features𝑥cont. Let𝐹anc(𝑥  cont) be any fixed Stage 1
+                   EQ(𝑤  RC(𝜇))−E Q(𝑤  Content)≤𝑚 Q.                                              predictor and let𝐹RC =𝐹    anc+𝐺    be the Stage 2 refined predictor. As-
+By Lemma 2 with𝑣=𝑤                Content, we have                                                sume that on the target population, the Stage 2 correction is uniformly
+EQ(𝑤  RC(𝜇))−E Q(𝑤  Content)                                                                      bounded:
+                                                                                                     |𝐺(𝑥       cont,𝑥hist)|≤𝐵      for all(𝑥              cont,𝑥hist)in the support ofQ.
+ ≤2  √︁EQ(𝑤  Content)DQ(𝑤  RC(𝜇),𝑤       Content)+DQ(𝑤  RC(𝜇),𝑤       Content).                                                                                                       (42)
+Let𝑠(𝜇)      := √︁DQ(𝑤  RC(𝜇),𝑤       Content). The right-hand side is𝑠(𝜇)       2+               Then the excess target risk satisfies
+2√︁EQ(𝑤  Content)𝑠(𝜇), which is at most𝑚     Q whenever                                                       RQ(𝐹  RC) ≤ RQ(𝐹  anc) +2𝐵   √︁RQ(𝐹  anc) +𝐵    2,        (43)
+                  𝑠(𝜇)≤    √︁EQ(𝑤  Full)− √︁EQ(𝑤  Content).               (40)                    whereRQ(𝐹)     :=E Q(𝐹(𝑥)−E[𝑦|𝑥                      cont])2 is the (noise-free) squared
+Using the disagreement bound (39), condition (40) holds if                                        error onQ.
+      √︁𝐿Q  𝑎max                          EQ(𝑤  Full)− √︁EQ(𝑤  Content).                             Proof.Let  𝑚(𝑥      cont)=E[𝑦|𝑥               cont]. ThenRQ(𝐹  RC)=E[(𝐹           anc−
+             𝑎max+𝜇 ∥Δ 𝐶∥ ≤ √︁                                                                   𝑚+𝐺)            2]=E[(𝐹           anc−𝑚)        2]+ 2E[(𝐹     anc−𝑚)𝐺]+E[𝐺                       2]. By Cauchy–
+Rearranging yields an explicit lower bound on𝜇. In the cold-start                                 Schwarz and the bounds|𝐺|≤𝐵,E[𝐺                                2]≤𝐵    2, and
+regime whereEQ(𝑤  Content) is small, the right-hand side is close                                        |E[(𝐹       anc−𝑚)𝐺]|≤       √︁RQ(𝐹  anc) √︁E[𝐺      2]≤𝐵  √︁RQ(𝐹  anc),
+to√𝑚Q, recovering the simpler (but more conservative) condition                                   yielding Eq. (43).                                                 □
+in (18) up to constant factors.
+                                                                                                     Implications and Practical Considerations.Condition                         (42) can be
+   (D) Improvement overContenton     P for small enough𝜇. Assume                                  enforced or monitored in practice. If each Stage 2 tree has leaf
+𝑚P  :=E P(𝑤  Content)−EP(𝑤  Full)>   0. A sufficient condition for                                outputs bounded by𝑏 (through leaf regularization and clipping),
+EP(𝑤  RC(𝜇))≤E P(𝑤  Content)is                                                                    then𝐵≤𝜂       2𝑇2𝑏. More generally,𝐵 can be estimated empirically on
+                     √︁EP(𝑤  RC(𝜇))≤   √︁EP(𝑤  Content).                                          a target proxy (cold validation) by tracking the distribution of|𝐺|    .
+                                                                                                 A direct corollary is that if the Stage 1 anchor beats a baseline full
+By Lemma 2 with𝑣=𝑤                Full,√︁                                                         model on the target by a margin𝛾, then choosing Stage 2 such that
+          EP(𝑤  RC(𝜇))≤   √︁EP(𝑤  Full)+ √︁DP(𝑤  RC(𝜇),𝑤       Full).                             the right-hand side in Eq. (43) increases risk by less than𝛾 ensures
+Hence it suffices that                                                                            RC strictly improves on the target. This parallels Theorem 1: RC
+    √︁                                                                                            helps when the anchor is strong onQ and Stage 2 is a controlled
+      DP(𝑤  RC(𝜇),𝑤       Full)≤ √︁EP(𝑤  Content)− √︁EP(𝑤  Full).    (41)                         refinement.
+Using (37), condition (41) holds if√︁                                                             accepted 1 June 2026
+       𝐿P𝜅𝐻   𝜇𝑎min+𝜇 ∥Δ 𝐶∥ ≤ √︁EP(𝑤  Content)− √︁EP(𝑤  Full).
+
+Rearranging yields an explicit upper bound on𝜇.
+   This completes the proof.                                      □
+
+A.5    Proof of Corollary 1
+   Proof of Corollary 1.  The displayed displacement bounds are
+exactly (14) in Lemma 1. For the Pareto-curve statement, combine

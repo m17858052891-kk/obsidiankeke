@@ -1,0 +1,829 @@
+
+
+Uncertainty-Aware Adaptive Recommendation across User Lifecycle
+
+ Report GitHub Issue
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract.
+
+1 Introduction
+
+2 Methodology
+
+2.1 Definition of Uncertainty
+
+2.2 Uncertainty for Point Estimation: Expected Prediction Error
+
+2.3 Learning a Critic to Predict EPE
+
+2.4 Uncertainty for Probabilistic Models
+
+2.5 Training of Probabilistic Models via Maximum Marginal Likelihood
+
+2.6 Empirical Calibration of Uncertainty Scores
+
+2.7 Uncertainty-Aware Deboosting for Low-Active Users
+
+2.8 Uncertainty-Driven Exploration Boost for High-Active Users
+
+3 Related Work
+
+3.1 Bayesian modeling of recommendation uncertainty
+
+3.2 Distribution-free modeling of uncertainty: Calibration and Error Estimation
+
+3.3 Applications for Low-Activity and Cold-Start Users
+
+4 Experiments
+
+4.1 Experimental Setup
+
+4.2 Data
+
+4.3 Cohort Selection
+
+4.4 Offline Analyses
+
+4.5 Online A/B Testing
+
+4.6 Ablation Studies
+
+5 Discussions and Limitations
+
+References
+
+ License: CC BY-NC-ND 4.0
+
+arXiv:2605.17788v2 [cs.IR] 25 May 2026
+
+Uncertainty-Aware Adaptive Recommendation across User Lifecycle
+
+Conference: Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2; August 09–13, 2026; Jeju Island, Republic of KoreaProceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2 (KDD ’26), August 09–13, 2026, Jeju Island, Republic of KoreaDOI: 10.1145/3770855.3818501ISBN: 979-8-4007-2259-2/2026/08CCS: Information systems Recommender systemsCCS: Information systems PersonalizationCCS: Computing methodologies Supervised learning by regressionCCS: Computing methodologies Uncertainty quantificationCCS: Computing methodologies Online learning settingsCCS: Computing methodologies Neural networksCCS: Mathematics of computing Max marginal computation
+
+Bob Junyi Zou
+
+email: junyizou@stanford.edu
+
+Affiliation: Stanford University, Stanford, CA, USA
+
+, 
+Sai Li
+
+email: zhuning.1@bytedance.com
+
+Affiliation: ByteDance Inc., San Jose, CA, USA
+
+, 
+Tianyun Sun
+
+email: tianyun.sun@bytedance.com
+
+Affiliation: ByteDance Inc., San Jose, CA, USA
+
+, 
+Wentao Guo
+
+email: wentao.guo@bytedance.com
+
+Affiliation: ByteDance Inc., San Jose, CA, USA
+
+ and 
+Qinglei Wang
+
+email: wangqinglei@bytedance.com
+
+Affiliation: ByteDance Inc., Beijing, Beijing, China
+
+© cc
+
+Abstract.
+
+A fundamental challenge in recommender systems is balancing reliability for Low-Active Users (LAUs) with diversity for High-Active Users (HAUs). The key to this balance lies in quantifying model uncertainty, which approximates the risk of prediction errors and reveals the limits of the model’s current knowledge. On large-scale short-video and livestream platforms, model uncertainty can warn of low-quality recommendations that may lead to disengagement of LAUs and at the same time identify opportunities to diversify content recommendation for HAUs. To leverage this dichotomy, we introduce a unified, production-ready framework that calibrates uncertainty to drive differentiated strategies. Specifically, we implement a model-uncertainty-based risk-averse deboosting policy for LAUs to suppress unreliable recommendations, while employing a risk-seeking Upper Confidence Bound (UCB) strategy for HAUs to encourage exploration. Validated on a major livestream platform, our framework demonstrates significant improvements in retention (active hours) and satisfaction (quality watch time ratio) for LAUs as well as remarkable increases in interest diversity and category coverage for HAUs, proving the value of uncertainty-aware recommendation in industrial settings.
+
+Keywords: Live streaming recommendation, uncertainty-aware recommendation,
+user activity modeling, exploration–exploitation trade-off,
+large-scale recommender systems
+††cc-license: by-nc-nd
+
+1. Introduction
+
+Modern recommender systems face distinct uncertainty challenges across user segments. For Low-Active Users (LAUs), sparse interaction history makes inference fragile, where high uncertainty risks immediate churn. Conversely, High-Active Users (HAUs) possess abundant data, allowing uncertainty to serve as a signal for proactively expanding interest diversity. We argue that epistemic uncertainty should be treated as a risk for LAUs but as an exploration opportunity for HAUs. To this end, we propose a dual strategy: stabilizing LAU experiences through risk-averse deboosting, while encouraging HAU exploration via an Upper Confidence Bound (UCB) mechanism.
+
+Unfortunately, most modern large-scale recommendation models output only point estimates with no inherent notion of confidence or uncertainty. Recent empirical analyzes confirm that state-of-the-art deep learning models can be poorly calibrated in practice — a high predicted score does not necessarily imply a correct or reliable recommendation (Penha and Hauff, 2021; Angelopoulos et al., 2023). This lack of an actionable uncertainty signal makes it difficult for ranking systems to distinguish "easy" predictions from "risky" ones. In high-traffic production environments, unrecognized model uncertainty can lead to significant user experience degradation by taking high-confidence actions on erroneous predictions for vulnerable user segments. These issues highlight the operational need for robust uncertainty-aware recommendation systems that not only predict user preferences, but also quantify—and act upon—the reliability of those predictions.
+
+While the need for uncertainty quantification is clear, existing paradigms struggle to meet the dual requirements of low-latency inference and fine-grained granularity demanded by large-scale recommender systems. Traditionally, Bayesian approaches (Zhu et al., 2009; Gopalan et al., 2014) and their deep learning approximations like Monte Carlo (MC) dropout (Gal and Ghahramani, 2016) offer principled uncertainty estimates. However, they typically rely on expensive posterior sampling or multiple stochastic forward passes, introducing latency overheads that are prohibitive for high-concurrency real-time ranking. Conversely, distribution-free methods like Conformal Prediction (Angelopoulos et al., 2023) are computationally efficient but often produce global error guarantees (e.g., a single error rate averaged across all users). These "one-size-fits-all" intervals fail to capture input-specific risk—they cannot distinguish whether a specific video is risky for a specific user, often leaving relative rankings invariant and rendering them ineffective for personalized filtering.
+
+This creates a critical operational gap: standard methods are either too slow (e.g., MC Dropout) or too coarse (e.g., Conformal Prediction) to handle the nuanced needs of diverse user segments. To address this, we propose a unified, production-ready framework that bypasses heavy sampling in favor of Input-Specific Expected Prediction Error (EPE) estimation. For standard point-estimate models, we train an auxiliary critic network to predict the expected error of each user-item pair, providing a fine-grained measure of epistemic uncertainty. For probabilistic architectures (e.g., Beta/Gamma outputs), we adopt an empirical Bayes procedure that infers input-dependent priors, enabling a principled decomposition of predictive variance into model-driven and data-driven components without sacrificing serving latency.
+
+To translate these estimates into robust decision-making, we calibrate the uncertainty signals on a real-world hold-out dataset to establish reliable confidence thresholds. At serving time, our system applies a segment-aware dual strategy: for Low-Active Users (LAUs), high-uncertainty recommendations are rigorously deboosted to prevent churn caused by unreliable content; conversely, for High-Active Users (HAUs), the same signal serves as an exploration bonus to uncover new interests and expand diversity. This approach adapts uncertainty controls to distinct lifecycle stages, simultaneously strengthening short-term retention for vulnerable users while fostering the long-term vitality of the recommendation ecosystem.
+
+Our work makes the following contributions, specifically within the context of industrial-scale recommendation systems:
+
+1. A Production-Ready, Unified Uncertainty Quantification Framework.
+We introduce a novel and flexible framework that augments existing recommender systems with input-specific uncertainty quantification capabilities. The framework unifies two practical approaches: an auxiliary critic network that learns to predict instance-specific Expected Prediction Error (EPE), and an empirical Bayes module designed for efficient variance estimation in probabilistic models. The combined uncertainty signals quantify confidence on a per-user, per-item basis, directly supporting safer, more robust ranking in real-world deployments.
+
+2. A Targeted Deboosting Policy for Low-Active Users (LAUs).
+We implement and deploy a practical uncertainty-aware deboosting strategy that leverages calibrated uncertainty thresholds to proactively filter or down-weight risky recommendations. This policy specifically addresses the cold-start and sparse-data challenges associated with LAUs on livestream platforms, mitigating the risk of user dissatisfaction and churn caused by unreliable predictions.
+
+3. An Uncertainty-Driven Exploration Strategy for High-Active Users (HAUs).
+We propose a proactive exploration mechanism that utilizes high epistemic uncertainty as a positive signal for interest expansion. By applying an exploration bonus based on the Upper Confidence Bound (UCB) principle, the system prioritizes under-explored content domains for HAUs. This strategy effectively enhances recommendation diversity and facilitates content discovery by rewarding model-driven uncertainty, thereby encouraging the exploration of the user’s latent interest spaces.
+
+4. Large-Scale Empirical Validation and Business Impact Analysis.
+Using large-scale production data from a major social media platform, we validate the framework’s effectiveness. We demonstrate significant improvements in key business metrics for the vulnerable LAU segment: the deboosting policy substantially increases **user retention** (active hours) and downstream satisfaction (**quality watch time ratio**), while maintaining overall platform performance. These results underscore the operational value of uncertainty modeling in industrial recommendation systems and provide a generalizable strategy for improving reliability in practical, high-stakes environments.
+
+2. Methodology
+
+We focus on two widely deployed model classes in real-world recommendation systems:
+(i) point-estimation models, such as deterministic CTR predictors and staytime regressors, and
+(ii) probabilistic models, which output parameters of a predictive distribution over the outcome.
+Our framework introduces two complementary uncertainty measures—one tailored to each model class—and integrates them into a unified strategy for user-tailored ranking.
+
+2.1. Definition of Uncertainty
+
+For each user-context pair input $x\in\mathcal{X}$ , let $f_{\Theta}(x)$ denote the recommender’s prediction, where $\Theta$ represents the model parameters after daily training. As the model is continually fine-tuned using fresh data, $\Theta$ is naturally viewed as a random variable drawn from the implicit parameter distribution induced by the training pipeline.
+Uncertainty for input $x$ arises from the following two sources.
+
+(1) model (epistemic) uncertainty, including (i) offline model limitations, where restricted model capacity or limited training data lead to biased or unstable predictions; and (ii) online serving inconsistencies, where system-level factors such as feature staleness and serving latency cause deviations between offline predictions and real-time inference.
+
+(2) data (aleatoric) uncertainty, arising from inherent randomness in the conditional outcome distribution $Y\mid X=x$ .
+
+In the context of recommendation systems, we focus on estimating model uncertainty because
+epistemic uncertainty directly reflects how well the system has learned the underlying user–item interaction patterns.
+High epistemic uncertainty reflects scenarios where the available behavioral signals are still evolving, particularly for cold-start users or segments with sparse interactions. In these cases, our framework optimizes for prediction robustness to ensure a smooth transition as the model’s knowledge base matures.
+In such cases, the model’s lack of confidence should inform downstream ranking and deboosting decisions, since unreliable recommendations can harm user experience and slow long-term learning.
+By isolating and quantifying epistemic uncertainty, our framework allows the system to identify inputs where predictions are fragile, guide cautious recommendation, and allocate exposure toward regions where additional data can meaningfully improve the model.
+
+2.2. Uncertainty for Point Estimation: Expected Prediction Error
+
+Point-estimation models output a deterministic value $f_{\Theta}(x)$ but do not characterize uncertainty.
+We therefore study the input-specific expected prediction error (EPE):
+
+ | 
+ | $\mathrm{EPE}(x)=\mathbb{E}_{\Theta}\,\mathbb{E}_{Y\mid X=x}\bigl[\ell\bigl(Y,f_{\Theta}(x)\bigr)\bigr],$ 
+ | 
+
+where $\ell(\cdot,\cdot)$ is any nonnegative task-appropriate error measure. When $\ell$ is chosen to be the squared loss, the expected prediction error admits a canonical variance–bias decomposition that links model uncertainty and data uncertainty to distinct statistical components (other Bregman losses admit analogous decompositions, but squared loss provides the clearest interpretation):
+
+ | 
+ | $\begin{split}\mu(x)&:=\mathbb{E}[Y\mid X=x],\qquad\bar{f}(x):=\mathbb{E}_{\Theta}\!\left[f_{\Theta}(x)\right].\\
+\mathrm{EPE}(x)&=\underbrace{\bigl(\bar{f}(x)-\mu(x)\bigr)^{2}}_{\text{model bias}}\;+\;\underbrace{\mathbb{E}_{\Theta}\!\left[\bigl(f_{\Theta}(x)-\bar{f}(x)\bigr)^{2}\right]}_{\text{model variance}}\;+\;\underbrace{\mathbb{V}(Y\mid X=x)}_{\text{data noise}}.\end{split}$ 
+ | 
+
+This decomposition provides an interpretable decomposition of uncertainty in our setting.
+
+Model (epistemic) uncertainty.The term
+ $\mathbb{E}_{\Theta}[(f_{\Theta}(x)-\bar{f}(x))^{2}]$ measures instability of predictions across random training realizations, while $(\bar{f}(x)-\mu(x))^{2}$ captures systematic mismatch between the model family and the true conditional mean.
+Both arise from finite data, optimization randomness, or representational limitations of the model class. Large model variance signals insufficient model confidence at $x$ .
+
+Data (aleatoric) uncertainty.
+The irreducible variability $\mathbb{V}(Y\mid X=x)$ reflects inherent randomness in user behavior conditional on the same features $x$ , and cannot be reduced even with a perfect model. Large data noise indicates that user responses are inherently difficult to predict, even under an optimal model.
+
+In practice, our point-estimation models do not output these components individually; instead, the scalar $\mathrm{EPE}(x)$ aggregates their combined magnitude. Consequently, if one wishes to study or compare a specific component of uncertainty across different inputs $x$ , it is essential to hold the other component approximately fixed—that is, to control for factors that influence it.
+In our application, our goal is to use $\mathrm{EPE}(x)$ as a proxy for how well the model has learned (i.e., to compare epistemic uncertainty across inputs), and as a result, we will restrict comparisons to be made within strata where intrinsic behavioral randomness is believed to be similar (e.g. $\mathrm{EPE}(x)$ is compared only among low-active users whose aleatoric variability is presumed comparable). Under this condition, we define our model uncertainty score for point prediction models as $U_{\mathrm{point}}(x)\equiv\mathrm{EPE}(x),$ given Var $(Y|x)$ is approximately constant.
+
+2.3. Learning a Critic to Predict EPE
+
+Suppose daily training produces multiple daily model checkpoints $\Theta^{(1)},\dots,\Theta^{(K)}$ trained using daily samples $(x^{(k)}_{j},y^{(k)}_{j})$ . We compute realized generalization errors
+
+ | 
+ | $e_{j}^{(k)}=\ell\bigl(y^{(k)}_{j},f_{\Theta^{(k-1)}}(x^{(k)}_{j})\bigr),$ 
+ | 
+
+which serve as Monte Carlo samples approximating $\mathrm{EPE}(x^{(k)}_{j})$ . Note that the error evaluation is performed using the latest model checkpoint that has not been trained on $k$ -th day samples.
+
+We train a separate critic model $g_{\phi}:\mathcal{X}\to\mathbb{R}_{\geq 0}$ to estimate $\mathrm{EPE}(x)$ directly from input features and internal signals from the recommender.
+
+Multi-view input representation.
+Let $h_{\Theta}(x)$ denote the intermediate embedding produced by the recommender and $f_{\Theta}(x)$ its final output.
+We construct the critic input
+
+ | 
+ | $z_{\Theta}(x)=[\,x\,\|\,h_{\Theta}(x)\,\|\,f_{\Theta}(x)\,],$ 
+ | 
+
+which captures both external covariates and how the recommender internally represents the instance.
+
+Decoupled training.
+To prevent feedback loops, we freeze the recommender during critic training.
+The critic is trained daily on tuples $\{z_{\Theta^{k-1}}(x^{(k)}_{j}),e_{j}^{(k)}\}$ collected from previous-day checkpoints. The critic is optimized under the standard mean-squared-error regression objective, and the resulting point-estimation uncertainty score is $U_{\mathrm{point}}(x)\equiv g_{\phi}(z_{\Theta}(x)).$ 
+
+2.4. Uncertainty for Probabilistic Models
+
+Probabilistic models output parameters of a conditional prior
+ $p(\theta\mid\gamma(x)),$ 
+whose hyperparameters $\gamma$ (e.g., shape, rate, scale, dispersion) are produced by the model as functions of the input $x$ .
+Given this conditional prior and a likelihood model $p(y\mid\theta)$ , the resulting predictive distribution is
+
+ | (1)
+ | 
+ | $p(y\mid x)\;=\;\int p(y\mid\theta)\,p(\theta\mid x)\,d\theta,$ 
+ | 
+
+where the integral is taken with respect to the latent parameter $\theta$ .
+
+The model parameters $\Theta$ (trained via maximum marginal likelihood / type-II MLE) specify how the prior depends on $x$ .
+Once the model is fitted, the predictive distribution (1) has a well-defined mean and variance that can be used as point prediction and uncertainty measure respectively:
+
+ | 
+ | $\mu(x)=\mathbb{E}[Y\mid X=x],\qquad U_{\mathrm{total}}(x)=\mathrm{Var}(Y\mid X=x).$ 
+ | 
+
+Because the prior is input-dependent, the predictive variance naturally splits into two components via the law of total variance:
+
+ | (2)
+ | 
+ | $\displaystyle\mathrm{Var}(Y\mid X=x)$ 
+ | $\displaystyle=\mathbb{E}_{\theta\mid x}\!\left[\mathrm{Var}(Y\mid\theta)\right]\;+\;\mathrm{Var}_{\theta\mid x}\!\left(\mathbb{E}[Y\mid\theta]\right).$ 
+ | 
+
+Again, one can interpret the two terms as:
+
+• 
+
+Data (aleatoric) uncertainty:
+ $\mathbb{E}_{\theta\mid x}\!\left[\mathrm{Var}(Y\mid\theta)\right],$ 
+capturing randomness inherent to the user’s behavioral outcome even under fixed parameters.
+
+• 
+
+Model (epistemic) uncertainty:
+ $\mathrm{Var}_{\theta\mid x}\!\left(\mathbb{E}[Y\mid\theta]\right),$ 
+capturing uncertainty about the latent predictive parameter due to limited or noisy evidence at this input $x$ .
+
+This decomposition is particularly important in our recommendation setting.
+Epistemic uncertainty reflects insufficient information about user–item interactions; when it is high, the model has not yet reliably learned $f(x)$ .
+Such cases warrant cautious recommendation, either because additional data can eventually resolve the uncertainty (e.g., cold-start scenarios) or because reliable learning may be fundamentally limited (e.g., low-active-user cases).
+In contrast, high aleatoric uncertainty indicates that user responses are inherently variable but still informative: recommending in these regions can promote exploration and improve estimates over time, since the system only learns after making recommendations.
+Motivated by this distinction, we define the probabilistic uncertainty score
+
+ | 
+ | $U_{\mathrm{prob}}(x)\equiv\mathrm{Var}_{\theta\mid x}\!\left(\mathbb{E}[Y\mid\theta,X=x]\right),$ 
+ | 
+
+which isolates the model-driven component of uncertainty.
+This $U_{\mathrm{prob}}(x)$ constitutes the second pillar of our uncertainty-aware ranking policy.
+
+2.5. Training of Probabilistic Models via Maximum Marginal Likelihood
+
+The probabilistic framework described above is trained by maximizing the marginal likelihood of the observed outcomes.
+For each input–label pair $(x_{i},y_{i})$ , the model specifies an input-dependent prior $p(\theta\mid\gamma(x_{i}))$ and a likelihood $p(y_{i}\mid\theta)$ .
+The resulting marginal likelihood for a single observation is
+
+ | 
+ | $p(y_{i}\mid x_{i};\Theta)=\int p(y_{i}\mid\theta)\,p(\theta\mid\gamma_{\Theta}(x_{i}))\,d\theta,$ 
+ | 
+
+where $\Theta$ denotes all trainable parameters governing the mapping $x\mapsto\gamma_{\Theta}(x)$ .
+Model training proceeds by solving the type-II maximum likelihood problem:
+
+ | 
+ | $\Theta^{\ast}=\arg\max_{\Theta}\sum_{i=1}^{n}\log\int p(y_{i}\mid\theta)\,p(\theta\mid\gamma_{\Theta}(x_{i}))\,d\theta.$ 
+ | 
+
+This objective encourages the model to select input-dependent priors that best explain the observed data after integrating out the latent variable $\theta$ .
+Importantly, no point estimate of $\theta$ is learned; instead, uncertainty in $\theta$ is preserved throughout training, enabling the predictive distribution to capture both data noise and epistemic uncertainty.
+
+2.6. Empirical Calibration of Uncertainty Scores
+
+To convert raw uncertainty magnitudes into actionable thresholds, we use an empirical calibration set $\mathcal{D}_{\mathrm{cal}}$ .
+For each $(x_{j},y_{j})\in\mathcal{D}_{\mathrm{cal}}$ , compute
+ $U_{\mathrm{point}}(x_{j}),U_{\mathrm{prob}}(x_{j}).$ For a given quantile level $q$ (e.g. $0.95$ ), define calibrated thresholds:
+
+ | 
+ | $\tau_{\mathrm{point}}=\mathrm{Quantile}_{q}(U_{\mathrm{point}}),\tau_{\mathrm{prob}}=\mathrm{Quantile}_{q}(U_{\mathrm{prob}}).$ 
+ | 
+
+These thresholds serve as uncertainty tolerance levels reflecting real-world error distributions without requiring parametric assumptions.
+
+2.7. Uncertainty-Aware Deboosting for Low-Active Users
+
+Let $r_{u,i}=f_{\Theta}(x_{u,i})$ be the base relevance score for user $u$ and item $i$ .
+For each candidate item, compute both uncertainty signals:
+ $U_{\mathrm{point}}(x_{u,i}),U_{\mathrm{prob}}(x_{u,i}).$ An item is considered risky if either score exceeds its calibrated threshold:
+
+ | 
+ | $\mathbb{I}_{\mathrm{risky}}(u,i)=\mathbb{I}\!\left[U_{\mathrm{point}}(x_{u,i})>\tau_{\mathrm{point}}\;\;\text{or}\;\;U_{\mathrm{prob}}(x_{u,i})>\tau_{\mathrm{prob}}\right].$ 
+ | 
+
+We apply a deboost score $D>0$ to all risky items:
+
+ | 
+ | $r^{\mathrm{final}}_{u,i}=r_{u,i}-D\cdot\mathbb{I}_{\mathrm{risky}}(u,i).$ 
+ | 
+
+Final ranking is obtained by sorting the deboosted scores:
+
+ | 
+ | $\mathrm{Rank}_{\mathrm{final}}(u)=\mathrm{argsort}\Bigl(\{\,r^{\mathrm{final}}_{u,i}\,:\,i\in\mathcal{I}(u)\}\Bigr).$ 
+ | 
+
+The hyperparameters $D$ and $(\tau_{\mathrm{point}},\tau_{\mathrm{prob}})$ are tuned via online A/B testing.
+
+2.8. Uncertainty-Driven Exploration Boost for High-Active Users
+
+For high-active users (HAUs), high epistemic uncertainty serves as a critical signal for identifying unexplored content domains, offering opportunities to enhance recommendation diversity without compromising session continuity. To foster systematic interest exploration, we follow the Upper Confidence Bound (UCB) principle, which advocates for "optimism in the face of uncertainty". We treat the calibrated uncertainty signals as an exploration bonus to elevate items with high discovery potential.
+
+We define the total epistemic uncertainty for HAUs as $U_{\mathrm{HAU}}(x_{u,i})=\max(U_{\mathrm{point}},U_{\mathrm{prob}}).$ The boosted ranking score is calculated as: $r^{\mathrm{final}}_{u,i}=r_{u,i}+\omega\cdot U_{\mathrm{HAU}}(x_{u,i}),$ 
+where $\omega>0$ is the exploration weight adjusted via A/B testing. This mechanism encourages the system to prioritize items with high discovery potential and long-term utility, thereby proactively increasing categorical coverage and optimizing for long-term recommendation diversity.
+
+3. Related Work
+
+3.1. Bayesian modeling of recommendation uncertainty
+
+Early Bayesian models, such as Poisson factorization, naturally quantify uncertainty and handle sparse feedback effectively by treating interactions as probabilistic draws (Gopalan et al., 2014; Gopalan et al., 2015; Wang et al., 2018). However, these approaches struggle with scalability due to expensive posterior inference or lack the expressivity of modern deep learning models. Subsequent efforts like Confidence-Aware Matrix Factorization (CMF) introduced variance terms to estimate reliability, but they largely retained the sampling complexity of fully Bayesian methods and often failed to capture fine-grained, pair-specific uncertainty (Knyazev and Oosterhuis, 2023). In the deep learning era, Monte Carlo (MC) dropout emerged as a solution, using stochastic forward passes to approximate epistemic uncertainty. While effective at the instance level, the computational cost of repeated sampling makes it impractical for low-latency industrial pipelines (Gal and Ghahramani, 2016).
+
+Our work positions empirical Bayes as a pragmatic middle ground. Rather than sampling full posterior distributions, we estimate prior hyperparameters directly from the data. This approach captures key Bayesian benefits—such as stabilizing predictions for low-activity users via partial pooling—and yields per-instance uncertainty estimates, all while avoiding the heavy computational overhead of traditional inference.
+
+3.2. Distribution-free modeling of uncertainty: Calibration and Error Estimation
+
+Accurate uncertainty quantification is often pursued via model calibration, where techniques like temperature scaling (Guo et al., 2017) or isotonic regression ensure predicted scores align with true engagement probabilities. While effective in large-scale production systems like YouTube and LinkedIn (Bai et al., 2023; Borisyuk et al., 2024), these methods typically apply global or bucket-wise adjustments, addressing population-level reliability rather than distinguishing uncertainty for specific user-item pairs. Alternatively, distribution-free frameworks like conformal prediction provide rigorous statistical guarantees by constructing predictive sets with bounded error rates (Angelopoulos et al., 2023). However, these approaches introduce operational complexity—such as variable-length recommendation lists—and rely on global thresholds that lack fine-grained discrimination.
+
+In contrast, our approach utilizes a critic network to predict the expected prediction error (EPE) for each individual recommendation. This yields a granular, input-specific uncertainty score that is empirically calibrated and operationally actionable. Unlike complex interval predictors, our metric integrates seamlessly into the ranking stack as a direct deboosting factor, combining the rigor of calibration with the flexibility of instance-level risk assessment.
+
+3.3. Applications for Low-Activity and Cold-Start Users
+
+Handling users with limited interaction history remains a longstanding challenge (Ricci et al., 2011; Zawia et al., 2025). Industrial platforms typically employ hybrid approaches combining collaborative filtering with auxiliary content features (Lü et al., 2012). Recent research has pivoted toward meta-learning and rapid adaptation methods, such as MeLU (Lee et al., 2019) and M2EU (Wu and Zhou, 2023), which utilize MAML-based optimization to infer preferences from few examples. In production, specialized architectures like Cold & Warm Net (Yin et al., 2023) and the MAIF framework (Cao et al., 2025) handle zero-shot scenarios through multi-task learning.
+Our work treats cold-start as an uncertainty quantification task (Xiang et al., 2025; Zhang et al., 2025). Frameworks like CREU (Xiang et al., 2025) leverage epistemic uncertainty to improve cold-start performance. By integrating a calibrated critic network, our framework provides a safeguard against high-uncertainty recommendations, which are particularly critical for maintaining the retention of users within their first 1,000-video tenure.
+
+4. Experiments
+
+This section presents our experimental setup, data, offline trend analyses, online A/B testing results, and ablation studies. All experiments are conducted on production-scale recommendation traffic on a major livestream platform, focusing on low-active users for whom model uncertainty has the strongest impact on ranking quality.
+
+4.1. Experimental Setup
+
+We adopt a DCN-based architecture as the primary CTR predictor $f_{\Theta}(x)$ due to its proven efficiency and representational power in large-scale systems. To quantify uncertainty for deterministic predictions, we introduce an auxiliary EPE Critic Head that shares the DCN feature representation. This regression head is trained via MSE to approximate the expected prediction error,
+
+ | 
+ | $\widehat{\mathrm{EPE}}(x)\approx\mathbb{E}_{\Theta}\mathbb{E}_{Y|x}\!\left[(Y-f_{\Theta}(x))^{2}\right],$ 
+ | 
+
+following the procedure outlined in Section 2.2.
+
+In parallel, a Bayesian Prior Head projects shared features into logits $(u(x),v(x))$ to parameterize a dynamic prior $\theta\sim\mathrm{Beta}\big(\alpha(x),\beta(x)\big)$ , where $\alpha(x)=1+\mathrm{softplus}(u(x)),\beta(x)=1+\mathrm{softplus}(v(x)).$ 
+Here, epistemic uncertainty is derived explicitly as the prior variance:
+
+ | 
+ | $U_{\text{prob}}(x)=\frac{\alpha(x)\beta(x)}{(\alpha(x)+\beta(x))^{2}\,(\alpha(x)+\beta(x)+1)}.$ 
+ | 
+
+Together, these heads provide complementary uncertainty signals: the EPE critic targets error in deterministic point estimates, while the Bayesian head captures distributional model uncertainty.
+
+To validate these methods, we compare against two established baselines. First, we implement a Multi-head Ensemble Baseline where the model shares all underlying embedding tables and DCN cross-layers, branching only at the final two fully-connected layers into $H=10$ distinct heads, with epistemic uncertainty estimated as the inter-head variance. Second, we utilize a MC Dropout Baseline (Gal and Ghahramani, 2016) by enabling stochastic dropout masks ( $p=0.1$ ) during inference. We perform $T=10$ forward passes for each input sample and quantify uncertainty as the variance of the resulting predictive distribution, serving as a non-parametric approximation for Bayesian inference.
+
+ | Model
+ | Pearson (Linear Correlation)
+ | Spearman (Rank Correlation)
+ | AURC / Base ( $\downarrow$ )
+
+ | Critic-Predicted EPE
+ | 0.3335
+ | 0.6695
+ | 0.0157 / 0.0271
+
+ | Bayesian Model
+ | 0.3733
+ | 0.6881
+ | 0.0162 / 0.0277
+
+ | Multi-head Ensemble
+ | 0.0346
+ | 0.2760
+ | 0.0205 / 0.0270
+
+ | MC Dropout
+ | 0.0469
+ | 0.1887
+ | 0.0219 / 0.0264
+
+Table 1. Comparative benchmarking of uncertainty estimators.
+
+(a) Realized Online MSE across predicted-uncertainty-percentile bins.
+
+(b) Critic-Predicted EPE uncertainty and realized RMSE versus live-stream age.
+
+(c) Bayesian model uncertainty and realized RMSE versus live-stream age.
+
+Figure 1. Trend analysis of uncertainty estimation.
+
+4.2. Data
+
+All models are trained and evaluated on anonymized production traffic from real users.
+We follow all internal data governance and compliance protocols.
+No personally identifiable information is used, and no cross-user identifiers are shared across training runs.
+
+4.3. Cohort Selection
+
+As mentioned in Section 2, we categorize users based on their historical engagement levels to ensure that aleatoric uncertainty is relatively consistent within each experimental group. In the livestream recommendation context, we define low-active users (LAUs) as those whose active watch days are less than 7 days in a month. Conversely, high-active users (HAUs) are defined as those whose active watch days are 7 days or more in a month. This segmentation allows us to evaluate the efficacy of our dual-strategy: applying risk-averse deboosting to stabilize experiences for LAUs, and leveraging UCB-based exploration to enhance content diversity for data-rich HAUs by proactively optimizing recommendation variety.
+
+4.4. Offline Analyses
+
+Evaluating predictive uncertainty is challenging because ground-truth uncertainty is typically unobservable. In the literature, three primary paradigms are used for evaluation: (i) selective prediction metrics like Area Under the Risk-Coverage curve (AURC) (Geifman and El-Yaniv, 2017) to measure a model’s efficiency in suppressing high-risk samples; (ii) correlation metrics including Spearman rank correlation to evaluate the monotonic relationship between uncertainty and error ranks (Kristoffersson Lind et al., 2024), and the Pearson correlation coefficient to quantify the linear association between uncertainty estimates and observed prediction errors; and (iii) trend alignment diagnostics that verify consistency with domain-specific proxies like interaction density or content age.
+
+Uncertainty Performance.
+We evaluate the components of our unified framework—comprising both the EPE Critic Network and the Empirical Bayes (Bayes) prior head—against structural heuristic baselines using established quantitative metrics. Table 1 provides a comparative benchmark.
+
+Ranking Consistency. Both Bayes and EPE Critic exhibit high Spearman correlations ( $>0.65$ ), significantly outperforming ensemble heuristics. EPE Critic achieves the most competitive AURC / Base Risk ratio, confirming its superiority in risk-aware sample filtering.
+
+(a) Improvements in HLT7
+
+(b) Improvements in valuable watch duration ratio
+
+Figure 2. A/B test results: daily-cumulative improvements over 14 days with 95% confidence interval. (a) Results for HLT7. (b) Results for valuable watch duration ratio.
+
+Sanity Check I: Uncertainty vs. Realized Online MSE.
+Users are binned into decile buckets based on predicted uncertainty:
+EPE-based $U_{\text{point}}(x)$ and Bayesian prior variance $U_{\text{prob}}(x)$ .
+For each bin, we compute the real-time RMSE of the online CTR model. As shown in Figure 1(a), higher predicted uncertainty correlates with higher realized error. The relationship is monotonic across both uncertainty measures and highly consistent for both uncertainty measures.
+
+Sanity Check II: Uncertainty vs. Live-Stream Session Age.
+Live-stream recommendation provides a natural axis of uncertainty: a newly started stream has little behavioral history and is difficult to model, whereas a mature stream has accumulated evidence. We bin user–item requests by the live-stream age (minutes since stream start).
+Figures 1(b) and 1(c) show that both uncertainty measures decrease with stream age, mirroring reductions in realized MSE.
+This validates that the uncertainty models behave consistently with domain intuition.
+
+4.5. Online A/B Testing
+
+We deploy the uncertainty-aware strategy on production live-stream traffic for 14 days. The deployment strategy is cohort-specific: for Low-Active Users (LAUs), we apply a risk-aware deboosting policy; for High-Active Users (HAUs), we utilize high epistemic uncertainty as an exploration bonus (UCB principle) to stimulate interest expansion.
+
+For the LAUs, we implemented an uncertainty-aware deboosting policy to mitigate the risk of undesirable recommendations arising from unreliable model predictions, which frequently trigger immediate disengagement and churn. To measure practical significance and business impact, we use a set core business and ecosystem indicators to capture the multi-dimensional impact of the framework:
+
+HLT7 (Hourly Life Time in Last 7 days) Cumulative user active time, a standard indicator of sustained engagement and retention;
+
+VWR (Valuable Watch Duration Ratio) Ratio of valuable live watch time (organic engagement actions) to total live watch time;
+
+App Stay Duration Total daily time spent on the application, reflecting overall stickiness of the platform and potential spillover effects of live content quality on other application modules;
+
+Live Watch Time Raw duration of live stream consumption. In the context of our deboosting policy, we monitor this to ensure that improvements in engagement quality do not lead to an excessive contraction of total consumption volume;
+
+HLT-efficiency Defined as $-\Delta HLT7/\Delta\text{Live watch time}$ . This composite metric quantifies the retention gain per unit of watch time sacrifice, measuring the efficiency of our policy in filtering out low-quality consumption to exchange for higher overall user lifetime.
+
+Figures 2(a) and 2(b) show consistent and statistically significant improvements across all 14 days.
+Filtering high-uncertainty items reduces detrimental recommendations for low-active users, leading to longer sessions and higher-quality watch behavior.
+
+As summarized in Table 2, the unified framework achieved a +0.0577% lift in HLT7 and a +0.512% increase in VWR. The rise in App Stay Duration confirms a positive spillover effect, indicating that the safety-first strategy stabilizes the early-stage user journey. Crucially, while raw Live Watch Time showed a marginal decrease (-0.16%) , the high HLT-efficiency (0.0549) demonstrates that the system successfully "pruned" high-risk, low-value content. This trade-off is scientifically honest: the platform sacrifices negligible passive duration to secure meaningful long-term retention gains.
+
+For HAUs, we leverage model uncertainty as an exploration bonus to proactively enhance recommendation diversity. The goal was to prioritize recommendation diversity by optimizing the variety of content categories where the model’s epistemic uncertainty is high. We evaluate the effectiveness using two diversity-centric metrics:
+
+Show Tag/U Average number of unique livestream category tags shown per user, representing the breadth of topical exposure;
+
+Top1 Tag UV Ratio Proportion of users whose engagement within their leading interest domain exceeds 80% of their total watch time; a decrease in this ratio reflects a continuous enhancement in recommendation diversity and a more balanced distribution across diverse content categories.
+
+The UCB-based strategy (Table 3) achieved a +2.1% lift in Show Tag/U and a -0.42% optimization of category distribution balance. These results confirm that the framework successfully increases recommendation diversity for HAUs while maintaining stable engagement, as evidenced by the non-significant increase in Live Watch Time (+0.16%, $p>0.05$ ).
+
+ | Ablation Variant
+ | HLT7
+ | App Stayduration
+ | Live Watch Time
+ | HLT-efficiency
+ | VWR
+
+ | Unified Framework (EPE+Bayes)
+ | +0.0577%
+ | +0.16%
+ | -1.05%
+ | 0.0549
+ | +0.512%
+
+ | Only EPE Uncertainty
+ | +0.0434%
+ | +0.12%
+ | -1.07%
+ | 0.0404
+ | +0.08%
+
+ | Only Bayesian Uncertainty
+ | +0.0468%
+ | +0.14%
+ | -0.95%
+ | 0.0491
+ | +0.3357%
+
+ | Multi-head Ensemble
+ | +0.0188%†
+ | +0.10%
+ | -0.81%
+ | 0.0232
+ | +0.0312%
+
+ | MC Dropout
+ | +0.0360%†
+ | +0.07%
+ | -0.77%
+ | 0.0471
+ | +0.25%
+
+ | Random Baseline
+ | +0.0029%†
+ | +0.10%
+ | -2.38%
+ | 0.0012
+ | -0.0168%
+
+ | † Not statistically significant.
+
+Table 2. Ablation study results for LAUs. All numbers represent percentage lift relative to the production baseline. HLT7 metrics marked with $\dagger$ denote results that are not statistically significant ( $p>0.05$ ).
+
+ | Ablation Variant
+ | Show Tag/U
+ | Top1 Tag UV Ratio
+ | Live Watch Time
+
+ | Unified Framework (EPE+Bayes)
+ | +2.1%
+ | –0.42%
+ | +0.16%†
+
+ | Only EPE Uncertainty
+ | +1.0%
+ | –0.55%
+ | +0.07%†
+
+ | Only Bayesian Uncertainty
+ | +0.9%
+ | –0.85%
+ | +0.03%†
+
+ | Multi-head Ensemble
+ | +0.82%
+ | –0.54%
+ | +0.09%†
+
+ | MC Dropout
+ | +0.7%
+ | –0.10%
+ | –0.20%†
+
+ | Random Baseline
+ | +0.16%
+ | +3.30%
+ | –1.62%†
+
+ | † Not statistically significant.
+
+Table 3. Ablation study results for High-Active Users (HAUs). Show Tag/U and Top1 Tag UV Ratio measure interest expansion. Metrics marked with † denote results that are not statistically significant ( $p>0.05$ ).
+
+4.6. Ablation Studies
+
+To better understand how each component of our uncertainty-aware ranking strategy contributes to overall performance, we conduct a series of comprehensive ablation studies across both LAU and HAU traffic segments. We focus on two factors: (i) which uncertainty signal is used, and (ii) the magnitude of the recommendation strategy applied to high-uncertainty items.
+
+Ablation A: Using Only EPE Uncertainty.
+In this setting, deboosting and exploration decisions rely solely on the critic-predicted EPE $U_{\text{point}}(x)$ , with the Bayesian model uncertainty removed. This variant tests whether the critic alone can support a robust ranking strategy. We observe +0.0434% improvements in HLT7, but only +0.08% gains in valuable watch ratio, indicating that EPE captures meaningful but incomplete model uncertainty.
+
+Ablation B: Using Only Bayesian Prior Variance.
+Here, deboosting and exploration decisions use only the Bayesian epistemic uncertainty $U_{\text{prob}}(x)$ computed from the Beta prior. This ablation evaluates whether uncertainty derived from latent parameter distributions is sufficiently informative on its own. Results show +0.0468% gains in HLT7 and +0.3357% in VWR for LAUs. Compared to the full model, these results suggest that Bayesian variance is complementary but less discriminative than the critic for immediate risk mitigation, while serving as a more stable driver for HAUs interest discovery (+0.9% Show Tag/U).
+
+Ablation C: Multi-head Ensemble Baseline.
+We replace our unified framework with a parameter-efficient multi-head ensemble. This variant tests whether structural disagreement alone is sufficient. We observe a minor +0.0188% HLT7 lift and a +0.0312% VWR lift for LAUs, alongside a +0.82% lift in Show Tag/U for HAUs. These limited gains confirm that modal homogenization in shared representations yields uninformative uncertainty signals for complex DCN models, failing to provide the discriminative resolution needed for effective ranking interventions.
+
+Ablation D: Monte Carlo (MC) Dropout Baseline.
+We quantify uncertainty via 10 forward passes with stochastic dropout. This serves as a non-parametric variational approximation baseline. We observe a +0.0360% improvement in HLT7 and a +0.25% lift in VWR for LAUs. For HAUs, the Show Tag/U lift is only +0.7%. Online performance is significantly lower than our proposed methods, indicating that random weight perturbations cannot capture instance-level epistemic risk as effectively as explicit modeling.
+
+Ablation E: Random Baseline.
+To ensure that observed improvements are attributable to meaningful uncertainty estimation rather than incidental filtering, we construct a random baseline. Rather than relying on learned uncertainty estimators, this baseline generates a uniformly distributed random value $U_{rand}$ to serve as a pseudo-uncertainty score for each user-item pair. This variant yields neutral or slightly negative changes (+0.0029% in HLT7, –0.0168% in VWR) and fails to drive meaningful discovery (+0.16% in Show Tag/U, +3.3% in Top1 Tag UV Ratio), confirming that the benefits of our approach come from informed uncertainty signals rather than the act of deboosting/boosting itself.
+
+Summary of Ablation Results.
+Table 2 and Table 3 summarizes the performance differences across all ablations. The results reveal that the Unified Framework (EPE + Bayesian) provides the most robust improvements, achieving the highest gains in both user retention (+0.0577% HLT7) and interest discovery (+2.1% Show Tag/U). By contrast, structural heuristics like Multi-head and MC Dropout exhibit diminished efficacy, and the Random Baseline results confirm that performance gains are strictly driven by the quality of informed uncertainty quantification rather than the ranking interventions themselves.
+
+Key Takeaways.
+Across all configurations, the Unified Framework (Full)—combining both explicit EPE prediction and Bayesian prior modeling—achieves the most robust performance gains. The Random Baseline confirms that observed improvements are strictly attributable to the quality of uncertainty quantification rather than incidental ranking perturbations. Notably, the significant performance gap between our approach and the Multi-head and MC Dropout benchmarks demonstrates that explicit density and error modeling are essential in industrial-scale architectures; traditional structural heuristics suffer from representation collapse, rendering them unable to capture the fine-grained epistemic risk necessary for effective risk mitigation and interest discovery.
+
+5. Discussions and Limitations
+
+In summary, our study demonstrates that incorporating explicit uncertainty estimation into large-scale recommendation systems can substantially improve reliability and long-term engagement across the user lifecycle. By combining critic-predicted Expected Prediction Error (EPE) with Bayesian prior variance, the system gains the "self-awareness" necessary to identify fragile predictions. Applying calibrated deboosting for Low-Active Users (LAUs) effectively mitigates the risk of disengagement caused by data sparsity, while UCB-based exploration for High-Active Users (HAUs) enhances recommendation diversity and promotes long-term ecosystem vitality. These differentiated strategies together yielded consistent gains in HLT7 (+0.057%), valuable watch ratio (+0.512%), and category discovery (+2.1%).
+
+While effective in production, our approach has several limitations: it relies on stable daily retraining pipelines for generating EPE samples; the Beta prior used for CTR modeling, though computationally efficient, may oversimplify real-world behavioral variability in complex multi-modal environments; and the evaluation remains indirect as epistemic uncertainty itself lacks ground-truth labels. Furthermore, deboosting introduces inherent trade-offs between short-term safety and the long-term need for data acquisition that warrant deeper investigation. Notably, our current framework does not explicitly differentiate between heterogeneous sub-segments within the LAU cohort and may be sensitive to sudden distribution shifts in highly volatile livestream sessions.
+
+Future work may explore richer Bayesian neural networks based on Graph Neural Networks or Transformers to capture more complex interactions, unified frameworks that more tightly couple EPE and probabilistic components, and adaptive deboosting schedules using reinforcement learning. Integrating Large Language Models (LLMs) to provide semantic-aware uncertainty or explanations for exploratory content remains a promising frontier for enhancing user trust. Overall, our results highlight that uncertainty-aware ranking is a practical and impactful direction for building safer, more transparent, and more trustworthy recommendation ecosystems at an industrial scale.
+
+References
+
+Angelopoulos et al. (2023)
+
+Anastasios N Angelopoulos, Karl Krauth, Stephen Bates, Yixin Wang, and Michael I Jordan. 2023.
+
+Recommendation systems with distribution-free reliability guarantees. In Conformal and Probabilistic Prediction with Applications. PMLR, 175–193.
+
+Bai et al. (2023)
+
+Aijun Bai et al. 2023.
+
+Regression Compatible Listwise Objectives for Calibrated Ranking with Binary Relevance. In Proceedings of the 32nd ACM International Conference on Information and Knowledge Management (CIKM ’23).
+
+Borisyuk et al. (2024)
+
+Fedor Borisyuk et al. 2024.
+
+LiRank: Industrial Large Scale Ranking Models at LinkedIn. In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining.
+
+Cao et al. (2025)
+
+X Cao, W Zhang, F Jiang, and X Zhang. 2025.
+
+An Industrial Framework for Cold-Start Recommendation in Few-Shot and Zero-Shot Scenarios.
+
+Information 16, 12 (2025), 1105.
+
+Gal and Ghahramani (2016)
+
+Yarin Gal and Zoubin Ghahramani. 2016.
+
+Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning. In Proceedings of the 33rd International Conference on Machine Learning. 1050–1059.
+
+Geifman and El-Yaniv (2017)
+
+Yonatan Geifman and Ran El-Yaniv. 2017.
+
+Selective Classification for Deep Neural Networks. In Advances in Neural Information Processing Systems, Vol. 30.
+
+Gopalan et al. (2014)
+
+Prem Gopalan, Laurent Charlin, and David M Blei. 2014.
+
+Content-based recommendations with Poisson factorization.
+
+Advances in neural information processing systems 27 (2014).
+
+Gopalan et al. (2015)
+
+Prem Gopalan, Jake M Hofman, and David M Blei. 2015.
+
+Scalable Recommendation with Hierarchical Poisson Factorization.. In UAI. 326–335.
+
+Guo et al. (2017)
+
+Chuan Guo, Geoff Pleiss, Yu Sun, and Kilian Q Weinberger. 2017.
+
+On calibration of modern neural networks. In International conference on machine learning. PMLR, 1321–1330.
+
+Knyazev and Oosterhuis (2023)
+
+Norman Knyazev and Harrie Oosterhuis. 2023.
+
+A lightweight method for modeling confidence in recommendations with learned beta distributions. In Proceedings of the 17th ACM conference on recommender systems. 306–317.
+
+Kristoffersson Lind et al. (2024)
+
+Simon Kristoffersson Lind, Ziliang Xiong, Per-Erik Forssén, and Volker Krüger. 2024.
+
+Uncertainty Quantification Metrics for Deep Regression.
+
+Pattern Recognition Letters 186 (2024), 91–97.
+
+Lee et al. (2019)
+
+Hoyeop Lee, Jinbae Im, Seongwon Jang, Hyunsouk Cho, and Sehee Chung. 2019.
+
+MeLU: Meta-Learned User Preference Estimator for Cold-Start Recommendation. In Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining.
+
+Lü et al. (2012)
+
+Linyuan Lü, Matúš Medo, Chi Ho Yeung, Yi-Cheng Zhang, Zi-Ke Zhang, and Tao Zhou. 2012.
+
+Recommender systems.
+
+Physics Reports 519, 1 (2012), 1–49.
+
+Penha and Hauff (2021)
+
+Gustavo Penha and Claudia Hauff. 2021.
+
+On the calibration and uncertainty of neural learning to rank models.
+
+arXiv preprint arXiv:2101.04356 (2021).
+
+Ricci et al. (2011)
+
+Francesco Ricci, Lior Rokach, Bracha Shapira, and Paul B Kantor. 2011.
+
+Recommender Systems Handbook.
+
+Springer.
+
+Wang et al. (2018)
+
+Chao Wang, Qi Liu, Runze Wu, Enhong Chen, Chuanren Liu, Xunpeng Huang, and Zhenya Huang. 2018.
+
+Confidence-aware matrix factorization for recommender systems. In Proceedings of the AAAI Conference on artificial intelligence, Vol. 32.
+
+Wu and Zhou (2023)
+
+Zhenchao Wu and Xiao Zhou. 2023.
+
+M2EU: Meta Learning for Cold-start Recommendation via Enhancing User Preference Estimation. In Proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval. 1650–1659.
+
+Xiang et al. (2025)
+
+Yang Xiang, Li Fan, Chenke Yin, and Chengtao Ji. 2025.
+
+Harnessing Light for Cold-Start Recommendations: Leveraging Epistemic Uncertainty to Enhance Performance in User-Item Interactions.
+
+arXiv preprint arXiv:2502.16256 (2025).
+
+Yin et al. (2023)
+
+Chenke Yin et al. 2023.
+
+Cold & Warm Net: Addressing Cold-Start Users in Recommender Systems.
+
+arXiv preprint arXiv:2309.15646 (2023).
+
+Zawia et al. (2025)
+
+J M Zawia et al. 2025.
+
+Comprehensive Review of Meta-Learning Methods for Cold-Start Issue.
+
+IEEE Access (2025).
+
+Zhang et al. (2025)
+
+Weizhi Zhang, Yuanchen Bei, Liangwei Yang, Henry Peng Zou, et al. 2025.
+
+Cold-Start Recommendation towards the Era of Large Language Models (LLMs): A Comprehensive Survey and Roadmap.
+
+arXiv preprint arXiv:2501.01945 (2025).
+
+Zhu et al. (2009)
+
+Jianhan Zhu, Jun Wang, Ingemar J Cox, and Michael J Taylor. 2009.
+
+Risky business: modeling and exploiting uncertainty in information retrieval. In Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval. 99–106.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

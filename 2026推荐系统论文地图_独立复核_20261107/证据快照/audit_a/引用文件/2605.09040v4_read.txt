@@ -1,0 +1,1376 @@
+
+
+UxSID: Semantic-Aware User Interests Modeling for Ultra-Long Sequence
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract
+1 Introduction
+2 Related Work
+3 Methodology
+4 Experiments
+
+4.1 Overall Performance
+4.2 Ablation Study
+4.3 Efficiency and Scaling Law Analysis
+4.4 Parameter Sensitivity Study
+4.5 Visualization and Case Study
+
+5 Conclusion
+References
+A Online Implementation
+B Datasets
+C Baselines
+D Detailed Results on Public Datasets
+
+D.1 Robustness and Stability Analysis
+D.2 Performance Gain Attribution
+
+ License: arXiv.org perpetual non-exclusive license
+
+arXiv:2605.09040v4 [cs.AI] 09 Oct 2026
+
+UxSID: Semantic-Aware User Interests Modeling for Ultra-Long Sequence
+
+Hongwei Zhang
+††thanks: Equal contribution.
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Email: guanliwei@kuaishou.com
+
+Qiqiang Zhong11footnotemark: 
+ 1
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Email: yaojing03@kuaishou.com
+
+Jiangxia Cao11footnotemark: 
+ 1
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Email: luchi@kuaishou.com
+
+Junfeng Shu
+††thanks: Corresponding author.
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Email: liubin21@kuaishou.com
+
+Yiyang Lv
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Email: zhaotianxing@kuaishou.com
+
+Huanjie Wang
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Email: lihan08@kuaishou.com
+
+Liwei Guan
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Jing Yao
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Chi Lu
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Yiyu Wang
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Zhaojie Liu
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Han Li
+
+Affiliation: Kuaishou Technology, Beijing, China{zhanghongwei08, lifan11, caojiangxia, shujunfeng, lvyiyang, wanghuanjie,
+
+Abstract
+
+Modeling ultra-long user behavior sequences is an essential task for capturing evolving preferences in modern recommender systems, and this research direction has contributed solid gains in the past several years.
+However, recommendation systems always serve enormous traffic, and extending user sequences sharply increases computational cost, which creates a difficult trade-off between efficiency and effectiveness.
+To scale to longer user sequences while keeping lightweight serving computation, existing works can be divided into two paradigms: (1) Search-based Top-K selection, which constructs an item-specific subsequence for each candidate item to avoid facing the ultra-long sequence directly; and (2) pre-trained user-interest compression, which maps an ultra-long user sequence into a small group of item-agnostic user interest memories so that the online model can perceive user long-term interests via this highly compressed dense memory.
+Besides the two technical routes (totally item-specific or item-agnostic), we argue that there exists an intermediate path not well explored: preserving partial relevance between the user sequence and the target item, while exposing only limited signals to guide the direction of interest compression.
+This design does not pursue item-specific user interest compression, but seeks semantic-group shared general user interest memory according to item attributes, where semantically similar items share the same compressed user interest memory.
+Motivated by this, we propose UxSID, a novel framework that bridges this gap by facilitating a target item semantic-aware interaction between User histories and candidate Semantic IDs (SIDs).
+Specifically, UxSID employs a dual-level attention strategy: it first extracts item-agnostic user interests from raw sequences, and then performs a semantic-specific query over global behaviors and those agnostic interests to generate semantic-specific preferences.
+By adopting this end-to-end architecture, UxSID generates offline embeddings that balance computational parsimony with target items’ semantic awareness, while strictly preserving parity with online inference in constant time.
+Extensive public benchmarks and large-scale A/B test demonstrate that UxSID achieves state-of-the-art performance, driving a 0.337% revenue lift in advertising.
+
+1 Introduction
+
+Massive industrial platforms like TikTok, Instagram Reels, and Kuaishou attract vast user bases and host millions of creators producing images, short videos, and live streams.
+To connect users and the platform’s items, a powerful recommendation system (RecSys) is necessary to distribute the right items to the right users.
+Within this recommendation and consumption cycle, hundreds of millions of users produce unprecedented volumes of daily behavioral data; for instance, active users often interact with as many as 10,000 items per week.
+
+As a result, Ultra-Long Sequence Modeling (ULSM) is paramount for modern recommender systems; it captures comprehensive preference evolution over extended horizons, bridging the gap between noisy short-term signals and underlying long-term user signals.
+By uncovering associations overlooked by truncated models, ULSM serves as a key driver for enhancing user engagement, conversion rates, and long-term loyalty [1, 2].
+
+Figure 1: Comparison of different paradigms for ULSM. (a) Item-specific Search: Online filtering for each candidate, incurring high computational cost. (b) Item-agnostic Compression: Offline distillation into static memories, lacking target-specificity. (c) UxSID: A semantic-specific path that shares compressed interest memories among items with the same SIDs.
+
+Despite its importance, scaling sequence length introduces heavy computational burdens on industrial recommender systems that must handle massive real-time traffic.
+For instance, standard attention-based models [3] such as DIN [4], DIEN [5], and TransAct [6] are inherently constrained by the O(n^{2}) computational complexity; consequently, many systems only afford limited subsequence lengths of n=100.
+As a result, many RecSys researchers are focusing on developing high-efficiency methods to scale user sequences with lightweight computation.
+Generally, there are two major ULSM technical roadmaps that have been well explored in recent years:
+
+• 
+
+Item-specific Top-k subsequence selection (Figure 1(a)). Methods such as SIM [7] and TWIN [8], utilize a Global Search Unit (GSU) to retrieve a Top-K subset of behaviors relevant to the target item prior to fine-grained modeling. Despite their efficiency, search-based methods suffer from inherent selection bias: whether via discrete hard matching or embedding-based soft retrieval, the filtering process is fundamentally constrained by the expressiveness of the pre-defined key space and stringent selection quotas.
+
+• 
+
+Item-agnostic compressed user interest memories (Figure 1(b)). Compression-based approaches, such as MIMN [2], LURM [9] and C-Former [10], aim to distill extensive histories into compact latent representations. However, these embeddings are typically target-agnostic, as they attempt to condense a user’s diverse, evolving interests into static, user-centric embeddings [11, 10]. Consequently, these methods inevitably introduce irrelevant noise [12] and lack the target specificity required to disentangle a user’s current intent from their vast historical background.
+
+Figure 2: The architecture of UxSID primarily comprises three components: a target SIDs Generator that quantizes comprehensive attributes into semantically rich discrete IDs; a semantic-aware compression network featuring interest compression and hierarchical attention for sequence modeling; and an end-to-end multi-task supervision framework to ensure online-offline consistency.
+
+Besides the two technical routes (fully item-specific or entirely item-agnostic with target candidates), we argue that there exists an intermediate path not well explored: preserving partial relevance between the user sequence and the target item, while exposing only limited signals to guide the direction of interest compression. This design does not pursue “item-specific” user interest compression, but seeks semantic-group shared general user interest memory according to item attributes, where semantically similar items share the same compressed user interest memory, as shown in Figure 1(c).
+
+To operationalize this intermediate path, we propose UxSID, a target semantic-aware compression framework that leverages Semantic IDs (SIDs) as the principled medium for interest distillation. Our core intuition is that SIDs, derived from deep quantization (e.g., RQ-VAE [13]), act as high-density semantic probes that naturally align with user interest clusters. While traditional IDs are discrete symbols, SIDs represent synthesized semantic clusters derived from multimodal content [14, 15], collaborative signals [16, 17, 18], and world knowledge [19]. By utilizing SIDs to guide the compression process, UxSID can precisely extract target-relevant signals from expansive histories, rendering candidate-aware modeling both feasible and efficient for large-scale industrial deployment.
+
+Specifically, we propose a hierarchical compression-and-probe strategy to ensure both global historical coverage and semantic-specific precision:
+
+• 
+
+Item-Agnostic Interest Compression (IAIC). This module condenses heterogeneous histories into a compact set of learnable interest anchors. By employing Per-token Feed-Forward Networks (PFFNs) and an orthogonality constraint, IAIC ensures each distilled interest captures a distinct facet of multifaceted preferences, effectively preserving representation diversity.
+
+• 
+
+Hierarchical Semantic Probing. It first extracts fine-grained global signals from the ultra-long sequence, then employs a gated semantic query to dynamically integrate information from the compressed interests. This process selectively amplifies target-relevant interests while filtering noise, ensuring the final representation encapsulates both immediate intent and long-term dependencies.
+
+By integrating this strategy, UxSID generates compressed representations that maintain strict alignment between offline training and online inference. This architecture effectively overcomes the inherent selection bias of traditional paradigms, achieving target semantic-level resolution within expansive interaction histories. Our primary contributions are summarized as follows:
+
+• 
+
+Target Semantic-Aware Behavior Compression. To the best of our knowledge, UxSID is the first work to bridge SID-based target semantics with ULSM. By leveraging SIDs as queries, we shift the paradigm from static, user-centric distillation to fine-grained, target-aware interest compression.
+
+• 
+
+Scalable UxSID Architecture. We design a dual-stage framework featuring IAIC and Hierarchical Target Attention. This architecture ensures constant-time inference and stable resource consumption even as sequence scale to 10k interactions, effectively translating long-term dependencies into consistent ranking gains.
+
+• 
+
+SOTA Performance and Industrial Impact. We provide comprehensive validation on both public benchmarks and large-scale deployments at Kuaishou. UxSID consistently outperforms SOTA baselines and has delivered a 0.337% revenue increase in production, demonstrating its robust scalability and significant business value under stringent industrial latency constraints.
+
+Paper Overview. Section 2 reviews the related literature on ULSM. Section 3 elaborates on the proposed methodology of UxSID and its industrial application pipeline. Section 4 presents extensive experimental results, spanning offline evaluations, online A/B test, rigorous ablation studies, and case studies. Finally, Section 5 concludes the paper.
+
+2 Related Work
+
+Foundations of Sequence Modeling and the Scalability Bottleneck. Historically, industrial recommendation systems have adhered to a paradigm that combines sequence modeling with feature interaction. A defining milestone in this trajectory is DIN [4], which introduced a target-aware attention mechanism to dynamically activate historical behaviors relevant to the candidate item. Subsequent innovations expanded on this foundation to capture temporal dependencies (e.g., DIEN [5] and DSIN [20]), mitigate noise within sequences, and extract multi-faceted user interests [21, 22, 23, 24]. With the success of Transformer [3], self-attentive architectures such as SASRec [25] has become standard practice. More recently, generative models optimized via next-token prediction, such as HSTU [26] and MTGR [27], have emerged, demonstrating formidable capabilities in learning rich, contextualized user interest representations. However, the quadratic computational complexity inherent in these attentive and generative architectures imposes a severe sequence-length scalability challenge, strictly bounding their deployable length within the stringent millisecond-level latency constraints of online serving environments [1]. This bottleneck inherently truncates the model’s receptive field, rendering them inadequate for capturing long-term, heterogeneous user trajectories, thereby necessitating new works specifically tailored for ULSM [28].
+
+Search-Based Paradigms for Ultra-Long Sequence Modeling. To overcome the scalability bottleneck of ultra-long sequences, the industry gravitates toward a two-stage cascaded framework—conceptualized as the “Global Search First, Exact Search Later” paradigm—wherein a lightweight GSU filters the expansive history into a target-relevant top-K sub-trajectory for subsequent fine-grained attention modeling by a more expressive Exact Search Unit (ESU). Early approaches, such as SIM [7], relied on hard filtering based on categorical item attributes, whereas subsequent models introduced hashing and low-precision attention (e.g., ETA [29] and SDIM [30]) to accelerate similarity computation. More recently, TWIN [8] proposed an end-to-end architecture to align the optimization objectives of both stages, a framework that was subsequently enhanced in TWINv2 [31] via hierarchical clustering to further boost scalability and performance.
+
+Despite their success, search-based methods suffer from an inherent limitation: their filtering logic often sacrifices historical items with low superficial correlation but high latent semantic synergy [32]. For example, a search unit biased toward "pants" may discard a matching belt or stylistic footwear, missing crucial combinatorial intents. In contrast, SIDs transcend these surface-level filters, capturing high-order semantic links often invisible to traditional retrieval [13, 14].
+
+Compression-Based Paradigms for Ultra-Long Sequence Modeling. To circumvent the prohibitive online computational costs of search-based methods and better exploit the global contextual information inherent in long sequences, compression-based approaches [2, 9, 11, 33, 34, 35, 36, 37], have emerged. These methods primarily aim to offload the heavy burden of sequence modeling to the offline stage, compressing ultra-long sequences into compact, reusable user representations. Early explorations include memory-augmented models like MIMN [2] and HPMN [33], which leverage memory networks to effectively compress sequences at the scale of thousands of interactions offline.
+Recent advancements focus on modularizing and scaling this offline representation learning. For instance, LREA [34] employs low-rank matrix factorization to compress sequence representations, enabling downstream models to efficiently capture user interests via target attention over these condensed embeddings. Alternatively, rule-based partitioning methods, such as DV365 [35], slice sequences into fixed-length or temporal windows. PinnerFormer [11], LURM [9], and C-Former [10] condense expansive user sequences into interest clusters or dense embeddings.
+
+While compression-based methods excel in online efficiency, static compression inherently acts as a low-pass filter—retaining coarse-grained global trends while marginalizing the high-frequency, target-specific interest peaks critical for precise ranking. This limitation underscores a pressing need for adaptive compression frameworks capable of generating target semantic-aware representations.
+
+Item Tokenization and Semantic Identifiers. Item identifiers are fundamental to modern recommender systems. Current paradigms are transitioning from random Photo IDs (PIDs) [4, 7], which rely on embedding lookups, toward SIDs constructed via RQ-VAE [13] or other tokenization frameworks (e.g., QARM [38]). Distinct from existing paradigms that primarily utilize SIDs for generative recommendation [39, 15, 17] or item representation enrichment [19, 40], we propose to employ SIDs as dynamic semantic querys within the ULSM context. Their clustered semantic codes enable navigating complex interest spaces where traditional PID-based models lack sufficient granularity.
+
+3 Methodology
+
+In this section, we present the details of UxSID, a semantic-aware compression framework for ULSM. UxSID utilizes a hierarchical attention architecture to perform end-to-end interest compression and recommendation, ensuring high-fidelity interest perception.
+
+Architecture Overview. The UxSID architecture comprises three core modules: (1) SIDs Generation, which leverages a Multimodal Large Language Model (MLLM) to transform heterogeneous item content into discrete semantic codes; (2) Item-Agnostic Interest Compression, which filters raw trajectories into structured interest anchors; and (3) Hierarchical Semantic Probing, which employs a gated dual-stage attention mechanism to resolve target-specific intent.
+
+Semantic IDs Generation. To empower the model with a semantic probe that transcends literal ID matching, we generate SIDs via a reasoning-based alignment mechanism [19]. Given an item i with multimodal attributes (e.g., video frames and textual descriptions), we first employ a MLLM encoder to project it into a continuous business-aligned semantic space:
+
+ | 
+ | \mathbf{z}_{i}=\text{Enc}_{\text{MLLM}}(\text{Attributes}_{i})
+ | 
+ | (1)
+
+where \mathbf{z}_{i}\in\mathbb{R}^{d}. To ensure computational and storage efficiency, we apply a Res-KmeansFSQ hybrid quantization method [41]. This process decomposes \mathbf{z}_{i} into M hierarchical levels:
+
+ | 
+ | \mathbf{z}_{i}\approx\sum_{m=1}^{M}\mathcal{C}_{m}(k_{m}),\quad k_{m}=\arg\min_{j}\|\mathbf{r}_{m-1}-\mathbf{c}_{m,j}\|_{2}
+ | 
+ | (2)
+
+where \mathcal{C}_{m} represents the codebook at the m-th level, and \mathbf{c}_{m,j}\in\mathbb{R}^{d} is the j-th codeword within that codebook. The vector \mathbf{r}_{m}=\mathbf{z}_{i}-\sum_{l=1}^{m}\mathcal{C}_{l}(k_{l}) denotes the quantization residual at level m, with the initial residual defined as \mathbf{r}_{0}=\mathbf{z}_{i}. Through this approach, the item is represented by a sequence of SIDs (k_{1},k_{2},\dots,k_{M}). In our industrial deployment, we primarily utilize the first-layer code k_{1} as the target SIDs (c_{target}) to strike a balance between semantic granularity and inference latency.
+
+Item-Agnostic Interest Compression.
+The IAIC block aims to condense the raw interaction sequence \mathcal{B}=[b_{1},b_{2},\dots,b_{L}] into a compact set of K interest anchors \mathbf{P}\in\mathbb{R}^{K\times d} (K\ll L).
+
+Interest Anchor Compression. We first transform each item i_{t} into a d-dimensional representation through an embedding lookup layer, resulting in the matrix \mathbf{E}=[\mathbf{e}_{1},\mathbf{e}_{2},\dots,\mathbf{e}_{L}]\in\mathbb{R}^{L\times d}. To extract representative signals, we define a set of learnable interest anchors \mathbf{Q}_{anc}\in\mathbb{R}^{K\times d} that serve as interest queries to aggregate salient features via a cross-attention mechanism:
+
+ | 
+ | \mathbf{H}=\text{Softmax}\left(\frac{(\mathbf{Q}_{anc}\mathbf{W}^{Q})(\mathbf{E}\mathbf{W}^{K})^{\top}}{\sqrt{d}}\right)(\mathbf{E}\mathbf{W}^{V})
+ | 
+ | (3)
+
+where \mathbf{H}=[\mathbf{h}_{1},\dots,\mathbf{h}_{K}]^{\top}\in\mathbb{R}^{K\times d} represents the compressed interest features, and \mathbf{W}^{Q},\mathbf{W}^{K},\mathbf{W}^{V}\in\mathbb{R}^{d\times d} are learnable projection matrices. Besides, to enhance the independent representation of each interest anchor, we employ PFFNs. Specifically, for each anchor \mathbf{h}_{k}, we apply a anchor-specific sub-network followed by a residual connection and layer normalization:
+
+ | 
+ | \mathbf{p}_{k}=\text{LayerNorm}\left(\mathbf{h}_{k}+\sigma(\mathbf{h}_{k}\mathbf{W}_{1}^{(k)}+\mathbf{b}_{1}^{(k)})\mathbf{W}_{2}^{(k)}+\mathbf{b}_{2}^{(k)}\right)
+ | 
+ | (4)
+
+where \mathbf{W}_{1}^{(k)},\mathbf{W}_{2}^{(k)} and \mathbf{b}_{1}^{(k)},\mathbf{b}_{2}^{(k)} are the learnable parameters specific to the k-th interest anchor, and \sigma(\cdot) is the sigmoid function. This architecture ensures that the transformation is applied to each interest anchor independently, allowing them to be refined within their own semantic sub-spaces. The final set of compressed anchors is denoted as \mathbf{P}=[\mathbf{p}_{1},\dots,\mathbf{p}_{K}]^{\top}\in\mathbb{R}^{K\times d}.
+
+Diversity and Orthogonality Constraint. To ensure the interest anchors capture multifaceted preferences and avoid degenerate convergence toward a singular interest, we introduce a normalized Orthogonality Loss \mathcal{L}_{ortho}. By incorporating the squared L_{2} norm of \mathbf{P} in the denominator, we enforce structural independence between anchors while maintaining stability across varying scales:
+
+ | 
+ | \mathcal{L}_{ortho}=\left\|\frac{\mathbf{P}\mathbf{P}^{T}}{\|\mathbf{P}\|_{2}^{2}}-\mathbf{I}\right\|_{F}
+ | 
+ | (5)
+
+where \mathbf{I} is the identity matrix and \|\cdot\|_{F} denotes the Frobenius norm. This constraint minimizes the redundancy between interest anchors, ensuring that each interest in the latent representation represents a distinct and well-separated facet of the user’s long-term behavioral trajectory.
+
+Hierarchical Semantic Probing.
+Unlike static methods, UxSID utilizes the target SIDs c_{target} as an active probe through a hierarchical dual-stage attention mechanism, refined by a gating module.
+
+Explicit Semantic Probing. The first stage extracts fine-grained semantic signals by directly attending to the raw behavior sequence \mathbf{E} using the target SIDs. This process captures global correlations between the target item and the user’s expansive history:
+
+ | 
+ | \mathbf{e}_{global}=\text{Softmax}\left(\frac{(c_{target}\mathbf{W}_{g}^{Q})(\mathbf{E}\mathbf{W}_{g}^{K})^{\top}}{\sqrt{d}}\right)(\mathbf{E}\mathbf{W}_{g}^{V})
+ | 
+ | (6)
+
+where \mathbf{e}_{global}\in\mathbb{R}^{d} represents the global interest response.
+
+Gated Latent Probing. To refine interest resolution, the second stage conditions the probing process on the global context via a gating vector \mathbf{g}_{ctx}\in\mathbb{R}^{d}:
+
+ | 
+ | \mathbf{g}_{ctx}=\sigma\left(\text{GatedNet}(\mathbf{e}_{global})\right)
+ | 
+ | (7)
+
+where \text{GatedNet}(\cdot) is a two-layer MLP and \sigma(\cdot) is the sigmoid function. This gating vector acts as a latent mask, modulating the target SID embedding c_{target} to produce a refined query \mathbf{q}_{ref}:
+
+ | 
+ | \mathbf{q}_{ref}=c_{target}\odot\mathbf{g}_{ctx}
+ | 
+ | (8)
+
+By applying this Hadamard product, we align target semantic attributes with the user’s global behaviors. Finally, the localized intent \mathbf{e}_{local} is extracted from the interest anchors \mathbf{P} via:
+
+ | 
+ | \mathbf{e}_{local}=\text{Softmax}\left(\frac{(\mathbf{q}_{ref}\mathbf{W}_{l}^{Q})(\mathbf{P}\mathbf{W}_{l}^{K})^{\top}}{\sqrt{d}}\right)(\mathbf{P}\mathbf{W}_{l}^{V})
+ | 
+ | (9)
+
+where \mathbf{W}_{l}^{Q},\mathbf{W}_{l}^{K},\mathbf{W}_{l}^{V}\in\mathbb{R}^{d\times d} are learnable parameters.
+
+The final target-aware representation is obtained by concatenating the dual-stage outputs: \mathbf{E}^{\text{UxSID}}=[\mathbf{e}_{global};\mathbf{e}_{local}]. This hierarchical probing ensures that UxSID can simultaneously perceive both the broad historical context and the specific latent interest peaks relevant to the real-time recommendation.
+
+Model Training and Loss Function. The precomputed \mathbf{E}^{\text{UxSID}} is integrated with target features \mathbf{E}^{t}, user profiles \mathbf{E}^{u}, context \mathbf{E}^{c}, and short-term behaviors \mathbf{E}^{\text{short}}. The prediction p(x) is formalized as:
+
+ | 
+ | p(x)=\sigma\left(\text{MLP}\left(\mathbf{E}^{t};\mathbf{E}^{u};\mathbf{E}^{c};\mathbf{E}^{\text{short}};\mathbf{E}^{\text{UxSID}}\mid x\right)\right)
+ | 
+ | (10)
+
+The model is optimized end-to-end via a joint loss function:
+
+ | 
+ | \mathcal{L}=-\frac{1}{N}\sum_{n=1}^{N}[y_{n}\log(p(x_{n}))+(1-y_{n})\log(1-p(x_{n}))]+\lambda\mathcal{L}_{ortho}
+ | 
+ | (11)
+
+where the first term is the Binary Cross-Entropy loss for the recommendation task.
+
+Serving in Production. The offline pipeline ensures the final representation \mathbf{E}^{\text{UxSID}} is target-aware and task-aligned. After training, \mathbf{E}^{\text{UxSID}} is precomputed and cached in Embedding Server (ES). The storage key is generated via a bitwise concatenation of user ID (UID) and target item SID (SID):
+
+ | 
+ | \text{Key}=\text{Hash}(UID\oplus SID),\quad\text{Value}=\mathbf{E}^{\text{UxSID}}
+ | 
+ | (12)
+
+In the real-time serving stage, the system performs an O(1) point lookup to retrieve \mathbf{E}^{\text{UxSID}} from ES. The strong representational capacity of SIDs allows for a limited and manageable set of unique IDs per user; thus, the total storage footprint remains well within industrial feasibility (see Appendix A). The compressed embeddings then function as target-aware user history keys/values, which interact with the target item query (augmented with side information) via a lightweight attention mechanism for final ranking, thereby effectively meeting stringent industrial latency requirements.
+
+4 Experiments
+
+Datasets. The effectiveness of UxSID is evaluated on two public benchmarks, XLong [42] and KuaiRec-Big [43], alongside a large-scale industrial dataset. These public benchmarks were selected because they provide paired content features, which are indispensable for the training and semantic alignment of SIDs. Detailed statistics and preprocessing procedures are provided in Appendix B.
+
+Baselines. To evaluate the effectiveness of UxSID, we compare it against several competitive baselines (which are detailed in Appendix C): DIN [4], SIM [7], ETA [29], SDIM [30], MIRRN [32], TWIN [8], C-Former [10]. All baselines share the bottom-level layers, varying only in ULSM.
+
+Metrics. We evaluate model performance using AUC, UAUC, and WUAUC to measure overall and user-level ranking performance, referencing studies like [8, 19, 44]. Furthermore, we introduce Interest Recall@K (Int.R@K) in ablation and case analysis studies to quantify semantic activation precision, defined as the proportion of the Top-K behaviors (retrieved via attention score during explicit semantic probing) that share the same first-layer SIDs or category (tag) with the target item.
+
+Implementation Details. We followed the experimental settings of [10, 32], including data partitioning and hyperparameter configurations. Baseline evaluations use sequence lengths of 2k for KuaiRec-Big and 1k for XLong, except for DIN which uses 100. The GSU retrieval quantity is also set to 100. The prediction heads of all models consist of an MLP with \{200,80,2\} hidden size, and the sparse embedding dimension is fixed at 16. Notably, main evaluations are conducted with 1k length for industrial dataset, while scalability up to 10k is specifically analyzed in Section 4.3. All public experiments are trained using the Adam optimizer with a batch size of 256 and a learning rate of 0.001 on GPUs. Specifically for UxSID, the gating network is configured as \{16,16\} with an activation layer, while each FFN in the PFFNs follows a \{16,32,16\} structure. We adopted LETTER [45] to construct the codebook and train the SIDs with a shape of \{256,256,256,256\} for public datasets. Ultimately, the first-layer SIDs were utilized, and the number of IAIC anchors is 16.
+
+4.1 Overall Performance
+
+Table 1: AUC Performance comparison with baselines. The best results are in bold. ‘-’ indicates category unavailability.
+
+ | Models
+ | XLong
+ | KuaiRec-Big
+
+ | DIN
+ | 0.7889
+ | 0.8181
+
+ | SIM-Hard
+ | –
+ | 0.8201
+
+ | SIM-Soft
+ | 0.7971
+ | 0.8279
+
+ | ETA
+ | 0.7910
+ | 0.8231
+
+ | SDIM
+ | 0.7915
+ | 0.8209
+
+ | MIRRN
+ | 0.7926
+ | 0.8217
+
+ | TWIN
+ | 0.8154
+ | 0.8269
+
+ | C-Former
+ | 0.8135
+ | 0.8276
+
+ | UxSID
+ | 0.8408
+ | 0.8348
+
+Performance on Public Datasets. We first conduct experiments on two widely-recognized public benchmarks: XLong and KuaiRec-Big. As illustrated in Table 1, UxSID consistently achieves SOTA performance, outperforming all baseline paradigms. Furthermore, we show in Table 7 (Appendix D.1) that the standard deviation in the metrics for UxSID is insignificant.
+
+Specifically, on XLong, UxSID achieves 0.8408 AUC, surpassing the strongest search-based baseline (TWIN) and the advanced compression model (C-Former). The gain over C-Former is noteworthy: while C-Former leverages learnable anchors for clustering, it remains inherently target-agnostic during compression. In contrast, UxSID utilizes SIDs as semantic queries to activate target-specific interests, demonstrating that target-aware perception is critical for resolving fine-grained preferences in ULSM.
+
+Performance on Large-Scale Industrial Datasets. We further evaluate UxSID on a massive industrial dataset from Kuaishou, where a 0.1% improvement represents a significant milestone.
+
+As reported in Table 2, UxSID achieves a CTCVR AUC of 0.8626, significantly outperforming the strongest industrial baselines, including SIM-Soft (+0.18%) and TWIN (+0.17%). This superior performance is primarily attributed to our IAIC block and the hierarchical probe architecture. While SIM and TWIN possess certain item-specific capabilities via retrieval or attention, UxSID further extends this advantage by leveraging the high-density semantics of SIDs to navigate the expansive interest landscape. Unlike traditional heuristic-based filtering which leads to information loss, UxSID’s superior structure maintains global interest-capturing capabilities by precisely bridging the gap between dense user histories and target semantic intents.
+
+Table 2: Performance comparison between UxSID and other baseline models.
+
+ | Models
+ | CTR
+ | CTCVR
+
+ | AUC
+ | UAUC
+ | WUAUC
+ | AUC
+ | UAUC
+ | WUAUC
+
+ | SIM-Hard
+ | 0.8698
+ | 0.6042
+ | 0.6063
+ | 0.8599
+ | 0.6161
+ | 0.6221
+
+ | SIM-Soft
+ | 0.8711
+ | 0.6084
+ | 0.6099
+ | 0.8608
+ | 0.6228
+ | 0.6307
+
+ | TWIN
+ | 0.8712
+ | 0.6093
+ | 0.6104
+ | 0.8609
+ | 0.6232
+ | 0.6310
+
+ | UxSID (Ours)
+ | 0.8728
+ | 0.6125
+ | 0.6161
+ | 0.8626
+ | 0.6269
+ | 0.6350
+
+Table 3: Online A/B results.
+
+ | Scenarios
+ | Advertising Metrics
+
+ | Exposure
+ | Cost
+ | Revenue
+
+ | Advertising
+ | +0.111%
+ | +0.231%
+ | +0.337%
+
+Performance in Online A/B Testing. We deployed UxSID on Kuaishou’s short-video advertising platform, where a week-long online A/B test (Table 3)demonstrated its effectiveness through significant performance gains.
+
+The significant divergence between Revenue (+0.337%) and Exposure (+0.111%) is particularly revealing, highlighting a shift towards high-precision conversion. These results demonstrate that, through semantic-specific compression and storage, UxSID renders end-to-end ULSM not only highly accurate but also computationally viable for industrial-level traffic under stringent latency constraints (details in Appendix A).
+
+4.2 Ablation Study
+
+Table 4: UxSID ablation results. ‘-’ indicates ablation-induced or feature unavailability.
+
+ | Variants
+ | Industrial Dataset
+ | Public Datasets
+
+ | CTR
+ | CTCVR
+ | 
+ | XLong
+ | KuaiRec-Big
+
+ | AUC
+ | UAUC
+ | WUAUC
+ | AUC
+ | UAUC
+ | WUAUC
+ | Int.R@50
+ | AUC
+ | AUC
+ | Int.R@50
+
+ | Category (Tag)
+ | 0.8707
+ | 0.6081
+ | 0.6088
+ | 0.8605
+ | 0.6186
+ | 0.6288
+ | 0.0543
+ | -
+ | 0.8261
+ | 0.0916
+
+ | w/o \mathbf{e}_{global}
+ | 0.8714
+ | 0.6101
+ | 0.6108
+ | 0.8615
+ | 0.6230
+ | 0.6318
+ | -
+ | 0.8370
+ | 0.8302
+ | -
+
+ | w/o \mathbf{e}_{local}
+ | 0.8719
+ | 0.6114
+ | 0.6121
+ | 0.8618
+ | 0.6238
+ | 0.6327
+ | 0.1454
+ | 0.8375
+ | 0.8314
+ | 0.2009
+
+ | w/o \mathcal{L}_{ortho}
+ | 0.8725
+ | 0.6119
+ | 0.6144
+ | 0.8624
+ | 0.6261
+ | 0.6342
+ | 0.1471
+ | 0.8385
+ | 0.8344
+ | 0.2063
+
+ | w/o Gate
+ | 0.8723
+ | 0.6116
+ | 0.6127
+ | 0.8623
+ | 0.6249
+ | 0.6334
+ | 0.1467
+ | 0.8376
+ | 0.8342
+ | 0.2044
+
+ | UxSID
+ | 0.8728
+ | 0.6125
+ | 0.6161
+ | 0.8626
+ | 0.6269
+ | 0.6350
+ | 0.1488
+ | 0.8408
+ | 0.8348
+ | 0.2071
+
+We perform a comprehensive ablation study on UxSID to assess its components and target semantic-specific perception (Table 4).
+
+Effectiveness of SID-based Semantic Querying. We evaluate query granularity by replacing candidate SIDs with coarse-grained category (tag) attributes. As shown in Table 4, SIDs consistently outperform tag-based queries across all metrics. This confirms that category-level attributes lack the semantic resolution required to precisely navigate complex user interest distributions.
+
+Conversely, SIDs act as high-density semantic probes, enabling granular activation of historical interests. As evidenced by the Int.R@50 metric, this probing mechanism enhances the model’s ability to identify historical interactions within the target’s semantic cluster. This increased recall likely drives the observed AUC gains, empirically demonstrating that UxSID successfully bridges the target-agnostic bottleneck inherent in traditional compression paradigms.
+
+Impact of Hierarchical Semantic Probing. Removing either \mathbf{e}_{global} or \mathbf{e}_{local} leads to noticeable performance degradation. Specifically:
+
+• 
+
+Compressed Global Signals (w/o \mathbf{e}_{global}): Eliminating the explicit attention results in a significant drop in AUC. This indicates that fine-grained, item-to-item semantic signals are indispensable for capturing immediate target-specific relevance that might be smoothed over during compression.
+
+• 
+
+Compressed Local Interests (w/o \mathbf{e}_{local}): The observed decline suggests that interest anchors are crucial for filtering historical noise and providing a diverse, structural view of user preferences that \mathbf{e}_{global} cannot effectively capture.
+
+Role of Gated Probing and Diversity Loss. Ablating \text{GatedNet}(\cdot) reveals that direct probing with original SIDs is suboptimal. The gating mechanism ensures the local latent probe is precisely conditioned on the global context from the first stage, enhancing robustness during querying. Furthermore, removing \mathcal{L}_{ortho} adversely affects performance, validating that forcing distinct interest clusters prevents mode collapse and preserves the multi-faceted nature of user preferences.
+
+Appendix D.2 confirms UxSID’s gains stem from its architecture rather than SIDs injection.
+
+4.3 Efficiency and Scaling Law Analysis
+
+Theoretical complexities are summarized in Table 5. Search-based paradigms (SIM, TWIN) suffer from online matching overhead. Conversely, UxSID offloads ULSM offline, achieving O(1) online complexity for target-level compression and maintaining constant latency even when scaling to 10k.
+
+Table 5: Inference time complexity comparison. B: batch size, L: original sequence length, R: retrieved sequence length, d: hidden size, A: attribute index size, m: hash functions, c: compressed interest length, f: feature numbers.
+
+ | Model
+ | Inference Time Complexity
+
+ | SIM-Hard
+ | (B\log(A)+BRd)
+
+ | SIM-Soft
+ | (BLd+BRd)
+
+ | ETA
+ | (BLm+BRd)
+
+ | SDIM
+ | Bm\log(d)
+
+ | MIRRN
+ | BLm+BR\log(R)d+BRd^{2}
+
+ | TWIN
+ | (BL+BfLd+BRd)
+
+ | C-Former
+ | (BRd)
+
+ | UxSID
+ | (Bcd)
+
+Figure 3: AUC improvements (percentage points) across various sequence lengths on all datasets.
+
+Figure 3 illustrates the performance trends as sequence scales, revealing two primary findings:
+
+Limitations of Retrieval and Static Compression. As sequence lengths increase, search-based models (SIM and TWIN) exhibit decelerating growth; their fixed retrieval scope inevitably excludes distal but relevant interactions. Simultaneously, C-Former’s performance is unstable on short sequences but scales as histories lengthen. This highlights a flaw in static compression: without target-aware guidance, the model struggles to disentangle signals from mounting noise, failing to maintain robust representations across sequence scales.
+
+Scalability and Efficiency. UxSID consistently maintains the highest AUC, with the performance gap widening at the 10k scale. This confirms that SID-based routing effectively pinpoints specific interests, translating expansive behavioral data into substantial gains. Notably, this is achieved with constant online consumption, demonstrating UxSID’s potential for modeling lifelong behaviors.
+
+4.4 Parameter Sensitivity Study
+
+We conduct a sensitivity analysis across all datasets, with results summarized in Figure 4.
+
+Impact of the Number of IAIC anchors (K).
+K dictates the capacity of the IAIC block to capture diverse intents. At K=4, performance drops, suggesting that compressing ultra-long behavior into a highly bottlenecked embedding forces interest entanglement and the loss of fine-grained information. Performance improves as K grows, peaking at 16. However, excessively large K introduces redundancy and noise, causing overly dispersed routing and slightly degraded metrics.
+
+Impact of Orthogonality Constraint (\lambda).
+\lambda controls the intensity of the diversity regularization applied to the compressed interests. Without sufficient penalty, the interest anchors tend to capture high-frequency patterns, reducing the diversity of the IAIC block. However, an excessively large \lambda overly constrains the latent space, forcing separation that disrupts the primary CTR prediction.
+
+Figure 4: Hyper-parameters analysis of UxSID on all three datasets.
+
+4.5 Visualization and Case Study
+
+Figure 5: Efficacy of UxSID in interest modeling. (a) highlights the target SID-based attention routing, while (b) showcases the diversity of learned long-term interest anchors.
+
+We investigated the mechanisms underlying UxSID’s efficacy, focusing on candidate SID activation within sequences and compressed anchors on KuaiRec-Big. As shown in Figure 5(a), distinct attention routing patterns for different candidates demonstrate that SIDs successfully trigger diverse semantic interests. The contrast in Int.R@50 between positive and negative samples validates the alignment between activation relevance and CTR objectives: negative items yield low Int.R@50 due to semantic irrelevance, whereas positive samples achieve significantly higher recall. Notably, UxSID activates data across the entire behavioral cycle; even early behaviors are assigned high attention weights, a granularity traditional compression methods struggle to achieve. Figure 5(b) further reveals that the IAIC block captures multiple interest anchors, covering the full spectrum of behaviors. This synergy ensures both the efficiency and holisticity of UxSID in ULSM.
+
+5 Conclusion
+
+In this paper, we propose UxSID, an end-to-end framework that leverages target SIDs for compressed ultra-long sequence modeling in modern recommender systems. UxSID introduces the Item-Agnostic Interest Compression mechanism and Hierarchical Semantic Probing, which operationalize SIDs as semantic-specific routers to navigate complex, ultra-long behavioral histories. By harnessing the high-density semantic resolution of SIDs, the framework effectively bridges the gap between historical interaction density and target intent precision, achieving superior predictive accuracy while maintaining industrial-level efficiency. Extensive offline and online experiments demonstrate that UxSID significantly outperforms SOTA baselines, while comprehensive ablation studies validate the necessity and effectiveness of each constituent modules. Future work involves the full-scale deployment in Kuaishou’s short-video scenarios and its extension to lifelong sequential modeling.
+
+References
+
+[1]
+R. Zhou, Q. Jia, B. Chen, P. Xu, Y. Sun, S. Lou, C. Fu, M. Fu, G. Shen, Z. Zhou, et al. (2026)
+
+A survey of user lifelong behavior modeling: perspectives on efficiency and effectiveness.
+
+Cited by: §1,
+§2.
+
+[2]
+Q. Pi, W. Bian, G. Zhou, X. Zhu, and K. Gai (2019)
+
+Practice on long sequential user behavior modeling for click-through rate prediction.
+
+In Proceedings of the 25th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 2671–2679.
+
+External Links: Document
+
+Cited by: 2nd item,
+§1,
+§2.
+
+[3]
+A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin (2017)
+
+Attention is all you need.
+
+Advances in neural information processing systems 30.
+
+Cited by: §1,
+§2.
+
+[4]
+G. Zhou, X. Zhu, C. Song, Y. Fan, H. Zhu, X. Ma, Y. Yan, J. Jin, H. Li, and K. Gai (2018)
+
+Deep interest network for click-through rate prediction.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1059–1068.
+
+Cited by: 1st item,
+§1,
+§2,
+§2,
+§4.
+
+[5]
+G. Zhou, N. Mou, Y. Fan, Q. Pi, W. Bian, C. Zhou, X. Zhu, and K. Gai (2019)
+
+Deep interest evolution network for click-through rate prediction.
+
+In Proceedings of the AAAI conference on artificial intelligence,
+
+Vol. 33, pp. 5941–5948.
+
+Cited by: §1,
+§2.
+
+[6]
+X. Xia, P. Eksombatchai, N. Pancha, D. D. Badani, P. Wang, N. Gu, S. V. Joshi, N. Farahpour, Z. Zhang, and A. Zhai (2023)
+
+Transact: transformer-based realtime user action model for recommendation at pinterest.
+
+In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 5249–5259.
+
+Cited by: §1.
+
+[7]
+Q. Pi, G. Zhou, Y. Zhang, Z. Wang, L. Ren, Y. Fan, X. Zhu, and K. Gai (2020)
+
+Search-based user interest modeling with lifelong sequential behavior data for click-through rate prediction.
+
+In Proceedings of the 29th ACM International Conference on Information & Knowledge Management,
+
+pp. 2685–2692.
+
+Cited by: 2nd item,
+1st item,
+§2,
+§2,
+§4.
+
+[8]
+J. Chang, C. Zhang, Z. Fu, X. Zang, L. Guan, J. Lu, Y. Hui, D. Leng, Y. Niu, Y. Song, et al. (2023)
+
+TWIN: two-stage interest network for lifelong user behavior modeling in ctr prediction at kuaishou.
+
+In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 3785–3794.
+
+Cited by: 6th item,
+1st item,
+§2,
+§4,
+§4.
+
+[9]
+B. Yang, K. Liu, X. Xu, R. Xu, H. Liu, et al. (2021)
+
+Learning universal user representations via self-supervised lifelong behaviors modeling.
+
+Cited by: 2nd item,
+§2.
+
+[10]
+X. Wang, S. Wang, W. Li, J. Deng, S. Lu, D. Lian, and G. Zhou (2025)
+
+Transformers are good clusterers for lifelong user behavior sequence modeling.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 3123–3132.
+
+Cited by: 7th item,
+2nd item,
+§2,
+§4,
+§4.
+
+[11]
+N. Pancha, A. Zhai, J. Leskovec, and C. Rosenberg (2022)
+
+Pinnerformer: sequence modeling for user representation at pinterest.
+
+In Proceedings of the 28th ACM SIGKDD conference on knowledge discovery and data mining,
+
+pp. 3702–3712.
+
+Cited by: 2nd item,
+§2.
+
+[12]
+K. Jain and R. Jindal (2023)
+
+Sampling and noise filtering methods for recommender systems: a literature review.
+
+Engineering Applications of Artificial Intelligence 122, pp. 106129.
+
+Cited by: 2nd item.
+
+[13]
+S. Rajput, N. Mehta, A. Singh, R. Hulikal Keshavan, T. Vu, L. Heldt, L. Hong, Y. Tay, V. Tran, J. Samost, et al. (2023)
+
+Recommender systems with generative retrieval.
+
+Advances in Neural Information Processing Systems 36, pp. 10299–10315.
+
+Cited by: §1,
+§2,
+§2.
+
+[14]
+K. Zhang, J. Zhang, W. Cheng, Y. Cheng, J. Zhang, H. Lu, X. Zhang, H. Gan, J. Cao, T. Wang, et al. (2026)
+
+OneMall: one model, more scenarios–end-to-end generative recommender family at kuaishou e-commerce.
+
+arXiv preprint arXiv:2601.21770.
+
+Cited by: §1,
+§2.
+
+[15]
+R. He, L. Heldt, L. Hong, R. Keshavan, S. Mao, N. Mehta, Z. Su, A. Tsai, Y. Wang, S. Wang, et al. (2025)
+
+Plum: adapting pre-trained language models for industrial-scale generative recommendations.
+
+arXiv preprint arXiv:2510.07784.
+
+Cited by: §1,
+§2.
+
+[16]
+W. Ye, M. Sun, S. Shi, P. Wang, W. Wu, and P. Jiang (2025)
+
+DAS: dual-aligned semantic ids empowered industrial recommender system.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 6217–6224.
+
+Cited by: §1.
+
+[17]
+H. Wang, X. Luo, H. Bao, Z. Zixing, L. Ren, Y. Wu, H. Zhang, L. Guan, and G. Chen (2026)
+
+PIT: a dynamic personalized item tokenizer for end-to-end generative recommendation.
+
+arXiv preprint arXiv:2602.08530.
+
+Cited by: §1,
+§2.
+
+[18]
+J. Yin, S. Kou, C. Li, S. Wang, X. Wei, Y. Huang, Y. Zhu, H. Wang, and X. Wang (2026)
+
+DOS: dual-flow orthogonal semantic ids for recommendation in meituan.
+
+arXiv preprint arXiv:2602.04460.
+
+Cited by: §1.
+
+[19]
+T. Xia, J. Zhang, Y. Liu, H. Dou, T. Yin, J. Cao, X. Liang, T. Xie, L. Liu, X. Chen, et al. (2026)
+
+QARM v2: quantitative alignment multi-modal recommendation for reasoning user sequence modeling.
+
+arXiv preprint arXiv:2602.08559.
+
+Cited by: Appendix A,
+§1,
+§2,
+§3,
+§4.
+
+[20]
+Y. Feng, F. Lv, W. Shen, M. Wang, F. Sun, Y. Zhu, and K. Yang (2019)
+
+Deep session interest network for click-through rate prediction.
+
+arXiv preprint arXiv:1905.06482.
+
+Cited by: §2.
+
+[21]
+Z. Chai, Z. Chen, C. Li, R. Xiao, H. Li, J. Wu, J. Chen, and H. Tang (2022)
+
+User-aware multi-interest learning for candidate matching in recommenders.
+
+In Proceedings of the 45th international ACM SIGIR conference on research and development in information retrieval,
+
+pp. 1326–1335.
+
+Cited by: §2.
+
+[22]
+C. Li, Z. Liu, M. Wu, Y. Xu, H. Zhao, P. Huang, G. Kang, Q. Chen, W. Li, and D. L. Lee (2019)
+
+Multi-interest network with dynamic routing for recommendation at tmall.
+
+In Proceedings of the 28th ACM international conference on information and knowledge management,
+
+pp. 2615–2623.
+
+Cited by: §2.
+
+[23]
+C. He, Y. Liu, Q. Li, W. Wang, X. Fu, X. Fu, C. Hong, and X. Yao (2025)
+
+Multi-grained preference enhanced transformer for multi-behavior sequential recommendation.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2,
+
+pp. 872–883.
+
+Cited by: §2.
+
+[24]
+Q. Chen, H. Zhao, W. Li, P. Huang, and W. Ou (2019)
+
+Behavior sequence transformer for e-commerce recommendation in alibaba.
+
+In Proceedings of the 1st international workshop on deep learning practice for high-dimensional sparse data,
+
+pp. 1–4.
+
+Cited by: §2.
+
+[25]
+W. Kang and J. McAuley (2018)
+
+Self-attentive sequential recommendation.
+
+In 2018 IEEE international conference on data mining (ICDM),
+
+pp. 197–206.
+
+Cited by: §2.
+
+[26]
+J. Zhai, L. Liao, X. Liu, Y. Wang, R. Li, X. Cao, L. Gao, Z. Gong, F. Gu, M. He, et al. (2024)
+
+Actions speak louder than words: trillion-parameter sequential transducers for generative recommendations.
+
+arXiv preprint arXiv:2402.17152.
+
+Cited by: §2.
+
+[27]
+R. Han, B. Yin, S. Chen, H. Jiang, F. Jiang, X. Li, C. Ma, M. Huang, X. Li, C. Jing, et al. (2025)
+
+Mtgr: industrial-scale generative recommendation framework in meituan.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 5731–5738.
+
+Cited by: §2.
+
+[28]
+L. Pan, W. Pan, M. Wei, H. Yin, and Z. Ming (2026)
+
+A survey on sequential recommendation.
+
+Frontiers of Computer Science 20 (3), pp. 2003606.
+
+Cited by: §2.
+
+[29]
+Q. Chen, C. Pei, S. Lv, C. Li, J. Ge, and W. Ou (2021)
+
+End-to-end user behavior retrieval in click-through rateprediction model.
+
+arXiv preprint arXiv:2108.04468.
+
+Cited by: 3rd item,
+§2,
+§4.
+
+[30]
+Y. Cao, X. Zhou, J. Feng, P. Huang, Y. Xiao, D. Chen, and S. Chen (2022)
+
+Sampling is all you need on modeling long-term user behaviors for ctr prediction.
+
+In Proceedings of the 31st ACM International Conference on Information & Knowledge Management,
+
+pp. 2974–2983.
+
+Cited by: 4th item,
+§2,
+§4.
+
+[31]
+Z. Si, L. Guan, Z. Sun, X. Zang, J. Lu, Y. Hui, X. Cao, Z. Yang, Y. Zheng, D. Leng, et al. (2024)
+
+Twin v2: scaling ultra-long user behavior sequence modeling for enhanced ctr prediction at kuaishou.
+
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+
+pp. 4890–4897.
+
+Cited by: §2.
+
+[32]
+X. Xu, H. Wang, W. Guo, L. Zhang, W. Yang, R. Yu, Y. Liu, D. Lian, and E. Chen (2025)
+
+Multi-granularity interest retrieval and refinement network for long-term user behavior modeling in ctr prediction.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 1,
+
+pp. 2745–2755.
+
+Cited by: 5th item,
+§2,
+§4,
+§4.
+
+[33]
+K. Ren, J. Qin, Y. Fang, W. Zhang, L. Zheng, W. Bian, G. Zhou, J. Xu, Y. Yu, X. Zhu, et al. (2019)
+
+Lifelong sequential modeling with personalized memorization for user response prediction.
+
+In Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 565–574.
+
+Cited by: §2.
+
+[34]
+X. Song, X. Li, J. Hu, H. Wen, Z. Chen, Y. Zhang, X. Zeng, and J. Zhang (2025)
+
+Lrea: low-rank efficient attention on modeling long-term user behaviors for ctr prediction.
+
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 2843–2847.
+
+Cited by: §2.
+
+[35]
+W. Lyu, D. Tyagi, Y. Yang, Z. Li, A. Somani, K. Shanmugasundaram, N. Andrejevic, F. Adeputra, C. Zeng, A. K. Singh, et al. (2025)
+
+DV365: extremely long user history modeling at instagram.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2,
+
+pp. 4717–4727.
+
+Cited by: §2.
+
+[36]
+Z. Chai, Q. Ren, X. Xiao, H. Yang, B. Han, S. Zhang, D. Chen, H. Lu, W. Zhao, L. Yu, et al. (2025)
+
+Longer: scaling up long sequence modeling in industrial recommenders.
+
+In Proceedings of the Nineteenth ACM Conference on Recommender Systems,
+
+pp. 247–256.
+
+Cited by: §2.
+
+[37]
+X. Lv, J. Cao, S. Guan, X. Zhou, Z. Qi, Y. Zang, B. Wang, and G. Zhou (2025)
+
+MARM: unlocking the recommendation cache scaling-law through memory augmentation and scalable complexity.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 2022–2031.
+
+Cited by: §2.
+
+[38]
+X. Luo, J. Cao, T. Sun, J. Yu, R. Huang, W. Yuan, H. Lin, Y. Zheng, S. Wang, Q. Hu, et al. (2025)
+
+Qarm: quantitative alignment multi-modal recommendation at kuaishou.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 5915–5922.
+
+Cited by: §2.
+
+[39]
+J. Deng, S. Wang, K. Cai, L. Ren, Q. Hu, W. Ding, Q. Luo, and G. Zhou (2025)
+
+Onerec: unifying retrieve and rank with generative recommender and iterative preference alignment.
+
+arXiv preprint arXiv:2502.18965.
+
+Cited by: §2.
+
+[40]
+Z. Zhao, T. Zhang, J. Xu, Q. Cai, Q. Zhang, L. Yang, D. Xiao, and X. Chang (2026)
+
+Farewell to item ids: unlocking the scaling potential of large ranking models via semantic tokens.
+
+arXiv preprint arXiv:2601.22694.
+
+Cited by: §2.
+
+[41]
+F. Mentzer, D. Minnen, E. Agustsson, and M. Tschannen (2023)
+
+Finite scalar quantization: vq-vae made simple.
+
+arXiv preprint arXiv:2309.15505.
+
+Cited by: §3.
+
+[42]
+K. Ren, J. Qin, Y. Fang, W. Zhang, L. Zheng, W. Bian, G. Zhou, J. Xu, Y. Yu, X. Zhu, et al. (2019)
+
+Lifelong sequential modeling with personalized memorization for user response prediction.
+
+In Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 565–574.
+
+Cited by: Appendix B,
+§4.
+
+[43]
+C. Gao, S. Li, W. Lei, J. Chen, B. Li, P. Jiang, X. He, J. Mao, and T. Chua (2022)
+
+KuaiRec: a fully-observed dataset and insights for evaluating recommender systems.
+
+In Proceedings of the 31st ACM International Conference on Information & Knowledge Management,
+
+CIKM ’22, pp. 540–550.
+
+External Links: Link,
+Document
+
+Cited by: Appendix B,
+§4.
+
+[44]
+H. Cheng, L. Koc, J. Harmsen, T. Shaked, T. Chandra, H. Aradhye, G. Anderson, G. Corrado, W. Chai, M. Ispir, et al. (2016)
+
+Wide & deep learning for recommender systems.
+
+In Proceedings of the 1st workshop on deep learning for recommender systems,
+
+pp. 7–10.
+
+Cited by: §4.
+
+[45]
+W. Wang, H. Bao, X. Lin, J. Zhang, Y. Li, F. Feng, S. Ng, and T. Chua (2024)
+
+Learnable item tokenization for generative recommendation.
+
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+
+pp. 2400–2409.
+
+Cited by: Appendix B,
+§4.
+
+[46]
+G. Zhou, H. Hu, H. Cheng, H. Wang, J. Deng, J. Zhang, K. Cai, L. Ren, L. Ren, L. Yu, et al. (2025)
+
+Onerec-v2 technical report.
+
+arXiv preprint arXiv:2508.20900.
+
+Cited by: Appendix A.
+
+[47]
+H. Touvron, T. Lavril, G. Izacard, X. Martinet, M. Lachaux, T. Lacroix, B. Rozière, N. Goyal, E. Hambro, F. Azhar, et al. (2023)
+
+Llama: open and efficient foundation language models.
+
+arXiv preprint arXiv:2302.13971.
+
+Cited by: Appendix B.
+
+Appendix A Online Implementation
+
+Figure 6: The overall system deployment pipeline of UxSID, comprising offline UxSID embedding generation (black path), online model training (red path), and real-time online inference (red path).
+
+Feasibility of Online Deployment. The primary challenge of online deployment for UxSID lies in the scale of user-target interactions. Unlike traditional sequence compression methods that assign a single fixed embedding to each user, UxSID performs user-target cross-compression, which theoretically implies a much larger storage footprint. However, thanks to the superior clustering properties of SIDs, the number of active SIDs per user remains manageable. In the context of Kuaishou’s infrastructure serving 400 million active users, UxSID offline generation covers approximately 100 unique SIDs per user on average. Consequently, the total storage requirement on the embedding server is approximately 2.56 TB, a volume that is well within the capacity of modern distributed KV storage systems, thus ensuring the feasibility of large-scale deployment.
+
+Model Configurations and Maintenance. UxSID utilizes the same SIDs codebook architecture as QARM V2 [19] and OneRec-v2 [46]
+, which has demonstrated outstanding performance across multiple industrial scenarios. Specifically, the first-level codebook size is set to 4096, with an embedding lookup dimension of 32. This dimension is strategically aligned with the hidden units of the three single-head attention networks within UxSID to ensure representation consistency. To maintain the timeliness of the semantic representations, the embedding server undergoes a scheduled update once per week. The comprehensive end-to-end pipeline, encompassing both offline generation and online serving, is illustrated in Figure 6.
+
+Computational Cost and Latency Analysis. We evaluate the resource efficiency of UxSID through both training and inference stages. For the UxSID model offline training, a sequence length of 1k requires 16 GPUs, while scaling to a 10k sequence length necessitates 40 GPUs. Crucially, the resource consumption of the downstream online model remains invariant to the sequence length, as it only interacts with the compressed UxSID embeddings (of shape [2,32]) in an incremental manner. In terms of serving infrastructure, while the current online model with a 1k sequence length occupies approximately 450 GPUs, we estimate that directly scaling the sequence length to 10k within the ranking model would necessitate approximately 5,300 GPUs to meet throughput requirements. By shifting the computational burden of long-sequence modeling to the UxSID framework, our approach introduces a negligible latency overhead of only +0.16 ms compared to the baseline without UxSID embeddings. This balance between high-capacity modeling and minimal inference latency underscores the efficiency of UxSID for real-time recommendation at scale.
+
+Appendix B Datasets
+
+Table 6: Statistics of public datasets.
+
+ | Dataset
+ | #Users
+ | #Items
+ | #Interaction
+ | 
+
+ | Avg. Seq.
+
+ | Length
+
+ | 
+
+ | Max. Seq.
+
+ | Length
+
+ | XLong
+ | 1,000
+ | 3,269,017
+ | 1,000,000
+ | 1,000
+ | 1,000
+
+ | KuaiRec-Big
+ | 7,176
+ | 10,728
+ | 12,530,806
+ | 1,746
+ | 3,000
+
+XLong 11
+ 1
+
+ https://tianchi.aliyun.com/dataset/22482 [42]: Sampled from a large e-commerce platform (April–September 2018), this dataset provides sequences of  1k interactions per user for long-term modeling. For each item sequence, the last video is used for testing, the video before the last is used for validation, and the rest is used for training.
+KuaiRec-Big 22
+ 2
+
+ https://kuairec.com/ [43]: KuaiRec is a real-world dataset collected from the recommendation logs of the app Kuaishou, containing user interactions and video metadata from July 5, 2020 to September 5, 2020. We use users’ interaction histories to create video sequences sorted by timestamp and filter out users with less than 50 comments. For each video sequence, the last 7 videos are used for testing, the 8th to 14th last videos are used for validation, and the rest are used for training. We fix the user’s interaction history up to 2k.
+Industrial Dataset: Collected from Kuaishou’s advertising system (April 1-7 2026), this dataset contains impression logs and labels. For each user, the interaction history is preserved up to 10k.
+SIDs Generation. For the KuaiRec-Big dataset, we extract item-related fields from item_daily_features.csv and employ the Llama model [47] to generate high-dimensional content embeddings. The XLong dataset comes with pre-provided item embeddings, which we utilize directly. For both datasets, we apply the quantization toolkit provided by LETTER 33
+ 3
+
+ https://github.com/HonghuiBao2000/LETTER/tree/master[45] to train the hierarchical codebooks, resulting in SIDs with a structured configuration of [256\times 256\times 256\times 256].
+
+Appendix C Baselines
+
+Below we briefly describe baselines with which we compare UxSID:
+
+• 
+
+DIN [4] is a foundational baseline that introduces a target-aware attention mechanism from recent behavior sequences.
+
+• 
+
+SIM Hard / Soft [7] adopts a two-stage approach where a GSU filters the expansive history via either category-based hard matching or embedding-based soft retrieval.
+
+• 
+
+ETA [29] employs Locality Sensitive Hashing and Hamming distance for GSU retrieval.
+
+• 
+
+SDIM [30] adopts a sampling-based approach that utilizes multiple hash functions to generate signatures for ULSM.
+
+• 
+
+MIRRN [32] utilizes multi-granularity queries across diverse time scales for behavior retrieval.
+
+• 
+
+TWIN [8] ensures target consistency between the GSU and ESU stages for ULSM.
+
+• 
+
+C-Former [10] employs reconstruction constraints to cluster user interests in an end-to-end manner.
+
+Appendix D Detailed Results on Public Datasets
+
+D.1 Robustness and Stability Analysis
+
+To evaluate the stability of UxSID, we report the performance across three independent runs using different random seeds (2024, 2025, and 2026). As shown in Table 7, the marginal variance observed across these runs demonstrates that our framework is highly robust against initialization noise and consistently maintains its performance gains across different experimental trials.
+
+Table 7: Detailed performance of UxSID across three independent runs with different random seeds (2024, 2025, 2026). The final results reflect the stability of our proposed framework.
+
+ | Model
+ | Seed
+ | KuaiRec-Big (AUC)
+ | XLong (AUC)
+
+ | UxSID
+ | 2024
+ | 0.83484
+ | 0.84084
+
+ | UxSID
+ | 2025
+ | 0.83482
+ | 0.84405
+
+ | UxSID
+ | 2026
+ | 0.83462
+ | 0.83964
+
+ | Avg \pm Std
+ | -
+ | 0.8348 \pm 0.0001
+ | 0.8415 \pm 0.0023
+
+D.2 Performance Gain Attribution
+
+A potential concern is whether the performance gain of UxSID stems primarily from the item-side SID information rather than the proposed architecture. To isolate the impact of this information enrichment, we conduct a controlled experiment where the first-layer SID is incorporated as an additional sparse feature for all baseline models.
+
+Table 8 shows that while the inclusion of SID features slightly improves the performance of all baselines, UxSID consistently maintains a substantial lead. This confirms that our superiority is fundamentally derived from the structural design of the IAIC and the hierarchical routing mechanism, rather than mere information enrichment.
+
+Table 8: Comparison with baselines after augmenting all models with item-side SID features. The best results are in bold.
+
+ | Models (+ SID Features)
+ | XLong
+ | KuaiRec-Big
+
+ | DIN
+ | 0.7932
+ | 0.8214
+
+ | SIM-Hard
+ | –
+ | 0.8246
+
+ | SIM-Soft
+ | 0.7999
+ | 0.8305
+
+ | ETA
+ | 0.7930
+ | 0.8271
+
+ | SDIM
+ | 0.7955
+ | 0.8246
+
+ | MIRRN
+ | 0.7976
+ | 0.8257
+
+ | TWIN
+ | 0.8189
+ | 0.8296
+
+ | C-Former
+ | 0.8180
+ | 0.8311
+
+ | UxSID (Base)
+ | 0.8408
+ | 0.8348
+
+ | UxSID + SID
+ | 0.8439
+ | 0.8361
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

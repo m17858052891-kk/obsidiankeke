@@ -1,0 +1,1849 @@
+
+
+UGR: Unified Generative Ranking for Heterogeneous E-commerce Recommendation
+
+Skip to main content
+
+ Report GitHub Issue
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+ Contents
+
+ Reading mode
+
+ Colour theme
+
+Abstract.
+
+1 Introduction
+
+2 Related Work
+
+2.1 List-wise Generative Ranking
+
+2.2 Reward and Preference Alignment
+
+2.3 Advertising Value Integration
+
+3 Problem Formulation
+
+3.1 Generative Ranking
+
+3.2 Advertising Considerations
+
+4 Methodology
+
+4.1 Model Architecture
+
+4.1.1 Request Context Encoder
+
+4.1.2 Heterogeneous Candidate Encoding
+
+4.1.3 Autoregressive Decoder
+
+4.1.4 Training-Time Advertising Debiasing Tower
+
+4.2 Training Objectives
+
+4.2.1 Next Token Prediction
+
+4.2.2 Weighted Supervised Fine-Tuning
+
+4.2.3 Permutation Preference Optimization
+
+Preference construction.
+
+Preference optimization.
+
+4.2.4 Optimization
+
+4.3 Online Serving
+
+4.3.1 Advertising Value Integration
+
+4.3.2 Multi-value Sequence Retrieval
+
+5 Experiments
+
+5.1 Experimental Setup
+
+5.1.1 Datasets
+
+5.1.2 Baselines
+
+5.1.3 Metrics
+
+5.1.4 Implementation Details
+
+5.2 Offline Evaluation
+
+5.3 Online A/B Test
+
+5.4 Analysis of Unified Ranking
+
+5.4.1 Organic Candidate Truncation
+
+5.4.2 Comparison with Staged Ranking
+
+5.5 Ablation Study
+
+5.5.1 Training Components
+
+5.5.2 Advertising Debiasing Tower
+
+5.6 Hyperparameter Analysis
+
+5.6.1 WSFT Weight
+
+5.6.2 PermPO Weight
+
+5.7 Scaling Analysis
+
+6 Conclusions
+
+References
+
+A Implementation Details
+
+A.1 Model Architecture
+
+A.2 Training Configuration
+
+A.3 Serving and Deployment
+
+A.4 Baseline Details
+
+B Evaluation Metrics
+
+B.1 Offline Evaluation Metrics
+
+B.2 Online A/B Test Metrics
+
+C Additional Results
+
+C.1 Advertising Debiasing Tower
+
+C.2 Hyperparameter Analysis
+
+C.3 Scaling Performance
+
+ License: CC BY 4.0
+
+arXiv:2610.39426v1 [cs.IR] 29 Oct 2026
+
+UGR: Unified Generative Ranking for Heterogeneous E-commerce Recommendation
+
+DOI: XXXXXXX.XXXXXXXConference: Make sure to enter the correct
+conference title from your rights confirmation email; June 03–05,
+2018; Woodstock, NYISBN: 978-1-4503-XXXX-X/2018/06CCS: Information systems Recommender systems
+
+Zonghe Shao
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: zhshao@hust.edu.cn
+
+, 
+Huabin Chen
+
+Note: Both authors contributed equally to this research.
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: chenhuabin.chb@taobao.com
+
+, 
+Sitong Lu
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: dailan.lst@taobao.com
+
+, 
+Fangmei Zhu
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: fangmei.zfm@taobao.com
+
+, 
+Yingcai Ma
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: yingcai.myc@taobao.com
+
+, 
+Ge Fan
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: fange.fg@taobao.com
+
+, 
+Jinguo Gao
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: gaojinguo.gjg@alibaba-inc.com
+
+, 
+Wei Shi
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: shiwei.shiw@alibaba-inc.com
+
+, 
+Yanfang Liu
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: liuyanfang.lyf@alibaba-inc.com
+
+ and 
+Huiping Chu
+
+Note: Corresponding author.
+
+Affiliation: Alibaba Group, Hangzhou, China
+
+email: yueqi.chp@taobao.com
+
+2018
+
+Abstract.
+
+List-wise ranking in e-commerce recommendation must balance user utility and commercial value across organic content, ads, and candidates from other businesses, while modeling candidate interactions and sequential dependencies.
+Existing generative ranking methods typically learn from logged exposure sequences and operate on truncated candidate sets from a single business. Exposure-sequence learning may not fully exploit post-exposure feedback signals. Meanwhile, generative ranking over heterogeneous, multi-business candidates remains less explored, particularly when recommendation scores and advertising value must be jointly modeled under generalized second-price (GSP) auctions.
+We propose Unified Generative Ranking (UGR), which performs generative ranking over the full request-level multi-business heterogeneous candidate set, typically comprising around a thousand candidates in production, and directly generates multi-business ranking lists through candidate-aware autoregressive decoding.
+To go beyond exposure-sequence imitation, UGR introduces complementary feedback supervision through weighted supervised fine-tuning and permutation preference optimization, which respectively leverage observed post-exposure feedback and feedback-derived preferences among permutations.
+UGR uses a training-time advertising debiasing tower to model historical ad exposure effects and incorporates current ad value during serving while preserving the existing allocation and GSP pricing rules.
+Multi-value sequence retrieval produces candidate ranking lists, and the existing downstream evaluator selects the final list for exposure.
+Offline experiments demonstrate consistent gains in ranking quality, while online A/B tests on Taobao’s Guess You Like recommendation service yield improvements of 1.76% in Core IPV, 3.29% in Transaction Volume, and 2.10% in GMV over the production baseline.
+
+Keywords: E-commerce Recommendation, Generative Ranking, Multi-Business Recommendation, Permutation Preference Optimization
+
+1. Introduction
+
+E-commerce recommendation selects a limited number of items for display from a heterogeneous candidate set containing organic content, advertisements (ads), and candidates from other businesses (Carrion et al., 2023).
+These candidates differ in their features, feedback signals, and value objectives.
+Organic content is primarily ranked according to user preferences, while advertisements additionally involve the advertising value associated with bids (Jiang et al., 2026).
+An item’s value also varies with its surrounding candidates and display position  (Pei et al., 2019; Bello et al., 2018).
+Industrial ranking must therefore model candidate interactions while balancing user utility and commercial value (Chen et al., 2023).
+
+Prior studies progressed from modeling candidate interactions in discriminative item-level scoring (Ai et al., 2018; Pei et al., 2019; Pang et al., 2020) to constructing lists through sequential candidate selection (Bello et al., 2018; Feng et al., 2021).
+Generative ranking (Huang et al., 2025; Guo et al., 2025) further shifts ranking from candidate scoring toward list generation, strengthening the modeling of list context and dependencies among candidates through feedback-based learning (Lin et al., 2025; Zhang et al., 2026b; Song et al., 2026) and generation mechanisms (Ren et al., 2024; Lin et al., 2024; Jia et al., 2026b).
+However, these methods typically operate on truncated, single-business candidate sets (Lin et al., 2025; Zhang et al., 2026a).
+In industrial settings requiring cross-business blending, the generated ranking list is subsequently combined with items from other businesses through mixrank to produce the final list.
+This blending changes item positions and list context, creating a discrepancy between the generated ranking list and the final list, as illustrated in Fig. 1(a).
+This discrepancy motivates a unified generation over the full request-level heterogeneous candidate set, which jointly determines the selected items, their ranking, and the composition of the final list, without subsequent cross-business blending (Fig. 1(b)).
+
+However, deploying this approach in industrial systems presents three key challenges.
+First, efficiently modeling interactions over the full heterogeneous candidate set.
+In production, each request typically contains on the order of a thousand candidates spanning multiple businesses.
+These candidates compete for the same display positions, while their heterogeneous features and value objectives complicate list-context modeling.
+Efficient contextualization is therefore required under online serving latency constraints.
+Second, learning user preferences beyond exposure-sequence imitation.
+Historical exposure sequences are shaped by existing ranking policies and do not fully reflect user preferences.
+Post-exposure feedback reveals users’ responses to exposed items, but effectively incorporating such feedback into generative ranking remains challenging.
+Third, enabling generative ranking under existing auction and pricing rules.
+The production system additively combines recommendation score and ad value, using the resulting score for both candidate competition and slot-wise pricing under the generalized second-price (GSP) (Edelman et al., 2007) auction.
+Generative ranking must incorporate current ad value while following this scoring convention without changing the existing GSP pricing rule.
+
+To address these issues, we propose UGR, a Unified Generative Ranking framework that directly generates multi-business ranking lists from the full request-level heterogeneous candidate set received from the upstream candidate retrieval and scoring stages.
+UGR encodes user attributes, request context, and historical behaviors into a request context token, and maps candidate features and business-type attributes into a common representation space.
+Low-rank candidate attention contextualizes all request-level candidates, after which a candidate-aware autoregressive decoder produces prefix-conditioned candidate scores for list generation.
+Offline training jointly optimizes next-token prediction (NTP), weighted supervised fine-tuning (WSFT), and permutation preference optimization (PermPO).
+NTP learns logged exposure sequences, WSFT assigns greater training weight to exposed items
+with higher observed feedback value, and PermPO uses feedback-based DCG to construct preference pairs over permutations of the same exposed items and provide relative ranking supervision.
+UGR separates historical ad exposure modeling from current ad value integration.
+A training-time advertising debiasing tower models historical ad exposure effects and is removed during serving.
+Current ad value is then additively combined with recommendation scores in accordance with the existing allocation and pricing rules.
+Multi-value sequence retrieval uses the integrated scores to produce candidate ranking lists, from which the existing downstream evaluator selects the final list for exposure.
+Offline experiments and online A/B tests on Taobao’s Guess You Like recommendation service demonstrate UGR’s effectiveness, with gains of 1.76% in Core IPV, 3.29% in Transaction Volume, and 2.10% in GMV over the production baseline.
+
+Our main contributions are as follows:
+
+• 
+
+We propose UGR, a unified generative ranking framework that performs prefix-conditioned autoregressive generation over the full request-level heterogeneous candidate set, producing multi-business ranking lists without subsequent cross-business blending.
+
+• 
+
+We introduce complementary feedback supervision beyond exposure-sequence imitation by combining WSFT with PermPO. WSFT weights exposed items by observed feedback, while PermPO derives relative ranking supervision from feedback-based DCG over permutations of the same items.
+
+• 
+
+We use a training-time advertising debiasing tower to model historical ad exposure effects and additively combine current ad value with recommendation scores for multi-value sequence retrieval during serving, while preserving the existing allocation and GSP pricing rules.
+
+2. Related Work
+
+Figure 1. Generation workflows.
+(a) Single-business generation followed by cross-business blending;
+(b) Unified generation over the full heterogeneous candidate set.
+
+2.1. List-wise Generative Ranking
+
+List-wise ranking models candidate interactions and sequential dependencies during list construction.
+Context-aware approaches (Ai et al., 2018; Pei et al., 2019; Pang et al., 2020) encode the candidate list to produce contextualized item scores, while direct list generation approaches (Bello et al., 2018; Feng et al., 2021) construct lists through successive candidate selection.
+Recent generative ranking studies improve generation efficiency through parallel decoding (Ren et al., 2024), multi-token prediction (Lin et al., 2025), and knowledge distillation (Zhang et al., 2026a), or enhance list construction through candidate-grounded generation (Jia et al., 2026b), globally consistent item representations (Jia et al., 2026a; Feng et al., 2026), and diffusion-based permutation exploration (Lin et al., 2024).
+However, existing generative methods typically operate on truncated, single-business candidate sets.
+Subsequent cross-business blending can change the positions and context of the generated items, creating a discrepancy between the generated ranking list and the final list.
+UGR extends generative ranking to the full heterogeneous candidate set, thereby generating heterogeneous, multi-business ranking lists without subsequent cross-business blending.
+
+2.2. Reward and Preference Alignment
+
+Learning list dependencies from exposure logs provides a basis for generation, but exposure-sequence imitation alone cannot fully leverage post-exposure feedback.
+Existing studies align generation with feedback or reward signals through relative list preferences (Lin et al., 2025; Zhao et al., 2026), estimated list utility (Zhang et al., 2026b), comparisons between neighboring lists (Wang et al., 2025), dense stepwise supervision (Song et al., 2026), and value-aware learning objectives (Xue et al., 2026).
+Related studies further define list value using browsing behavior (Pu et al., 2026) and cumulative click and conversion utility across e-commerce pages (Xiong et al., 2026).
+However, jointly incorporating item-level feedback supervision and list-level preference learning into multi-business generative ranking remains less explored.
+UGR combines these complementary forms of supervision to learn list ranking beyond exposure-sequence imitation.
+
+2.3. Advertising Value Integration
+
+Advertising value integration extends recommendation ranking beyond user utility to also consider advertising returns (Li et al., 2026).
+Controllable multi-objective reranking (Chen et al., 2023) balances competing objectives during list construction, while generative auction approaches (Ma et al., 2025) optimize advertising allocation at the list level through generation and evaluation.
+Recent work incorporates ad value into generative recommendation through value-aware training (Xue et al., 2026) and bid-aware decoding for mixed organic and ad recommendations (Jiang et al., 2026).
+These studies primarily focus on incorporating advertising value into ranking objectives and list generation. However, less attention has been paid to the effects of historical ad-serving policies reflected in recommendation scores learned from exposure logs.
+UGR separates historical ad exposure modeling during training from current ad value integration during serving, while following the existing allocation and GSP pricing rules.
+
+3. Problem Formulation
+
+3.1. Generative Ranking
+
+Given a user and request context $x$ , let $C=\{c_{1},\ldots,c_{M}\}$ be the full request-level candidate set supplied by the upstream candidate retrieval and scoring stages.
+The set contains organic content, ads, and candidates from other businesses.
+Unified generative ranking constructs a ranking list $Y=(y_{1},\ldots,y_{L})$ directly from the candidate set $C$ for multi-business recommendation.
+Let $y_{<t}=(y_{1},\ldots,y_{t-1})$ be the generated prefix at step $t$ , and let $C_{t}(y_{<t})$ denote the candidates not yet selected.
+The generative ranking model assigns a probability to each candidate in $C_{t}(y_{<t})$ conditioned on the request, the full candidate set, and the prefix:
+
+ | (1)
+ | 
+ | $p_{\theta}(Y\mid x,C)=\prod_{t=1}^{L}p_{\theta}(y_{t}\mid y_{<t},x,C),\quad y_{t}\in C_{t}(y_{<t})$ 
+ | 
+
+where $\theta$ denotes the generator parameters.
+
+Figure 2. 
+Historical advertising exposure effects.
+(a) Logged exposure lists reflect both user preferences and the selection effects of historical ad-serving policies.
+(b) Direct exposure fitting may carry historical ad exposure effects into recommendation scores, which are combined with current ad value during serving.
+
+3.2. Advertising Considerations
+
+The production system uses the generalized second-price (GSP) auction (Edelman et al., 2007), under which a winning ad pays the minimum bid required to retain its position in slot-wise candidate competition.
+With other competitive conditions fixed, increasing an ad’s bid should not worsen its allocation outcome.
+Accordingly, the allocation and pricing rules require the ranking system to additively combine recommendation score and ad value, with the resulting score used for both candidate competition and slot-wise pricing.
+Historical exposures, however, reflect both user preferences and the selection effects of the historical ad-serving policies (Schnabel et al., 2016), including ad bids and competition.
+As illustrated in Fig. 2, directly fitting exposure lists can therefore embed historical ad exposure effects in recommendation scores, which are subsequently combined with current ad value when generating a new ranking list.
+The ranking model therefore needs to prevent historical ad exposure effects from entering the recommendation scores used for online allocation.
+
+The additive combination is formulated as follows.
+Let $z_{t}(i)$ denote the generator output used as the recommendation score for candidate $i$ at position $t$ .
+For an ad candidate, its ad value is $v_{i}=\mathrm{eCPM}_{i}=q_{i}b_{i}$ , where $q_{i}$ is the predicted click-through rate and $b_{i}$ the advertiser’s bid.
+The integrated score is $S_{t}(i)=z_{t}(i)+\alpha\,v_{i}$ , where $\alpha>0$ controls the contribution of ad value, and $v_{i}=0$ for non-ad candidates.
+The highest competing score is computed over all other legal candidates, including non-ad candidates.
+
+4. Methodology
+
+Fig. 3 summarizes UGR.
+The generator autoregressively constructs lists over the full heterogeneous candidate set supplied by the upstream stage, while WSFT and PermPO provide feedback supervision beyond exposure imitation.
+A training-time advertising debiasing tower models historical ad exposure effects and is removed during serving, where current ad value is integrated.
+
+Figure 3. 
+Overview of the UGR framework.
+(a) The generator performs request context encoding, heterogeneous candidate encoding, autoregressive decoding, and candidate scoring.
+(b) Offline training jointly optimizes NTP and WSFT using next-item distribution and PermPO using generator logits only.
+(c) Online serving combines recommendation scores with current ad value for multi-value sequence retrieval, followed by the downstream evaluator.
+
+4.1. Model Architecture
+
+4.1.1. Request Context Encoder
+
+The request encoder embeds categorical features, transforms and projects numerical features, and represents historical behavior sequences across time scales as item tokens in recorded order.
+Masked self-attention (Vaswani et al., 2017) aggregates the encoded user, request, and behavior features, and a learned token-axis projection compresses them into a request context token:
+
+ | (2)
+ | 
+ | $H_{x}=\mathrm{Encoder}_{\theta}(X_{\mathrm{user}},X_{\mathrm{context}},X_{\mathrm{history}})$ 
+ | 
+
+where $X_{\mathrm{user}}$ , $X_{\mathrm{context}}$ , and $X_{\mathrm{history}}$ denote the user attributes, request context, and historical behavior inputs, respectively.
+
+4.1.2. Heterogeneous Candidate Encoding
+
+UGR encodes candidates from different businesses through a common representation interface.
+Each candidate combines identity and content features, business-type attributes, and candidate-side prediction and ranking signals,
+
+ | (3)
+ | 
+ | $e_{i}=\operatorname{Candidate\_Embed}_{\theta}(f_{i},\tau_{i})$ 
+ | 
+
+where $f_{i}$ contains candidate features and $\tau_{i}$ contains business-type attributes.
+This mapping retains business-specific information while placing heterogeneous candidates in a common embedding space for joint contextualization and scoring.
+
+To model interactions across the full request-level set, UGR uses low-rank candidate attention (Wang et al., 2020).
+Let $E=[e_{1},\ldots,e_{M}]^{\mathsf{T}}\in\mathbb{R}^{M\times D}$ stack the embeddings of the $M$ request-level candidates.
+We apply RMSNorm (Zhang and Sennrich, 2019) independently to each candidate embedding and compute queries and candidate-axis-compressed keys and values:
+
+ | (4)
+ | 
+ | $\displaystyle H$ 
+ | $\displaystyle=\mathrm{RMSNorm}(E)$ 
+ | 
+
+ | 
+ | $\displaystyle Q=HW_{Q},\bar{K}$ 
+ | $\displaystyle=P_{K}(HW_{K}),\bar{V}=P_{V}(HW_{V})$ 
+ | 
+
+ | 
+ | $\displaystyle A$ 
+ | $\displaystyle=\mathrm{softmax}\!\left(Q\bar{K}^{\mathsf{T}}/\sqrt{d}\right)\bar{V}$ 
+ | 
+
+where $d$ is the attention dimension, and $P_{K},P_{V}\in\mathbb{R}^{r\times M}$ are learned candidate-axis projections, with $r$ denoting the number of latent key–value components.
+Residual connections and a feed-forward sublayer produce the contextualized representations:
+
+ | (5)
+ | 
+ | $E^{\prime}=E+A,\quad H_{C}=E^{\prime}+\mathrm{FFN}\bigl(\mathrm{RMSNorm}(E^{\prime})\bigr)$ 
+ | 
+
+The resulting $H_{C}=[h_{1},\ldots,h_{M}]^{\mathsf{T}}$ contains the contextualized representations of the $M$ candidates, where each $h_{i}$ incorporates interactions with the full heterogeneous candidate set.
+
+4.1.3. Autoregressive Decoder
+
+The decoder starts from the recent session tokens and appends the contextualized representation of each selected candidate.
+At position $t$ , causal self-attention processes this sequence, while cross-attention uses $H_{x}$ as keys and values to incorporate user and request information.
+Position-conditioned decoding produces the decoder state:
+
+ | (6)
+ | 
+ | $d_{t}=\mathrm{Decoder}_{\theta}(X_{\mathrm{init}},[h_{y_{1}},\ldots,h_{y_{t-1}}],H_{x})$ 
+ | 
+
+where $X_{\mathrm{init}}$ denotes the session context.
+A position-specific projection maps $d_{t}$ into a candidate-scoring vector $u_{t}$ , and the generator logits are computed as scaled cosine similarities (Zhang et al., 2019):
+
+ | (7)
+ | 
+ | $z_{\theta,t}(i)=s_{t}\,\frac{u_{t}^{\mathsf{T}}h_{i}}{\|u_{t}\|_{2}\|h_{i}\|_{2}},\qquad u_{t}=\mathrm{Proj}_{\theta,t}(d_{t})$ 
+ | 
+
+where $s_{t}$ is a learned logit scale.
+The generator logits $z_{\theta,t}(i)$ serve as recommendation scores and are normalized via softmax over the legal candidate set to obtain the next-item distribution:
+
+ | (8)
+ | 
+ | $p_{\theta}(i\mid y_{<t},x,C)=\frac{\exp z_{\theta,t}(i)}{\sum_{j\in C_{t}(y_{<t})}\exp z_{\theta,t}(j)},\qquad i\in C_{t}(y_{<t})$ 
+ | 
+
+The selected candidate representation is appended to the decoder input, and the legal set $C_{t}(y_{<t})$ is updated before the next step. Candidate interactions are encoded once in $H_{C}$ , whereas their relevance to the evolving list is determined by $u_{t}$ .
+
+4.1.4. Training-Time Advertising Debiasing Tower
+
+The generator in Fig. 3(a) represents ad and non-ad candidates using the same standard item features, excluding eCPM and other auction-derived features.
+To model historical ad exposure effects separately, we introduce an advertising debiasing tower $g_{\phi}$ that takes ad item features and logged eCPM as input.
+The tower produces an ad-specific logit adjustment at each decoding position:
+
+ | (9)
+ | 
+ | $\delta_{\phi,t}(i)=\mathbb{I}_{\mathrm{ad}}(i)\left[g_{\phi}(a_{i};p_{t})+\gamma_{t}\right],\quad a_{i}=[f^{(\text{ad})}_{i},\text{eCPM}_{i}]$ 
+ | 
+
+where $p_{t}$ is a learned position offset in the tower’s hidden layer, and $\gamma_{t}$ is a position-specific scalar offset.
+The MLP weights are shared across positions, while the position offsets allow the adjustment to vary with the decoding position.
+The indicator $\mathbb{I}_{\mathrm{ad}}(i)$ ensures that $\delta_{\phi,t}(i)=0$ for non-ad candidates.
+The tower is used only during training and is removed during serving.
+During training, the tower adjustment is added to the generator logit to define the training next-item distribution over legal candidates:
+
+ | (10)
+ | 
+ | $p^{\mathrm{train}}_{\theta,\phi}(i\mid y_{<t},x,C)=\frac{\exp\left(z_{\theta,t}(i)+\delta_{\phi,t}(i)\right)}{\sum_{j\in C_{t}(y_{<t})}\exp\left(z_{\theta,t}(j)+\delta_{\phi,t}(j)\right)}$ 
+ | 
+
+4.2. Training Objectives
+
+Figure 4. Complementary training objectives of UGR, including NTP, WSFT and PermPO.
+
+As illustrated in Fig. 4, UGR combines three objectives.
+NTP provides baseline supervision from logged exposure sequences.
+Beyond exposure imitation, WSFT and PermPO use observed feedback in complementary ways.
+WSFT reweights the next-item log-likelihood term of each exposed item according to its observed feedback, whereas PermPO provides relative ranking supervision by comparing permutations of the same exposed items.
+
+4.2.1. Next Token Prediction
+
+Given an observed exposure list $Y^{\mathrm{obs}}$ , NTP predicts each exposed candidate conditioned on its observed prefix.
+At each step, the probability of the observed next item is normalized over all legal candidates.
+For the training data $\mathcal{D}$ , the objective is
+
+ | (11)
+ | 
+ | $\mathcal{L}_{\mathrm{NTP}}=-\mathbb{E}_{\mathcal{D}}\left[\sum_{t=1}^{|Y^{\mathrm{obs}}|}\log p^{\mathrm{train}}_{\theta,\phi}\left(y_{t}^{\mathrm{obs}}\mid y_{<t}^{\mathrm{obs}},x,C\right)\right]$ 
+ | 
+
+4.2.2. Weighted Supervised Fine-Tuning
+
+WSFT reweights the next-item log-likelihood of each exposed item in NTP according to the observed feedback, while leaving the logged sequence and its prefixes unchanged.
+Let $F_{k}(i)$ denote a nonnegative feedback signal associated with exposed item $i$ , and define
+
+ | (12)
+ | 
+ | $w(i)=\eta\sum_{k=1}^{K}\beta_{k}F_{k}(i),\qquad\eta>0,\quad\beta_{k}\geq 0$ 
+ | 
+
+The feedback signals capture engagement and transaction outcomes.
+Their definitions are provided in Appendix A.2.
+With $w_{t}=w(y_{t}^{\mathrm{obs}})$ , the objective is
+
+ | (13)
+ | 
+ | $\mathcal{L}_{\mathrm{WSFT}}=-\mathbb{E}_{\mathcal{D}}\left[\sum_{t=1}^{|Y^{\mathrm{obs}}|}w_{t}\log p^{\mathrm{train}}_{\theta,\phi}\left(y_{t}^{\mathrm{obs}}\mid y_{<t}^{\mathrm{obs}},x,C\right)\right]$ 
+ | 
+
+The NTP retains baseline supervision for all exposed items, including those with zero WSFT weight.
+
+4.2.3. Permutation Preference Optimization
+
+WSFT changes the contribution of observed next-item predictions but does not compare alternative rankings.
+PermPO complements WSFT by deriving preferences between permutations of the same exposed item set using feedback-based DCG.
+
+Preference construction.
+
+Let $B$ contain $L$ exposed candidates from one request, and let $\Pi(B)$ denote their permutations.
+We use the same feedback score for WSFT weighting and permutation preference construction, setting $\mathrm{Gain}(i)=w(i)$ .
+These gains are treated as fixed item-level supervision labels across permutations.
+We use the position-discounted gain (Järvelin and Kekäläinen, 2002) to define a feedback-based ranking criterion:
+
+ | (14)
+ | 
+ | $\operatorname{DCG}(Y)=\sum_{t=1}^{L}\frac{\operatorname{Gain}(y_{t})}{\log_{2}(t+1)}$ 
+ | 
+
+The strict preference-pair set is
+
+ | (15)
+ | 
+ | $\mathcal{P}(B)=\left\{(Y^{+},Y^{-})\in\Pi(B)^{2}:\operatorname{DCG}(Y^{+})>\operatorname{DCG}(Y^{-})\right\}$ 
+ | 
+
+With the candidate set fixed, the position discount gives greater weight to earlier positions, providing order-sensitive supervision that encourages items with higher observed gains to appear earlier.
+Permutations with equal DCG do not form preference pairs.
+
+Preference optimization.
+
+For a permutation $Y$ , we compute its sequence log-probability using the next-item distribution defined in Eq. (8), without the tower adjustment $\delta_{\phi,t}$ :
+
+ | (16)
+ | 
+ | $\hat{s}_{\theta}(Y)=\sum_{t=1}^{L}\log p_{\theta}(y_{t}\mid y_{<t},x,C).$ 
+ | 
+
+The PermPO loss increases the sequence log-probability of the higher-DCG permutation relative to its paired lower-DCG permutation.
+
+ | (17)
+ | 
+ | $\mathcal{L}_{\mathrm{PermPO}}=\frac{1}{|\mathcal{P}(B)|}\sum_{(Y^{+},Y^{-})\in\mathcal{P}(B)}-\log\sigma\left(\hat{s}_{\theta}(Y^{+})-\hat{s}_{\theta}(Y^{-})\right)$ 
+ | 
+
+where $\sigma$ is the sigmoid function.
+Requests with no strict preference pairs contribute zero to this loss.
+By computing sequence scores solely from the generator logits $z_{\theta,t}$ , PermPO directly applies feedback-based relative ranking supervision to the generator used during serving, complementing the feedback-weighted next-item supervision provided by WSFT.
+
+4.2.4. Optimization
+
+The overall training objective combines the NTP, WSFT, and PermPO losses:
+
+ | (18)
+ | 
+ | $\mathcal{L}=\mathcal{L}_{\mathrm{NTP}}+\lambda_{\mathrm{WSFT}}\mathcal{L}_{\mathrm{WSFT}}+\lambda_{\mathrm{PermPO}}\mathcal{L}_{\mathrm{PermPO}},$ 
+ | 
+
+where $\lambda_{\mathrm{WSFT}},\lambda_{\mathrm{PermPO}}\geq 0$ control the contributions of WSFT and PermPO, respectively.
+
+Figure 5. Online serving of UGR.
+The generator scores heterogeneous candidates conditioned on user, context and the current prefix.
+Recommendation scores are combined additively with current ad value.
+Multi-value sequence retrieval appends legal items and retains the top- $N$ prefixes by cumulative integrated score until length- $L$ ranking lists are generated.
+
+4.3. Online Serving
+
+During online serving (Fig. 3(c)), UGR removes the training-time advertising debiasing tower and integrates current ad value into the recommendation scores.
+Multi-value sequence retrieval generates ranking lists, from which the existing downstream evaluator selects the final list for exposure.
+The details are shown in Fig. 5.
+
+4.3.1. Advertising Value Integration
+
+For an ad $i$ at decoding step $t$ , UGR directly combines the prefix-conditioned recommendation score with current ad value:
+
+ | (19)
+ | 
+ | $S_{t}(i)=z_{\theta,t}(i)+\alpha\,\text{eCPM}_{i}$ 
+ | 
+
+where $\mathrm{eCPM}_{i}$ is the current ad value of candidate $i$ , and $\alpha>0$ controls its contribution.
+For ads, $\mathrm{eCPM}_{i}=q_{i}b_{i}$ under the value convention in Section 3.2.
+Under the fixed prefix $y_{<t}$ , the highest competing score for candidate $i$ is the highest score among the other legal candidates:
+
+ | (20)
+ | 
+ | $S_{-i,t}^{*}=\max_{j\in C_{t}(y_{<t})\setminus\{i\}}S_{t}(j)$ 
+ | 
+
+With the prefix and competitive conditions fixed, the step-wise critical bid required for ad $i$ to win the current decoding step satisfies
+
+ | (21)
+ | 
+ | $\displaystyle z_{\theta,t}(i)$ 
+ | $\displaystyle+\alpha q_{i}b_{i,t}^{*}=S_{-i,t}^{*},$ 
+ | 
+
+ | (22)
+ | 
+ | $\displaystyle b_{i,t}^{*}$ 
+ | $\displaystyle=\frac{S_{-i,t}^{*}-z_{\theta,t}(i)}{\alpha q_{i}},\alpha>0,\;q_{i}>0$ 
+ | 
+
+By separating historical ad exposure modeling during training from current ad value integration during serving, UGR incorporates advertising value into generative ranking while remaining compatible with the existing ad allocation and GSP pricing mechanisms.
+
+4.3.2. Multi-value Sequence Retrieval
+
+Multi-value sequence retrieval uses the integrated scores defined in Eq. (19) to search for ranking lists.
+Encoder and candidate encodings are computed once and shared across search paths.
+The generated prefix starts empty, while session tokens initialize the decoder context.
+At step $t$ , each retained prefix is expanded with every candidate in $C_{t}(y_{<t})$ , and the decoder scores each extension under its prefix.
+Appending candidate $i$ to prefix $y_{<t}$ gives
+
+ | (23)
+ | 
+ | $R(y_{<t}\oplus i)=R(y_{<t})+S_{t}(i),\qquad R(\varnothing)=0$ 
+ | 
+
+where $\oplus$ denotes appending a candidate to the prefix.
+Thus, each path is scored by the sum of its integrated scores across
+decoding steps.
+
+All extensions from the retained prefixes are ranked jointly, and the top $N$ legal paths are retained for the next step.
+For each retained path, the legal candidate set at the next step excludes candidates
+already included in its prefix.
+After $L$ steps, multi-value sequence retrieval returns at most $N$ ranking lists, from which the existing downstream list evaluator selects the final list for exposure.
+
+5. Experiments
+
+5.1. Experimental Setup
+
+5.1.1. Datasets
+
+We constructed two industrial datasets based on 30 consecutive days of recommendation logs from the Guess You Like recommendation service on the e-commerce platform Taobao’s homepage.
+The datasets represent two scenarios with different user intents.
+Table 1 summarizes the dataset statistics.
+Each sample corresponds to a recommendation request and includes user and context features, the full candidate set from the upstream stage, the logged exposure list, and observed post-exposure feedback.
+The candidate set contains organic content, ads, and candidates from other businesses, without truncation or sampling.
+Exposure lists and feedback provide supervision for list generation and evaluation.
+We split each dataset chronologically into training, validation, and test sets by request time.
+
+Table 1. Statistics of the two industrial datasets.
+
+ | Datasets
+ | Users
+ | Items
+ | Requests
+
+ | Scenario 1
+ | 54,682,294
+ | 118,068,621
+ | 1,938,791,731
+
+ | Scenario 2
+ | 24,151,394
+ | 98,072,780
+ | 237,500,048
+
+Table 2. Offline performance on the two industrial datasets. Higher values are better. Bold and underlined values indicate the best and second-best reported results in each column, respectively.
+
+ | Model
+ | Scenario 1
+ | Scenario 2
+
+ | Hitrate
+ | IPV
+ | CVR
+ | Hitrate
+ | IPV
+ | CVR
+
+ | NDCG
+ | MAP
+ | AUC
+ | NDCG
+ | MAP
+ | AUC
+ | NDCG
+ | MAP
+ | AUC
+ | NDCG
+ | MAP
+ | AUC
+
+ | PRM (Pei et al., 2019)
+ | 0.5295
+ | 0.3454
+ | 0.2906
+ | 0.5603
+ | 0.5305
+ | 0.4607
+ | 0.6018
+ | 0.4882
+ | 0.3998
+ | 0.3420
+ | 0.5626
+ | 0.5620
+ | 0.4886
+ | 0.6321
+
+ | NAR4Rec (Ren et al., 2024)
+ | 0.5050
+ | 0.3429
+ | 0.2827
+ | 0.5507
+ | 0.4361
+ | 0.3682
+ | 0.5680
+ | 0.4648
+ | 0.4002
+ | 0.3349
+ | 0.5760
+ | 0.4989
+ | 0.4342
+ | 0.6336
+
+ | GReF (Lin et al., 2025)
+ | 0.5310
+ | 0.3459
+ | 0.2926
+ | 0.6036
+ | 0.5274
+ | 0.4744
+ | 0.6894
+ | 0.5220
+ | 0.4261
+ | 0.3642
+ | 0.6090
+ | 0.4856
+ | 0.4368
+ | 0.6882
+
+ | Dual-Rerank (Zhang et al., 2026a)
+ | 0.5361
+ | 0.3451
+ | 0.2886
+ | 0.5731
+ | 0.5207
+ | 0.4632
+ | 0.6582
+ | 0.4998
+ | 0.4002
+ | 0.3393
+ | 0.5911
+ | 0.5617
+ | 0.5036
+ | 0.6743
+
+ | UniRank (Jia et al., 2026b)
+ | 0.5668
+ | 0.3496
+ | 0.2802
+ | 0.4799
+ | 0.4514
+ | 0.3650
+ | 0.4831
+ | 0.5343
+ | 0.4124
+ | 0.3230
+ | 0.4580
+ | 0.5096
+ | 0.4155
+ | 0.5269
+
+ | DEGR (Zhao et al., 2026)
+ | 0.5267
+ | 0.3474
+ | 0.2947
+ | 0.6055
+ | 0.5314
+ | 0.4773
+ | 0.6837
+ | 0.5099
+ | 0.4264
+ | 0.3684
+ | 0.6338
+ | 0.5807
+ | 0.5227
+ | 0.7014
+
+ | UGR (Ours)
+ | 0.5295
+ | 0.3666
+ | 0.3169
+ | 0.6512
+ | 0.5394
+ | 0.4871
+ | 0.7023
+ | 0.4905
+ | 0.4325
+ | 0.3782
+ | 0.6714
+ | 0.5824
+ | 0.5264
+ | 0.7035
+
+5.1.2. Baselines
+
+We compare UGR with six representative ranking and generative ranking baselines, including PRM (Pei et al., 2019), NAR4Rec (Ren et al., 2024), GReF (Lin et al., 2025), Dual-Rerank (Zhang et al., 2026a), UniRank (Jia et al., 2026b), and DEGR (Zhao et al., 2026).
+Detailed descriptions are provided in Appendix A.4.
+
+5.1.3. Metrics
+
+We evaluate each generated list using logged exposures and observed feedback for each request.
+Hitrate measures the overlap between generated lists and logged exposure lists.
+NDCG, MAP, and AUC are reported separately for engagement (IPV) and transaction (CVR).
+For each feedback type, an item is labeled positive if the corresponding behavior was observed, and negative otherwise.
+Higher values indicate better performance.
+Detailed definitions of the metrics are provided in Appendix B.1.
+
+5.1.4. Implementation Details
+
+Production requests typically contain on the order of a thousand candidates across businesses.
+Our implementation uses a configured total candidate capacity of 1,000 per request and generates four-item lists with a retrieval width of four.
+It uses 256-dimensional token representations and eight attention heads in both the encoder and decoder.
+The candidate encoder combines low-rank attention with a feed-forward sublayer, and the advertising debiasing tower is an MLP with one hidden layer of width 8.
+We train UGR with AdagradDecayV2 using a batch size of 128 and a learning rate of 0.01, with linear warmup from 0.001 over the first $10^{6}$ steps.
+The WSFT and PermPO loss weights are 1 and 15, respectively.
+Additional model and training configurations are provided in Appendix A.
+
+5.2. Offline Evaluation
+
+We compare UGR with the baseline methods on the two industrial datasets.
+Table 2 reports exposure agreement and ranking quality for engagement and transaction feedback.
+
+In Scenario 1, UGR achieves the highest values on all six ranking metrics.
+It improves IPV NDCG by 4.86% over UniRank and IPV MAP by 7.53% over DEGR, the strongest baselines on the respective metrics.
+These improvements indicate better engagement-oriented ranking quality under both position-sensitive and precision-based evaluation.
+For transaction feedback, UGR improves CVR MAP by 2.05% over DEGR and also leads on the remaining CVR ranking metrics.
+Its gains therefore extend to both engagement and transaction objectives rather than being concentrated on a single feedback target.
+UGR also achieves the best performance across all six ranking metrics in Scenario 2, showing consistent improvements across the two industrial scenarios.
+UniRank achieves the highest Hitrate in both scenarios, whereas UGR leads on feedback-based ranking quality.
+This distinction indicates that stronger agreement with logged exposures does not necessarily translate into better ranking according to observed feedback.
+Together, these results demonstrate UGR’s effectiveness in ranking heterogeneous candidates for both engagement and transaction value.
+
+5.3. Online A/B Test
+
+We conduct an online A/B test on Taobao’s Guess You Like recommendation service, comparing UGR with the production baseline.
+The UGR treatment group covers at least 5% of the recommendation service traffic, and the experimental deployment lasts for more than 14 days.
+The downstream evaluator and the remaining serving pipeline are kept unchanged between the control and treatment groups.
+
+Table 3. 
+Relative improvements over the production baseline. All results are statistically significant with $p<0.05$ .
+
+ | Core IPV
+ | Click UV
+ | UCTR
+ | Transaction Volume
+ | GMV
+
+ | +1.76%
+ | +1.32%
+ | +0.45%
+ | +3.29%
+ | +2.10%
+
+We evaluate user engagement using Core IPV, Click UV, and UCTR, and transaction outcomes using Transaction Volume and GMV.
+As shown in Table 3, UGR achieves statistically significant improvements across all five metrics.
+In particular, the gains in Core IPV, Click UV, and UCTR demonstrate improved user engagement, while the improvements in Transaction Volume and GMV show that these gains extend to transaction outcomes.
+The Ad Cost changes by +0.08% while the Ad PVR changes by -0.93%, with both metrics satisfying the ad guardrail requirements.
+The average inference latency of UGR serving increases by only 12 ms, meeting the low-latency requirements of large-scale real-time systems.
+Detailed metric definitions are provided in Appendix B.2.
+
+5.4. Analysis of Unified Ranking
+
+We examine organic-candidate truncation offline and compare unified generation with single-business generation followed by cross-business blending online, with the output length fixed.
+
+5.4.1. Organic Candidate Truncation
+
+We vary only the organic portion of the heterogeneous candidate set by retaining the upstream top- $K$ organic candidates, with $K=500$ covering the full organic set in this experiment.
+Candidates from other businesses remain unchanged.
+For each $K$ , we train a separate model and evaluate it on the same test requests.
+Fig. 6(a) shows that restricting the set to 10 or 20 organic candidates reduces IPV NDCG, whereas the full-organic-set result remains within approximately 0.5% of the results obtained with $K$ between 30 and 200.
+Thus, retaining the full organic candidate set achieves comparable offline IPV NDCG to the tested configurations with $K$ between 30 and 200.
+
+Figure 6. Analysis of unified ranking.
+(a) Effect of organic-candidate truncation on offline IPV NDCG, with candidates from other businesses held fixed. The dashed line marks the result with the full organic candidate set ( $K=500$ ).
+(b) Online improvements of UGR and UGR-Single+Mix over the same production baseline.
+
+5.4.2. Comparison with Staged Ranking
+
+We compare UGR with UGR-Single+Mix, which restricts UGR to organic-only lists and leaves cross-business blending to the existing mixrank, whereas UGR generates heterogeneous lists directly.
+Both models are deployed concurrently with the production baseline, each serving at least 5% of traffic for more than 14 days.
+The serving configuration, the downstream evaluator, and all ad constraints are identical across the three groups.
+
+Fig. 6(b) reports the improvements over the same production baseline.
+UGR-Single+Mix improves Core IPV, Transaction Volume, and GMV by 1.13%, 2.84%, and 1.38%, while UGR improves them by 1.76%, 3.29%, and 2.10%.
+UGR also significantly outperforms UGR-Single+Mix in the direct comparison.
+The staged variant already benefits from UGR’s single-business ranking capability, but the subsequent cross-business blending step changes item positions and the surrounding list context.
+These results support determining cross-business blending and item ranking within a single generation process.
+
+5.5. Ablation Study
+
+5.5.1. Training Components
+
+We examine the contributions of UGR’s training components on Scenario 1.
+Table 4 compares full UGR with NTP-only and variants without WSFT, PermPO, or the advertising debiasing tower.
+
+Table 4. Ablation results for UGR on Scenario 1.
+
+ | Model
+ | Hitrate
+ | IPV
+ | CVR
+
+ | NDCG
+ | MAP
+ | AUC
+ | NDCG
+ | MAP
+ | AUC
+
+ | UGR (full)
+ | 0.5295
+ | 0.3666
+ | 0.3169
+ | 0.6512
+ | 0.5394
+ | 0.4871
+ | 0.7023
+
+ | NTP-only
+ | 0.5291
+ | 0.3382
+ | 0.2819
+ | 0.5706
+ | 0.5122
+ | 0.4566
+ | 0.6630
+
+ | w/o WSFT
+ | 0.5255
+ | 0.3539
+ | 0.3059
+ | 0.6520
+ | 0.5375
+ | 0.4864
+ | 0.7069
+
+ | w/o PermPO
+ | 0.5296
+ | 0.3453
+ | 0.2883
+ | 0.5738
+ | 0.5137
+ | 0.4576
+ | 0.6614
+
+ | w/o tower
+ | 0.5227
+ | 0.3614
+ | 0.3121
+ | 0.6491
+ | 0.5256
+ | 0.4716
+ | 0.6924
+
+UGR improves all six ranking metrics over NTP-only training, with comparable Hitrate.
+WSFT improves NDCG and MAP, particularly for IPV, with a slight reduction in AUC.
+Removing PermPO lowers all six ranking metrics, indicating its contribution to learning relative ranking preferences.
+Together, these results demonstrate the complementary roles of feedback-weighted supervision and permutation preference optimization.
+
+5.5.2. Advertising Debiasing Tower
+
+Removing the debiasing tower reduces Hitrate and ranking quality.
+To further examine this effect, we analyze how the generator logits from UGR and UGR without the debiasing tower vary with ad eCPM, as shown in Fig. 7.
+
+Without the tower, the generator logits $z_{t}$ exhibit an overall positive correlation with eCPM ( $r=0.195$ ).
+For UGR, the correlation between generator logits $z_{t}$ and eCPM becomes negative ( $r=-0.313$ ), whereas the tower adjustment $\delta_{t}$ is positively correlated with eCPM ( $r=0.727$ , see Appendix C.1 for the component distributions and their sum).
+These contrasting associations suggest that the tower separates eCPM-related effects from the generator logits.
+During training, candidate probabilities depend on the sum of the generator logit and tower adjustment, allowing a larger adjustment to offset a lower generator logit.
+Together with the ablation results, these patterns support the effectiveness of modeling ad exposure effects through a separate training-time tower.
+
+Figure 7. Generator logit distributions of UGR and UGR without the advertising debiasing tower across ad eCPM intervals. Boxes show the interquartile range, center lines indicate medians, whiskers mark the 5th and 95th percentiles, and dashed lines connect mean values.
+
+5.6. Hyperparameter Analysis
+
+We analyze the effects of the WSFT and PermPO loss weights by varying $\lambda_{\mathrm{WSFT}}$ and $\lambda_{\mathrm{PermPO}}$ independently.
+Fig. 8 reports Hitrate and NDCG.
+Complete results are provided in Appendix C.2.
+
+Figure 8. Effects of the WSFT and PermPO loss weights. 
+
+5.6.1. WSFT Weight
+
+Increasing $\lambda_{\mathrm{WSFT}}$ consistently improves IPV NDCG, whereas CVR NDCG reaches its maximum at
+ $\lambda_{\mathrm{WSFT}}=1$ .
+Hitrate follows a similar pattern, increasing up to a weight of 1 and decreasing slightly thereafter.
+We set $\lambda_{\mathrm{WSFT}}=1$ , which achieves the highest Hitrate and CVR NDCG while retaining most of the improvement in IPV NDCG.
+
+5.6.2. PermPO Weight
+
+Increasing $\lambda_{\mathrm{PermPO}}$ substantially improves both IPV and CVR NDCG.
+Most of the IPV gain is obtained at a weight of 15, after which the performance remains nearly stable, while CVR NDCG continues to improve more gradually.
+In contrast, Hitrate peaks at a small weight and decreases as the PermPO weight increases.
+We set $\lambda_{\mathrm{PermPO}}=15$ , which captures the ranking gains before they largely saturate.
+
+5.7. Scaling Analysis
+
+We vary the token dimension over $\{64,128,256,512,1024\}$ to study how representation capacity affects UGR.
+Fig. 9 reports NDCG for IPV and CVR.
+Complete results are provided in Appendix C.3.
+
+Figure 9. 
+Effect of token dimension on IPV and CVR NDCG.
+
+IPV NDCG increases with token dimension, whereas CVR NDCG peaks at 512 and decreases slightly at 1024.
+Overall, these results suggest that increasing representation capacity can improve UGR’s ranking performance.
+
+6. Conclusions
+
+We presented UGR, a framework that directly generates ranking lists over the full request-level heterogeneous, multi-business candidate set received from the upstream stage.
+UGR extends exposure-sequence imitation with complementary feedback supervision at the item and list levels.
+By separating historical ad exposure modeling during training from current ad value integration during serving, UGR enables generative ranking to operate within the existing ad allocation and GSP pricing rules.
+Experiments on two industrial datasets and large-scale online A/B tests consistently validate the effectiveness of UGR.
+The results demonstrate the benefits of unified generative ranking for improving recommendation quality and business outcomes, as well as its practicality for industrial deployment.
+
+References
+
+Ai et al. (2018)
+Q. Ai, K. Bi, J. Guo, and W. B. Croft
+
+Learning a deep listwise context model for ranking refinement.
+
+In The 41st international ACM SIGIR conference on research & development in information retrieval,
+
+pp. 135–144.
+
+Cited by: §1,
+§2.1.
+
+Bello et al. (2018)
+I. Bello, S. Kulkarni, S. Jain, C. Boutilier, E. Chi, E. Eban, X. Luo, A. Mackey, and O. Meshi
+
+Seq2Slate: re-ranking and slate optimization with rnns.
+
+arXiv preprint arXiv:1810.02019.
+
+Cited by: §1,
+§1,
+§2.1.
+
+Carrion et al. (2023)
+C. Carrion, Z. Wang, H. Nair, X. Luo, Y. Lei, P. Gu, X. Lin, W. Chen, J. Jin, F. Zhu, et al.
+
+Blending advertising with organic content in e-commerce via virtual bids.
+
+In Proceedings of the AAAI Conference on Artificial Intelligence,
+
+Vol. 37, pp. 15476–15484.
+
+Cited by: §1.
+
+Chen et al. (2023)
+S. Chen, Y. Wang, Z. Wen, Z. Li, C. Zhang, X. Zhang, Q. Lin, C. Zhu, and J. Xu
+
+Controllable multi-objective re-ranking with policy hypernetworks.
+
+In Proceedings of the 29th ACM SIGKDD conference on knowledge discovery and data mining,
+
+pp. 3855–3864.
+
+Cited by: §1,
+§2.3.
+
+Edelman et al. (2007)
+B. Edelman, M. Ostrovsky, and M. Schwarz
+
+Internet advertising and the generalized second-price auction: selling billions of dollars worth of keywords.
+
+American economic review 97 (1), pp. 242–259.
+
+Cited by: §1,
+§3.2.
+
+Feng et al. (2026)
+C. Feng, L. Ma, X. Gao, C. Zhang, Y. Pu, and X. Li
+
+PSG: pair-space generation for efficient generative reranking.
+
+arXiv preprint arXiv:2607.26427.
+
+Cited by: §2.1.
+
+Feng et al. (2021)
+Y. Feng, B. Hu, Y. Gong, F. Sun, Q. Liu, and W. Ou
+
+GRN: generative rerank network for context-wise recommendation.
+
+arXiv preprint arXiv:2104.00860.
+
+Cited by: §1,
+§2.1.
+
+Guo et al. (2025)
+H. Guo, E. Xue, L. Huang, S. Wang, X. Wang, L. Wang, J. Wang, Z. Li, and S. Chen
+
+Twin-flow generative ranking network for recommendation.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 771–780.
+
+Cited by: §1.
+
+Huang et al. (2025)
+Y. Huang, Y. Chen, X. Cao, R. Yang, M. Qi, Y. Zhu, Q. Han, Y. Liu, Z. Liu, X. Yao, et al.
+
+Towards large-scale generative ranking.
+
+arXiv preprint arXiv:2505.04180.
+
+Cited by: §1.
+
+Järvelin and Kekäläinen (2002)
+K. Järvelin and J. Kekäläinen
+
+Cumulated gain-based evaluation of ir techniques.
+
+ACM Transactions on Information Systems (TOIS) 20 (4), pp. 422–446.
+
+Cited by: §4.2.3.
+
+Jia et al. (2026a)
+P. Jia, X. Wang, Y. Zhang, S. Liu, Y. Hou, H. Yang, X. Gao, X. Li, Y. Wang, J. McAuley, et al.
+
+From local indices to global identifiers: generative reranking for recommender systems via global action space.
+
+arXiv preprint arXiv:2604.25291.
+
+Cited by: §2.1.
+
+Jia et al. (2026b)
+P. Jia, H. Yang, S. Liu, X. Wang, W. Wang, X. Li, Y. Liu, K. Zhan, K. Gai, and X. Zhao
+
+UniRank: unified list-wise reranking via confidence-ordered denoising.
+
+arXiv preprint arXiv:2605.10527.
+
+Cited by: 5th item,
+§B.1,
+§1,
+§2.1,
+§5.1.2,
+Table 2.
+
+Jiang et al. (2026)
+Y. Jiang, Z. Feng, C. P. Mah, A. Mehta, and D. Wang
+
+One model, two markets: bid-aware generative recommendation.
+
+arXiv preprint arXiv:2603.22231.
+
+Cited by: §1,
+§2.3.
+
+Li et al. (2026)
+C. Li, H. Zhao, W. Yao, R. Huang, R. Lu, G. Tian, and D. Kong
+
+Constraint-aware generative re-ranking for multi-objective optimization in advertising feeds.
+
+arXiv preprint arXiv:2603.04227.
+
+Cited by: §2.3.
+
+Lin et al. (2024)
+X. Lin, X. Chen, C. Wang, H. Shu, L. Song, B. Li, and P. Jiang
+
+Discrete conditional diffusion for reranking in recommendation.
+
+In Companion proceedings of the ACM web conference 2024,
+
+pp. 161–169.
+
+Cited by: §1,
+§2.1.
+
+Lin et al. (2025)
+Z. Lin, Z. Li, C. Dai, W. Bao, S. Lin, E. Yu, H. Zhang, and L. Zhao
+
+GReF: a unified generative framework for efficient reranking via ordered multi-token prediction.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 5879–5887.
+
+Cited by: 3rd item,
+§B.1,
+§1,
+§2.1,
+§2.2,
+§5.1.2,
+Table 2.
+
+Ma et al. (2025)
+Y. Ma, R. Qian, B. Wang, Q. Qi, W. Liu, Q. Tang, Z. Shen, W. Zhong, B. Shen, Y. Su, et al.
+
+Genauction: a generative auction for online advertising.
+
+In Proceedings of the AAAI Conference on Artificial Intelligence,
+
+Vol. 39, pp. 12372–12380.
+
+Cited by: §2.3.
+
+Pang et al. (2020)
+L. Pang, J. Xu, Q. Ai, Y. Lan, X. Cheng, and J. Wen
+
+Setrank: learning a permutation-invariant ranking model for information retrieval.
+
+In Proceedings of the 43rd international ACM SIGIR conference on research and development in information retrieval,
+
+pp. 499–508.
+
+Cited by: §1,
+§2.1.
+
+Pei et al. (2019)
+C. Pei, Y. Zhang, Y. Zhang, F. Sun, X. Lin, H. Sun, J. Wu, P. Jiang, J. Ge, W. Ou, et al.
+
+Personalized re-ranking for recommendation.
+
+In Proceedings of the 13th ACM conference on recommender systems,
+
+pp. 3–11.
+
+Cited by: 1st item,
+§1,
+§1,
+§2.1,
+§5.1.2,
+Table 2.
+
+Pu et al. (2026)
+Y. Pu, C. Zhang, C. Feng, X. Yang, X. Li, Y. Liu, D. Lian, K. Zhan, and K. Gai
+
+SWIM: step-wise integrated measure for session-supervised list evaluation in generative re-ranking.
+
+arXiv preprint arXiv:2608.25104.
+
+Cited by: §2.2.
+
+Ren et al. (2024)
+Y. Ren, Q. Yang, Y. Wu, W. Xu, Y. Wang, and Z. Zhang
+
+Non-autoregressive generative models for reranking recommendation.
+
+In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 5625–5634.
+
+Cited by: 2nd item,
+§1,
+§2.1,
+§5.1.2,
+Table 2.
+
+Schnabel et al. (2016)
+T. Schnabel, A. Swaminathan, A. Singh, N. Chandak, and T. Joachims
+
+Recommendations as treatments: debiasing learning and evaluation.
+
+In international conference on machine learning,
+
+pp. 1670–1679.
+
+Cited by: §3.2.
+
+Song et al. (2026)
+C. Song, J. Zhang, C. Chen, Z. Sang, D. Zhao, G. Cao, B. Wu, D. Cai, and J. Jia
+
+DeGRe: dense-supervised generative reranking for recommendation.
+
+In Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2,
+
+pp. 7957–7966.
+
+Cited by: §B.1,
+§1,
+§2.2.
+
+Vaswani et al. (2017)
+A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin
+
+Attention is all you need.
+
+Advances in neural information processing systems 30.
+
+Cited by: §4.1.1.
+
+Wang et al. (2025)
+S. Wang, X. Wei, S. Kou, C. Wang, W. Chen, Q. Tang, Y. Zhu, X. Xiao, and X. Wang
+
+NLGR: utilizing neighbor lists for generative rerank in personalized recommendation systems.
+
+In Companion Proceedings of the ACM on Web Conference 2025,
+
+pp. 530–537.
+
+Cited by: §2.2.
+
+Wang et al. (2020)
+S. Wang, B. Z. Li, M. Khabsa, H. Fang, and H. Ma
+
+Linformer: self-attention with linear complexity.
+
+arXiv preprint arXiv:2006.04768.
+
+Cited by: §4.1.2.
+
+Xiong et al. (2026)
+L. Xiong, C. Hou, Z. Zhu, C. Guo, T. Liu, and B. Zheng
+
+NextGen: a multi-objective generative re-ranking framework for taobao recommendation.
+
+In Proceedings of the 20th ACM Conference on Recommender Systems,
+
+pp. 1352–1360.
+
+Cited by: §2.2.
+
+Xue et al. (2026)
+B. Xue, D. Liu, L. Wang, M. Sun, P. Wang, P. Zhang, S. Shi, T. Xu, Y. Sha, Z. Liu, et al.
+
+Generative recommendation for large-scale advertising.
+
+In Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2,
+
+pp. 8346–8357.
+
+Cited by: §2.2,
+§2.3.
+
+Zhang and Sennrich (2019)
+B. Zhang and R. Sennrich
+
+Root mean square layer normalization.
+
+Advances in neural information processing systems 32.
+
+Cited by: §4.1.2.
+
+Zhang et al. (2026a)
+C. Zhang, S. Lin, C. Dai, Y. Qian, F. Mingyang, Y. Zhang, Y. Wang, and J. Zhuo
+
+Dual-rerank: fusing causality and utility for industrial generative reranking.
+
+arXiv preprint arXiv:2604.07420.
+
+Cited by: 4th item,
+§B.1,
+§1,
+§2.1,
+§5.1.2,
+Table 2.
+
+Zhang et al. (2026b)
+K. Zhang, X. Wang, S. Liu, X. Li, L. Hu, H. Li, Q. Cao, F. Sun, and K. Gai
+
+Goalrank: group-relative optimization for a large ranking model.
+
+In International Conference on Learning Representations,
+
+Vol. 2026, pp. 155825–155845.
+
+Cited by: §1,
+§2.2.
+
+Zhang et al. (2019)
+X. Zhang, R. Zhao, Y. Qiao, X. Wang, and H. Li
+
+Adacos: adaptively scaling cosine logits for effectively learning deep face representations.
+
+In 2019 IEEE/CVF conference on computer vision and pattern recognition (CVPR),
+
+pp. 10815–10824.
+
+Cited by: §4.1.3.
+
+Zhao et al. (2026)
+B. Zhao, X. Yang, X. Zhao, and S. Xu
+
+DEGR: dual exploration-driven generative re-ranking for adaptive cross-request context bridging.
+
+In Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2,
+
+pp. 8544–8554.
+
+Cited by: 6th item,
+§B.1,
+§2.2,
+§5.1.2,
+Table 2.
+
+Appendix A Implementation Details
+
+This section details the model architecture, training configuration, and serving procedure of UGR.
+
+A.1. Model Architecture
+
+Table 5 summarizes the model, training, and serving settings.
+
+• 
+
+Request context encoder.
+Each encoder layer consists of masked self-attention over the feature and behavior tokens, followed by a position-wise feed-forward network, with a residual connection and RMSNorm around each sublayer. A learned token-axis projection then compresses the encoded sequence into a single request context token.
+
+• 
+
+Candidate encoding.
+Candidate features are projected by an MLP with hidden widths of 512 and 256. Candidate interactions are modeled by one low-rank attention block with eight latent key–value components, followed by a two-layer feed-forward network
+with widths of 256 and 256.
+
+• 
+
+Autoregressive decoder.
+The decoder block applies causal self-attention over the session and selected-candidate tokens, cross-attention to the request context token, and a two-layer feed-forward network. Each sublayer is wrapped with a residual connection and RMSNorm.
+
+• 
+
+Advertising debiasing tower.
+The advertising debiasing tower has a hidden width of eight and is used only during training.
+The output layer and position offsets are initialized to zero, so the tower initially leaves the generator logits unchanged.
+
+• 
+
+Activation and normalization.
+We use LeakyReLU activation and RMSNorm with $\epsilon=10^{-8}$ .
+
+A.2. Training Configuration
+
+• 
+
+Optimization.
+We use AdagradDecayV2 with a training batch size of 128.
+The learning rate increases linearly from 0.001 to 0.01 over the first $10^{6}$ global steps and remains at 0.01 thereafter.
+
+• 
+
+Training objective.
+NTP, WSFT, and PermPO are optimized jointly, with coefficients 1, $\lambda_{\mathrm{WSFT}}=1$ and $\lambda_{\mathrm{PermPO}}=15$ , respectively.
+
+• 
+
+Feedback definition and weighting. We use two binary feedback signals. $F_{\text{IPV}}=1$ if item $i$ receives a click or has a browsing duration exceeding 3 seconds, and $F_{\text{CVR}}=1$ if a transaction is observed for the item; otherwise, the corresponding signal is zero.
+WSFT and PermPO share the same feedback score: $w(i)=Gain(i)=F_{\text{IPV}}+2\,F_{\text{CVR}}$ . This corresponds to $\eta=1,\beta_{\text{IPV}}=1$ , and $\beta_{\text{CVR}}=2$ in Eq. (12).
+The two contributions are summed directly, without clipping or normalization.
+
+Table 5. Model architecture, training and serving settings.
+
+ | 
+
+Setting
+
+ | 
+
+Value
+
+ | Model architecture
+
+ | 
+
+Token representation dimension
+
+ | 
+
+256
+
+ | 
+
+Request encoder attention layers
+
+ | 
+
+1
+
+ | 
+
+Candidate embedding MLP widths
+
+ | 
+
+ $512\rightarrow 256$ 
+
+ | 
+
+Candidate-attention blocks
+
+ | 
+
+1
+
+ | 
+
+Candidate-attention rank
+
+ | 
+
+8
+
+ | 
+
+Candidate FFN widths
+
+ | 
+
+ $256\rightarrow 256$ 
+
+ | 
+
+Decoder FFN widths
+
+ | 
+
+ $256\rightarrow 256$ 
+
+ | 
+
+Activation
+
+ | 
+
+LeakyReLU
+
+ | 
+
+Encoder / decoder normalization
+
+ | 
+
+RMSNorm
+
+ | Training configuration
+
+ | 
+
+Optimizer
+
+ | 
+
+AdagradDecayV2
+
+ | 
+
+Training batch size
+
+ | 
+
+128
+
+ | 
+
+Learning rate after warmup
+
+ | 
+
+0.01
+
+ | 
+
+Warmup starting learning rate
+
+ | 
+
+0.001
+
+ | 
+
+Warmup steps
+
+ | 
+
+ $10^{6}$ 
+
+ | 
+
+ $\lambda_{\mathrm{WSFT}}$ 
+
+ | 
+
+1
+
+ | 
+
+ $\lambda_{\mathrm{PermPO}}$ 
+
+ | 
+
+15
+
+ | Serving configuration
+
+ | 
+
+Total candidate capacity $M$ 
+
+ | 
+
+1,000
+
+ | 
+
+Number of returned candidate lists $N$ 
+
+ | 
+
+4
+
+ | 
+
+Items per generated list $L$ 
+
+ | 
+
+4
+
+A.3. Serving and Deployment
+
+• 
+
+Multi-value sequence retrieval.
+Candidate extensions are scored using the online value integration described in Section 4.3.
+Partial sequences are ranked by their cumulative integrated scores, and the four highest-scoring extensions across all retained prefixes are kept at each step.
+Padded candidates and items already selected in the current prefix are masked.
+After four decoding steps, UGR returns four ranking lists, each containing four distinct items.
+
+• 
+
+Computation reuse.
+The request encoding, candidate embeddings, and candidate-attention outputs are computed once per request and reused throughout retrieval.
+The decoder recomputes the current prefix at each step.
+
+• 
+
+Production integration.
+UGR is deployed downstream of the candidate retrieval and scoring modules.
+Its generated lists are ranked by the same downstream evaluator used by the production baseline, which selects the final list for exposure.
+
+A.4. Baseline Details
+
+We briefly describe the six baselines used in our experiments.
+
+• 
+
+PRM (Pei et al., 2019) uses personalized self-attention to model candidate interactions for reranking.
+
+• 
+
+NAR4Rec (Ren et al., 2024) generates lists in parallel using unlikelihood training and contrastive decoding.
+
+• 
+
+GReF (Lin et al., 2025) combines autoregressive generation, Rerank-DPO, and ordered multi-token prediction.
+
+• 
+
+Dual-Rerank (Zhang et al., 2026a) combines non-autoregressive generation with sequence distillation and list-wise utility optimization.
+
+• 
+
+UniRank (Jia et al., 2026b) unifies autoregressive and non-autoregressive ranking through confidence-driven iterative denoising.
+
+• 
+
+DEGR (Zhao et al., 2026) balances immediate and exploration value through dual exploration and reward-weighted preference optimization.
+
+All methods use the same chronological data splits, request-time features, full upstream candidate sets, and output list length.
+We retain each baseline’s architecture, training objective, and decoding mechanism, adapting only its input and output interfaces to the heterogeneous candidate-ranking task.
+Hyperparameters are tuned independently on the validation set, and model selection does not use test results.
+All methods are evaluated using the same feedback-label construction and metric implementations.
+
+Appendix B Evaluation Metrics
+
+This section defines the metrics used in our offline experiments and online A/B tests.
+
+B.1. Offline Evaluation Metrics
+
+Following previous works (Zhang et al., 2026a; Jia et al., 2026b; Zhao et al., 2026; Lin et al., 2025; Song et al., 2026), the offline metrics are computed as follows:
+
+• 
+
+Hitrate measures the exposure agreement between the generated ranking list and the logged exposure list.
+
+• 
+
+NDCG evaluates position-aware ranking quality, assigning greater importance to positive-feedback items ranked near the top.
+
+• 
+
+MAP evaluates the overall ranking quality of positive-feedback items in the generated list.
+
+• 
+
+AUC evaluates the relative ranking quality between positive- and negative-feedback items.
+
+NDCG, MAP, and AUC are reported separately for IPV and CVR.
+For IPV, an item is assigned a label of 1 if it receives a click or has a browsing duration exceeding 3 seconds.
+For CVR, an item is assigned a label of 1 if a transaction is observed.
+Higher values of all four metrics indicate better performance.
+
+B.2. Online A/B Test Metrics
+
+We define the online metrics reported in our A/B tests as follows.
+
+• 
+
+Core IPV (Item Page Views) counts item-detail-page visits attributed to the evaluated recommendation service, restricted to the platform-defined core item scope.
+
+• 
+
+Click UV measures the approximate number of distinct users with at least one valid click on a recommended item.
+
+• 
+
+UCTR (User Click-Through Rate) is the ratio of Click UV to Exposure UV, where Exposure UV counts distinct users with at least one valid recommendation exposure.
+
+• 
+
+Transaction Volume counts completed orders attributed to the evaluated recommendation service.
+
+• 
+
+GMV (Gross Merchandise Volume) measures the total value of paid orders attributed to the evaluated recommendation service.
+
+• 
+
+Ad PVR measures the proportion of ad items among all displayed items. It gauges the extent of ad exposure and serves as a guardrail for monitoring changes in ad impressions.
+
+• 
+
+Ad Cost measures advertiser spend across the overall recommendation service and serves as a guardrail for advertising expenditure.
+
+For each metric $M$ , we report its relative improvement over the production baseline as $\Delta M=(M_{\mathrm{UGR}}/M_{\mathrm{baseline}}-1)\times 100\%$ .
+
+Appendix C Additional Results
+
+This section presents the complete results of the advertising debiasing tower analysis in Section 5.5.2, hyperparameter analysis in Section 5.6, and token-dimension scaling analysis in Section 5.7.
+
+C.1. Advertising Debiasing Tower
+
+Fig. 10 further presents the distributions of the UGR generator logits $z_{t}(i)$ , the tower adjustments $\delta_{t}(i)$ produced by the debiasing tower, and combined training logits $z_{t}(i)+\delta_{t}(i)$ across ten eCPM intervals ordered from low to high.
+Pearson correlations are computed between eCPM and each of these three quantities.
+
+Figure 10. Distributions of UGR generator logits, tower adjustments, and combined training logits across eCPM intervals.
+Boxes show the interquartile range, center lines indicate medians, whiskers mark the 5th and 95th percentiles, and dashed lines connect mean values.
+
+Figure 11. Complete hyperparameter analysis of the WSFT and PermPO loss weights.
+The top and bottom rows vary $\lambda_{\mathrm{WSFT}}$ and $\lambda_{\mathrm{PermPO}}$ , respectively.
+The columns report Hitrate, NDCG, MAP, and AUC.
+Hitrate is shown in gray; in the remaining columns, the blue and orange curves denote IPV and CVR performance, respectively.
+
+Figure 12. 
+Complete scaling results across token dimensions.
+The top and bottom rows report performance for IPV and CVR, respectively.
+From left to right, the columns show NDCG, MAP, and AUC.
+
+As the eCPM level increases, the generator logits decrease, while the tower adjustments increase.
+The combined logits show a slight initial decline followed by an upward trend at higher eCPM levels, where the increase in tower adjustments outweighs the decrease in generator logits.
+These patterns indicate that eCPM-related variation is reflected primarily in the tower adjustments rather than in the generator logits.
+During serving, only the generator logits are retained.
+
+C.2. Hyperparameter Analysis
+
+Fig. 11 reports the complete hyperparameter results, including MAP and AUC.
+
+MAP exhibits trends similar to NDCG for both IPV and CVR.
+As $\lambda_{\mathrm{WSFT}}$ increases, IPV AUC remains relatively stable while CVR AUC decreases slightly.
+Increasing $\lambda_{\mathrm{PermPO}}$ generally improves AUC, with the gains becoming smaller at larger weights.
+
+C.3. Scaling Performance
+
+Fig. 12 reports the complete scaling results for NDCG, MAP, and AUC for both IPV and CVR.
+
+For IPV, MAP improves consistently with the token dimension, while AUC shows an overall upward trend with minor intermediate variation.
+For CVR, MAP follows a pattern similar to NDCG, reaching its highest value at a dimension of 512 and decreasing slightly at 1024.
+In contrast, CVR AUC improves across the evaluated dimensions.
+
+Overall, the effect of increasing representation capacity depends on both the ranking target and the evaluation metric.
+Larger token dimensions generally improve IPV performance, while the improvements in CVR ranking quality become less pronounced at larger dimensions.
+We use a token dimension of 256 in the main experiments to balance ranking quality and serving cost.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About ·
+ Help ·
+ Contact ·
+ Subscribe ·
+ Copyright ·
+ Privacy ·
+ Accessibility ·
+ Operational Status (opens in new tab)
+

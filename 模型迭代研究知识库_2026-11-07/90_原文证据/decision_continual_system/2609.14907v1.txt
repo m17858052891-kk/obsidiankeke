@@ -1,0 +1,776 @@
+Strategic Decision Focused Learning
+Skip to main content
+Report GitHub Issue
+×
+Title:
+Content selection saved. Describe the issue below:
+Description:
+Why HTML?
+Report Issue
+Back to Abstract
+Download PDF
+Contents
+Reading mode
+Colour theme
+License: CC BY 4.0
+arXiv:2609.14907v1 [cs.GT] 14 Sep 2026
+Strategic Decision Focused Learning
+Tinashe Handina
+††thanks: Corresponding author: thandina@caltech.edu.
+Affiliation: California Institute of Technology
+Yuehan Diao
+Affiliation: University of Chicago
+Adam Wierman
+Affiliation: California Institute of Technology
+Eric Mazumdar
+Affiliation: California Institute of Technology
+Abstract
+Machine learning (ML) predictions are increasingly being used to guide decision-making, giving rise to the problem of decision-focused learning (DFL) where predictors are optimized for downstream decision quality rather than accuracy alone. However, most existing work assumes a single decision-maker optimizing in isolation. This paper formalizes strategic decision-focused learning, where an ML system predicts an exogenous state that some agents observe before playing a game. For example, a park ranger may predict wildlife locations to allocate anti-poaching patrols against strategic poachers. While the exogenous state is unaffected by agent actions, predictions influence agents’ strategies and the resulting equilibrium. We find that strategic considerations fundamentally change the learning problem. In particular, we show the prediction accuracy–equilibrium payoff landscape can be non-monotonic—i.e., better predictions can degrade performance. We propose algorithmic approaches to address these challenges and validate them across benchmarks in wildlife conservation and infrastructure protection. Our theory and experiments highlight the importance of accounting for strategic interactions when designing predictors.
+1 Introduction
+Machine Learning (ML) systems are playing an increasingly vital role in shaping decisions across a wide range of domains. From commerce [4], to security [13] [28], to government [20] [34], decision makers are increasingly relying on the outputs of ML systems as the basis upon which they optimize their actions. Driving the proliferation of ML is its demonstrable ability to understand and predict the evolution of complex systems reasonably well. As ML systems become an ever more consequential tool used for decision making, understanding when standard training objectives are structurally inadequate — not merely suboptimal — is of vital importance. This paper identifies one such setting.
+Learning with the view that the output of a learning algorithm is going to be used in a downstream optimization problem is an active area of research often called decision-focused learning[15][31][27]. Research in this area, to date, has often focused on a single decision maker leveraging ML outputs to optimize a utility or cost function in isolation [27]. In many consequential applications, however, decision makers find that they are interacting with other actors who often act in a strategic manner. This introduces complexities to the optimization problem as the agent now not only has to consider the impact of the decision on the cost function, but also has to take into account how other actors may respond to any particular decision they make.
+Figure 1: Comparison of different learning paradigms. In contrast to classical and decision-focused learning, SDFL operates in a strategic context, significantly complicating the learning task. Unlike performative prediction or strategic classification, the data distribution is exogenous—free from strategic feedback loops.
+In this work, we formalize this problem area which we call strategic decision-focused learning (SDFL). In this setting, an agent is trying to leverage ML systems to aid with the prediction of some exogenous state that affects a game that they play. Such settings are prevalent across a wide range of domains, including:
+•
+Electricity markets: ML predictors can be used by producers competing in grid markets to forecast exogenous renewable generation conditions (e.g., wind and solar availability), which are then used to inform pricing strategies that interact with those of competing producers.
+•
+Motorsport strategy: In Formula One, teams leverage predictive models to forecast exogenous variables such as tire degradation rates and safety car probabilities, which shape pit-stop and fuel strategies in direct competition with opposing teams.
+•
+Security and conservation: Predicting population distributions over a geographic region — such as wildlife density or civilian movement — informs patrol strategies in adversarial security games (we evaluate this concretely in conservation and infrastructure protection domains in this work).
+We find that the explicit characterization of the downstream strategic interaction leads to fundamental — not merely practical — considerations for the design and use of machine learning systems. To that end, this work seeks to address the following question:
+How should agents develop and make use of Machine Learning for exogenous state predictions in strategic interactions?
+Traditional approaches to this problem in the strategic domain have often relied on first predicting exogenous states such as demand [29] or population distributions [26], then optimizing for a decision. We show that this approach is not merely suboptimal but also suffers from a fundamental issue of misalignment. As we show, in strategic settings no monotone transformation of a supervised accuracy loss can serve as a reliable proxy for strategic utility. This failure is structural, arising from the interaction between prediction error and equilibrium response, and persists regardless of model capacity or data quantity.
+Our contributions:
+This paper makes three conceptual contributions and one algorithmic contribution.
+(C1) Problem formalization. We formalize strategic decision-focused learning as a distinct problem within the decision-focused learning paradigm. The SDFL problem is defined for general games and solution concepts: an agent predicts an exogenous state and commits to an equilibrium strategy based on that prediction, while opponents respond under the true state. This split between the predicted world the agent plans for and the true world opponents respond to is the source of all the difficulty we characterize. The Stackelberg equilibrium is one tractable instantiation we study in depth; the formalization and hardness results hold for general solution concepts.
+(C2) Structural hardness. We prove that the mapping from prediction accuracy to equilibrium payoff is provably non-monotone: a less accurate prediction can strictly outperform a more accurate one (Proposition 3.2), while the true state in, some instances, may be suboptimal (Proposition 3.3). Together, these results characterize the structure of the accuracy–utility landscape. This is not a worst-case pathology: it is a feature of the landscape, implying that standard predict-then-optimize pipelines are not well motivated for SDFL.
+(C3) Geometric characterization of hardness. We prove that, for a class of games, as game dimensionality grows, an increasing proportion of strategies lie near best-response boundaries (Theorem 3.7), explaining geometrically why small prediction errors may induce large utility swings. This result characterizes why the hardness can intensify as the action space grows.
+(C4) Initial algorithmic framework. Motivated by C1–C3, we propose end-to-end prediction approaches as an initial algorithmic response to SDFL. We present these as proof-of-concept rather than definitive solutions, in the same spirit as early task-loss surrogates in single-agent DFL that preceded formal analysis [3, 31]. Experiments across two real-world security game domains validate that end-to-end approaches outperform predict-then-optimize despite higher supervised prediction error, corroborating our theoretical findings that accuracy and strategic utility are misaligned.
+1.1 Related work
+Learning how to make use of machine learning for the purposes of downstream decision making has emerged as an important area of research [15, 5]. The key idea powering much of this work is that embedding the optimization problem of interest into the training loop and backpropagating decision-relevant gradients can lead to better performance than first optimizing a prediction and then optimizing for a decision [3, 33]. While standard approaches to decision-focused learning often focus on a single agent optimizing in isolation [27], we focus on extending and formalizing this paradigm for the strategic domain. In particular, we consider what happens when the decision is observed by strategic agents whose choices are affected by the optimization decision itself. We call this setting strategic decision-focused learning. Crucially, the strategic setting is not merely a harder instance of standard DFL but a qualitatively different problem: the accuracy–utility misalignment we identify has no analogue in the single-agent case. Closest to our work is game-focused learning in security games [24, 30]: there the payoffs are known, and a defender learns how an attacker reacts and then best-responds to what is learned. In our framework, the state that sets the payoffs, which our opponents already observe, is what is predicted. The predictor then plays an equilibrium of the game it thinks it is in. This introduces new forms of complexity: for example, predicting the true state in some instances may be suboptimal (Proposition 3.3).
+Learning in strategic environments:
+Recent years have seen a surge of research on deploying learning algorithms within strategic environments [17, 16]. This focus on the intersection of learning and strategic interactions has given rise to, among others, the domains of strategic classification [11], adversarial machine learning [14], and multi-agent reinforcement learning [35]. Closely related is performative prediction [23], wherein the act of prediction itself causes a distributional shift in the data the model is trained on. Our work takes an orthogonal track: rather than the prediction changing the input distribution, we ask how to properly account for exogenous state information within a strategic decision-making task where the prediction shapes the equilibrium that emerges. The exogeneity of the data distribution is what separates SDFL from performative prediction; the presence of strategic opponents is what separates it from standard DFL. A key theme arising from this body of work is that learning in strategic environments is often non-trivial, with phenomena such as instability of algorithms resulting in convergence to cycles and chaos [18], and strategic manipulations leading to improved causal discovery [1]. Of particular interest is the insight that small changes in learning parameters may lead to different equilibria with different utilities [36]. Previous work has also found that model selection within the broader context of learning in strategic environments is complicated, with the model expressivity–payoff landscape in general being non-monotonic [10]. Our work contributes a precise characterization of this non-monotonicity in the SDFL setting, grounding it in the geometry of best-response regions rather than model expressivity.
+2 Problem Formulation
+We formalize strategic decision-focused learning as a distinct problem within the
+decision-focused learning paradigm. We begin with a general formulation applicable
+to any game and solution concept, then instantiate it for the Stackelberg setting
+we study in depth.
+In the standard decision-focused learning (DFL) setting, a single agent uses a
+learned model  f_{\theta}:\mathcal{X}\to\mathcal{S}  to predict an uncertain
+parameter  s\in\mathcal{S}  and solves a downstream optimization problem whose
+objective depends on  s . The central insight of DFL is that training  f_{\theta}
+to minimize a supervised loss can be suboptimal when downstream decision quality
+is what matters [5, 31]. Critically, most existing
+DFL assumes the agent optimizes in isolation — no other agent observes or
+responds to the decision. As we show, this isolation assumption is not merely a
+simplification but a load-bearing one: its violation changes the learning problem
+qualitatively.
+2.1 Strategic Decision-Focused Learning
+We consider a game  G=(\mathcal{N},\{\mathcal{A}_{i}\}_{i\in\mathcal{N}},\{U_{i}\}_{i\in\mathcal{N}},\mathcal{S})  where  \mathcal{N}  is a finite set
+of agents,  \mathcal{A}_{i}  is the action set of agent  i ,  \mathcal{S}\subseteq\mathbb{R}^{d}  is an exogenous state space, and  U_{i}:\prod_{j}\mathcal{A}_{j}\times\mathcal{S}\to\mathbb{R}  is agent  i ’s utility. Each agent selects a
+mixed strategy  \alpha_{i}\in\Delta(\mathcal{A}_{i}) .
+The state  s\in\mathcal{S}  is exogenous: drawn from a fixed distribution
+P_{\mathcal{S}}  independently of any agent’s actions. A primary agent  i  observes
+only a dataset  \mathcal{D}=\{(x^{(t)},s^{(t)})\}_{t=1}^{T}  and learns a
+predictor  f_{\theta}:\mathcal{X}\to\mathcal{S} . All other agents observe the
+true realized state  s_{r} .
+Let  \sigma:\mathcal{S}\to\prod_{j}\Delta(\mathcal{A}_{j})  denote a
+solution mapping returning an equilibrium profile for a given state. Agent
+i  commits to  \sigma_{i}(\hat{s})  based on their prediction  \hat{s}=f_{\theta}(x) ,
+while opponents respond under the true state  s_{r} . The realized joint profile is:
+\sigma(\hat{s},s_{r})=\big(\sigma_{i}(\hat{s}),\;\mathrm{Eq}_{-i}(\sigma_{i}(\hat{s}),\;s_{r})\big)  where  \mathrm{Eq}_{-i}(\alpha_{i},s)  is the equilibrium response of agents  -i
+to a fixed  \alpha_{i}  under state  s . The strategic decision-focused
+learning problem is then:
+| \theta^{*}=\arg\max_{\theta}\;\mathbb{E}_{(x,s_{r})\sim\mathcal{D}}\left[U_{i}\!\left(\sigma(f_{\theta}(x),\,s_{r}),\;s_{r}\right)\right] |  | (1)
+The split between the predicted world agent  i  plans for and the true world
+opponents respond to is the source of all the difficulty we characterize in
+Section 3. We note that this formulation is distinct from
+performative prediction [23], wherein predictions shift  P_{\mathcal{S}}
+through a feedback loop — here the data distribution is fixed and predictions
+affect only the equilibrium. Our framework is clearly distinguished from existing learning problems in Figure 1.
+2.2 Stackelberg Instantiation
+The SDFL objective equation 1 is defined for general games and
+solution concepts; the hardness results of Section 3 hold in
+this generality. For the algorithmic contributions and experiments of
+Sections 4, we instantiate SDFL under
+the Stackelberg solution concept, chosen for tractability and its natural
+fit to security applications.
+We focus on two-player interactions in which agent  i  leads and agent  -i
+follows. Given predicted state  \hat{s} , the leader computes:
+\bar{\alpha}_{i}(\hat{s})=\arg\max_{\alpha_{i}\in\Delta(\mathcal{A}_{i})}U_{i}\!\left(\alpha_{i},\;BR_{-i}(\alpha_{i},\hat{s}),\;\hat{s}\right)
+where  BR_{-i}(\alpha_{i},s)=\arg\max_{\alpha_{-i}}U_{-i}(\alpha_{i},\alpha_{-i},s) . Since the follower responds under the true state  s_{r} , the leader’s realized
+utility is:
+U_{i}^{\mathrm{realized}}(\hat{s},s_{r})=U_{i}\!\left(\bar{\alpha}_{i}(\hat{s}),\;BR_{-i}(\bar{\alpha}_{i}(\hat{s}),\;s_{r}),\;s_{r}\right) .
+Stackelberg equilibria are the natural solution concept for security settings,
+where attackers are assumed to observe both the state and the defender’s committed
+strategy [32].
+Illustrative example.
+A game ranger predicts elephant locations to
+allocate patrols against strategic poachers. The exogenous state — the true
+elephant distribution — is unknown to the ranger but (in the worst case) observed by the poachers.
+The ranger commits to a patrol strategy based on their prediction; the poachers
+best-respond knowing the truth. The ranger’s realized utility depends not on how
+accurately they predicted elephant locations, but on how well their patrol strategy
+performs against opponents who know the true state. This gap between prediction
+quality and strategic performance is precisely what equation 1
+captures.
+3 Limitations of Accuracy based Predictions in Games
+We establish that standard accuracy-based approaches to SDFL suffer from a problem of mis-alignment. We prove two independent results that together characterize why: first,
+the mapping from prediction accuracy to equilibrium payoff is provably
+non-monotone, implying no monotone transformation of a supervised loss
+can serve as a reliable proxy for strategic utility; second, for a broad
+class of games, the fraction of strategies near best-response boundaries
+grows with game dimensionality, explaining geometrically why small
+prediction errors induce large utility swings. While we
+instantiate these results in the Stackelberg setting for concreteness,
+the non-monotonicity result holds for the general SDFL
+objective equation 1 under other solution mappings,  \sigma ,
+satisfying the conditions of Section 2.
+Given a dataset  \mathcal{D}  relating to the exogenous state  s , standard approaches to learning in strategic environments first find some  s_{pred}  by minimizing a statistical loss function  \mathcal{L}(\phi,\mathcal{D})  which is proportional to some accuracy metric  \phi  for the game instance. After having learned a prediction of the state, the agent then looks to optimize their decision-making given their state prediction, which was yielded from the previous estimation step.
+Definition 3.1 (Accuracy Metric).
+Let  \mathcal{S}\subseteq\mathbb{R}^{n}  for some  n\in\mathbb{N} , and let  s_{r}\in\mathcal{S}  be the true realization of the state. An accuracy metric for the game instance is a function  \phi:\mathcal{S}\rightarrow\mathbb{R}_{\geq 0}  defined by  \phi(s)=\|s-s_{r}\|  for some symmetric norm  \|\cdot\|  on  \mathbb{R}^{n} .
+To extend the previous example of elephant conservation, we assume that the ranger is given some dataset  \mathcal{D}  on the location of elephants within the reserve. Standard approaches to the strategic decision-focused learning problem would have the ranger find  s_{pred}  (a prediction of where the elephants would be), and then from there, they would optimize to find a patrol strategy that maximizes their utility. We call this approach to learning “Predict Then Optimize” (PTO).
+We begin by showing the limitations of this particular learning paradigm. We find that it is possible for a state prediction to be less accurate yet lead the decision maker into selecting an action that yields better payoff when compared to some other, more accurate state prediction. This shows that utility within the context of strategic environments can be non-monotonic with respect to prediction accuracy.
+Proposition 3.2.
+There exists a game instance with true state  s_{r} , and predictions  s_{p,1}  and  s_{p,2} , wherein  s_{p,1}  is strictly more accurate than  s_{p,2}  under every accuracy metric  \phi , yet player  i ’s utility at the equilibrium induced by  s_{p,1}  is strictly lower than that induced by  s_{p,2} :
+| U_{i}\!\left(\alpha^{*}(s_{p,1}),\,s_{r}\right)\;<\;U_{i}\!\left(\alpha^{*}(s_{p,2}),\,s_{r}\right), |
+where  \alpha^{*}(s)=(\alpha_{i}^{*}(s),\,BR_{-i}(\alpha_{i}^{*}(s),s_{r}))  denotes the equilibrium joint strategy profile when the primary plays assuming state  s , the rest of the agents see the true state  s_{r} , and utility is evaluated at  s_{r} .
+In addition, we find that there exist game instances in which the true state  s_{r}  is not the utility-optimal prediction for a player: a strategically calibrated misprediction can induce an equilibrium that, when played against the true state, yields strictly higher utility than the equilibrium induced by  s_{r}  itself.
+Proposition 3.3.
+There exists a game instance with true state  s_{r}  and player  i  such that there exists a prediction  s_{p}\in\mathcal{S}  satisfying:
+| U_{i}\!\left(\alpha^{*}(s_{p}),\,s_{r}\right)\;>\;U_{i}\!\left(\alpha^{*}(s_{r}),\,s_{r}\right), |
+where  \alpha^{*}(s)=(\alpha_{i}^{*}(s),\,BR_{-i}(\alpha_{i}^{*}(s),s_{r}))  denotes the equilibrium joint strategy profile when the primary plays assuming state  s , the rest of the agents see the true state  s_{r} , and utility is evaluated at  s_{r} .
+The case for utility-aware approaches in games is further strengthened by the general volatility of the strategy-utility landscape. In particular, we see that for a wide characterization of games, the probability that a uniformly sampled strategy is near another strategy with a different best response increases with the dimensionality of the game. This phenomenon points to why, in some instances, small perturbations in state predictions result in completely different utilities.
+Definition 3.4.
+Let  A,B  be two players in a bi-matrix game  G=(\textbf{A, B}) . For player  A , we define the best response region for each action  b  of player  B  to be  R_{b}^{A}:=\{\alpha\in\Delta({\mathcal{A}})|b\in BR(\alpha)\} .
+Definition 3.5.
+We say that a particular strategy  \alpha\in R^{A}_{b}  is  \delta- regional if  \exists\alpha^{\prime}\in R^{A}_{b^{\prime}}  with  b\neq b^{\prime}  such that  \|\alpha-\alpha^{\prime}\|_{2}\leq\delta .
+In the above definitions, we formally describe best response regions (i.e., collections of strategies that elicit the same best response from a follower) and  \delta -regional strategies (strategies that, despite belonging to a particular best response region, are very close to another best response region). We seek to understand the prevalence of  \delta- regional strategies.
+Assumption 3.6.
+Let  \{G_{N}\}_{N=2}^{\infty}  be a sequence of two-player bi-matrix games
+in which both players have  N  actions,
+indexed by  [N]=\{1,\dots,N\} .
+For each action  b\in[N]  for player  B , the best-response region for player  A ,  R_{b}^{A,(N)} , is such that (1)  R_{b}^{A,(N)}\neq\emptyset  and (2) for all  \alpha\in R_{b}^{A,(N)} , we have  \alpha_{b}\geq 2\delta_{N} , where  \alpha_{b}  denotes the probability that player  A ’s mixed strategy  \alpha  places on its  b -th action and  \{\delta_{N}\}  is a sequence of positive numbers.
+We briefly remark on the strength of these conditions. Condition (1) simply requires that no player  B  action is strictly dominated—that is, every action in the player  B ’s action set is a best response to some player  A  mixed strategy. This is a mild non-degeneracy requirement.
+Condition (2) is more substantive but natural in a broad class of games. It asks that whenever player  B ’s best response is action  b , player  A  places at least probability  2\delta_{N}  on their own action  b . Since the numbering of actions is arbitrary, the condition need only hold under some permutation. In security game formulations, for instance, the permutation pairs each attacker action  b  with a defender action  \sigma(b) , and the condition reduces to requiring that each attacked cell is driven by the defender’s commitment to patrolling some corresponding location—a mild structural requirement.
+Theorem 3.7.
+Suppose the sequence of games  \{G_{N}\}_{N=2}^{\infty}  satisfies
+Assumption 3.6 with  \delta_{N}=c/N  for some  c\in(0,\tfrac{1}{2}] . For each  N , let  \alpha\sim\mathrm{Unif}(\Delta(\mathcal{A}))
+in game  G_{N} , then:
+| \mathbb{P}\!\big(\alpha\text{ is }\delta_{N}\text{-regional}\big)\;\geq\;1-\left(1-\frac{c\sqrt{2}}{N}\right)^{\!N-1}. |
+Theorem 3.7 illustrates how volatility naturally arises in games. For games satisfying Assumption 3.6, a uniformly sampled leader strategy is  \delta_{N} -regional with probability at least  1-\left(1-\frac{c\sqrt{2}}{N}\right)^{N-1} . This bound increases with  N  and has the non-vanishing limit  1-e^{-c\sqrt{2}} , which is approximately  0.507  at  c=\tfrac{1}{2} . As the dimensionality of the game grows, small perturbations to the leader’s strategy may therefore suffice to change the follower’s response. This susceptibility to downstream disruption is precisely what motivates a decision-focused approach.
+Remark 3.8.
+Theorem 3.7 bounds the prevalence of near-boundary strategies in strategy space; it makes no statement about utilities. Two steps connect it to utilities: a small change in the prediction can move the induced strategy across a best-response boundary, and where adjacent regions carry different leader utilities the realized utility then can change sharply. Games with such utility differences across adjacent regions are possible.
+4 End to End Predictions in Strategic Settings
+The results of Section 3 establish that no accuracy-based
+training objective can serve as a reliable proxy for strategic utility. This
+motivates a fundamentally different approach to learning in the SDFL setting,
+which we call End-To-End (ETE) prediction selection: rather than
+optimizing for predictive accuracy in isolation, ETE directly targets the
+downstream strategic objective. We present this framework as an initial
+algorithmic response to SDFL — a proof of concept demonstrating tractability
+rather than a definitive solution, in the same spirit as early end-to-end
+approaches in single-agent DFL that preceded formal convergence
+analysis [3, 31].
+Formally, let  f_{\theta}:\mathcal{X}\to\mathcal{S}  be a parameterized model mapping observable features  x\in\mathcal{X}  (derived from dataset  \mathcal{D} ) to a predicted state  f_{\theta}(x)\in\mathcal{S} . The ETE problem is to find parameters  \theta^{*}  that maximize
+the leader’s realized utility at equilibrium as per equation 1. This objective is challenging to optimize directly: the true state,  s_{r} , is unobserved at
+training time, and the mapping  \theta\mapsto U_{i}(\cdot)  passes through an
+equilibrium computation that is in general non-differentiable in  \theta .
+In the Stackelberg setting, this non-differentiability is concrete:
+\bar{\alpha}_{i}^{f_{\theta}(x)}  is the solution to a linear program (LP) whose
+payoff matrices are determined by  f_{\theta}(x) , and the LP argmax is
+non-smooth. Moreover, by Proposition 3.2 and
+Theorem 3.7, the objective is neither monotone in prediction
+accuracy nor smooth in  \theta , so optimizing a supervised proxy is
+unreliable. These challenges motivate a two-stage development. We first
+consider the case where  \mathcal{S}  is discrete and finite: here, utility
+can be evaluated exactly for any candidate prediction, which isolates the
+algorithmic question of how to search over predictions by strategic utility.
+We then turn to the general continuous setting, where both sources of
+difficulty are present.
+4.1 Warm-up: End to End State Prediction with Discrete, Finite State Spaces
+A core principle of ETE is that candidate predictions should be evaluated
+by the strategic utility they induce, not solely by statistical accuracy.
+A good ETE algorithm must therefore explore candidate predictions and filter
+them by downstream performance. We begin by showing this explore-then-filter
+principle is sound. In the discrete, finite-state setting, bandit-style
+approaches such as successive elimination can enumerate candidate predictions
+and evaluate each by its induced utility. We show that the cumulative cost
+of exploring suboptimal predictions is sublinear in  T , even when the
+equilibrium induced by each candidate must itself be learned (provided
+per-state equilibrium computation is also sublinear in  T ).
+Theorem 4.1.
+Consider a game  G  with a finite set of exogenous states, and let  s_{r}  denote the true realized state. Let  \alpha_{i,t}^{s}  denote the strategy selected by player  i  at time step  t  given state prediction  s  produced by algorithm  \mathcal{ALG} , and let  (\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s})  be the unique equilibrium joint strategy profile given prediction state  s . Suppose utilities are bounded, i.e.  U_{i}(\cdot,\cdot,s)\in[0,1]  for all  s . If
+| \underset{\mathcal{ALG}(s)}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\bigl|U_{i}(\alpha_{i,t}^{s},\alpha_{-i,t}^{s},s^{\prime})-U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s^{\prime})\bigr|\right]\in o(T)\quad\forall\,\text{fixed }(s,s^{\prime}), |
+then  \mathcal{ALG^{\prime}} , which combines  \mathcal{ALG}  with successive elimination to determine an evaluation state, yields:
+| \underset{\mathcal{ALG^{\prime}}}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\left|U_{i}(\alpha_{i,t}^{s_{t}},\alpha_{-i,t}^{s_{t}},s_{r})-\max_{s\in\mathcal{S}}\,U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s_{r})\right|\right]\in o(T). |
+4.2 End-to-End Prediction in General Settings
+The warm-up setting assumes a finite, discrete state space and allows repeated evaluations of the same state. These luxuries rarely hold in practice. In general applications, the state space is continuous or combinatorially large, and we are given a dataset from which we are to return a single model for state prediction. In this paradigm, we are therefore unable to directly apply bandit-style enumeration. We thus seek an approach that retains the core principle of evaluating candidate predictions via their downstream strategic utility within a single-pass learning framework.
+The theory above presents two concrete challenges for optimizing in the SDFL domain. Firstly, Propositions 3.2 and 3.3 establish that the mapping  \theta\mapsto U_{i}^{\text{realized}}  is fundamentally misaligned with accuracy-based surrogates. This renders approaches such as gradient descent on prediction error alone insufficient. Secondly, Theorem 3.7 establishes that strategies close to a best-response boundary grow increasingly prevalent as game dimensionality increases; where adjacent regions carry different leader utilities, the utility landscape is discontinuous across the boundary. We therefore derive a heuristic tailored to the discontinuous optimization landscape induced by strategic responses in SDFL problems.
+Algorithm 1 addresses these challenges by combining three ideas. First, we perform intra-region optimization within regions where the strategic response is fixed, using KKT-directed gradients that exploit differentiability within a fixed best-response zone to directly optimize through the follower’s best response. Within these strategic epochs, the Huber regularisation weight  \lambda_{e}  is annealed from  \lambda_{\max}  to  \lambda_{\min} , keeping prediction quality grounded in early KKT steps when the strategic gradient would otherwise dominate and destabilize training. Second, we perform inter-region exploration to optimize across best-response regions via supervised updates, which shift the induced leader strategy across zone boundaries. A strategic checkpoint filter, motivated by the explore-then-filter principle of Theorem 4.1, selects across candidates produced by both mechanisms to navigate the globally non-convex and discontinuous landscape.
+KKT-directed gradients.
+Given a predicted state  s_{pred} , the leader’s optimal strategy  \bar{\alpha}_{i}  solves a linear program whose KKT conditions form a differentiable system in  \bar{\alpha}_{i}  and the payoff parameters. For a fixed follower pure action  a_{-i} , implicit differentiation yields  \partial\bar{\alpha}_{i}/\partial s_{pred} , enabling backpropagation of strategic utility to  \theta . However, as Theorem 3.7 predicts, near best-response boundaries the follower’s action switches discontinuously, and the KKT gradient—derived with  a_{-i}  fixed—becomes unreliable. This motivates alternation: odd regimes apply supervised updates with Gaussian input perturbations to traverse  \Delta(\mathcal{A}_{i})  and escape boundary regions, while even regimes apply  \mathcal{U}_{\text{KKT}}  where the gradient is well-defined.
+Strategic checkpoint filter.
+At the close of every regime of  R  epochs—whether a supervised or KKT regime—the current parameters  \theta  are evaluated on a held-out set  \mathcal{D}_{\text{eval}}  via the strategic utility function  \mathcal{U} , and accepted only if they improve upon the best recorded utility  u^{*} ; otherwise training reverts to  \theta^{*} . This mechanism is motivated in part by Theorem 4.1: we identify model parameters by evaluating them for their downstream strategic utility.
+Remark 4.2.
+The checkpoint filter selects a model whose expected strategic utility is within  \varepsilon  of the best candidate:  \mathcal{U}(\theta^{*})\geq\max_{1\leq k\leq K}\mathcal{U}(\theta_{k})-\varepsilon  with probability at least  1-\delta , provided  |\mathcal{D}_{\text{eval}}|\geq 2\ln(2K/\delta)/\varepsilon^{2} . This follows from standard arguments using Hoeffding’s inequality and a union bound over the  K=\lceil T/R\rceil  checkpoints.
+Algorithm 1  Hybrid ETE: Alternating Predictive/Strategic Regimes
+1:
+Input:  \mathcal{D} ,  f_{\theta} ,  T ,  R ,  \rho ,  \sigma ,  \lambda_{\max} ,  \lambda_{\min} ,  E_{\text{anneal}}
+2:
+\mathcal{D}_{\text{grad}},\mathcal{D}_{\text{eval}}\leftarrow\text{Split}(\mathcal{D},\rho) ;    \theta^{*}\leftarrow\theta ;    u^{*}\leftarrow-\infty ;    e_{\text{kkt}}\leftarrow 0
+3:
+for  r=1  to  \lceil T/R\rceil  do
+4:
+\theta\leftarrow\theta^{*}
+5:
+for  e=1  to  R  do
+6:
+if  r  odd:  \theta\leftarrow\theta-\eta\nabla_{\theta}\mathcal{L}_{\text{pred}}(f_{\theta}(X_{\mathcal{B}}+\epsilon),Y_{\mathcal{B}}) ,    \epsilon\sim\mathcal{N}(0,\sigma^{2}I)
+7:
+else:  \lambda_{e}\leftarrow\lambda_{\max}-(\lambda_{\max}{-}\lambda_{\min})\cdot\min\!\left(\tfrac{e_{\text{kkt}}}{E_{\text{anneal}}},1\right) ;    e_{\text{kkt}}\mathrel{+}=1 ;      \theta\leftarrow\theta-\eta\nabla_{\theta}\bigl[-\mathcal{U}_{\text{KKT}}(f_{\theta},\mathcal{B})+\lambda_{e}\,\mathcal{L}_{\text{pred}}(f_{\theta}(X_{\mathcal{B}}),Y_{\mathcal{B}})\bigr]
+8:
+end for
+9:
+if  \mathcal{U}(f_{\theta},\mathcal{D}_{\text{eval}})>u^{*} :    u^{*}\leftarrow\mathcal{U}(f_{\theta},\mathcal{D}_{\text{eval}}) ,    \theta^{*}\leftarrow\theta
+10:
+end for
+11:
+return  \theta^{*}
+4.3 Experimental Evaluation: Security Games
+Building on game-theoretic approaches to security
+[25, 8, 13], we instantiate two
+Stackelberg security games on an  N\!\times\!N  grid  G : a conservation game
+using GPS tracks of 15 African elephants in Etosha National Park
+[9], and an infrastructure game using ridership data from 123
+Manhattan subway stations (Jan 2022–Dec 2024) [19]. In both, a
+defender commits to a mixed strategy  \alpha_{i}\in\Delta(G)  over patrol
+allocations, and an attacker who observes this commitment chooses
+\alpha_{-i}\in\Delta(G)  [32]. The exogenous state
+s\in\mathbb{Z}_{+}^{N}  captures the value at risk per cell: uncontested attacks
+cost the defender utility proportional to the cell value  n  (and reward the
+attacker proportionally), successful interdiction rewards the defender
+proportionally and penalizes the attacker by a fixed amount, and unvisited cells
+contribute zero. Full details are in Appendix B.
+4.3.1 Methodology
+We frame the problem as supervised regression: given temporal and historical
+features for each cell in  G , predict the scalar value (elephant count or
+ridership) at a future period. All methods share a common base neural network architecture; comprehensive details on implementation, feature
+engineering, and training are in Appendix B.
+Results.
+We compare four methods. PTO minimizes predictive loss and feeds the
+resulting prediction directly to the Stackelberg LP. The three ETE variants
+differ in how strategic information enters training. ZOC
+(Zeroth-Order Checkpoint) trains on supervised loss but applies a strategic
+checkpoint filter after each regime, retaining only parameters that improve
+utility on  \mathcal{D}_{\text{eval}} . KKT differentiates through the
+Stackelberg LP via KKT conditions, backpropagating strategic utility directly to
+model parameters. Hybrid (Algorithm 1) alternates
+supervised and KKT regimes with the checkpoint filter applied after each.
+We evaluate on two axes: Mean Absolute Error
+\mathrm{MAE}=\frac{1}{N|\mathcal{T}|}\sum_{t\in\mathcal{T}}\sum_{i\in[N]}|\hat{y}^{i}_{t}-y^{i}_{t}|  and downstream strategic utility across all evaluation
+instances. Table 1 reports both metrics at 500 epochs—the
+budget at which all methods converged—across both game environments.
+Utility is averaged over all evaluation instances (396 daily instances
+for conservation, 1098 for infrastructure) and 5 independent training
+runs; MAE is computed analogously. Figure 2 shows the same utilities month by month over each test period.
+(a) Conservation Security Game (Etosha), test period February 2013 to March 2014.
+(b) Infrastructure Security Game (Manhattan subway), test period January to December 2024.
+Figure 2: Defender utility over the test period for the four methods. Each point is the mean defender utility over the evaluation instances in one calendar month, averaged over the five training runs; the shaded band is one standard error across runs. Higher is better. Averaging each curve over all evaluation instances gives the utilities in Table 1.
+Table 1: ETE vs. PTO at 500 training epochs (mean  \pm  std across 5 runs).
+|  | Conservation Security Game | Infrastructure Security Game
+| Method | Avg. Utility (\uparrow) | MAE (\downarrow) | Avg. Utility (\uparrow) | MAE (\downarrow)
+ETE | ZOC | -0.785\pm 0.009 | 0.118\pm 0.006 | -13.160\pm 0.355 | 0.559\pm 0.062
+KKT | -0.404\pm 0.483 | 0.433\pm 0.159 | -12.829\pm 0.465 | 1.104\pm 0.467
+Hybrid | \mathbf{-0.173\pm 0.013} | 0.458\pm 0.107 | \mathbf{-12.578\pm 0.383} | 0.736\pm 0.028
+| PTO | -0.831\pm 0.005 | \mathbf{0.110\pm 0.005} | -13.611\pm 0.210 | \mathbf{0.409\pm 0.009}
+PTO, on average, achieves lower MAE than all ETE approaches, indicating superior predictive accuracy in the conventional supervised learning sense. However, this advantage does not translate into better strategic outcomes: all three ETE methods achieve higher defender utility than PTO in both domains. Critically, Hybrid achieves the best strategic utility across both game environments — outperforming not only PTO but also ZOC and KKT in isolation — demonstrating that combining supervised exploration, KKT-directed gradients, and the strategic checkpoint filter yields consistent gains that neither component delivers on its own.
+(a) Conservation Security Game: Elephant Distribution Predictions
+(b) Infrastructure Security Game: Patrol Strategies across top 9 stations
+(c) Infrastructure Security Game: Ridership Predictions across 123 stations
+Figure 3: Instance-level state predictions for select evaluation periods.
+Winning method(s) shown in bold green;
+utility  u  reported below each prediction grid.
+Figure 3 illustrates the instance-level dynamics
+underlying these aggregate results. The utility landscape is complex and
+volatile—consistent with Theorem 3.7—and no single method
+universally dominates at the individual instance level. In instances where ETE
+methods outperform PTO, the ETE predictions better capture strategically
+relevant structure in the state, even at the cost of raw predictive accuracy. We illustrate such instances in the above figure. To probe the general landscape and gain an understanding of how in some cases we may see variation with PTO approaches, we include a 100 action synthetic setting on a grid with multiple modes in Appendix B.1: here we illustrate how
+different state representations produce distinct downstream strategic
+consequences.
+5 Conclusion
+In this work, we formalized strategic decision-focused learning as a distinct problem
+within the decision-focused learning paradigm, targeting settings where ML
+predictions are consumed by strategically interacting agents. We showed that
+prediction accuracy and strategic payoff can be non-monotonic, motivating a
+departure from predict-then-optimize pipelines, and proposed an end-to-end
+framework that incorporates downstream strategic utility directly into model
+selection via KKT-directed gradients and strategic evaluation on a held-out
+partition.
+Several important directions remain open. Our formulation assumes followers observe the true state; modeling settings in which followers must also learn the state from data introduces a second layer of strategic complexity worth exploring. More broadly, precisely characterizing the conditions under which equilibrium-aware end-to-end approaches outperform predict-then-optimize, and developing scalable algorithms for this regime, are promising avenues for future work.
+References
+[1]
+Bechavod, Y., Ligett, K., Wu, S., and Ziani, J.
+Gaming helps! learning from strategic interactions in natural dynamics.
+In Proceedings of The 24th International Conference on Artificial Intelligence and Statistics, pp.  1234–1242, 2021.
+[2]
+Bhatia, R.
+Matrix Analysis, volume 169 of Graduate Texts in Mathematics.
+Springer, 1997.
+[3]
+Donti, P. L., Amos, B., and Kolter, J. Z.
+Task-based end-to-end model learning in stochastic optimization.
+In Advances in Neural Information Processing Systems, 2017.
+[4]
+Dritsas, E. and Trigka, M.
+Machine learning in e-commerce: Trends, applications, and future challenges.
+IEEE Access, 13:99048–99067, 2025.
+doi: 10.1109/ACCESS.2025.3572865.
+[5]
+Elmachtoub, A. N. and Grigas, P.
+Smart “predict, then optimize”.
+Management Science, 68:9–26, 2021.
+[6]
+Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, and IGN.
+World Imagery [basemap].
+Esri, https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9, 2024.
+Accessed 2024.
+[7]
+Even-Dar, E., Mannor, S., and Mansour, Y.
+PAC bounds for multi-armed bandit and markov decision processes.
+In Kivinen, J. and Sloan, R. H. (eds.), Computational Learning Theory, volume 2375 of Lecture Notes in Computer Science, pp.  255–270. Springer, 2002.
+[8]
+Fang, F., Stone, P., and Tambe, M.
+When security games go green: Designing defender strategies to prevent poaching and illegal fishing.
+In Proceedings of the Twenty-Fourth International Joint Conference on Artificial Intelligence, volume 15, 2015.
+[9]
+Getz, W. M., Kilian, W., Zidon, R., and Tsalyuk, M.
+Data from: Temporal variation in resource selection of African elephants follows long-term variability in resource availability, 2018.
+[10]
+Handina, T. and Mazumdar, E.
+Understanding model selection for learning in strategic environments.
+In Advances in Neural Information Processing Systems, volume 37, 2024.
+URL https://proceedings.neurips.cc/paper_files/paper/2024/file/a921f335253add9996d5175ad30896ec-Paper-Conference.pdf.
+[11]
+Hardt, M., Megiddo, N., Papadimitriou, C., and Wootters, M.
+Strategic classification.
+In Innovations in Theoretical Computer Science, pp.  111–122, 2016.
+[12]
+Knaster, B., Kuratowski, C., and Mazurkiewicz, S.
+Ein Beweis des Fixpunktsatzes für  n -dimensionale Simplexe.
+Fundamenta Mathematicae, 14(1):132–137, 1929.
+[13]
+Krever, N., Cerny, J., Blanchard, M., and Kroer, C.
+Guard: Constructing realistic two-player matrix and security games for benchmarking game-theoretic algorithms.
+In NeurIPS Datasets and Benchmarks Track (Spotlight), 2025.
+URL https://arxiv.org/abs/2505.14547.
+[14]
+Madry, A., Makelov, A., Schmidt, L., Tsipras, D., and Vladu, A.
+Towards deep learning models resistant to adversarial attacks.
+In 6th International Conference on Learning Representations, ICLR, 2018.
+[15]
+Mandi, J., Kotary, J., Berden, S., Mulamba, M., Bucarey, V., Guns, T., and Fioretto, F.
+Decision-focused learning: Foundations, state of the art, benchmark and future opportunities.
+80, 2024.
+URL https://doi.org/10.1613/jair.1.15320.
+[16]
+Mazumdar, E., Ratliff, L. J., and Sastry, S. S.
+On gradient-based learning in continuous games.
+SIAM Journal on Mathematics of Data Science, 2(1):103–131, 2020.
+[17]
+Mertikopoulos, P. and Zhou, Z.
+Learning in games with continuous action sets and unknown payoff functions.
+Mathematical Programming, 173(1):465–507, 2019.
+[18]
+Mertikopoulos, P., Papadimitriou, C., and Piliouras, G.
+Cycles in adversarial regularized learning.
+In Proceedings of the 2018 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), 2018.
+[19]
+Metropolitan Transportation Authority.
+MTA Subway Hourly Ridership: 2020–2024.
+https://data.ny.gov/Transportation/MTA-Subway-Hourly-Ridership-2020-2024/wujg-7c2s, 2025.
+Accessed: 2026-03-23.
+[20]
+Mhasawade, V., Zhao, Y., and Chunara, R.
+Machine learning and algorithmic fairness in public and population health.
+Nature Machine Intelligence, 3(8):659–666, 2021.
+[21]
+Mirzakhani, M. and Vondrák, J.
+Sperner’s colorings and optimal partitioning of the simplex.
+In Loebl, M., Nešetřil, J., and Thomas, R. (eds.), A Journey through Discrete Mathematics: A Tribute to Jiří Matoušek. Springer, 2017.
+[22]
+OpenStreetMap contributors.
+OpenStreetMap.
+https://www.openstreetmap.org, 2024.
+Map data licensed under the Open Database Licence (ODbL). Retrieved 2024.
+[23]
+Perdomo, J., Zrnic, T., Mendler-Dünner, C., and Hardt, M.
+Performative prediction.
+In Proceedings of the 37th International Conference on Machine Learning, pp.  7599–7609, 2020.
+[24]
+Perrault, A., Wilder, B., Ewing, E., Mate, A., Dilkina, B., and Tambe, M.
+End-to-end game-focused learning of adversary behavior in security games.
+In Proceedings of the AAAI Conference on Artificial Intelligence, 2020.
+[25]
+Pita, J., Jain, M., Marecki, J., Ordóñez, F., Portway, C., Tambe, M., Western, C., Paruchuri, P., and Kraus, S.
+Deployed ARMOR protection: The application of a game theoretic model for security at the Los Angeles International Airport.
+In Proceedings of the 7th International Conference on Autonomous Agents and Multiagent Systems (AAMAS 2008), Industry Track, pp.  125–132, 2008.
+[26]
+Robson, A. S., Trimble, M. J., Purdon, A., Young-Overton, K. D., Pimm, S. L., and van Aarde, R. J.
+Savanna elephant numbers are only a quarter of their expected values.
+PLOS ONE, 12(4), 2017.
+[27]
+Shah, S., Wang, K., Wilder, B., Perrault, A., and Tambe, M.
+Decision-focused learning without decision-making: Learning locally optimized decision losses.
+Advances in Neural Information Processing Systems, 35:1320–1332, 2022.
+[28]
+Tang, Y., Sun, J., Wang, H., Deng, J., Tong, L., and Xu, W.
+A method of network attack-defense game and collaborative defense decision-making based on hierarchical multi-agent reinforcement learning.
+Computers & Security, 142:103871, 2024.
+[29]
+Tarallo, E., Akabane, G. K., Shimabukuro, C. I., Mello, J., and Amancio, D.
+Machine learning in predicting demand for fast-moving consumer goods: An exploratory research.
+IFAC-PapersOnLine, 52(13):737–742, 2019.
+[30]
+Wang, K., Perrault, A., Mate, A., and Tambe, M.
+Scalable game-focused learning of adversary models: Data-to-decisions in network security games.
+In Proceedings of the 19th International Conference on Autonomous Agents and MultiAgent Systems (AAMAS), 2020.
+[31]
+Wilder, B., Dilkina, B., and Tambe, M.
+Melding the data-decisions pipeline: Decision-focused learning for combinatorial optimization.
+In Proceedings of the AAAI conference on artificial intelligence, volume 33, pp.  1658–1665, 2019.
+[32]
+Yang, R., Ford, B., Tambe, M., and Lemieux, A.
+Adaptive resource allocation for wildlife protection against illegal poachers.
+In Proceedings of the International Conference on Autonomous Agents and Multiagent Systems, 2014.
+[33]
+Yeh, C., Christianson, N., Wu, A., Wierman, A., and Yue, Y.
+End-to-end conformal calibration for optimization under uncertainty.
+ArXiv, abs/2409.20534, 2024.
+URL https://api.semanticscholar.org/CorpusID:272987523.
+[34]
+Zhang, E. et al.
+Position: Social environment design should be further developed for ai-based policy-making.
+In Proceedings of the Forty-First International Conference on Machine Learning, 2024.
+[35]
+Zhang, K., Yang, Z., and Başar, T.
+Multi-agent reinforcement learning: A selective overview of theories and algorithms.
+Handbook of reinforcement learning and control, pp.  321–384, 2021.
+[36]
+Zrnic, T., Mazumdar, E., Sastry, S., and Jordan, M.
+Who leads and who follows in strategic classification?
+In Advances in Neural Information Processing Systems, 2021.
+Appendix
+Limitations and Broader Impact
+Limitations.
+Our formulation assumes that followers observe the true state of the
+world; in practice, followers may also need to learn the state from data,
+introducing a second layer of strategic complexity that our framework does
+not capture. We provide a local non-monotonicity result motivating
+end-to-end training, but a precise characterization of when
+equilibrium-aware approaches outperform predict-then-optimize remains
+open.
+Broader impact.
+Strategic decision-focused learning is motivated by settings where a
+decision-maker deploys ML predictions against agents who respond
+strategically — a structure common in security, infrastructure allocation,
+and market design. Improved patrol allocation in conservation and transit
+safety are positive applications, but the same framework could in
+principle be used in ways that
+raise fairness and civil-liberties concerns.
+Appendix A Proofs of Theoretical Results
+Restatement of Proposition  3.2.
+There exists a game instance with true state  s_{r} , and predictions  s_{p,1}  and  s_{p,2} , wherein  s_{p,1}  is strictly more accurate than  s_{p,2}  under every accuracy metric  \phi , yet player  i ’s utility at the equilibrium induced by  s_{p,1}  is strictly lower than that induced by  s_{p,2} :
+| U_{i}\!\left(\alpha^{*}(s_{p,1}),\,s_{r}\right)\;<\;U_{i}\!\left(\alpha^{*}(s_{p,2}),\,s_{r}\right), |
+where  \alpha^{*}(s)=(\alpha_{i}^{*}(s),\,BR_{-i}(\alpha_{i}^{*}(s),s_{r}))  denotes the equilibrium joint strategy profile when the primary plays assuming state  s , the rest of the agents see the true state  s_{r} , and utility is evaluated at  s_{r} .
+Proof of Proposition  3.2.
+We consider a Stackelberg game between two players,  A  and  B , in which player  A  leads. Let  \mathcal{S}:=
+| \left\{s_{0}=\begin{bmatrix}1\\ 0\\ 1\\ 1\\ 3\\ 1\\ 1\\ 0\\ 1\end{bmatrix},\quad s_{1}=\begin{bmatrix}1\\ 1\\ 1\\ 1\\ 1\\ 1\\ 1\\ 1\\ 1\end{bmatrix},\quad s_{2}=\begin{bmatrix}0\\ 0\\ 0\\ 0\\ 9\\ 0\\ 0\\ 0\\ 0\end{bmatrix}\right\} |
+Let  \mathcal{A}=\mathcal{B}=\{x\in\mathbb{R}^{9}:\sum\limits_{i=1}^{9}x_{i}=1,x_{i}\geq 0\;\forall i\} . We define  \alpha\in\mathcal{A}  and  \beta\in\mathcal{B}  to be strategies by players  A  and  B  respectively. We denote the utility functions by the following:
+| U_{A}(\alpha,\beta,s)=\sum\limits_{i=1}^{9}s_{i}\beta_{i}(2\alpha_{i}-1);\quad U_{B}(\alpha,\beta,s)=\sum\limits_{i=1}^{9}s_{i}\beta_{i}(1-2\alpha_{i}) |
+Given a state  s\in\mathcal{S} , player  B ’s payoff is linear in  \beta , so their best response is always a vertex of  \mathcal{B} , i.e., a pure strategy  e_{k}  for some  k\in\{1,\ldots,9\} .
+Consider the following set of linear programs defined for each possible best response action of player  B :
+| \displaystyle\alpha^{(s,k)}=\argmax\limits_{\alpha\in\mathcal{A}}\quad | \displaystyle s_{k}(2\alpha_{k}-1) |
+| s.t. | \displaystyle s_{k}(1-2\alpha_{k})\geq s_{j}(1-2\alpha_{j})\quad\forall\;j\neq k |
+The constraint ensures that action  k  is indeed player  B ’s best response under  \alpha . Note that player  A ’s Stackelberg strategy given state  s  is obtained by solving the linear programs and selecting the linear program with the highest value:
+| \alpha^{s}=\argmax\limits_{k}\left\{U_{A}(\alpha^{(s,k)},e_{k},s):k\in\{1,\ldots,9\}\right\} |
+with Stackelberg value:
+| V^{*}(s)=\max\limits_{k}\left\{U_{A}(\alpha^{(s,k)},e_{k},s):k\in\{1,\ldots,9\}\right\} |
+Solving the above optimization problems for Stackelberg strategies given predictions of  s_{1}  and  s_{2}  yields:
+\alpha^{s_{1}}=\begin{bmatrix}\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\\
+\frac{1}{9}\end{bmatrix}  and for the state  s_{2}  we have a set of possible strategies, i.e.,  \alpha^{s_{2}}\in A^{s_{2}}=\{\alpha\in\mathcal{A}:\alpha_{5}>\frac{1}{2}\} .
+Let  s_{0}  be the real state and  s_{1}  and  s_{2}  be predictions. We calculate the utility of the Stackelberg strategies under the state  s_{0}  and find that:
+For Strategy  \alpha^{s_{1}} :
+Recall  \alpha^{s_{1}}=\frac{1}{9}\mathbf{1} . Under  s_{0} , player  B ’s payoff
+from playing action  i  is  s_{0,i}(1-2\alpha^{s_{1}}_{i})=\frac{7}{9}s_{0,i} , which is maximized at  i=5
+(where  s_{0,5}=3 ). Hence the best response is  e_{5} , giving player  A  the utility:
+| U_{A}(\alpha^{s_{1}},e_{5},s_{0})=3\!\left(\frac{2}{9}-1\right)=-\frac{7}{3}. |
+Worst-case strategy in  A^{s_{2}} .
+Recall  A^{s_{2}}=\{\alpha\in\Delta(\mathcal{A}):\alpha_{5}>\frac{1}{2}\} . For any  \alpha\in A^{s_{2}} , we assess player  B ’s best response under  s_{0} . Actions  i\in\{2,8\}  satisfy  s_{0,i}=0 , so  U_{B}(e_{i},\alpha,s_{0})=0  regardless of  \alpha . Action  i=5  yields  U_{B}(e_{5},\alpha,s_{0})=3(1-2\alpha_{5})<0  since  \alpha_{5}>\frac{1}{2} . For the remaining actions  i\in\{1,3,4,6,7,9\} , note that  \sum_{i\neq 5}\alpha_{i}<\frac{1}{2} , so at least one such action corresponds to  \alpha_{i}<\frac{1}{2} , giving  U_{B}(\alpha,e_{i},s_{0})=1-2\alpha_{i}>0 . Since these actions offer strictly positive utility to player  B , player  B ’s best response lies in  \{e_{k}:k\in\{1,3,4,6,7,9\}\}  for any  \alpha\in A^{s_{2}}  with Player  A ’s resulting utility as  U_{A}=2\alpha_{k}-1 . With this we note that
+| \inf_{\alpha\in A^{s_{2}}}U_{A}(\alpha,\beta^{*}(\alpha),s_{0})=-1. |
+Comparison.
+Even in the worst case over  A^{s_{2}} , player  A ’s utility is strictly greater
+than under  \alpha^{s_{1}} :
+| \inf_{\alpha\in A^{s_{2}}}U_{A}(\alpha,\beta^{*}(\alpha),s_{0})=-1\;>\;-\frac{7}{3}=U_{A}(\alpha^{s_{1}},e_{5},s_{0}). |
+The sorted error vectors, i.e. the absolute errors  |s_{1}-s_{0}|  and  |s_{2}-s_{0}|  arranged in decreasing order, are  (2,1,1,0,0,0,0,0,0)  and  (6,1,1,1,1,1,1,0,0) , so every top- k  partial sum of the former is at most half the latter’s, and thus by [2, Ch. IV]:
+| \|s_{1}-s_{0}\|\;\leq\;\tfrac{1}{2}\,\|s_{2}-s_{0}\|\;<\;\|s_{2}-s_{0}\| |
+for every symmetric norm simultaneously. Therefore, despite  s_{2}  being a less accurate prediction of  s_{0}  under every accuracy metric of Definition 3.1 (for instance  \|s_{2}-s_{0}\|_{2}=\sqrt{42}  versus  \|s_{1}-s_{0}\|_{2}=\sqrt{6} ), the Stackelberg strategy consistent with the prediction  s_{2}  outperforms the Stackelberg strategy induced by the more accurate prediction  s_{1} . Strict preference extends to any separable loss  \sum_{i}g(|e_{i}|) , where  e_{i}  denotes the  i -th coordinate of the error  s-s_{0} , with  g  strictly increasing (e.g., Huber, MSE).
+∎
+Restatement of Proposition  3.3.
+There exists a game instance with true state  s_{r}  and player  i  such that there exists a prediction  s_{p}\in\mathcal{S}  satisfying:
+| U_{i}\!\left(\alpha^{*}(s_{p}),\,s_{r}\right)\;>\;U_{i}\!\left(\alpha^{*}(s_{r}),\,s_{r}\right), |
+where  \alpha^{*}(s)=(\alpha_{i}^{*}(s),\,BR_{-i}(\alpha_{i}^{*}(s),s_{r}))  denotes the equilibrium joint strategy profile when the primary plays assuming state  s , the rest of the agents see the true state  s_{r} , and utility is evaluated at  s_{r} .
+Proof of Proposition 3.3.
+We follow the proof structure and argument of Theorem 3.4 in [10]. We work in the following setting: we have a two-player continuous game in which the primary agent (player  i ) has strategy space from a compact set  \mathcal{A}_{i}\subseteq\mathbb{R}  and the opposing agent (player  -i ) has strategy space from a compact set  \mathcal{A}_{-i}\subseteq{\mathbb{R}} , with utilities  U_{i}(\alpha_{i},\alpha_{-i},s)  and  U_{-i}(\alpha_{i},\alpha_{-i},s)  respectively. The exogenous state space  \mathcal{S}=\{0,1\} . We assume the following.
+Assumption A.1.
+Assume the game defined on  U_{i}  and  U_{-i}  is strongly monotone on  \mathcal{A}_{i}\times\mathcal{A}_{-i} . Further assume that
+1.
+U_{i}  and  U_{-i}  are jointly concave in  \alpha_{i}  and  \alpha_{-i} .
+2.
+The gradient mappings  \nabla U_{i}  and  \nabla U_{-i}  exist and are well defined for all  (\alpha_{i},\alpha_{-i}) . Furthermore, the gradient mappings are  L -Lipschitz continuous in the joint action space.
+3.
+The Nash equilibrium  (\alpha_{i}^{\star},\alpha_{-i}^{\star})\in\mathcal{A}_{i}\times\mathcal{A}_{-i}  is in the interior with  \nabla_{\alpha_{i}}BR_{-i}(\alpha_{i}^{\star},s_{r})\neq 0 .
+4.
+The unique Nash equilibrium  (\alpha_{i}^{\star},\alpha_{-i}^{\star})  is not Pareto-optimal: there exists  (\alpha_{i}^{\dagger},\alpha_{-i}^{\dagger})\in\mathcal{A}_{i}\times\mathcal{A}_{-i}  such that  U_{i}(\alpha_{i}^{\dagger},\alpha_{-i}^{\dagger},s_{r})>U_{i}(\alpha_{i}^{\star},\alpha_{-i}^{\star},s_{r}) .
+Note the following: because we can achieve strictly higher utility for the jointly concave utility function  U_{i} , we know that  \nabla U_{i}(\alpha_{i}^{\star},\alpha_{-i}^{\star},s_{r})\neq 0 .
+We define  \bar{U}_{i}(\alpha_{i}):=U_{i}(\alpha_{i},BR_{-i}(\alpha_{i},s_{r}),s_{r})  as the primary agent’s utility when they play  \alpha_{i}  and the opposing agent best-responds under the true state  s_{r} . [10] establishes that there exists a  v\in\mathbb{R}  with  v\cdot\nabla\bar{U}_{i}(\alpha_{i}^{\star})<0  and a value  \delta>0  such that the following construction yields a Nash equilibrium with strictly higher utility for the primary agent. Specifically, setting  \alpha_{i}^{\prime}=\alpha_{i}^{\star}-\delta v ,  \alpha_{-i}^{\prime}=BR_{-i}(\alpha_{i}^{\prime},s_{r}) , and defining
+| \tilde{\Theta}=\{\alpha_{i}\in\mathcal{A}_{i}:(\alpha_{i}-\alpha_{i}^{\prime})\cdot v\leq 0\},\quad\Theta^{\prime}=\{\alpha_{i}\in\tilde{\Theta}:\nabla_{\alpha_{i}}U_{i}(\alpha_{i}^{\prime},\alpha_{-i}^{\prime},s_{r})\cdot(\alpha_{i}^{\prime}-\alpha_{i})\geq 0\}, |
+the restricted game on  \Theta^{\prime}\times\mathcal{A}_{-i}  admits  (\alpha_{i}^{\prime},\alpha_{-i}^{\prime})  as a Nash equilibrium. By a Taylor expansion argument using the  L -Lipschitz gradient assumption, one can choose  \delta  small enough so that  \bar{U}_{i}(\alpha_{i}^{\prime})>\bar{U}_{i}(\alpha_{i}^{\star}) , meaning the primary agent achieves strictly higher utility at this new equilibrium than at  (\alpha_{i}^{\star},\alpha_{-i}^{\star}) . To complete the argument, for player  i  let  s=0  correspond to  U_{i}(\alpha_{i},\alpha_{-i},0)>-M\quad\forall(\alpha_{i},\alpha_{-i})  with  M\in\mathbb{R}_{+}  and then for  s=1  let  U_{i}(\alpha_{i},\alpha_{-i},1)=U_{i}(\alpha_{i},\alpha_{-i},0)\quad\forall(\alpha_{i},\alpha_{-i})\in\Theta^{\prime}\times\mathcal{A}_{-i}  and  U_{i}(\alpha_{i},\alpha_{-i},1)=-M  otherwise. For player  -i  we have  U_{-i}(\alpha_{i},\alpha_{-i},1)=U_{-i}(\alpha_{i},\alpha_{-i},0) . In this simple setup, a prediction  (s_{p})  of state  1  results in better utility for player  i  even if the real state ( s_{r})  is  0 .
+Such games exist; for instance, on  \mathcal{A}_{i}=\mathcal{A}_{-i}=[0,1]  the game  U_{i}(\alpha_{i},\alpha_{-i},0)=-\tfrac{1}{2}(\alpha_{i}-\alpha_{-i})^{2}+\alpha_{-i} ,  U_{-i}(\alpha_{i},\alpha_{-i},0)=-\tfrac{1}{2}\big(\alpha_{-i}-\tfrac{\alpha_{i}}{2}-\tfrac{1}{4}\big)^{2}  satisfies the assumption: it is strongly monotone with  \mu=\tfrac{1}{4} , both utilities are concave with affine gradients,  BR_{-i}(\alpha_{i},0)=\tfrac{\alpha_{i}}{2}+\tfrac{1}{4}  has derivative  \tfrac{1}{2}\neq 0 , the unique Nash equilibrium  (\tfrac{1}{2},\tfrac{1}{2})  is interior, and  U_{i}(1,\frac{3}{4},0)=\frac{23}{32}>\tfrac{1}{2}=U_{i}(\tfrac{1}{2},\tfrac{1}{2},0)  and  U_{-i}(1,\frac{3}{4},0)=0=U_{-i}(\tfrac{1}{2},\tfrac{1}{2},0) . Consider the game restricted for  \alpha_{i}  to  [\tfrac{3}{4},1] , we get  \alpha_{i}^{\prime}=\tfrac{3}{4} ,  \alpha_{-i}^{\prime}=\tfrac{5}{8}  and  \bar{U}_{i}(\tfrac{3}{4})=\tfrac{79}{128}>\tfrac{1}{2}=\bar{U}_{i}(\tfrac{1}{2}) .
+As a note, this proof, together with the establishment of  v  from [10], can be extended to more dimensions by adding the assumption that  \nabla_{\alpha_{i}}BR_{-i}(\alpha_{i}^{\star},s_{r})  has rank equal to the dimension of  \mathcal{A}_{-i} .
+∎
+Restatement of Theorem  3.7.
+Suppose the sequence of games  \{G_{N}\}_{N=2}^{\infty}  satisfies
+Assumption 3.6 with  \delta_{N}=c/N  for some  c\in(0,\tfrac{1}{2}] . For each  N , let  \alpha\sim\mathrm{Unif}(\Delta(\mathcal{A}))
+in game  G_{N} , then:
+| \mathbb{P}\!\big(\alpha\text{ is }\delta_{N}\text{-regional}\big)\;\geq\;1-\left(1-\frac{c\sqrt{2}}{N}\right)^{\!N-1}. |
+Proof of Theorem 3.7.
+We instantiate the geometric arguments of [21]
+to our context.
+The conditions of Assumption 3.6 ensure that
+the best-response regions  \{R^{A,(N)}_{b}\}_{b\in[N]}  form a
+Knaster–Kuratowski–Mazurkiewicz (KKM) covering [12]
+of the simplex  \Delta(\mathcal{A}) .
+Let  \mu_{N-1}  denote the  (N{-}1) -dimensional Lebesgue measure on  \Delta(\mathcal{A}) .
+Define  S=\bigcup_{b\neq b^{\prime}}(R^{A,(N)}_{b}\cap R^{A,(N)}_{b^{\prime}})
+and its  \delta_{N} -neighborhood
+S_{\delta_{N}}=\{\alpha\in\Delta(\mathcal{A}):\exists\,\alpha^{\prime}\in S,\;\|\alpha-\alpha^{\prime}\|_{2}\leq\delta_{N}\} .
+By definition,  \alpha  is  \delta_{N} -regional if and only if
+\alpha\in S_{\delta_{N}} .
+Set  \overline{R}^{A,(N)}_{b}=R^{A,(N)}_{b}\setminus S_{\delta_{N}} ,
+so that
+\bigcup_{b\in[N]}\overline{R}^{A,(N)}_{b}=\Delta(\mathcal{A})\setminus S_{\delta_{N}} .
+Let  \delta_{N}^{\prime}=\delta_{N}\sqrt{2}  and define the shifted regions
+| \widetilde{R}^{A,(N)}_{b}\;=\;\overline{R}^{A,(N)}_{b}-\delta_{N}^{\prime}e_{b}\;=\;\bigl\{\alpha-\delta_{N}^{\prime}e_{b}:\alpha\in\overline{R}^{A,(N)}_{b}\bigr\}. |
+The following claim adapts the shrink-and-shift
+technique of [21, Lemma 3] to our setting.
+Claim A.2.
+The sets  \widetilde{R}^{A,(N)}_{1},\ldots,\widetilde{R}^{A,(N)}_{N}
+are pairwise disjoint subsets of  (1-\delta_{N}^{\prime})\cdot\Delta(\mathcal{A}) .
+Proof of Claim A.2.
+Disjointness.
+Suppose for contradiction that
+\widetilde{R}^{A,(N)}_{b}\cap\widetilde{R}^{A,(N)}_{b^{\prime}}\neq\emptyset
+for some  b\neq b^{\prime} .
+Then there exist  \alpha\in\overline{R}^{A,(N)}_{b}  and
+\beta\in\overline{R}^{A,(N)}_{b^{\prime}}  with
+\alpha-\delta_{N}^{\prime}e_{b}=\beta-\delta_{N}^{\prime}e_{b^{\prime}} ,
+giving
+\|\alpha-\beta\|=\delta_{N}^{\prime}\|e_{b}-e_{b^{\prime}}\|=\delta_{N}^{\prime}\sqrt{2}=2\delta_{N} .
+The midpoint  m=\tfrac{1}{2}(\alpha+\beta)  lies in  \Delta(\mathcal{A})
+by convexity, so  m\in R^{A,(N)}_{\ell}  for some  \ell
+with  \ell\neq b  or  \ell\neq b^{\prime}  (possibly both).
+Assuming without loss of generality that  \ell\neq b ,
+closedness of  R^{A,(N)}_{b}  and  R^{A,(N)}_{\ell}  yields a point
+\alpha^{\prime}\in R^{A,(N)}_{b}\cap R^{A,(N)}_{\ell}\subseteq S
+on the segment from  \alpha  to  m , with
+\|\alpha^{\prime}-\alpha\|\leq\|m-\alpha\|=\delta_{N} .
+This places  \alpha\in S_{\delta_{N}} ,
+contradicting  \alpha\in\overline{R}^{A,(N)}_{b} .
+Containment.
+For any  \alpha\in\overline{R}^{A,(N)}_{b} ,
+Assumption 3.6 gives
+\alpha_{b}\geq 2\delta_{N}>\delta_{N}^{\prime}=\delta_{N}\sqrt{2} ,
+so the shifted point  \alpha-\delta_{N}^{\prime}e_{b}  has all coordinates nonnegative
+and summing to  1-\delta_{N}^{\prime} .
+Hence  \widetilde{R}^{A,(N)}_{b}\subseteq(1-\delta_{N}^{\prime})\cdot\Delta(\mathcal{A}) .
+∎
+Since each  \widetilde{R}^{A,(N)}_{b}
+is a translate of  \overline{R}^{A,(N)}_{b} ,
+Claim A.2 gives
+| \displaystyle\mu_{N-1}\bigl(\Delta(\mathcal{A})\setminus S_{\delta_{N}}\bigr) | \displaystyle=\sum_{b=1}^{N}\mu_{N-1}\bigl(\overline{R}^{A,(N)}_{b}\bigr)=\sum_{b=1}^{N}\mu_{N-1}\bigl(\widetilde{R}^{A,(N)}_{b}\bigr) |
+|  | \displaystyle\leq\mu_{N-1}\bigl((1-\delta_{N}^{\prime})\cdot\Delta(\mathcal{A})\bigr)=(1-\delta_{N}\sqrt{2})^{N-1}\,\mu_{N-1}\bigl(\Delta(\mathcal{A})\bigr), |
+and therefore
+| \mathbb{P}\big(\alpha\text{ is }\delta_{N}\text{-regional}\big)=\frac{\mu_{N-1}(S_{\delta_{N}})}{\mu_{N-1}(\Delta(\mathcal{A}))}\geq 1-(1-\delta_{N}\sqrt{2})^{N-1}, |
+where  \alpha\sim\mathrm{Unif}(\Delta(\mathcal{A})) .
+Setting  \delta_{N}=c/N  for  c\in(0,\tfrac{1}{2}] , this becomes
+| \mathbb{P}\big(\alpha\text{ is }\delta_{N}\text{-regional}\big)\geq 1-\left(1-\frac{c\sqrt{2}}{N}\right)^{N-1}. |
+∎
+Corollary A.3.
+Under the hypotheses of Theorem 3.7,
+| \liminf_{N\to\infty}\;\mathbb{P}\!\big(\alpha\text{ is }\delta_{N}\text{-regional}\big)\;\geq\;1-e^{-c\sqrt{2}}. |
+Proof.
+Since  \ln(1-x)\leq-x  for all  x\in(0,1) ,
+| \left(1-\frac{c\sqrt{2}}{N}\right)^{N-1}\leq e^{-c\sqrt{2}(1-1/N)}, |
+and taking  N\to\infty  yields the result.
+∎
+Restatement of Theorem  4.1.
+Consider a game  G  with a finite set of exogenous states, and let  s_{r}  denote the true realized state. Let  \alpha_{i,t}^{s}  denote the strategy selected by player  i  at time step  t  given state prediction  s  produced by algorithm  \mathcal{ALG} , and let  (\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s})  be the unique equilibrium joint strategy profile given prediction state  s . Suppose utilities are bounded, i.e.  U_{i}(\cdot,\cdot,s)\in[0,1]  for all  s . If
+| \underset{\mathcal{ALG}(s)}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\bigl|U_{i}(\alpha_{i,t}^{s},\alpha_{-i,t}^{s},s^{\prime})-U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s^{\prime})\bigr|\right]\in o(T)\quad\forall\,\text{fixed }(s,s^{\prime}), |
+then  \mathcal{ALG^{\prime}} , which combines  \mathcal{ALG}  with successive elimination to determine an evaluation state, yields strategies satisfying
+| \underset{\mathcal{ALG^{\prime}}}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\left|U_{i}(\alpha_{i,t}^{s_{t}},\alpha_{-i,t}^{s_{t}},s_{r})-\max_{s\in\mathcal{S}}\,U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s_{r})\right|\right]\in o(T). |
+Proof of Theorem  4.1.
+Step 1: Bandit Reduction. Since  \mathcal{S}  is finite, we treat each state  s\in\mathcal{S}  as an arm in a multi-armed bandit problem. The goal of successive elimination is to identify a best evaluation state, i.e. a state  s  under which  \mathcal{ALG}  achieves the highest utility when evaluated at the true state  s_{r} ; by Proposition 3.3 this state need not be  s_{r}  itself. The key difficulty is that within a single run of  \mathcal{ALG}(s) , the rewards
+| X_{t}^{s}:=U_{i}(\alpha_{i,t}^{s},\alpha_{-i,t}^{s},s_{r}) |
+are correlated across time steps  t , since  \mathcal{ALG}  is adaptive. We resolve this by redefining what constitutes a single arm pull via an epoch structure.
+Notation. For each state  s\in\mathcal{S}  write
+| R^{s}:=U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s_{r}) |
+for the arm’s true value, the equilibrium utility of prediction  s  evaluated at the true state;  R^{s}  is free of any epoch index. Let  s^{*}\in\argmax_{s\in\mathcal{S}}R^{s}  be a best evaluation state; it need not equal  s_{r} . Write  \Delta_{s}:=R^{s^{*}}-R^{s}\geq 0  for the gaps at these values and  \Delta_{\min}  for the smallest positive gap. (If no gap is positive, every state is optimal and only the exploration cost below is incurred.)
+Step 2: Epoch Structure. Define epochs  k=1,2,\ldots  with lengths  T_{k}=k .
+Let  \mathcal{S}_{k}\subseteq\mathcal{S}  denote the set of surviving arms entering epoch  k ,
+initialized to  \mathcal{S}_{1}=\mathcal{S} . In each epoch  k , for every surviving arm
+s\in\mathcal{S}_{k} , we run a fresh independent instantiation of  \mathcal{ALG}(s)  over
+T_{k}  rounds and compute the empirical reward
+| \hat{R}_{k}^{s}:=\frac{1}{T_{k}}\sum_{t=1}^{T_{k}}U_{i}(\alpha_{i,t}^{s},\alpha_{-i,t}^{s},s_{r}). |
+Since each epoch uses a fresh independent instantiation,  \hat{R}_{k}^{s}  and  \hat{R}_{k^{\prime}}^{s}
+are independent across epochs  k\neq k^{\prime} , recovering the independence across pulls that the
+bandit framework requires. Within-epoch correlations are absorbed into the single observation
+\hat{R}_{k}^{s} . Since  U_{i}(\cdot,\cdot,s)\in[0,1]  by assumption,  \hat{R}_{k}^{s}\in[0,1] , and any bounded random variable is sub-Gaussian.
+The epoch rewards are not identically distributed. Applied over an epoch of length  T_{k} , the hypothesis of the theorem (with  s^{\prime}=s_{r} ) gives
+| \bigl|\mathbb{E}[\hat{R}_{k}^{s}]-R^{s}\bigr|\;\leq\;\frac{1}{T_{k}}\,\underset{\mathcal{ALG}(s)}{\mathbb{E}}\!\left[\sum_{t=1}^{T_{k}}\bigl|U_{i}(\alpha_{i,t}^{s},\alpha_{-i,t}^{s},s_{r})-R^{s}\bigr|\right]\;=\;\frac{o(T_{k})}{T_{k}}, |
+which vanishes as the epoch index  k  grows. This is a property of  \mathcal{ALG}  on the instance, independent of the horizon  T ; hence there is a constant  k_{0} , entering the analysis only, with per-epoch bias at most  \Delta_{\min}/8  for all  k\geq k_{0}  and all  s\in\mathcal{S} .
+Step 3: Successive Elimination over States. We now apply the Successive Elimination
+algorithm of  [7] with arms  \mathcal{S} . Recall that at each epoch
+k , arm  s  produces the independent observation  \hat{R}_{k}^{s}\in[0,1] . The
+empirical mean of arm  s  after  t  epochs is
+| \hat{p}_{t}^{s}:=\frac{1}{t}\sum_{k=1}^{t}\hat{R}_{k}^{s},\qquad\text{centered at }\mathbb{E}[\hat{p}_{t}^{s}]=\frac{1}{t}\sum_{k=1}^{t}\mathbb{E}[\hat{R}_{k}^{s}]. |
+The algorithm maintains a surviving set  \mathcal{S}_{t}\subseteq\mathcal{S}  and at each epoch
+t  eliminates any arm  s  satisfying
+| \hat{p}_{t}^{\max}-\hat{p}_{t}^{s}\;\geq\;2\alpha_{t},\qquad\alpha_{t}=\sqrt{\frac{\ln(c|\mathcal{S}|t^{2}/\delta)}{t}}, |
+where  \hat{p}_{t}^{\max}=\max_{s\in\mathcal{S}_{t}}\hat{p}_{t}^{s} ,  c>4  is an absolute
+constant, and  \delta=1/T .
+The probabilistic engine of Theorem 3 of  [7] is the tail bound  \Pr\bigl[|\hat{p}_{t}^{s}-\mathbb{E}[\hat{p}_{t}^{s}]|\geq\alpha_{t}\bigr]\leq e^{-\alpha_{t}^{2}t}\leq\delta/(c|\mathcal{S}|t^{2})  with a union bound over epochs and arms. This is Hoeffding’s inequality, whose requirements are independence and sub-Gaussian summands, both established in Step 2, and which centers the empirical mean at the average of the summands’ means; identical distribution is not among its hypotheses. Hence with probability at least  1-\delta ,
+| |\hat{p}_{t}^{s}-\mathbb{E}[\hat{p}_{t}^{s}]|\leq\alpha_{t}\qquad\text{for all }s\in\mathcal{S}\text{ and all }t\geq 1; |
+call this event  E .
+What must be supplied is the mean control: that  \mathbb{E}[\hat{p}_{t}^{s}]  is close enough to  R^{s} . By Step 2,
+| \bigl|\mathbb{E}[\hat{p}_{t}^{s}]-R^{s}\bigr|\;\leq\;\frac{k_{0}}{t}+\frac{\Delta_{\min}}{8}\;\leq\;\frac{\Delta_{\min}}{4}\qquad\text{once }t\geq 8k_{0}/\Delta_{\min}. |
+With this in hand, on  E  the confidence intervals cover  R^{s}  with radius  \alpha_{t}+\Delta_{\min}/4 : for  t\geq 8k_{0}/\Delta_{\min}  the best arm is never eliminated by a suboptimal arm  s , its empirical deficit being at most
+| \hat{p}_{t}^{s}-\hat{p}_{t}^{s^{*}}\;\leq\;-\Delta_{s}+\frac{\Delta_{\min}}{2}+2\alpha_{t}\;<\;2\alpha_{t}; |
+and a suboptimal arm  s  is eliminated once  4\alpha_{t}\leq\Delta_{s}-\Delta_{\min}/2 , for which  \alpha_{t}\leq\Delta_{s}/8  suffices, i.e. within  K^{*}=O(\ln T/\Delta_{\min}^{2})  epochs. Before  t\geq 8k_{0}/\Delta_{\min}  no elimination can occur for  T\geq e^{2k_{0}/\Delta_{\min}} : an elimination requires  2\alpha_{t}\leq 1 , hence  t\geq 4\ln T\geq 8k_{0}/\Delta_{\min} . An optimal arm may eliminate another optimal arm; this is harmless, and every surviving set contains an optimal arm.
+The accounting holds at any finite  T : the initial epochs before the bias settles cost  O(1)  rounds; the elimination phase costs
+| N_{\mathrm{elim}}\;\leq\;|\mathcal{S}|\sum_{k\leq K^{*}}T_{k}\;\leq\;|\mathcal{S}|\,K^{*2}\;=\;o(T) |
+rounds; and the failure event  E^{C}  contributes at most  \delta T=1 .
+Step 4: Bounding the Cumulative Suboptimality. Split the horizon at the end of epoch  K^{*}  and decompose
+|  | \displaystyle\underset{\mathcal{ALG^{\prime}}}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\left|U_{i}(\alpha_{i,t}^{s_{t}},\alpha_{-i,t}^{s_{t}},s_{r})-\max_{s\in\mathcal{S}}\,U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s_{r})\right|\right] |
+|  | \displaystyle\leq\underset{\mathcal{ALG^{\prime}}}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\left|\cdots\right|\,\Big|\,E\right]+\underset{\mathcal{ALG^{\prime}}}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\left|\cdots\right|\,\Big|\,E^{C}\right]\cdot\mathbb{P}(E^{C}). |
+Contribution from  E^{C} . Since  U_{i}\in[0,1] , each summand is bounded by  1 , so this term is at most  T\cdot\mathbb{P}(E^{C})\leq T\delta=1 .
+Rounds up to epoch  K^{*} , on  E . These number at most  N_{\mathrm{elim}}=o(T) , each contributing at most  1 .
+Rounds after epoch  K^{*} , on  E . By Step 3 every surviving arm  s  satisfies  R^{s}=\max_{s^{\prime}\in\mathcal{S}}R^{s^{\prime}} . If a single arm survives, the algorithm commits to it and, by the hypothesis of the theorem applied at that  s ,
+| \underset{\mathcal{ALG}(s)}{\mathbb{E}}\!\left[\sum_{t}\left|U_{i}(\alpha_{i,t}^{s},\alpha_{-i,t}^{s},s_{r})-R^{s}\right|\right]\in o(T), |
+so the remaining rounds contribute  o(T) . If several optimal arms survive, the epochs continue on them; each epoch on an optimal arm contributes  o(T_{k})  by the same hypothesis, uniformly over the finitely many arms, so these epochs contribute  o(T)  in total.
+Combining the three contributions, the total cumulative suboptimality of  \mathcal{ALG^{\prime}}
+satisfies
+| \underset{\mathcal{ALG^{\prime}}}{\mathbb{E}}\!\left[\sum_{t=1}^{T}\left|U_{i}(\alpha_{i,t}^{s_{t}},\alpha_{-i,t}^{s_{t}},s_{r})-\max_{s\in\mathcal{S}}\,U_{i}(\bar{\alpha}_{i}^{s},\bar{\alpha}_{-i}^{s},s_{r})\right|\right]\;\in\;o(T). |
+∎
+Appendix B Experimental Details
+(a) Etosha National Park with adaptive patrol-grid overlay [9, 6].
+(b) 123 Manhattan subway stations used as targets [19, 22].
+Figure 4: Geographic visualizations of the two game environments. (a) Etosha National Park with patrol-grid overlay (Conservation Security Game). (b) 123 Manhattan subway stations used as targets (Infrastructure Security Game).
+Conservation Security Game. The cell values record elephant counts, drawn from a study tracking 15 African elephants within Etosha National Park published on the Movebank repository [9], covering movements from 2008 to 2014. The patrol-grid overlay partitions the reserve into nine cells whose boundaries are calibrated to elephant population density and its temporal variation: regions of high and variable activity receive finer-grained cells, while persistently low-activity regions are consolidated into coarser ones. This was to ensure that the experimental setup reflects where the distribution of patrol resources would be most meaningful. We construct 396 game instances spanning February 2013 to March 2014, one per evaluation day. We average the utilities across all instances for both ETE and PTO approaches and compare across training runs for models allowed to train up until a different number of epochs.
+Infrastructure Security Game. The cell values record subway ridership, drawn from New York Metropolitan Transit Authority records [19], covering 123 Manhattan stations from 1 January 2022 to 31 December 2024. We construct 1098 game instances by averaging observations over 8-hour windows (approximately 3 instances per day). As with the conservation game, we average utilities across all instances for both approaches and compare across training epoch budgets.
+Feature Engineering.
+For each observation, we extract temporal features capturing details about the period in which the observation occurs, e.g., the month, day of week. We additionally construct  W  autoregressive lag features per cell, where the  i -th lag corresponds to the value observed at that cell  i  time periods prior. The full feature vector for each observation is thus  \mathbf{x}=(\text{temporal features},v_{t-1},v_{t-2},\ldots,v_{t-W})\in\mathbb{R}^{d} , where  v_{t-i}  denotes the  i -th lagged value and  d  is the total feature dimension.
+Train-Validation-Test Split.
+We employ a strict temporal split to prevent data leakage. For the infrastructure game, all observations from 2024 are held out as the test set, while the pre-2024 data is partitioned into training and validation sets. For the conservation game, we analogously reserve data from February 24 2013 up until March 28 2014 for final temporal segment for testing. In both cases, we identify the set of unique time periods in the training pool and randomly assign 15% of these time periods—rather than individual rows—to the validation set. This ensures that all cells observed at a given time period fall entirely within either the training or validation fold, preventing the model from exploiting contemporaneous cross-cell information during validation.
+Architecture.
+The Base MLP consists of two fully connected hidden layers. The input is projected to a hidden dimension of  h=256 , followed by Layer Normalization, a SiLU activation, and dropout with probability  p=0.2 . The second hidden layer reduces the dimension to  h/2=128  with a SiLU activation, and a final linear layer projects to a single scalar output. A ReLU activation is applied at the output to enforce non-negativity, reflecting the physical constraint that state values cannot be negative. This architecture is shared across both domains. For the Conservation Security Game, the input encodes spatial cell features; for the Infrastructure Security Game, the input consists of 132 features per station — six lagged 8-hour ridership windows and a 123-dimensional station one-hot encoding — and the model is applied independently per station to predict the next ridership value.
+Training Procedure.
+The supervised loss is the Huber loss, which is robust to outlier values compared with mean squared error. Optimization uses AdamW with weight decay  0.01  and a ReduceLROnPlateau schedule that halves the learning rate after 5 epochs without improvement in validation Huber loss. The initial learning rate is  \eta=10^{-3}  (Conservation) or  \eta=0.01  (Infrastructure) for PTO and ZOC, and  \eta=5\times 10^{-4}  for KKT and Hybrid in both domains. Gaussian input noise  \epsilon\sim\mathcal{N}(0,\sigma^{2}I)  with  \sigma=0.01  is applied during the supervised updates of PTO, ZOC and Hybrid; KKT uses no input noise, and KKT and Hybrid clip gradient norms at  1.0 . ZOC and Hybrid use regimes of  R=50  epochs. All models are trained for 500 epochs over 5 independent seeds. For the Infrastructure Security Game, the KKT and Hybrid models anneal the Huber regularization weight from  \lambda_{\max}=5.0  to  \lambda_{\min}=3.0  linearly over 300 epochs (for Hybrid, counted from the end of its first supervised regime), with strategic gradient steps restricted to a top- k=20  station subset and up to 32 time windows sampled per epoch. In the Conservation Security Game we do not use Huber regularization in the strategic loss ( \lambda_{\max}=\lambda_{\min}=0 ), and up to 128 time windows are sampled per epoch.
+Evaluation.
+We evaluate along both statistical and strategic axes. On the statistical side, we report Mean Absolute Error (MAE) between predicted and actual values across all cell-time pairs in the test set. On the strategic side, the predicted state vector  \hat{s}  is used to construct the payoff matrices of the security game, from which a Strong Stackelberg Equilibrium (SSE) defender strategy is computed via linear programming and evaluated against the actual state  s  to obtain the realized defender utility. This applies to both domains. For the Infrastructure Security Game, the test set comprises 1,098 8-hour windows across 123 stations; we report per-window utility (total utility  /1098 ) as the primary metric.
+Compute. All experiments were run on a single GPU; full runs (5 seeds, 500 epochs) take approximately 1–2 hours per domain for PTO and ZOC. For the Infrastructure Security Game, KKT and Hybrid runs take approximately 3–4 hours due to per-epoch LP gradient calls via cvxpylayers. CPU-only execution is supported but substantially slower for the differentiable LP methods.
+Controlled Experiments
+B.1 Synthetic Conservation Security Game
+Setup.
+We design a synthetic security game ( N=100  cells, catch
+penalty  P=10 ) to explore when each training objective succeeds or
+fails, rather than to produce aggregate rankings.
+The exogenous state is an animal density map (non-negative, peak cell
+normalised to  10 ).
+The defender receives  n_{\mathrm{obs}}=5  independent sparse noisy sweeps,
+each visiting  20  of  100  cells uniformly at random with Poisson-corrupted
+counts.
+All four methods share the same four-layer CNN (convolutional with instance
+normalisation, SiLU activations, Softplus output) trained with AdamW on
+1{,}000  synthetic scenarios for  200  epochs.
+Training objectives.
+PTO minimises Huber loss on predicted density and retains the
+final epoch.
+ZOC (Zero-Order Checkpointing) trains identically but evaluates
+downstream strategic utility on a held-out  15\%  of training data every
+20  epochs, retaining the checkpoint that maximises that score.
+KKT directly maximises defender utility by backpropagating through
+the Stackelberg LP via cvxpylayers: the attacker’s best-response
+target  t^{*}  is found by binary search (detached from the graph), the LP is
+re-solved for  t^{*}  with gradients on, and exact KKT sensitivities flow back
+to model parameters.
+Hybrid alternates between  20 -epoch Huber regimes and  20 -epoch
+KKT regimes, reverting to the running-best checkpoint after each regime if
+strategic utility does not improve.
+Density states are drawn from three families:
+(i) Gaussian blobs —  2 – 4  randomly placed modes
+( \sigma\in[0.05,0.25] );
+(ii) sparse spikes —  1 – 6  isolated cells with non-zero value;
+and (iii) concentric rings.
+Crucially, the three families induce structurally different attacker
+best-response landscapes, letting us study regime-dependent behaviour
+rather than a single aggregate score. We present the qualitative observations below:
+When does Hybrid help?
+Hybrid is most effective on spatially extended multi-modal densities
+(Figure 5, top row), where it outperforms both ZOC and
+KKT alone by up to  0.8  utility units. The revert-to-best filter
+consistently accepts the KKT phase on these instances.
+When does KKT alone win?
+On sparse spike densities (Figure 5, second row),
+KKT alone achieves the highest utility. Hybrid’s revert-to-best filter which leads to
+rejection of some KKT updates, results in sub-optimality for this particular setting.
+When does PTO or ZOC win?
+On densities with two well-separated modes of unequal weight
+(Figure 5, third row), accuracy ends up being a very important part of determining the most dense mode. This plays an outsized role in shaping utility.
+Summary.
+Hybrid is the natural default for multi-modal, spatially extended densities.
+KKT alone dominates when the density is sparse and the best-response target
+is unambiguous; it can fail when the landscape is smooth or multi-modal.
+PTO and ZOC remain competitive when predictive accuracy and strategic
+utility are well-aligned, most commonly for single-dominant-mode
+distributions. Designing a switching criterion that conditions Hybrid’s
+acceptance step on the stability of  t^{*}  rather than a scalar
+utility threshold is a key direction for future work.
+Figure 5: Four qualitative regimes on the synthetic  10\times 10  security game.
+Each row is one test scenario; columns show the ground-truth density
+and the prediction of each method.
+The winning method (highest defender utility against the true density)
+is labelled in bold green;
+utility  u  is reported below each prediction.
+Row 1 (multi-modal blob): Hybrid wins.
+Row 2 (sparse spike): KKT wins .
+Row 3 (two separated modes): PTO wins.
+Row 4 (single blob with secondary cluster): ZOC
+wins.
+(a) Two scenarios where Hybrid wins (rows 1–2) alongside a
+scenario where KKT wins (row 3).
+(b) Row 1: PTO wins.
+Row 2: ZOC wins.
+Row 3: KKT wins.
+Figure 6: Scenario-level breakdown illustrating the conditions under which
+Hybrid, KKT, PTO, and ZOC each succeed or fail.
+Aggregate metrics obscure these structural differences; the regime
+panels above make them explicit.

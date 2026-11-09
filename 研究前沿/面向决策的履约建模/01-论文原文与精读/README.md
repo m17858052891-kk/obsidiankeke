@@ -56,3 +56,15 @@ created: "2026-11-04"
 
 - [[研究前沿/动态等待与匹配决策/01-论文原文与精读/SparseStochasticMatching/精读|SparseStochasticMatching]] — 复用唯一正文。
 - [[研究前沿/uplift模型迭代/01-论文原文与精读/IMMD-Flow/精读|IMMD-Flow]] — 复用唯一正文。
+
+## 2026-11-09 新增与关联
+
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/IVBench/精读|模拟器知道干预做了什么吗？用同构盲模型评估试验组差]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/ForesightNav/精读|把动作后果蒸馏进单次前向的导航策略]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/INTERACT/精读|用动作条件的未来实体状态监督候选轨迹]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/DD-LS/精读|DD-LS · 让分配方案决定需求分布，再用容量上界加速求解]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/EGP-Hazard/精读|EGP-Hazard · 将右删失下的暴露时长用于估计长尾等待风险]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/LaMA-DT/精读|LaMA-DT · 先检验合成轨迹是否自洽，再用于策略学习]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/CompetingRiskLoss/精读|The Loss or the Architecture? What Matters in Survival Analysis with Competing Risks]]
+- 跨方向 · [[研究前沿/uplift模型迭代/01-论文原文与精读/MultiLTMLE/精读|Doubly-robust causal inference for multi-valued treatment regimes with recurrent neural networks]]
+- 跨方向 · [[研究前沿/uplift模型迭代/01-论文原文与精读/ValidatedDigitalTwins/精读|Experimentally Validated Digital Twins: Evaluating Workforce Training Programs in the Age of Big Data]]

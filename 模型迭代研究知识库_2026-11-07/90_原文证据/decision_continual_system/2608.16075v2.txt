@@ -1,0 +1,1093 @@
+TRACER: Balancing Stability-Plasticity-Cognitivity Trilemmafor LLM Enhanced Continual Recommendation
+Skip to main content
+Report GitHub Issue
+×
+Title:
+Content selection saved. Describe the issue below:
+Description:
+Why HTML?
+Report Issue
+Back to Abstract
+Download PDF
+Contents
+Reading mode
+Colour theme
+License: CC BY 4.0
+arXiv:2608.16075v2 [cs.IR] 25 Aug 2026
+TRACER: Balancing Stability-Plasticity-Cognitivity Trilemma
+for LLM Enhanced Continual Recommendation
+Conference: Proceedings of the 35th ACM International Conference on Information and Knowledge Management; November 07–11, 2026; Rome, ItalyProceedings of the 35th ACM International Conference on Information and Knowledge Management (CIKM ’26), November 07–11, 2026, Rome, ItalyDOI: 10.1145/3799682.3841118ISBN: 979-8-4007-2539-5/2026/11CCS: Information systems Recommender systemsCCS: Information systems PersonalizationCCS: Information systems Collaborative filtering
+WooJoo Kim
+email: kimuj0103@postech.ac.kr
+Affiliation: Pohang University of
+Science and Technology, Pohang, Republic of Korea
+,
+HyunSik Yoo
+email: hy40@illinois.edu
+Affiliation: University of Illinois
+Urbana-Champaign, Urbana, IL, USA
+,
+JunYoung Kim
+email: junyoungkim@postech.ac.kr
+Affiliation: Pohang University of
+Science and Technology, Pohang, Republic of Korea
+,
+JaeHyung Lim
+email: jaehyunglim@postech.ac.kr
+Affiliation: Pohang University of
+Science and Technology, Pohang, Republic of Korea
+,
+SeongKu Kang
+Note: Corresponding authors.
+email: seongkukang@korea.ac.kr
+Affiliation: Korea University, Seoul, Republic of Korea
+and
+HwanJo Yu
+email: hwanjoyu@postech.ac.kr
+Affiliation: Pohang University of
+Science and Technology, Pohang, Republic of Korea
+© cc
+Abstract.
+Continual recommendation aims to capture evolving user interests from streaming data but struggles with sparsity.
+LLM enhancers mitigate this with semantic knowledge, but naive integration creates a new conflict.
+We identify this as the Stability-Plasticity-Cognitivity (SPC) Trilemma, where generalized LLM semantic priors (Cognitivity) conflict with retaining personalized historical preferences (Stability) and adapting to individual interest shifts (Plasticity).
+To address this, we propose Trilemma-Responsive Adaptive Continual Enhancement for Recommendation (TRACER).
+TRACER synergistically combines three specialized modules, each targeting stability, plasticity, or cognitivity, while preventing any single lemma from dominating.
+This holistic design enables semantic knowledge to support history retention and adaptation to evolving interests without disrupting continual learning.
+Across five real-world datasets, TRACER effectively harmonizes the SPC trilemma and outperforms state-of-the-art baselines by up to 14.38%.11
+1
+Our code is available at https://github.com/woo-joo/TRACER_CIKM26.
+Keywords: Continual Recommendation, LLM Enhancement, Stability-Plasticity-Cognitivity Trilemma
+††cc-license: by
+1. Introduction
+Continual recommendation (CR) (Lee et al., 2024; Lim et al., 2025; Yoo et al., 2025b) captures evolving user interests from streaming data but struggles with data sparsity (Zhang et al., 2024; Choi et al., 2025; Cui et al., 2023; Chen et al., 2021), as interactions at each time stage are often insufficient for effective ID embedding updates.
+LLMs offer a remedy, leveraging rich knowledge and cognitive capabilities to perceive semantics beyond sparse identifiers (Sanner et al., 2023; Hou et al., 2024; Wu et al., 2024).
+However, directly employing LLMs as recommenders (Li et al., 2023; Kim et al., 2024; Bao et al., 2023; Bao et al., 2025; Lee et al., 2026) is impractical in CR due to prohibitive computational costs and inference latency that hinder rapid model updates in streaming environments.
+Thus, a critical challenge remains: how to infuse LLM semantic understanding into CR systems without compromising efficiency?
+To address this, the LLM enhancer paradigm (Harte et al., 2023; Hu et al., 2024; Liu et al., 2024) augments ID-based recommenders with pre-computed LLM-derived semantic representations, avoiding direct LLM inference during training and serving.
+Recent LLM enhancers go beyond merely encoding raw textual metadata of users or items.
+They leverage LLM world knowledge and reasoning to transform such metadata (e.g., reviews and descriptions) into semantically coherent profiles such as user personas and item intents (Ren et al., 2024; Xi et al., 2024), which are then encoded into semantic representations.
+This paradigm enables CR models to exploit rich semantic knowledge while preserving the efficiency of ID-based recommenders for rapid model updates.
+However, naive adoption of LLM enhancers disrupts the balance between Stability (preserving historical preferences) and Plasticity (adapting to interest shifts), a core continual-learning challenge (Kirkpatrick et al., 2017; Prabhu et al., 2020; Lu et al., 2025).
+In LLM-enhanced CR, this balance is further shaped by how the model exploits semantic priors to inject the cognitive strengths of LLMs into recommendation.
+We call this ability Cognitivity: leveraging semantic priors grounded in LLM world knowledge and reasoning to infer user-item relevance.
+However, user preferences are individual and evolving, whereas generalized LLM semantic priors may diverge from collaborative signals.
+Consequently, blindly pursuing cognitivity can erode core historical preferences or neglect genuine interest shifts, creating the Stability-Plasticity-Cognitivity (SPC) Trilemma.
+(a) Stability-Plasticity Landscape
+(b) Distribution
+(c) Euclidean Distance from Origin
+Figure 1. Trilemma validation. (a) Performance deviations against plain LightGCN. Gray lines connect points from the same data block. (b) Distribution of points across the four quadrants. (c) Average Euclidean distance of points from the origin.
+These trilemma-induced distortions manifest diversely.
+First, with heterogeneous preferences (e.g., ‘classical’ and ‘metal’), cognitivity may mistake semantic disparity for inconsistency.
+Dismissing one side as noise obscures multifaceted preferences and suppresses recommendations from that side (stability \downarrow , plasticity \downarrow ).
+Second, when a ‘zero-sugar’ consumer shifts to desserts, semantic priors may lock them into a ‘health-conscious’ profile, enforcing past habits while blocking new interests (stability \uparrow , plasticity \downarrow ).
+Conversely, cognitivity can overreact to a coarse semantic cue, broadly mapping a ‘foam roller’ purchased for ‘bodybuilding’ to ‘wellness’ and producing generic recommendations that capture recent signals but dilute fine-grained preferences (stability \downarrow , plasticity \uparrow ).
+To validate this trilemma, we construct three LLM enhancers using semantic representations in the training objective (Guidance), parameter instantiation (Initialization), and inference (Utilization).
+Each is integrated into LightGCN (He et al., 2020) for continual fine-tuning on chronological data blocks, with  \gamma\in[0,1]  controlling LLM intervention intensity (see App. A).
+Figure 1a shows NDCG@20 deviations from plain LightGCN on previous (stability) and current (plasticity) blocks.
+Points cluster in quadrants II (stability \downarrow , plasticity \uparrow ) and IV (stability \uparrow , plasticity \downarrow ) (Figure 1b), showing cognitivity improves stability or plasticity but degrades the other.
+Higher  \gamma  moves points farther from the origin (Figure 1c), indicating stronger LLM intervention exacerbates this imbalance.
+These results verify the SPC trilemma, motivating a dedicated solution for LLM-enhanced CR.
+We further show that Guidance, Initialization, and Utilization respectively bias LLM-enhanced CR toward stability, plasticity, and cognitivity (see Sec. 3).
+Building on this, we propose Trilemma-Responsive Adaptive Continual Enhancement for Recommendation (TRACER).
+TRACER synergistically combines three redesigned enhancers: Semantic Synchronization for guidance-driven stability, Procrustes Projection for initialization-driven plasticity, and Confidence-gated Condensation for utilization-driven cognitivity.
+Each preserves its target-lemma strength while mitigating its bias, allowing semantic knowledge to support history retention and adaptation to evolving interests.
+To our knowledge, this is the first framework to systematically integrate LLM enhancers into CR.
+Our main contributions are as follows:
+•
+SPC Trilemma: We formally define the SPC trilemma and verify that blindly pursuing cognitivity induces unbalanced trade-offs.
+•
+LLM Enhancer Analysis: We analyze how semantic representations induce distinct SPC biases across the model workflow.
+•
+TRACER Framework: We propose TRACER for LLM-enhanced CR by synergistically combining three modules for SPC balance.
+•
+SOTA Performance: Across five datasets, TRACER outperforms state-of-the-art baselines by harmonizing the SPC trilemma.
+2. Preliminary and Related Work
+Table 1. Key notations used in this paper.
+Notation | Description
+T | total number of continual time stages
+\mathcal{D}^{(t)} | interaction set at stage t
+\mathcal{U}^{(t)} / \mathcal{I}^{(t)} | set of active users / items at stage t
+\mathcal{U}^{(t)}_{\mathrm{new}} / \mathcal{I}^{(t)}_{\mathrm{new}} | set of new users / items appearing first in \mathcal{D}^{(t)}
+\mathcal{U}^{(t)}_{\mathrm{ext}} / \mathcal{I}^{(t)}_{\mathrm{ext}} | set of existing users / items at stage t , i.e., \mathcal{U}^{(t)}\setminus\mathcal{U}^{(t)}_{\mathrm{new}} / \mathcal{I}^{(t)}\setminus\mathcal{I}^{(t)}_{\mathrm{new}}
+\mathbf{e}^{(t)}_{u} / \mathbf{e}^{(t)}_{i} | ID embedding of user u / item i at stage t
+\mathbf{E}^{(t)} / \mathbf{E}^{(t)}_{\mathrm{new}} / \mathbf{E}^{(t)}_{\mathrm{ext}} | ID embedding table for all / new / existing users and items at stage t
+\mathbf{x}_{u} / \mathbf{x}_{i} | semantic representation of user u / item i
+\mathbf{X} | semantic representation table
+\phi^{(t)}(\cdot) | global adapter for semantic representations at stage t
+\hat{y}_{ui} | predicted interaction score between user u and item i
+\mathcal{L}_{\mathrm{rec}} | recommendation loss
+Table 1summarizes the key notations.
+Throughout the paper, we employ the tilde ( \tilde{\cdot} ) and hat ( \hat{\cdot} ) accents to explicitly denote the initialized and optimized states of any learnable parameter, respectively.
+2.1. Continual Recommendation
+We define the CR task where a model, pretrained on a base dataset  \mathcal{D}^{(0)} , adapts to sequential data blocks  \{\mathcal{D}^{(t)}\}_{t=1}^{T} .
+For active entities (i.e., users and items)  \mathcal{V}^{(t)}=\mathcal{U}^{(t)}\cup\mathcal{I}^{(t)}  in  \mathcal{D}^{(t)} , we partition  \mathcal{V}^{(t)}  into new entities  \mathcal{V}^{(t)}_{\mathrm{new}}=\mathcal{U}^{(t)}_{\mathrm{new}}\cup\mathcal{I}^{(t)}_{\mathrm{new}}  and existing entities  \mathcal{V}^{(t)}_{\mathrm{ext}}=\mathcal{U}^{(t)}_{\mathrm{ext}}\cup\mathcal{I}^{(t)}_{\mathrm{ext}} .
+The model parameters  \theta^{(t)}  include the ID embedding table  \mathbf{E}^{(t)}\in\mathbb{R}^{|\mathcal{V}^{(t)}|\times d} , divided into  \mathbf{E}^{(t)}_{\mathrm{new}}  and  \mathbf{E}^{(t)}_{\mathrm{ext}}  for new and existing entities, respectively.
+At each stage  t , the goal is to update  \theta^{(t)}  from an initialized state  \tilde{\theta}^{(t)} —inherited from the previous optimum  \hat{\theta}^{(t-1)} —to the optimized state  \hat{\theta}^{(t)}  by minimizing the recommendation loss  \mathcal{L}_{\mathrm{rec}}  (e.g., BPR loss (Rendle et al., 2009)) on  \mathcal{D}^{(t)} .
+While continual fine-tuning allows adaptation, it suffers from catastrophic forgetting (Goodfellow et al., 2013; Serra et al., 2018).
+To mitigate this, existing works mainly adopt two strategies.
+Regularization (Wang and Shen, 2023; Lee et al., 2025; Do and Lauw, 2023; Wang et al., 2021) imposes constraints to limit deviation from the previous optimum, often by distilling the topological structure of historical interaction graphs (Xu et al., 2020; Wang et al., 2023; Yoo et al., 2025a).
+Alternatively, experience replay (Lee et al., 2024; Mi et al., 2020; Zhu et al., 2023) maintains a reservoir of representative historical samples for joint training with the current data block, thereby reinforcing past preferences.
+However, relying solely on ID-based interaction data limits the efficacy of these strategies in sparse streaming environments, necessitating the integration of LLMs for semantic enhancement.
+2.2. LLM Enhancer for Recommendation
+Figure 2. Illustration of three LLM enhancer types.
+Figure 2illustrates the LLM enhancer paradigm, augmenting ID-based recommenders with pre-encoded semantic representations to avoid costly direct LLM inference during recommender training and serving.
+LLM enhancers often leverage world knowledge and reasoning to transform raw textual metadata into semantically coherent profiles (Ren et al., 2024; Xi et al., 2024), which are then encoded into  d_{\mathrm{LLM}} -dimensional representations and stacked for all users and items to form  \mathbf{X} , the semantic representation table.22
+2
+We focus on the systematic integration of LLM-derived semantic representations into CR. Optimizing the profiling pipeline is beyond the scope of this work.
+In CR, at each stage  t , new entities ( \mathcal{V}^{(t)}_{\mathrm{new}} ) are profiled and pre-encoded before model updates.
+We classify existing works into three types according to where  \mathbf{X}  enters the model workflow: Guidance in the training objective, Initialization at parameter instantiation, and Utilization during inference.
+Guidance.
+This strategy (Luo et al., 2025a; Liu et al., 2024; Wan et al., 2024; Yang et al., 2025) aligns evolving ID embeddings with semantic priors via distillation.
+In CR, it imposes a semantic constraint to anchor parameters against drift:
+(1) |  | \mathcal{L}^{(t)}=\mathcal{L}_{\mathrm{rec}}(\mathcal{D}^{(t)})+\lambda_{\mathrm{guide}}\sum_{v\in\mathcal{V}^{(t)}}\mathcal{L}_{\mathrm{guide}}(\mathbf{e}^{(t)}_{v},\mathbf{x}_{v}). |
+For  \mathcal{L}_{\mathrm{guide}} , RLMRec (Ren et al., 2024) uses contrastive alignment. DLLM2Rec (Cui et al., 2024) mimics ranking lists inferred by LLMs.
+Some methods (Li et al., 2025; Wang et al., 2024a; Wang et al., 2025) adopt a two-phase strategy: pre-training on  \mathcal{L}_{\mathrm{guide}}  and then fine-tuning on  \mathcal{L}_{\mathrm{rec}} .
+Initialization.
+This strategy (Liu et al., 2024; Hu et al., 2024; Zhang et al., 2025a) projects semantic priors to replace random initialization.
+In CR, confining this injection to new entities is desirable to avoid erasing learned history while accelerating adaptation:
+(2) |  | \tilde{\mathbf{e}}^{(t)}_{v}\leftarrow\phi^{(t)}(\mathbf{x}_{v}),\ \forall v\in\mathcal{V}^{(t)}_{\mathrm{new}};\quad\tilde{\mathbf{e}}^{(t)}_{v}\leftarrow\hat{\mathbf{e}}^{(t-1)}_{v},\ \forall v\in\mathcal{V}^{(t)}_{\mathrm{ext}}. |
+For  \phi^{(t)}(\cdot) , LLM2X (Harte et al., 2023) and AlphaFuse (Hu et al., 2025) employ PCA and SVD.
+AlphaRec (Sheng et al., 2025) and LLMEmb (Liu et al., 2025) use MLP adapters, deriving ID embeddings from the adapters rather than maintaining them as independent parameters.
+Utilization.
+This strategy (Sun et al., 2024; Yang et al., 2024; Lin et al., 2025; Wang et al., 2024b; Wan et al., 2024; Luo et al., 2025b) incorporates semantic representations directly into inference:
+(3) |  | \hat{y}_{ui}=f\left(\mathbf{e}^{(t)}_{u},\mathbf{e}^{(t)}_{i},\phi^{(t)}(\mathbf{x}_{u}),\phi^{(t)}(\mathbf{x}_{i})\right). |
+Designs for  \phi^{(t)}(\cdot)  and  f(\cdot)  vary significantly.
+KAR (Xi et al., 2024) employs MoE for  \phi^{(t)}(\cdot)  and concatenates  \mathbf{e}^{(t)}  and  \phi^{(t)}(\mathbf{x})  within  f(\cdot)  to form the final representation.
+DynLLM (Zhao et al., 2024) uses MLP for  \phi^{(t)}(\cdot)  and cross-attention within  f(\cdot)  to capture modality interplay.
+These strategies are not mutually exclusive and can be combined.
+For instance, LLM-ESR (Liu et al., 2024) employs entity-wise  L_{2}  regularization for guidance, instantiates  \mathbf{E}  via PCA projection of  \mathbf{X}  for initialization, and concatenates  \mathbf{e}  and  \phi(\mathbf{x})  to form the final entity representation for utilization.
+While these enhancer strategies have proven effective in static settings, extending them to dynamic streaming environments introduces new challenges, particularly in maintaining the delicate balance between stability and plasticity.
+2.3. Problem Definition
+We now formally define our problem.
+In LLM-enhanced CR, Cognitivity denotes a model ability to leverage semantic priors grounded in LLM world knowledge and reasoning to infer user-item relevance.
+Together with stability for preserving historical preferences and plasticity for adapting to interest shifts, cognitivity forms the following trilemma.
+Problem 1 (Stability-Plasticity-Cognitivity Trilemma).
+Given:
+(1) a model pretrained on a base dataset  \mathcal{D}^{(0)} ;
+(2) a continuous data stream  \{\mathcal{D}^{(t)}\}_{t=1}^{T} ;
+(3) semantic representations  \mathbf{X} .
+Objective:
+update model parameters  \theta^{(t)}  at each stage  t  to balance stability, plasticity, and cognitivity, which are inherently conflicting lemmas in LLM-enhanced CR.
+3. SPC Trilemma Analysis of LLM Enhancer
+To lay the groundwork for TRACER, we present a comprehensive empirical analysis and interpretation of distinct SPC biases induced by different LLM enhancer types in CR.
+3.1. Lemma Evaluation Metric
+Stability.
+We evaluate stability, the capacity to preserve learned history against forgetting, via Backward Transfer (BWT) (Lopez-Paz and Ranzato, 2017):
+(4) |  | \mathrm{BWT}=\frac{1}{T-1}\sum_{t=1}^{T-1}(R_{T,t}-R_{t,t}), |
+where  R_{t,k}  denotes the model performance (e.g., NDCG) on  \mathcal{D}^{(k)}  after continuously learning from  \mathcal{D}^{(0)}  to  \mathcal{D}^{(t)} .
+BWT measures deviation from the performance right after learning  \mathcal{D}^{(t)} , and a negative value explicitly quantifies forgetting under continual learning.
+Plasticity.
+We assess plasticity, the ability to adapt to emerging distributions, via Transigence (TRG), inspired by Intransigence (Chaudhry et al., 2018):
+(5) |  | \mathrm{TRG}=\frac{1}{T}\sum_{t=1}^{T}(R_{t,t}-R_{t}^{*}), |
+where  R_{t}^{*}  denotes the performance of a model trained from scratch solely on  \mathcal{D}^{(t)} .
+TRG quantifies the gain of continual learning over scratch training, and a negative value implies that past knowledge obstructs current adaptation.
+Cognitivity.
+We evaluate cognitivity, a model ability to leverage semantic priors grounded in LLM world knowledge and reasoning to infer user-item relevance, via a task-based measure.
+One could assess this ability by measuring how closely user-item similarity relations in the ID embedding space match those in the semantic representation space.
+However, such a representation-level criterion favors semantic mimicry over useful semantic reasoning for recommendation, potentially sacrificing collaborative personalization.
+We therefore propose Semantic Relevance Transfer (SRT), which evaluates recommendation performance for new users on tail items under strictly limited adaptation:
+(6) |  | \mathrm{SRT}=\frac{1}{T-1}\sum_{t=2}^{T}R_{t-1,t}^{(k)}, |
+where  R_{t-1,t}^{(k)}  denotes the performance of a model, trained up to  \mathcal{D}^{(t-1)} , on the unseen  \mathcal{D}^{(t)}  after minimal adaptation using  k  interactions as training data and  k  gradient updates.33
+3
+We set  k=5 .
+This setting isolates semantic reliance by suppressing common shortcuts.
+New users reduce reliance on accumulated collaborative histories, tail items reduce popularity-driven prediction, and limited adaptation minimizes fresh collaborative evidence.
+To implement this evaluation, the support set  \mathcal{S}^{(t)}  provides  k  interactions per new user used for adaptation, and the query set  \mathcal{Q}^{(t)}  is used for evaluation:
+(7) |  | \displaystyle\mathcal{S}^{(t)} | \displaystyle=\bigcup_{u\in\mathcal{U}^{(t)}_{\mathrm{new}}}\mathrm{Sample}\left(\left\{(u,i)\in\mathcal{D}^{(t)}\mid i\in\mathcal{I}^{(t)}_{\mathrm{ext}}\right\},k\right), |
+| \displaystyle\mathcal{Q}^{(t)} | \displaystyle=\left\{(u,i)\in\mathcal{D}^{(t)}\mid u\in\mathcal{U}^{(t)}_{\mathrm{new}},i\in\mathcal{I}^{(t)}_{\mathrm{ext}}\cap\mathcal{I}^{(t)}_{\mathrm{tail}}\right\}, |
+where  \mathcal{I}^{(t)}_{\mathrm{tail}}\subset\mathcal{I}^{(t)}  denotes tail items (bottom 80% frequency).
+Under this setting, SRT serves as a targeted proxy for a model ability to leverage semantic priors for user-item relevance estimation.
+Figure 3. SPC trilemma tendencies of TRACER and LLM enhancers. Annotated numbers (%) indicate the actual scores of the strongest lemma for each baseline.
+Using these metrics, we compare No-Enhancer (plain ID-based model) with four LLM-enhanced CR baselines, i.e., Guidance, Initialization, Utilization, and their naive Combination, alongside our TRACER as a reference, as visualized in Figure 3 (see Sec. 5.1 for baseline details).44
+4
+Unless otherwise specified, all reported results in this work are averaged or aggregated across all data blocks and applied continual learning strategies on LightGCN backbone, while consistent trends are observed across all experimental settings.
+The results reveal a structured correspondence: Guidance, Initialization, and Utilization respectively bias LLM-enhanced CR model toward stability, plasticity, and cognitivity, while naive Combination fails to harmonize them.
+Subsequent sections investigate these SPC biases by formulating and verifying hypotheses to elucidate the underlying phenomena.
+3.2. Guidance: Bias towards Stability
+Mechanism.
+Guidance, implemented via RLMRec (Ren et al., 2024), achieves the highest stability among enhancer baselines but lags behind No-Enhancer in plasticity.
+We attribute this to the semantic anchor effect, where the guidance loss anchors ID embeddings to semantic representations derived from the invariant world knowledge of LLMs.
+This continuously constrains ID embeddings toward fixed semantic positions, acting as a strong regularizer (Hinton et al., 2015; Hsieh et al., 2023; Xu et al., 2025; Wang et al., 2024c; Kim et al., 2026b; Kim et al., 2026c).
+While this anchoring effectively filters collaborative noise (e.g., noisy interactions) to preserve core historical preferences, it simultaneously imposes excessive rigidity, obstructing flexible adaptation to evolving distributions (Chaudhry et al., 2018).
+(a) CKA
+(b) Gradient Distribution
+Figure 4. Guidance analysis. (a) CKA comparing  \hat{\bf E}^{(t)}  across stage  t . (b) Gradient distributions of  {\bf E}^{(t)}_{\mathrm{new}}  and  {\bf E}^{(t)}_{\mathrm{ext}} .
+Empirical Evidence.
+First, we adopt centered kernel alignment (CKA) (Kornblith et al., 2019) in Figure 4a to measure the structural similarity of optimized ID embeddings across stages.
+For each stage pair  (t,k) , CKA is computed over common entities,  \mathcal{V}^{(t)}\cap\mathcal{V}^{(k)} .
+Guidance maintains higher similarity than No-Enhancer with slower temporal decay, confirming that the semantic anchor suppresses structural shift of ID embeddings (stability  \uparrow ).
+Second, gradient dynamics in Figure 4b reveal negative cosine similarity between gradients of recommendation ( \nabla_{\mathrm{rec}} ) and guidance ( \nabla_{\mathrm{guide}} ) losses, indicating objective conflict.
+Crucially, significantly higher  \|\nabla_{\mathrm{guide}}\|  on new entities implies that semantic anchoring can overpower early updates when collaborative evidence is scarce, interfering with fresh collaborative signals (plasticity  \downarrow ).
+3.3. Initialization: Bias towards Plasticity
+Mechanism.
+Initialization, implemented via LLM2X (Harte et al., 2023), yields the highest plasticity among enhancers yet compromises stability relative to No-Enhancer.
+We attribute this to misaligned semantic topology.
+ID embeddings of new entities inherit a coherent semantic blueprint, which accelerates adaptation by providing informative initial positions (Erhan et al., 2010; Hou et al., 2022).
+However, this semantic topology can be misaligned with the collaborative subspace formed by ID embeddings of existing entities, which have been fine-tuned on historical interaction signals (Bao et al., 2023; Zhu et al., 2024; Zhang et al., 2025b).
+Unlike random initialization, which introduces local uncertainty for new entities, semantic initialization injects a structured geometry whose alignment requires global realignment, thereby disrupting existing collaborative structures.
+(a) Convergence Trajectory
+(b) Principal Correlation
+Figure 5. Initialization analysis. (a) Convergence trajectory of  {\bf E}^{(t)}_{\mathrm{new}} . (b) Principal correlation between  \tilde{{\bf E}}^{(t)}_{\mathrm{new}}  and  \tilde{{\bf E}}^{(t)}_{\mathrm{ext}} . Dashed lines show the averages.
+Empirical Evidence.
+First, Figure 5a tracks the distance between new entity ID embeddings  \mathbf{E}^{(t)}_{\mathrm{new}}  and their convergence point  \hat{\mathbf{E}}^{(t)}_{\mathrm{new}} .
+Initialization shows a sharp, low-variance descent compared to No-Enhancer, confirming that the semantic blueprint provides informative initial positions for new entities (plasticity  \uparrow ).
+Second, Figure 5b employs principal correlation (Golub and Van Loan, 2013) to assess geometric alignment between newly initialized ID embeddings  \tilde{\mathbf{E}}^{(t)}_{\mathrm{new}}  and previously learned existing entity ID embeddings  \tilde{\mathbf{E}}^{(t)}_{\mathrm{ext}} .
+Initialization exhibits low alignment comparable to No-Enhancer, suggesting that the semantic topology is nearly as misaligned with the collaborative subspace as random parameters.
+Crucially, unlike unstructured random parameters that can be locally assimilated, fitting this coherent yet misaligned semantic topology requires global realignment, thereby disrupting learned collaborative structures (stability  \downarrow ).
+3.4. Utilization: Bias towards Cognitivity
+Mechanism.
+Utilization, implemented via KAR (Xi et al., 2024), improves cognitivity while severely degrading stability and plasticity.
+We attribute this to semantic dominance induced by shortcut learning (Arpit et al., 2017; Geirhos et al., 2020; Shah et al., 2020; Pezeshki et al., 2021; Kim et al., 2026a).
+Since semantic representations enter prediction directly and already carry meaningful information, the model gravitates toward them over randomly initialized ID embeddings of new entities.
+Crucially, this shortcut is optimized through a shared global adapter, bypassing the entity-wise parameter isolation (Rusu et al., 2016; Yoon et al., 2018) inherent to ID embeddings.
+As adapter updates jointly alter semantic projections across entities, current-block optimization can perturb historical representations (Rebuffi et al., 2017; Serra et al., 2018), while the coarse shared mapping limits entity-specific adaptation.
+(a) Gradient Magnitude
+(b) Rank-Biased Overlap
+Figure 6. Utilization analysis. (a) Gradient magnitudes of  \nabla_{\mathrm{ID}}  and  \nabla_{\mathrm{adapter}} . (b) Rank-biased overlap of full ranking against ID-only and LLM-only rankings.
+Empirical Evidence.
+First, Figure 6a compares gradient magnitudes on ID embeddings ( \nabla_{\mathrm{ID}} ) and the global adapter ( \nabla_{\mathrm{adapter}} ).
+In Utilization, gradients are concentrated on the adapter, showing that optimization primarily follows the semantic pathway rather than updating ID embeddings.
+Second, Figure 6b measures rank-biased overlap (RBO) (Webber et al., 2010) between the final ranking and two single-source rankings, i.e., ID-only rankings from  \mathbf{E}^{(t)}  and LLM-only rankings from  \phi^{(t)}(\mathbf{X}) .
+Utilization closely overlaps with LLM-only rankings but shows negligible overlap with ID-only rankings, indicating over-reliance on semantic knowledge (cognitivity  \uparrow ).
+Together, these results confirm shortcut learning in Utilization, where the semantic pathway overshadows collaborative signals and undermines ID-based learning (stability  \downarrow , plasticity  \downarrow ).
+3.5. Combination: Amplified Cognitivity Bias
+Combination, implemented via LLM-ESR (Liu et al., 2024), fails to synergistically combine the strengths of Guidance, Initialization, and Utilization.
+Despite the highest cognitivity, it exhibits the worst stability and plasticity due to amplified semantic dominance.
+Unlike standalone Guidance, where fixed semantic representations serve as stable anchors, Combination routes them through a recommendation-trained adapter used for Utilization.
+This turns the guidance target into a shifting semantic target, forcing ID embeddings to follow adapter-driven changes and aggravating volatility (stability  \downarrow ).
+Meanwhile, continuous guidance locks ID embeddings into this biased semantic topology, negating the adaptability gain of Initialization (plasticity  \downarrow ).
+The widened RBO gap in Figure 6b relative to Utilization confirms this amplified semantic reliance, indicating that collaborative signals are drowned out (cognitivity  \uparrow ).
+4. Proposed Framework: TRACER
+Figure 7. Illustration of TRACER, which redesigns the three LLM enhancer types to preserve their target-lemma strengths while mitigating their inherent SPC biases: Semantic Synchronization (SS) for guidance-driven stability, Procrustes Projection (PP) for initialization-driven plasticity, and Confidence-gated Condensation (CC) for utilization-driven cognitivity.
+Building on the analysis in Sec. 3, which revealed that the three enhancer types and their naive combination fail to resolve the SPC trilemma, we propose TRACER, as illustrated in Figure 7.
+TRACER synergistically combines bias-aware redesigns of the three enhancer types, preserving their target-lemma strengths while mitigating inherent SPC biases, thereby achieving superior performance across all lemmas (Figure 3).
+Specifically, TRACER aligns the semantic topology with the collaborative subspace for initialization (Figure 5b), arbitrates the utilization of dual knowledge sources (Figure 6b), and executes guidance that structurally avoids gradient conflicts.
+We present the methodology along the learning workflow: (1) instantiating parameters via initialization, (2) inferring predictions via utilization, and (3) optimizing the objective via guidance.
+4.1. Initialization: Procrustes Projection
+Addressing misaligned semantic topology, Procrustes Projection (PP) improves plasticity while reducing the stability disruption.
+PP performs topology alignment by geometrically rotating the semantic subspace toward the collaborative subspace, providing better-aligned positions for new entity ID embeddings.
+Global Subspace Alignment
+Unlike prior initialization baselines that ignore the target space, PP computes a projection matrix  \mathbf{P}^{(t)}\in\mathbb{R}^{d_{\mathrm{LLM}}\times d}  by aligning semantic representations of previous-stage entities ( \mathcal{V}^{(t-1)} ) with their historical ID embeddings.
+We formulate this as the Orthogonal Procrustes problem (Schönemann, 1966):
+(8) |  | \min_{\mathbf{P}}\|\mathbf{X}_{\mathcal{V}^{(t-1)}}\mathbf{P}-\hat{\mathbf{E}}^{(t-1)}\|_{F}\quad\text{s.t.}\quad\mathbf{P}^{\top}\mathbf{P}=\mathbf{I}, |
+where  \mathbf{X}_{\mathcal{V}^{(t-1)}}  denotes the rows of  \mathbf{X}  corresponding to entities in  \mathcal{V}^{(t-1)} .
+The closed-form solution is  \mathbf{P}^{(t)}=\mathbf{V}\mathbf{U}^{\top} , via the singular value decomposition of  (\hat{\mathbf{E}}^{(t-1)})^{\top}\mathbf{X}_{\mathcal{V}^{(t-1)}}=\mathbf{U}\mathbf{\Sigma}\mathbf{V}^{\top} .
+Crucially, this alignment grounds semantic initialization in the historical coordinate system (stability  \uparrow ).
+Simultaneously, discarding the scaling matrix  \mathbf{\Sigma}  avoids directly importing collaborative scaling patterns (e.g., popularity bias), preserving the distinct semantic geometry.
+This orthogonal rotation enables the model to focus on adaptation without correcting subspace mismatch (plasticity  \uparrow ).
+Local Calibration
+To resolve local inconsistencies persisting after global alignment, we refine new-entity initialization via entity-wise calibration.
+For a new user  u , we synthesize a collaborative reference  \mathbf{e}_{\mathrm{co},u}^{(t)}  by aggregating the semantic projection  \mathbf{e}_{\mathrm{se},u}^{(t)}=\mathbf{x}_{u}\mathbf{P}^{(t)}  with existing-item neighbors  \mathcal{N}(u)=\{i\in\mathcal{I}^{(t)}_{\mathrm{ext}}\mid(u,i)\in\mathcal{D}^{(t)}\} 55
+5
+For the sake of brevity, we present the formulations for users only, while the operations are applied analogously to items.:
+(9) |  | \displaystyle\mathbf{e}_{\mathrm{co},u}^{(t)} | \displaystyle=\frac{1}{1+|\mathcal{N}(u)|}\left(\mathbf{e}^{(t)}_{\mathrm{se},u}+\sum_{i\in\mathcal{N}(u)}\hat{\mathbf{e}}^{(t-1)}_{i}\right), |
+| \displaystyle\tilde{\mathbf{e}}^{(t)}_{u} | \displaystyle\leftarrow\beta^{(t)}_{u}\mathbf{e}_{\mathrm{se},u}^{(t)}+(1-\beta^{(t)}_{u})\mathbf{e}_{\mathrm{co},u}^{(t)}, | \displaystyle\forall u\in\mathcal{U}^{(t)}_{\mathrm{new}} |
+where  \beta^{(t)}_{u}=(\mathrm{cos\_sim}(\mathbf{e}^{(t)}_{\mathrm{se},u},\mathbf{e}^{(t)}_{\mathrm{co},u})+1)/2  down-weights semantic priors that conflict with the collaborative reference (stability  \uparrow ).
+This naturally accommodates sparse entities by relying more on the semantic projection  \mathbf{e}_{\mathrm{se},u}^{(t)}  when historical support ( |\mathcal{N}(u)| ) is weak (plasticity  \uparrow ).
+For pretraining ( t=0 ), where historical ID embeddings are unavailable, we use PCA:  \tilde{\mathbf{E}}^{(0)}\leftarrow\mathbf{X}\mathbf{P}_{\mathrm{PCA}}  with PCA projection matrix  \mathbf{P}_{\mathrm{PCA}} .
+4.2. Utilization: Confidence-gated Condensation
+Mitigating semantic dominance, Confidence-gated Condensation (CC) preserves cognitivity while safeguarding stability and plasticity.
+CC conducts semantic modulation, which controls semantic feature injection via confidence gating and constrains semantic parameter adaptation via low-rank adaptation (LoRA) (Hu et al., 2022).
+Confidence-aware Gating
+We employ a gating network to estimate an injection confidence  c_{v}^{(t)}\in[0,1]  for the adapted semantic representation  \phi^{(t)}(\mathbf{x}_{v})\in\mathbb{R}^{d} .
+We use concatenation to preserve feature independence, so  c_{v}^{(t)}  solely controls the semantic injection magnitude.
+The final entity representation  \mathbf{h}_{v}^{(t)}  is derived as:
+(10) |  | c_{v}^{(t)}=\mathrm{Sigmoid}(W^{(t)}_{\mathrm{gate}}\mathbf{x}_{v}+b^{(t)}_{\mathrm{gate}}),\quad\mathbf{h}_{v}^{(t)}=[\mathbf{e}_{v}^{(t)};c_{v}^{(t)}\phi^{(t)}(\mathbf{x}_{v})]. |
+Consequently, the interaction score  \hat{y}_{ui}  decomposes into ID-based and confidence-weighted semantic terms:
+(11) |  | \hat{y}_{ui}=\mathbf{h}^{(t)}_{u}\cdot\mathbf{h}^{(t)}_{i}=\mathbf{e}_{u}^{(t)}\cdot\mathbf{e}_{i}^{(t)}+c_{u}^{(t)}c_{i}^{(t)}\phi^{(t)}(\mathbf{x}_{u})\cdot\phi^{(t)}(\mathbf{x}_{i}), |
+where  c_{u}^{(t)}c_{i}^{(t)}  increases semantic intervention only when semantic signals from both user and item are reliable, enabling fine-grained control (plasticity  \uparrow ).
+Gating parameters inherit the previous optimum to preserve learned gating criteria across stages ( \tilde{W}^{(t)}_{\mathrm{gate}}\leftarrow\hat{W}^{(t-1)}_{\mathrm{gate}},\tilde{b}^{(t)}_{\mathrm{gate}}\leftarrow\hat{b}^{(t-1)}_{\mathrm{gate}} ).
+LoRA-based Condensation.
+We apply LoRA to the adapter  \phi^{(t)}(\cdot)  to restrict the optimization space.
+For each layer of  \phi^{(t)}(\cdot) , we freeze base weights  W^{(t)}_{\mathrm{base}}\in\mathbb{R}^{d_{\mathrm{out}}\times d_{\mathrm{in}}}  and optimize rank- r  matrices  A^{(t)}\in\mathbb{R}^{r\times d_{\mathrm{in}}},B^{(t)}\in\mathbb{R}^{d_{\mathrm{out}}\times r}  scaled by  \alpha :
+(12) |  | W^{(t)}=W^{(t)}_{\mathrm{base}}+\frac{\alpha}{r}B^{(t)}A^{(t)}. |
+Across stages, we merge the previous residual into the next base weights ( \tilde{W}_{\mathrm{base}}^{(t)}\leftarrow\hat{W}_{\mathrm{base}}^{(t-1)}+\frac{\alpha}{r}\hat{B}^{(t-1)}\hat{A}^{(t-1)} ) and re-initialize  A^{(t)}  and  B^{(t)} .
+Crucially, the bias is fixed to the pretraining optimum ( \tilde{b}^{(t)}_{\mathrm{base}}\leftarrow\hat{b}^{(0)}_{\mathrm{base}} ) to prevent severe feature drift.
+This confines adaptation to essential low-rank residuals, reducing overfitting (stability  \uparrow ), while the frozen base preserves the semantic core (cognitivity  \uparrow ).
+During pretraining ( t=0 ), base parameters ( W^{(0)}_{\mathrm{base}},b^{(0)}_{\mathrm{base}} ) are trained directly without LoRA.
+4.3. Guidance: Semantic Synchronization
+Relaxing the semantic anchor effect, Semantic Synchronization (SS) preserves stability while reducing plasticity disruption.
+SS turns guidance from a rigid anchor into a semantic accelerator by applying semantic guidance only when it is synchronized with the recommendation objective.
+Gradient-aware Selective Guidance
+We assess the alignment between collaborative and semantic signals by defining entity-level gradients,  \nabla_{\mathrm{rec},v}=\nabla_{\mathbf{e}_{v}^{(t)}}\mathcal{L}_{\mathrm{rec}}  and  \nabla_{\mathrm{guide},v}=\nabla_{\mathbf{e}_{v}^{(t)}}\mathcal{L}_{\mathrm{guide}}  for each entity  v\in\mathcal{V}^{(t)} .
+We quantify this agreement via cosine similarity  \cos(\psi_{v})=\mathrm{cos\_sim}(\nabla_{\mathrm{rec},v},\nabla_{\mathrm{guide},v}) .
+A positive alignment ( \cos(\psi_{v})>0 ) indicates that the semantic guidance supports the current collaborative update.
+In this regime, we actively enforce  \mathcal{L}_{\mathrm{guide}}  to accelerate convergence (plasticity  \uparrow ).
+Conversely, a negative alignment ( \cos(\psi_{v})\leq 0 ) indicates conflicting semantic and collaborative signals.
+Here, we deactivate  \mathcal{L}_{\mathrm{guide}}  to prevent the semantic anchor from suppressing genuine interest shifts (plasticity  \uparrow ).
+Retrospective Regularization
+Deactivating conflicted guidance aids adaptation but risks forgetting existing preferences.
+We thus introduce retrospective regularization  \mathcal{L}_{\mathrm{reg}}  for existing entities, anchoring each  \mathbf{e}_{v}^{(t)}  to its previous optimum  \hat{\mathbf{e}}_{v}^{(t-1)}  instead of semantic priors (stability  \uparrow ).
+This yields the synchronization objective:
+(13) |  | \mathcal{L}_{\mathrm{sync}}(v)=\begin{cases}\mathcal{L}_{\mathrm{guide}}(v)&\text{if }\cos(\psi_{v})>0,\\ \mathcal{L}_{\mathrm{reg}}(v)&\text{if }\cos(\psi_{v})\leq 0\land v\in\mathcal{V}^{(t)}_{\mathrm{ext}},\\ 0&\text{otherwise},\end{cases} |
+where both terms use InfoNCE loss (Oord et al., 2018; Liu et al., 2021) with in-batch negatives:  \mathcal{L}_{\mathrm{nce}}(\mathbf{e}_{v}^{(t)},\mathbf{r}_{v}^{(t)})=-\log\frac{\exp(\mathbf{e}_{v}^{(t)}\cdot\mathbf{r}_{v}^{(t)})}{\sum_{v^{\prime}\in B}\exp(\mathbf{e}_{v}^{(t)}\cdot\mathbf{r}^{(t)}_{v^{\prime}})}  where  B  denotes the mini-batch.
+Here,  \mathbf{r}_{v}^{(t)}  is set to  \phi^{(t)}(\mathbf{x}_{v})  for  \mathcal{L}_{\mathrm{guide}}  (using adapter  \phi^{(t)}(\cdot)  in Sec. 4.2) and to  \hat{\mathbf{e}}_{v}^{(t-1)}  for  \mathcal{L}_{\mathrm{reg}} .
+The “otherwise” case leaves conflicted new entities and pretraining ( t=0 ) optimized only by  \mathcal{L}_{\mathrm{rec}} , preventing semantic anchoring from hindering adaptation (plasticity  \uparrow ).
+With scaling factor  \lambda_{\mathrm{sync}} , the final objective for TRACER at stage  t  is:
+(14) |  | \mathcal{L}^{(t)}=\mathcal{L}_{\mathrm{rec}}(\mathcal{D}^{(t)})+\lambda_{\mathrm{sync}}\sum_{v\in\mathcal{V}^{(t)}}\mathcal{L}_{\mathrm{sync}}(v). |
+4.4. Synergistic Combination
+The proposed modules establish a virtuous cycle along the learning workflow.
+First, PP reduces topological mismatch, allowing CC to gate semantic features based on confidence rather than alignment error, while also reducing gradient conflicts in SS.
+CC then curbs semantic dominance, allowing SS to reinforce collaborative updates without rigid semantic anchoring.
+Together, these interplays harmonize collaborative and semantic spaces, yielding a high-quality historical optimum  \hat{\mathbf{E}}^{(t)}  that provides a better reference for future projection  \mathbf{P}^{(t+1)} .
+5. Experiment
+5.1. Experimental Setup
+5.1.1. Datasets
+Table 2. Statistics of the datasets for Table 3.
+Data Blocks | \boldsymbol{\mathcal{D}^{(0)}} | \boldsymbol{\mathcal{D}^{(1)}} | \boldsymbol{\mathcal{D}^{(2)}} | \boldsymbol{\mathcal{D}^{(3)}}
+Home | # Interactions | 171,457 | 38,100 | 38,100 | 38,100
+# Accumulated Users | 30,355 | 32,801 | 34,447 | 35,513
+# Accumulated Items | 16,644 | 17,241 | 17,566 | 17,867
+Sparsity | 99.97 % | 99.98 % | 99.98 % | 99.97 %
+CDs | # Interactions | 299,795 | 66,621 | 66,621 | 66,621
+# Accumulated Users | 24,633 | 27,589 | 30,752 | 34,485
+# Accumulated Items | 24,859 | 27,275 | 27,656 | 27,681
+Sparsity | 99.95 % | 99.97 % | 99.97 % | 99.96 %
+Movies | # Interactions | 406,479 | 90,328 | 90,328 | 90,328
+# Accumulated Users | 27,628 | 34,019 | 42,635 | 46,183
+# Accumulated Items | 21,612 | 21,872 | 21,917 | 21,920
+Sparsity | 99.93 % | 99.97 % | 99.97 % | 99.97 %
+Electronics | # Interactions | 426,769 | 94,837 | 94,837 | 94,837
+# Accumulated Users | 74,474 | 80,565 | 84,507 | 86,815
+# Accumulated Items | 31,972 | 34,028 | 35,324 | 35,779
+Sparsity | 99.98 % | 99.99 % | 99.99 % | 99.99 %
+Yelp | # Interactions | 335,385 | 74,529 | 74,529 | 74,529
+# Accumulated Users | 38,723 | 41,643 | 43,942 | 45,304
+# Accumulated Items | 26,247 | 27,202 | 27,783 | 28,091
+Sparsity | 99.97 % | 99.98 % | 99.98 % | 99.98 %
+Table 3. Overall performance (%). Best and second-best are marked in bold and underlined. Asterisk (*) denotes statistical significance at  p<0.05  based on a paired t-test over five independent runs against the strongest baselines.
+Backbone | Metric | Dataset | No-Enhancer | RLMRec (guidance) | LLM2X (initialization) | KAR (utilization) | LLM-ESR (combination) | TRACER | \boldsymbol{Improv.}
+FB | FT | RL2 | PS | FB | FT | RL2 | PS | FB | FT | RL2 | PS | FB | FT | RL2 | PS | FB | FT | RL2 | PS
+MF | ACC | Home | 0.90 | 1.81 | 1.77 | 1.74 | 1.26 | 2.00 | 1.98 | 1.95 | 2.67 | 2.70 | 2.64 | 2.67 | 2.33 | 3.76 | 3.62 | 3.61 | 2.66 | 4.15 | 4.20 | 4.15 | 4.49* | 6.90 %
+(Performance) | CDs | 3.98 | 3.37 | 3.38 | 3.27 | 4.13 | 3.48 | 3.50 | 3.46 | 4.80 | 3.82 | 3.81 | 3.84 | 4.95 | 4.87 | 4.81 | 4.95 | 5.58 | 5.56 | 5.42 | 5.66 | 6.06* | 7.07 %
+Movies | 3.25 | 2.59 | 2.56 | 2.35 | 3.61 | 2.72 | 2.74 | 2.56 | 4.46 | 3.09 | 3.10 | 2.90 | 4.63 | 5.01 | 4.95 | 4.94 | 5.02 | 5.43 | 5.42 | 5.44 | 5.76* | 5.88 %
+Electronics | 1.06 | 1.49 | 1.45 | 1.43 | 1.94 | 2.74 | 2.81 | 2.57 | 2.99 | 2.68 | 2.74 | 2.56 | 2.89 | 5.38 | 5.37 | 5.43 | 3.32 | 5.80 | 5.61 | 5.67 | 6.01* | 3.62 %
+Yelp | 3.62 | 3.26 | 3.23 | 3.32 | 3.90 | 3.05 | 3.02 | 3.31 | 4.40 | 3.28 | 3.30 | 3.35 | 5.63 | 5.50 | 5.65 | 5.78 | 5.36 | 5.54 | 5.54 | 6.18 | 6.54* | 5.83 %
+BWT | Home | 0.68 | 0.34 | 0.54 | 0.66 | 0.97 | 0.58 | 0.75 | 0.77 | 0.61 | 0.31 | 0.40 | 0.58 | 0.32 | -0.03 | -0.04 | -0.13 | 0.28 | -0.11 | -0.08 | -0.16 | 1.05* | 8.25 %
+(Stability) | CDs | 1.35 | 0.37 | 0.92 | 0.81 | 1.68 | 0.74 | 1.27 | 0.66 | 1.30 | 0.33 | 0.69 | 0.71 | 0.44 | 0.08 | -0.06 | 0.09 | 0.38 | -0.57 | -0.56 | -0.71 | 1.84* | 9.52 %
+Movies | 1.40 | 0.59 | 0.57 | 1.17 | 1.64 | 0.71 | 0.86 | 1.26 | 1.35 | 0.55 | 0.55 | 0.87 | 0.33 | 0.09 | 0.12 | 0.13 | 0.29 | -0.04 | 0.01 | 0.07 | 1.68* | 2.44 %
+Electronics | 1.59 | 1.15 | 1.18 | 1.24 | 2.16 | 1.29 | 1.32 | 1.42 | 1.48 | 1.02 | 1.10 | 1.10 | 0.51 | -0.01 | 0.04 | 0.10 | 0.42 | -0.10 | -0.24 | 0.09 | 2.20* | 1.85 %
+Yelp | 0.51 | 0.39 | 0.41 | 0.44 | 0.69 | 0.49 | 0.54 | 0.60 | 0.46 | 0.32 | 0.31 | 0.35 | 0.17 | -0.04 | -0.06 | -0.03 | 0.13 | -0.11 | -0.06 | -0.15 | 0.70* | 1.45 %
+TRG | Home | 0.57 | 0.69 | 0.58 | 0.63 | 0.49 | 0.59 | 0.50 | 0.52 | 0.85 | 1.05 | 0.92 | 0.98 | 0.29 | 0.31 | 0.33 | 0.37 | 0.23 | 0.26 | 0.24 | 0.29 | 1.31* | 24.76 %
+(Plasticity) | CDs | 1.38 | 1.52 | 1.52 | 1.41 | 0.91 | 1.27 | 1.07 | 1.11 | 1.95 | 2.14 | 2.08 | 2.20 | 0.33 | 0.46 | 0.34 | 0.55 | -0.10 | 0.06 | 0.02 | 0.36 | 2.63* | 19.55 %
+Movies | 1.25 | 1.44 | 1.38 | 1.56 | 0.79 | 1.10 | 0.97 | 1.23 | 1.58 | 2.05 | 1.90 | 1.99 | -0.02 | 0.37 | 0.18 | 0.39 | -0.50 | -0.04 | -0.07 | 0.09 | 2.31* | 12.68 %
+Electronics | 1.12 | 1.38 | 1.26 | 1.36 | 1.14 | 1.39 | 1.18 | 1.36 | 1.44 | 1.79 | 1.20 | 1.47 | -0.23 | 0.31 | 0.31 | 0.50 | -0.25 | 0.26 | -0.07 | 0.32 | 2.16* | 20.67 %
+Yelp | 1.92 | 2.14 | 2.15 | 2.16 | 1.48 | 1.85 | 1.82 | 1.86 | 2.58 | 2.88 | 3.13 | 3.16 | 1.03 | 0.93 | 1.01 | 1.05 | 0.68 | 0.83 | 0.83 | 1.05 | 3.58* | 13.29 %
+SRT | Home | 0.00 | 0.04 | 0.08 | 0.06 | 0.18 | 0.20 | 0.14 | 0.12 | 0.18 | 0.14 | 0.14 | 0.14 | 0.32 | 0.20 | 0.34 | 0.28 | 0.49 | 0.65 | 0.40 | 0.52 | 0.69* | 6.15 %
+(Cognitivity) | CDs | 0.02 | 0.00 | 0.02 | 0.02 | 0.03 | 0.05 | 0.04 | 0.03 | 0.06 | 0.06 | 0.04 | 0.05 | 0.40 | 0.32 | 0.45 | 0.40 | 0.52 | 0.46 | 0.59 | 0.44 | 0.60* | 1.69 %
+Movies | 0.02 | 0.02 | 0.02 | 0.03 | 0.04 | 0.03 | 0.03 | 0.04 | 0.04 | 0.06 | 0.10 | 0.14 | 0.18 | 0.18 | 0.26 | 0.22 | 0.22 | 0.28 | 0.26 | 0.37 | 0.38* | 2.70 %
+Electronics | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.02 | 0.02 | 0.02 | 0.04 | 0.08 | 0.08 | 0.15 | 0.22 | 0.20 | 0.14 | 0.20 | 0.24 | 0.25* | 4.17 %
+Yelp | 0.00 | 0.00 | 0.00 | 0.00 | 0.04 | 0.00 | 0.02 | 0.02 | 0.04 | 0.02 | 0.06 | 0.04 | 0.18 | 0.21 | 0.35 | 0.32 | 0.56 | 0.27 | 0.56 | 0.68 | 0.70* | 2.94 %
+LightGCN | ACC | Home | 1.56 | 2.80 | 2.80 | 2.85 | 1.78 | 2.98 | 2.96 | 3.03 | 2.32 | 3.24 | 3.23 | 3.16 | 2.53 | 4.71 | 4.80 | 4.80 | 2.91 | 5.08 | 5.07 | 5.36 | 5.66* | 5.60 %
+(Performance) | CDs | 4.07 | 3.99 | 4.00 | 3.82 | 4.11 | 3.89 | 3.91 | 3.75 | 4.34 | 4.17 | 4.15 | 4.04 | 5.34 | 5.37 | 5.39 | 5.57 | 6.04 | 5.90 | 5.89 | 6.17 | 6.41* | 3.89 %
+Movies | 4.02 | 3.01 | 3.02 | 2.84 | 3.99 | 2.95 | 2.97 | 2.76 | 4.46 | 3.24 | 3.27 | 3.11 | 4.72 | 5.16 | 5.06 | 5.14 | 5.39 | 5.74 | 5.73 | 5.81 | 6.22* | 7.06 %
+Electronics | 2.38 | 2.96 | 2.98 | 2.99 | 2.57 | 3.13 | 3.13 | 3.15 | 3.04 | 3.50 | 3.53 | 3.49 | 3.23 | 5.86 | 5.81 | 5.78 | 3.54 | 6.17 | 6.20 | 6.19 | 6.47* | 4.35 %
+Yelp | 4.45 | 3.72 | 3.70 | 3.70 | 4.48 | 3.74 | 3.74 | 3.74 | 4.85 | 3.91 | 3.92 | 3.89 | 5.76 | 6.89 | 6.93 | 7.13 | 5.96 | 7.30 | 7.19 | 7.26 | 8.35* | 14.38 %
+BWT | Home | 1.48 | 0.93 | 1.36 | 0.94 | 1.96 | 1.00 | 1.54 | 1.85 | 0.95 | 0.35 | 0.77 | 0.81 | 0.35 | -0.11 | -0.09 | -0.11 | 0.25 | -0.15 | 0.15 | 0.15 | 2.12* | 8.16 %
+(Stability) | CDs | 1.92 | 1.08 | 3.35 | 2.03 | 3.61 | 1.93 | 3.32 | 3.60 | 2.07 | 0.32 | 1.86 | 1.92 | 0.52 | 0.15 | 0.11 | 0.21 | 0.35 | 0.06 | 0.06 | 0.09 | 3.67* | 1.66 %
+Movies | 1.96 | 1.61 | 2.54 | 1.70 | 2.67 | 1.69 | 2.49 | 2.50 | 1.98 | 0.54 | 1.70 | 1.76 | 0.71 | 0.08 | 0.07 | 0.04 | 0.54 | -0.06 | -0.08 | -0.05 | 2.72* | 1.87 %
+Electronics | 2.05 | 0.92 | 1.97 | 1.87 | 2.57 | 2.05 | 2.15 | 2.44 | 1.43 | 0.49 | 1.73 | 1.38 | 0.64 | 0.09 | 0.04 | 0.04 | 0.35 | 0.00 | 0.03 | -0.01 | 2.58* | 0.39 %
+Yelp | 0.48 | 0.32 | 1.92 | 0.45 | 2.56 | 0.58 | 2.10 | 2.23 | 0.42 | 0.19 | 0.48 | 0.37 | 0.26 | -0.02 | -0.01 | 0.00 | 0.15 | 0.02 | -0.03 | -0.03 | 2.65* | 3.52 %
+TRG | Home | 0.63 | 0.74 | 0.67 | 1.02 | 0.61 | 0.66 | 0.66 | 0.66 | 0.73 | 1.11 | 0.92 | 1.04 | -0.58 | 0.33 | 0.29 | 0.37 | -1.51 | -0.59 | -1.39 | -1.05 | 1.30* | 17.12 %
+(Plasticity) | CDs | 1.01 | 1.40 | 0.92 | 1.10 | 0.86 | 0.89 | 0.99 | 0.79 | 1.30 | 2.08 | 1.97 | 1.73 | 0.12 | 0.35 | 0.34 | 0.37 | -0.68 | 0.32 | 0.21 | 0.31 | 2.24* | 7.69 %
+Movies | 0.65 | 0.59 | 0.56 | 0.63 | 0.29 | 0.37 | 0.34 | 0.29 | 0.54 | 1.04 | 0.87 | 1.02 | 0.16 | 0.18 | 0.07 | 0.14 | -0.09 | 0.10 | 0.08 | 0.09 | 1.26* | 21.15 %
+Electronics | 0.37 | 0.34 | 0.47 | 0.64 | 0.38 | 0.40 | 0.25 | 0.41 | 0.45 | 0.78 | 0.93 | 0.84 | -0.19 | 0.28 | 0.22 | 0.30 | -1.99 | 0.08 | -1.50 | -1.12 | 1.04* | 11.83 %
+Yelp | 0.92 | 1.23 | 0.93 | 1.49 | 0.80 | 1.03 | 0.92 | 0.98 | 1.29 | 1.54 | 1.56 | 1.48 | 0.38 | 0.43 | 0.39 | 0.40 | -0.26 | 0.37 | 0.11 | 0.40 | 2.02* | 29.49 %
+SRT | Home | 0.16 | 0.16 | 0.17 | 0.20 | 0.14 | 0.14 | 0.14 | 0.16 | 0.15 | 0.14 | 0.14 | 0.14 | 0.28 | 0.19 | 0.20 | 0.32 | 0.48 | 0.47 | 0.43 | 0.59 | 0.60* | 1.69 %
+(Cognitivity) | CDs | 0.04 | 0.02 | 0.04 | 0.09 | 0.10 | 0.10 | 0.10 | 0.12 | 0.14 | 0.12 | 0.14 | 0.18 | 0.20 | 0.16 | 0.28 | 0.34 | 0.30 | 0.33 | 0.38 | 0.39 | 0.40* | 2.56 %
+Movies | 0.03 | 0.02 | 0.12 | 0.09 | 0.13 | 0.10 | 0.13 | 0.12 | 0.10 | 0.12 | 0.06 | 0.15 | 0.11 | 0.12 | 0.10 | 0.15 | 0.20 | 0.18 | 0.18 | 0.26 | 0.27* | 3.85 %
+Electronics | 0.00 | 0.00 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.02 | 0.02 | 0.04 | 0.13 | 0.08 | 0.13 | 0.14 | 0.15* | 7.14 %
+Yelp | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.00 | 0.00 | 0.02 | 0.08 | 0.13 | 0.18 | 0.18 | 0.12 | 0.21 | 0.19 | 0.22 | 0.26* | 18.18 %
+We evaluate TRACER on four Amazon review categories (McAuley et al., 2015) (Home, CDs, Movies, and Electronics) and Yelp (Asghar, 2016).
+Following (Ren et al., 2024; Lee et al., 2024), we apply 10-core filtering and exclude interactions rated below 3 to focus on positive feedback.
+To simulate streaming, interactions are ordered chronologically.
+The first 60% form the base block  \mathcal{D}^{(0)} , and the remaining 40% are evenly divided into  T=3  continual blocks  \{\mathcal{D}^{(t)}\}_{t=1}^{T} .
+In each block, interactions for each user are randomly split into train/validation/test sets (8:1:1).
+We provide detailed dataset statistics in Table 2.
+5.1.2. Baselines
+•
+Backbone:
+We adopt MF (Koren et al., 2009) and LightGCN (He et al., 2020).
+•
+Continual Learning:
+Full-Batch (FB) retrains from scratch on cumulative data  \bigcup_{k=0}^{t}\mathcal{D}^{(k)}  at stage  t .
+Fine-Tune (FT) updates the previously learned model using only  \mathcal{D}^{(t)} .
+ReLoop2 (RL2) (Zhu et al., 2023) uses reservoir error memory to calibrate interaction scores.
+PISA (PS) (Yoo et al., 2025a) quantifies user preference shifts for regularization to balance stability and plasticity.
+•
+LLM Enhancer:
+No-Enhancer uses only ID embeddings.
+RLMRec (Ren et al., 2024) performs contrastive alignment as guidance.
+LLM2X (Harte et al., 2023) employs PCA projection for initialization.
+KAR (Xi et al., 2024) adapts semantic representations with MoE and concatenates them with ID embeddings for utilization.
+LLM-ESR (Liu et al., 2024) combines guidance, initialization, and utilization strategies.
+For each backbone, we instantiate 20 baselines by pairing four continual learning strategies with five LLM enhancers.
+5.1.3. Evaluation
+We perform full ranking without negative sampling (Krichene and Rendle, 2020).
+We adopt NDCG@20 as the recommendation metric.
+To assess CR, we report average accuracy ( \mathrm{ACC}=\frac{1}{T}\sum_{t=1}^{T}R_{t,t} ) alongside BWT (stability), TRG (plasticity), and SRT (cognitivity), which are defined in Sec. 3.1.
+5.1.4. Implementation Details
+We run all models on a single RTX 3090 GPU and average five independent runs.
+For semantic representations  \mathbf{X} , we generate profiles with gpt-4o-mini using the prompt from (Ren et al., 2024) and encode them with text-embedding-3-large.
+For LightGCN, we use 3 graph convolution layers.
+The ID embedding dimension is  d=64 , except for utilization-based models (KAR, LLM-ESR, TRACER) where  d=32  so concatenation with semantic representations yields the same final dimension.
+The adapter  \phi^{(t)}(\cdot)  is a LeakyReLU-activated two-layer MLP projecting  d_{\mathrm{LLM}}\to(d_{\mathrm{LLM}}+d)/2\to d .
+All models use Adam with learning rate  10^{-3} , weight decay  10^{-5} , and batch size 4096, and are trained up to 200 epochs with early stopping patience 30 based on validation ACC.
+For TRACER, we grid-search over the synchronization weight  \lambda_{\mathrm{sync}}\in\{0.01,0.1,1.0\} , LoRA rank  r\in\{4,8,16\} , and LoRA scaling factor  \alpha\in\{8,16,32\} .
+Baseline hyperparameters follow the search spaces suggested in their respective papers.
+5.2. Performance Comparison
+Table 3shows that TRACER consistently outperforms all baselines, achieving up to 14.38% ACC gain.
+TRACER also achieves the best BWT, TRG, and SRT in all cases, demonstrating its superior SPC balance.
+Beyond these gains, we provide four key insights:
+•
+KAR and LLM-ESR achieve high ACC and SRT as utilization-based enhancers, but show negligible or even negative TRG.
+This suggests that their performance stems from semantic over-reliance rather than effective continual learning dynamics, necessitating systematic integration of LLM enhancers into CR.
+•
+RLMRec secures high BWT via guidance, while TRACER achieves the highest BWT through SS.
+Crucially, its synergy with PP minimizes topological misalignment, allowing SS to resolve gradient conflicts around genuine interest shifts while preserving history.
+•
+LLM2X exhibits high TRG via initialization, yet TRACER surpasses this via PP.
+Combined with SS, PP amplifies the semantic accelerator effect by reducing gradient conflicts (Figure 10a), thereby maximizing responsiveness to emerging patterns.
+•
+LLM-ESR yields the best baseline ACC but suffers the lowest BWT and TRG despite high SRT, showing that naive combination lacks cohesive module interplay.
+Conversely, TRACER synergistically combines three modules to secure strong SPC scores, ultimately achieving superior ACC.
+5.3. Ablation Study
+We assess module contributions using TRACER(PP), TRACER(CC), and TRACER(SS), each retaining only the corresponding module.
+PP Analysis
+(a) Correlation Sensitivity
+(b) ACC
+Figure 8. TRACER(PP) analysis: (a) Performance and average principal correlation between  \tilde{\mathbf{E}}^{(t)}_{\mathrm{new}}  and  \tilde{\mathbf{E}}^{(t)}_{\mathrm{ext}} . (b) Performance and convergence epochs of initialization baselines.
+To analyze the topology alignment effect of PP, we employ geodesic interpolation on the Stiefel manifold (Edelman et al., 1998), defining a trajectory  \mathbf{P}(\lambda_{\mathrm{PP}}) 66
+6
+\mathbf{P}(\lambda_{\mathrm{PP}})=\mathrm{Exp}^{\mathrm{St}}_{\mathbf{P}_{\mathrm{PCA}}}\left(\lambda_{\mathrm{PP}}\mathrm{Log}^{\mathrm{St}}_{\mathbf{P}_{\mathrm{PCA}}}(\mathbf{P}^{(t)})\right) , where  \lambda_{\mathrm{PP}}\in[0,1] .  \mathrm{Exp}^{\mathrm{St}}  and  \mathrm{Log}^{\mathrm{St}}  are the Stiefel exponential and logarithm under the canonical metric. from PCA ( \mathbf{P}(0)=\mathbf{P}_{\mathrm{PCA}} ) to PP ( \mathbf{P}(1)=\mathbf{P}^{(t)} ).
+In Figure 8a, increasing  \lambda_{\mathrm{PP}}  monotonically improves both the principal correlation between  \tilde{\mathbf{E}}^{(t)}_{\mathrm{new}}  and  \tilde{\mathbf{E}}^{(t)}_{\mathrm{ext}}  and final performance.
+This confirms that topology alignment effectively reduces the optimization burden of correcting topology mismatch during training.
+We further quantify this benefit in Figure 8b by comparing TRACER(PP) with initialization baselines (AlphaFuse (Hu et al., 2025), AlphaRec (Sheng et al., 2025), LLM2X).
+TRACER(PP) shows superior convergence and the best performance.
+By bypassing the realignment phase, PP allows the model to immediately focus optimization on the core recommendation task.
+CC Analysis
+(a) Confidence Score
+(b) ACC
+Figure 9. TRACER(CC) analysis: (a) Confidence score across entity frequencies. (b) Performance of utilization baselines.
+To analyze the semantic modulation effect of CC, we examine entity confidence scores  c_{v}^{(t)}  across entity frequencies in Figure 9a.
+The inverse correlation between frequency and confidence shows that TRACER(CC) adaptively injects more semantic knowledge into low-frequency entities with scarce collaborative signals, enabling balanced learning.
+We further assess CC in Figure 9b by applying it to utilization baselines (DynLLM (Zhao et al., 2024), LLM-CF (Sun et al., 2024), KAR).
+These models suffer from semantic dominance, as continually trained models show negligible gains over scratch-trained counterparts (i.e., low or even negative TRG).
+However, CC consistently boosts their performance by adaptively gating semantic injection, alleviating shortcut learning while preserving the stability-plasticity balance of ID embeddings.
+SS Analysis
+(a) Gradient Conflict
+(b) ACC
+Figure 10. TRACER(SS) analysis: (a) Gradient conflict ( \cos(\psi_{v})\leq 0 ) ratio. (b) Performance of guidance baselines.
+To verify the semantic accelerator effect of SS, we analyze gradient conflicts ( \cos(\psi_{v})\leq 0 ) in Figure 10a.
+We attribute the decreasing ratio of RLMRec to gradual conformity of ID embeddings to a fixed semantic anchor rather than genuine resolution of the objective conflict.
+Conversely, the rising ratio under TRACER(SS) may arise as SS blocks conflicting guidance, allowing ID embeddings to accumulate collaborative knowledge and naturally diverge from the semantic anchor.
+Full TRACER further lowers conflicts through synergy with PP, which reduces subspace discrepancies.
+Compared with guidance baselines (DLLM2Rec (Cui et al., 2024), DaRec (Yang et al., 2025), RLMRec) in Figure 10b, TRACER(SS) also reduces the performance gap favoring existing users by using semantic guidance to accelerate aligned new-user updates while relying solely on  \mathcal{L}_{\mathrm{rec}}  for conflicted updates.
+Component Ablation
+Table 4. Ablation study with crucial components.
+Model | ACC | BWT | TRG | SRT
+(1) TRACER | 0.0662 | 0.0275 | 0.0157 | 0.0034
+(2) w/o Retrospective Regularization ( \mathcal{L}_{\mathrm{reg}} ) | 0.0652 | 0.0148 | 0.0156 | 0.0032
+(3) w/o SS | 0.0639 | 0.0147 | 0.0144 | 0.0031
+(4) w/o Local Calibration ( \mathbf{e}^{(t)}_{\mathrm{co},v} ) | 0.0638 | 0.0259 | 0.0143 | 0.0027
+(5) w/o PP | 0.0608 | 0.0268 | 0.0107 | 0.0029
+(6) w/o LoRA-based Condensation ( A^{(t)},B^{(t)} ) | 0.0647 | 0.0224 | 0.0157 | 0.0024
+(7) w/o CC | 0.0476 | 0.0276 | 0.0156 | 0.0013
+To quantitatively validate the effectiveness of components in TRACER, we present the ablation study in Table 4.
+All components improve performance, with three key observations:
+•
+The sharp BWT drop in (2) and (3) shows that SS effectively preserves stability.
+The noticeable TRG decline in (3) compared with (2) further suggests that selective guidance successfully mitigates the inherent plasticity drawback of guidance.
+•
+The low TRG scores of (4) and (5) show that topology alignment in PP is crucial for adaptation.
+The BWT gap between (1) and (4) further indicates that local calibration alleviates the stability deficit of initialization by aggregating historical ID embeddings.
+•
+The severe SRT drop in (7) confirms that CC is essential for injecting semantic knowledge.
+Meanwhile, the SRT and BWT drops in (6) show that LoRA-based condensation stabilizes semantic adaptation and prevents forgetting.
+Similar BWT and TRG between (1) and (7) indicate that CC improves cognitivity without disrupting the stability-plasticity balance of ID embeddings.
+5.4. Practicality Analysis
+(a) ACC
+(b) Memory and training time
+Figure 11. (a) Performance of TRACER with different semantic representations encoded via various LLMs. (b) Memory footprint and wall-clock training time of baselines.
+Beyond accuracy, practical deployment requires robustness to encoder choice, computational efficiency, and low sensitivity to hyperparameters.
+We therefore analyze TRACER from these perspectives.
+LLM Encoders
+Figure 11a evaluates TRACER across semantic representations from different LLM encoders, using the same profiles generated by gpt-4o-mini.
+TRACER performs best with text-embedding-3-large but also remains effective across distinct LLM families (LLaMA (Dubey et al., 2024), Qwen (Qwen et al., 2025)).
+Notably, performance improves only marginally with larger encoders, suggesting a practical trade-off between LLM encoder size and recommendation accuracy.
+Efficiency
+Figure 11b reports GPU memory footprint and wall-clock training time.
+TRACER maintains a compact memory footprint close to No-Enhancer, avoiding the high memory overhead of other baselines.
+Crucially, TRACER achieves this resource efficiency with rapid convergence, reaching the best performance with minimal computational cost.
+Parameter Sensitivity
+Figure 12. Parameter sensitivity of  \lambda_{\mathrm{sync}} ,  r , and  \alpha .
+Figure 12presents the sensitivity analysis for  \lambda_{\mathrm{sync}}  in SS and LoRA parameters  r,\alpha  in CC.
+TRACER maintains stable state-of-the-art performance across all configurations, demonstrating its robustness and ease of deployment.
+6. Conclusion
+We identify the SPC trilemma, revealing that naively injecting LLM-derived semantic knowledge into CR disrupts the balance between retaining history and adapting to evolving interests.
+To address this, we present TRACER, which synergistically combines three specialized modules to align semantic topology, modulate semantic injection, and resolve gradient conflicts.
+TRACER effectively harmonizes stability, plasticity, and cognitivity, achieving state-of-the-art performance and demonstrating that generalized semantic priors can serve as a catalyst for continual adaptation.
+Future work includes extending TRACER to multi-modal scenarios by incorporating visual-linguistic models for richer semantic enhancement.
+Acknowledgements.
+This work was supported by the NRF grant funded by the MSIT (No. RS-2024-00335873), the IITP grant funded by the MSIT (No.RS-2019-II191906, Artificial Intelligence Graduate School Program(POSTECH)).
+This work was also supported by ICT Creative Consilience Program through the IITP grant funded by the MSIT (IITP-2026-RS-2020-II201819) and the IITP grant funded by the MSIT (IITP-2026-RS-2026-25616664, AI Star Fellowship Support Program).
+Appendix A Trilemma Validation Experiment
+A.1. Datasets
+We utilize four Amazon review categories (Home, CDs, Movies, and Electronics) and Yelp.
+To simulate streaming, interactions are chronologically partitioned into five equal-sized blocks ( \{\mathcal{D}^{(t)}\}_{t=0}^{4} ).
+A.2. LLM Enhancer Baselines
+We evaluate canonical baselines for each LLM enhancer type in Figure 2, with a scalar  \gamma\in[0,1]  to control LLM intervention intensity.
+Guidance
+introduces an auxiliary loss term:
+(15) |  | \mathcal{L}_{\mathrm{guide}}(v)=\|\mathbf{e}^{(t)}_{v}-\phi^{(t)}(\mathbf{x}_{v})\|_{2}^{2}, |
+where  \mathbf{e}^{(t)}_{v}  and  \mathbf{x}_{v}  are the ID embedding and semantic representation of entity (i.e., user or item)  v , and  \phi^{(t)}(\cdot)  is a two-layer MLP.
+With  \mathcal{V}^{(t)} , the active entities in  \mathcal{D}^{(t)} , the final objective at stage  t  is
+(16) |  | \mathcal{L}^{(t)}=\mathcal{L}_{\mathrm{rec}}(\mathcal{D}^{(t)})+\gamma\sum_{v\in\mathcal{V}^{(t)}}\mathcal{L}_{\mathrm{guide}}(v). |
+Initialization
+initializes the ID embeddings of  \mathcal{V}^{(t)}_{\mathrm{new}} , new entities appearing first in  \mathcal{D}^{(t)} , using PCA-reduced semantic representations.
+Specifically, for a randomly sampled subset  \mathcal{V}^{(t)}_{\mathrm{init}}\subseteq\mathcal{V}^{(t)}_{\mathrm{new}}  of size  |\mathcal{V}^{(t)}_{\mathrm{init}}|=\lfloor\gamma|\mathcal{V}^{(t)}_{\mathrm{new}}|\rfloor , the initialization follows:
+(17) |  | \displaystyle\mathbf{e}^{(t)}_{v}\leftarrow | \displaystyle\phi_{\mathrm{PCA}}(\mathbf{x}_{v}), | \displaystyle\quad\forall v\in | \displaystyle\mathcal{V}^{(t)}_{\mathrm{init}}, |
+| \displaystyle\mathbf{e}^{(t)}_{v}\leftarrow | \displaystyle\mathcal{N}(\mathbf{0},\sigma^{2}\mathbf{I}_{d}), | \displaystyle\quad\forall v\in | \displaystyle\mathcal{V}^{(t)}_{\mathrm{new}}\setminus\mathcal{V}^{(t)}_{\mathrm{init}}. |
+Utilization
+integrates semantic representations during inference.
+Specifically, the final entity representation is obtained as follows:
+(18) |  | \mathbf{h}^{(t)}_{v}=[\mathbf{e}^{(t)}_{v};\gamma\phi^{(t)}(\mathbf{x}_{v})]. |
+A.3. Evaluation
+Let  R_{t,k}(\gamma)  denote the NDCG@20 of a model with control scalar  \gamma  on  \mathcal{D}^{(k)}  after training from  \mathcal{D}^{(0)}  to  \mathcal{D}^{(t)} .
+To evaluate stability and plasticity, we measure the performance deviation of the LLM-enhanced CR model relative to the plain ID-based model ( \gamma=0 ).
+Stability (x-axis).
+We quantify the change in knowledge retention by averaging the performance differences on all previous blocks:
+(19) |  | \frac{1}{t}\sum_{k=0}^{t-1}(R_{t,k}(\gamma)-R_{t,k}(0)). |
+Plasticity (y-axis).
+We measure the change in adaptability by calculating the performance difference on the current block:
+(20) |  | R_{t,t}(\gamma)-R_{t,t}(0). |
+Excluding the first block ( t=0 ) where stability cannot be defined, we visualize 20 data points per  \gamma  value in Figure 1a, corresponding to 4 continual steps ( t=1,2,3,4 ) across the five datasets.
+Appendix B GenAI Usage Disclosure
+ChatGPT was used solely for English grammar and language refinement.
+No generative AI was involved in the research process, including but not limited to coding, experiments, and data analysis.
+All technical contributions are the original work of authors, and AI-assisted edits were manually reviewed to ensure alignment with the original intent.
+References
+Arpit et al. (2017)
+D. Arpit, S. Jastrzębski, N. Ballas, D. Krueger, E. Bengio, M. S. Kanwal, T. Maharaj, A. Fischer, A. Courville, Y. Bengio, et al.
+A closer look at memorization in deep networks.
+In International conference on machine learning,
+pp. 233–242.
+Cited by: §3.4.
+Asghar (2016)
+N. Asghar
+Yelp dataset challenge: review rating prediction.
+arXiv preprint arXiv:1605.05362.
+Cited by: §5.1.1.
+Bao et al. (2025)
+K. Bao, J. Zhang, W. Wang, Y. Zhang, Z. Yang, Y. Luo, C. Chen, F. Feng, and Q. Tian
+A bi-step grounding paradigm for large language models in recommendation systems.
+ACM Transactions on Recommender Systems 3 (4), pp. 1–27.
+Cited by: §1.
+Bao et al. (2023)
+K. Bao, J. Zhang, Y. Zhang, W. Wang, F. Feng, and X. He
+Tallrec: an effective and efficient tuning framework to align large language model with recommendation.
+In Proceedings of the 17th ACM conference on recommender systems,
+pp. 1007–1014.
+Cited by: §1,
+§3.3.
+Chaudhry et al. (2018)
+A. Chaudhry, P. K. Dokania, T. Ajanthan, and P. H. Torr
+Riemannian walk for incremental learning: understanding forgetting and intransigence.
+In Proceedings of the European conference on computer vision (ECCV),
+pp. 532–547.
+Cited by: §3.1,
+§3.2.
+Chen et al. (2021)
+C. Chen, Y. Xia, H. Zang, J. Li, H. Liu, and H. Tong
+Incremental one-class collaborative filtering with co-evolving side networks.
+Knowledge and Information Systems 63 (1), pp. 105–124.
+Cited by: §1.
+Choi et al. (2025)
+S. Choi, S. Kim, H. Kang, W. Kim, and C. Park
+Dynamic time-aware continual user representation learning.
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+pp. 740–749.
+Cited by: §1.
+Cui et al. (2024)
+Y. Cui, F. Liu, P. Wang, B. Wang, H. Tang, Y. Wan, J. Wang, and J. Chen
+Distillation matters: empowering sequential recommenders to match the performance of large language models.
+In Proceedings of the 18th ACM Conference on Recommender Systems,
+pp. 507–517.
+Cited by: §2.2,
+§5.3.
+Cui et al. (2023)
+Z. Cui, X. Sun, L. Pan, S. Liu, and G. Xu
+Event-based incremental recommendation via factors mixed hawkes process.
+Information Sciences 639, pp. 119007.
+Cited by: §1.
+Do and Lauw (2023)
+J. H. Do and H. W. Lauw
+Continual collaborative filtering through gradient alignment.
+In Proceedings of the 17th ACM Conference on Recommender Systems,
+pp. 1133–1138.
+Cited by: §2.1.
+Dubey et al. (2024)
+A. Dubey, A. Jauhri, A. Pandey, A. Kadian, A. Al-Dahle, A. Letman, A. Mathur, A. Schelten, A. Yang, A. Fan, et al.
+The llama 3 herd of models.
+arXiv e-prints, pp. arXiv–2407.
+Cited by: §5.4.
+Edelman et al. (1998)
+A. Edelman, T. A. Arias, and S. T. Smith
+The geometry of algorithms with orthogonality constraints.
+SIAM journal on Matrix Analysis and Applications 20 (2), pp. 303–353.
+Cited by: §5.3.
+Erhan et al. (2010)
+D. Erhan, A. Courville, Y. Bengio, and P. Vincent
+Why does unsupervised pre-training help deep learning?.
+In Proceedings of the thirteenth international conference on artificial intelligence and statistics,
+pp. 201–208.
+Cited by: §3.3.
+Geirhos et al. (2020)
+R. Geirhos, J. Jacobsen, C. Michaelis, R. Zemel, W. Brendel, M. Bethge, and F. A. Wichmann
+Shortcut learning in deep neural networks.
+Nature Machine Intelligence 2 (11), pp. 665–673.
+Cited by: §3.4.
+Golub and Van Loan (2013)
+G. H. Golub and C. F. Van Loan
+Matrix computations.
+JHU press.
+Cited by: §3.3.
+Goodfellow et al. (2013)
+I. J. Goodfellow, M. Mirza, D. Xiao, A. Courville, and Y. Bengio
+An empirical investigation of catastrophic forgetting in gradient-based neural networks.
+arXiv preprint arXiv:1312.6211.
+Cited by: §2.1.
+Harte et al. (2023)
+J. Harte, W. Zorgdrager, P. Louridas, A. Katsifodimos, D. Jannach, and M. Fragkoulis
+Leveraging large language models for sequential recommendation.
+In Proceedings of the 17th ACM Conference on Recommender Systems,
+pp. 1096–1102.
+Cited by: §1,
+§2.2,
+§3.3,
+3rd item.
+He et al. (2020)
+X. He, K. Deng, X. Wang, Y. Li, Y. Zhang, and M. Wang
+Lightgcn: simplifying and powering graph convolution network for recommendation.
+In Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval,
+pp. 639–648.
+Cited by: §1,
+1st item.
+Hinton et al. (2015)
+G. Hinton, O. Vinyals, and J. Dean
+Distilling the knowledge in a neural network.
+arXiv preprint arXiv:1503.02531.
+Cited by: §3.2.
+Hou et al. (2022)
+Y. Hou, S. Mu, W. X. Zhao, Y. Li, B. Ding, and J. Wen
+Towards universal sequence representation learning for recommender systems.
+In Proceedings of the 28th ACM SIGKDD conference on knowledge discovery and data mining,
+pp. 585–593.
+Cited by: §3.3.
+Hou et al. (2024)
+Y. Hou, J. Zhang, Z. Lin, H. Lu, R. Xie, J. McAuley, and W. X. Zhao
+Large language models are zero-shot rankers for recommender systems.
+In European Conference on Information Retrieval,
+pp. 364–381.
+Cited by: §1.
+Hsieh et al. (2023)
+C. Hsieh, C. Li, C. Yeh, H. Nakhost, Y. Fujii, A. Ratner, R. Krishna, C. Lee, and T. Pfister
+Distilling step-by-step! outperforming larger language models with less training data and smaller model sizes.
+In Findings of the Association for Computational Linguistics: ACL 2023,
+pp. 8003–8017.
+Cited by: §3.2.
+Hu et al. (2022)
+E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen, et al.
+Lora: low-rank adaptation of large language models..
+ICLR 1 (2), pp. 3.
+Cited by: §4.2.
+Hu et al. (2025)
+G. Hu, A. Zhang, S. Liu, Z. Cai, X. Yang, and X. Wang
+Alphafuse: learn id embeddings for sequential recommendation in null space of language embeddings.
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+pp. 1614–1623.
+Cited by: §2.2,
+§5.3.
+Hu et al. (2024)
+J. Hu, W. Xia, X. Zhang, C. Fu, W. Wu, Z. Huan, A. Li, Z. Tang, and J. Zhou
+Enhancing sequential recommendation via llm-based semantic embedding learning.
+In Companion Proceedings of the ACM Web Conference 2024,
+pp. 103–111.
+Cited by: §1,
+§2.2.
+Kim et al. (2026a)
+J. Kim, W. Kweon, W. Kim, J. Lim, D. Kim, and H. Yu
+From overlooked to explored: recovering item relations via mixture of perspectives for sequential recommendation.
+arXiv preprint arXiv:2608.11846.
+Cited by: §3.4.
+Kim et al. (2024)
+S. Kim, H. Kang, S. Choi, D. Kim, M. Yang, and C. Park
+Large language models meet collaborative filtering: an efficient all-round llm-based recommender system.
+In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+pp. 1395–1406.
+Cited by: §1.
+Kim et al. (2026b)
+W. Kim, J. Kim, J. Lim, S. Choi, S. Kang, and H. Yu
+FLAME: condensing ensemble diversity into a single network for efficient sequential recommendation.
+In Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+pp. 823–833.
+Cited by: §3.2.
+Kim et al. (2026c)
+W. Kim, J. Kim, J. Lim, and H. Yu
+GOD: enhancing generalization via deep grafting for sequential recommendation.
+arXiv preprint arXiv:2608.16073.
+Cited by: §3.2.
+Kirkpatrick et al. (2017)
+J. Kirkpatrick, R. Pascanu, N. Rabinowitz, J. Veness, G. Desjardins, A. A. Rusu, K. Milan, J. Quan, T. Ramalho, A. Grabska-Barwinska, et al.
+Overcoming catastrophic forgetting in neural networks.
+Proceedings of the national academy of sciences 114 (13), pp. 3521–3526.
+Cited by: §1.
+Koren et al. (2009)
+Y. Koren, R. Bell, and C. Volinsky
+Matrix factorization techniques for recommender systems.
+Computer 42 (8), pp. 30–37.
+Cited by: 1st item.
+Kornblith et al. (2019)
+S. Kornblith, M. Norouzi, H. Lee, and G. Hinton
+Similarity of neural network representations revisited.
+In International conference on machine learning,
+pp. 3519–3529.
+Cited by: §3.2.
+Krichene and Rendle (2020)
+W. Krichene and S. Rendle
+On sampled metrics for item recommendation.
+In Proceedings of the 26th ACM SIGKDD international conference on knowledge discovery & data mining,
+pp. 1748–1757.
+Cited by: §5.1.3.
+Lee et al. (2024)
+G. Lee, S. Kang, W. Kweon, and H. Yu
+Continual collaborative distillation for recommender system.
+In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+pp. 1495–1505.
+Cited by: §1,
+§2.1,
+§5.1.1.
+Lee et al. (2025)
+G. Lee, H. Yoo, J. Hwang, S. Kang, and H. Yu
+Leveraging historical and current interests for continual sequential recommendation.
+arXiv preprint arXiv:2506.07466.
+Cited by: §2.1.
+Lee et al. (2026)
+J. Lee, S. Jang, S. Kang, and H. Yu
+Filling the gaps: selective knowledge augmentation for llm recommenders.
+In Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+pp. 891–901.
+Cited by: §1.
+Li et al. (2023)
+L. Li, Y. Zhang, and L. Chen
+Prompt distillation for efficient llm-based recommendation.
+In Proceedings of the 32nd ACM international conference on information and knowledge management,
+pp. 1348–1357.
+Cited by: §1.
+Li et al. (2025)
+X. Li, B. Chen, L. Hou, and R. Tang
+Ctrl: connect collaborative and language model for ctr prediction.
+ACM Transactions on Recommender Systems 4 (2), pp. 1–23.
+Cited by: §2.2.
+Lim et al. (2025)
+J. Lim, W. Kweon, W. Kim, J. Kim, S. Choi, D. Kim, and H. Yu
+Federated continual recommendation.
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+pp. 1798–1808.
+Cited by: §1.
+Lin et al. (2025)
+J. Lin, X. Dai, R. Shan, B. Chen, R. Tang, Y. Yu, and W. Zhang
+Large language models make sample-efficient recommender systems.
+Frontiers of Computer Science 19 (4), pp. 194328.
+Cited by: §2.2.
+Liu et al. (2025)
+Q. Liu, X. Wu, W. Wang, Y. Wang, Y. Zhu, X. Zhao, F. Tian, and Y. Zheng
+Llmemb: large language model can be a good embedding generator for sequential recommendation.
+In Proceedings of the AAAI Conference on Artificial Intelligence,
+Vol. 39, pp. 12183–12191.
+Cited by: §2.2.
+Liu et al. (2024)
+Q. Liu, X. Wu, Y. Wang, Z. Zhang, F. Tian, Y. Zheng, and X. Zhao
+Llm-esr: large language models enhancement for long-tailed sequential recommendation.
+Advances in Neural Information Processing Systems 37, pp. 26701–26727.
+Cited by: §1,
+§2.2,
+§2.2,
+§2.2,
+§3.5,
+3rd item.
+Liu et al. (2021)
+Z. Liu, Y. Chen, J. Li, P. S. Yu, J. McAuley, and C. Xiong
+Contrastive self-supervised sequential recommendation with robust augmentation.
+arXiv preprint arXiv:2108.06479.
+Cited by: §4.3.
+Lopez-Paz and Ranzato (2017)
+D. Lopez-Paz and M. Ranzato
+Gradient episodic memory for continual learning.
+Advances in neural information processing systems 30.
+Cited by: §3.1.
+Lu et al. (2025)
+A. Lu, H. Yuan, T. Feng, and Y. Sun
+Rethinking the stability-plasticity trade-off in continual learning from an architectural perspective.
+In International Conference on Machine Learning,
+pp. 40888–40902.
+Cited by: §1.
+Luo et al. (2025a)
+W. Luo, C. Song, L. Yi, and G. Cheng
+Trawl: external knowledge-enhanced recommendation with llm assistance.
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+pp. 5907–5914.
+Cited by: §2.2.
+Luo et al. (2025b)
+X. Luo, J. Cao, T. Sun, J. Yu, R. Huang, W. Yuan, H. Lin, Y. Zheng, S. Wang, Q. Hu, et al.
+Qarm: quantitative alignment multi-modal recommendation at kuaishou.
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+pp. 5915–5922.
+Cited by: §2.2.
+McAuley et al. (2015)
+J. McAuley, C. Targett, Q. Shi, and A. Van Den Hengel
+Image-based recommendations on styles and substitutes.
+In Proceedings of the 38th international ACM SIGIR conference on research and development in information retrieval,
+pp. 43–52.
+Cited by: §5.1.1.
+Mi et al. (2020)
+F. Mi, X. Lin, and B. Faltings
+Ader: adaptively distilled exemplar replay towards continual learning for session-based recommendation.
+In Proceedings of the 14th ACM Conference on Recommender Systems,
+pp. 408–413.
+Cited by: §2.1.
+Oord et al. (2018)
+A. v. d. Oord, Y. Li, and O. Vinyals
+Representation learning with contrastive predictive coding.
+arXiv preprint arXiv:1807.03748.
+Cited by: §4.3.
+Pezeshki et al. (2021)
+M. Pezeshki, O. Kaba, Y. Bengio, A. C. Courville, D. Precup, and G. Lajoie
+Gradient starvation: a learning proclivity in neural networks.
+Advances in Neural Information Processing Systems 34, pp. 1256–1272.
+Cited by: §3.4.
+Prabhu et al. (2020)
+A. Prabhu, P. H. Torr, and P. K. Dokania
+Gdumb: a simple approach that questions our progress in continual learning.
+In European conference on computer vision,
+pp. 524–540.
+Cited by: §1.
+Qwen et al. (2025)
+Qwen, :, A. Yang, B. Yang, B. Zhang, B. Hui, B. Zheng, B. Yu, C. Li, D. Liu, F. Huang, H. Wei, H. Lin, J. Yang, J. Tu, J. Zhang, J. Yang, J. Yang, J. Zhou, J. Lin, K. Dang, K. Lu, K. Bao, K. Yang, L. Yu, M. Li, M. Xue, P. Zhang, Q. Zhu, R. Men, R. Lin, T. Li, T. Tang, T. Xia, X. Ren, X. Ren, Y. Fan, Y. Su, Y. Zhang, Y. Wan, Y. Liu, Z. Cui, Z. Zhang, and Z. Qiu
+Qwen2.5 technical report.
+External Links: 2412.15115,
+Link
+Cited by: §5.4.
+Rebuffi et al. (2017)
+S. Rebuffi, H. Bilen, and A. Vedaldi
+Learning multiple visual domains with residual adapters.
+Advances in neural information processing systems 30.
+Cited by: §3.4.
+Ren et al. (2024)
+X. Ren, W. Wei, L. Xia, L. Su, S. Cheng, J. Wang, D. Yin, and C. Huang
+Representation learning with large language models for recommendation.
+In Proceedings of the ACM web conference 2024,
+pp. 3464–3475.
+Cited by: §1,
+§2.2,
+§2.2,
+§3.2,
+3rd item,
+§5.1.1,
+§5.1.4.
+Rendle et al. (2009)
+S. Rendle, C. Freudenthaler, Z. Gantner, and L. Schmidt-Thieme
+BPR: bayesian personalized ranking from implicit feedback.
+In Proceedings of the Twenty-Fifth Conference on Uncertainty in Artificial Intelligence,
+pp. 452–461.
+Cited by: §2.1.
+Rusu et al. (2016)
+A. A. Rusu, N. C. Rabinowitz, G. Desjardins, H. Soyer, J. Kirkpatrick, K. Kavukcuoglu, R. Pascanu, and R. Hadsell
+Progressive neural networks.
+arXiv preprint arXiv:1606.04671.
+Cited by: §3.4.
+Sanner et al. (2023)
+S. Sanner, K. Balog, F. Radlinski, B. Wedin, and L. Dixon
+Large language models are competitive near cold-start recommenders for language-and item-based preferences.
+In Proceedings of the 17th ACM conference on recommender systems,
+pp. 890–896.
+Cited by: §1.
+Schönemann (1966)
+P. H. Schönemann
+A generalized solution of the orthogonal procrustes problem.
+Psychometrika 31 (1), pp. 1–10.
+Cited by: §4.1.
+Serra et al. (2018)
+J. Serra, D. Suris, M. Miron, and A. Karatzoglou
+Overcoming catastrophic forgetting with hard attention to the task.
+In International conference on machine learning,
+pp. 4548–4557.
+Cited by: §2.1,
+§3.4.
+Shah et al. (2020)
+H. Shah, K. Tamuly, A. Raghunathan, P. Jain, and P. Netrapalli
+The pitfalls of simplicity bias in neural networks.
+Advances in Neural Information Processing Systems 33, pp. 9573–9585.
+Cited by: §3.4.
+Sheng et al. (2025)
+L. Sheng, A. Zhang, Y. Zhang, Y. Chen, X. Wang, and T. Chua
+Language representations can be what recommenders need: findings and potentials.
+In international Conference on Learning Representations,
+Vol. 2025, pp. 91632–91658.
+Cited by: §2.2,
+§5.3.
+Sun et al. (2024)
+Z. Sun, Z. Si, X. Zang, K. Zheng, Y. Song, X. Zhang, and J. Xu
+Large language models enhanced collaborative filtering.
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+pp. 2178–2188.
+Cited by: §2.2,
+§5.3.
+Wan et al. (2024)
+Z. Wan, B. Yin, J. Xie, F. Jiang, X. Li, and W. Lin
+LARR: large language model aided real-time scene recommendation with semantic understanding.
+In Proceedings of the 18th ACM Conference on Recommender Systems,
+pp. 23–32.
+Cited by: §2.2,
+§2.2.
+Wang et al. (2024a)
+H. Wang, J. Lin, X. Li, B. Chen, C. Zhu, R. Tang, W. Zhang, and Y. Yu
+Flip: fine-grained alignment between id-based models and pretrained language models for ctr prediction.
+In Proceedings of the 18th ACM conference on recommender systems,
+pp. 94–104.
+Cited by: §2.2.
+Wang et al. (2021)
+Y. Wang, Y. Zhang, and M. Coates
+Graph structure aware contrastive knowledge distillation for incremental learning in recommender systems.
+In Proceedings of the 30th ACM International Conference on Information & Knowledge Management,
+pp. 3518–3522.
+Cited by: §2.1.
+Wang et al. (2023)
+Y. Wang, Y. Zhang, A. Valkanas, R. Tang, C. Ma, J. Hao, and M. Coates
+Structure aware incremental learning with personalized imitation weights for recommender systems.
+In Proceedings of the AAAI Conference on Artificial Intelligence,
+Vol. 37, pp. 4711–4719.
+Cited by: §2.1.
+Wang et al. (2025)
+Y. Wang, J. Pan, P. Jia, W. Wang, M. Wang, Z. Feng, X. Li, J. Jiang, and X. Zhao
+Pre-train, align, and disentangle: empowering sequential recommendation with large language models.
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+pp. 1455–1465.
+Cited by: §2.2.
+Wang et al. (2024b)
+Y. Wang, Y. Wang, Z. Fu, X. Li, W. Wang, Y. Ye, X. Zhao, H. Guo, and R. Tang
+Llm4msr: an llm-enhanced paradigm for multi-scenario recommendation.
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+pp. 2472–2481.
+Cited by: §2.2.
+Wang et al. (2024c)
+Y. Wang, C. Tian, B. Hu, Y. Yu, Z. Liu, Z. Zhang, J. Zhou, L. Pang, and X. Wang
+Can small language models be good reasoners for sequential recommendation?.
+In Proceedings of the ACM Web Conference 2024,
+pp. 3876–3887.
+Cited by: §3.2.
+Wang and Shen (2023)
+Z. Wang and Y. Shen
+Incremental learning for multi-interest sequential recommendation.
+In 2023 IEEE 39th international conference on data engineering (ICDE),
+pp. 1071–1083.
+Cited by: §2.1.
+Webber et al. (2010)
+W. Webber, A. Moffat, and J. Zobel
+A similarity measure for indefinite rankings.
+ACM Transactions on Information Systems (TOIS) 28 (4), pp. 1–38.
+Cited by: §3.4.
+Wu et al. (2024)
+L. Wu, Z. Zheng, Z. Qiu, H. Wang, H. Gu, T. Shen, C. Qin, C. Zhu, H. Zhu, Q. Liu, et al.
+A survey on large language models for recommendation.
+World Wide Web 27 (5), pp. 60.
+Cited by: §1.
+Xi et al. (2024)
+Y. Xi, W. Liu, J. Lin, X. Cai, H. Zhu, J. Zhu, B. Chen, R. Tang, W. Zhang, and Y. Yu
+Towards open-world recommendation with knowledge augmentation from large language models.
+In Proceedings of the 18th ACM Conference on Recommender Systems,
+pp. 12–22.
+Cited by: §1,
+§2.2,
+§2.2,
+§3.4,
+3rd item.
+Xu et al. (2025)
+W. Xu, Q. Wu, Z. Liang, J. Han, X. Ning, Y. Shi, W. Lin, and Y. Zhang
+SLMRec: distilling large language models into small for sequential recommendation.
+In International Conference on Learning Representations,
+Vol. 2025, pp. 35810–35831.
+Cited by: §3.2.
+Xu et al. (2020)
+Y. Xu, Y. Zhang, W. Guo, H. Guo, R. Tang, and M. Coates
+Graphsail: graph structure aware incremental learning for recommender systems.
+In Proceedings of the 29th ACM International Conference on Information & Knowledge Management,
+pp. 2861–2868.
+Cited by: §2.1.
+Yang et al. (2024)
+S. Yang, W. Ma, P. Sun, Q. Ai, Y. Liu, M. Cai, and M. Zhang
+Sequential recommendation with latent relations based on large language model.
+In Proceedings of the 47th International ACM SIGIR conference on research and development in information retrieval,
+pp. 335–344.
+Cited by: §2.2.
+Yang et al. (2025)
+X. Yang, H. Jing, Z. Zhang, J. Wang, H. Niu, S. Wang, Y. Lu, J. Wang, D. Yin, X. Liu, et al.
+Darec: a disentangled alignment framework for large language model and recommender system.
+In 2025 IEEE 41st International Conference on Data Engineering (ICDE),
+pp. 904–917.
+Cited by: §2.2,
+§5.3.
+Yoo et al. (2025a)
+H. Yoo, S. Kang, R. Qiu, C. Xu, F. Wang, and H. Tong
+Embracing plasticity: balancing stability and plasticity in continual recommender systems.
+In Proceedings of the 48th International ACM SIGIR conference on research and development in Information Retrieval,
+pp. 2092–2101.
+Cited by: §2.1,
+2nd item.
+Yoo et al. (2025b)
+H. Yoo, S. Kang, and H. Tong
+Continual recommender systems.
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+pp. 6857–6860.
+Cited by: §1.
+Yoon et al. (2018)
+J. Yoon, E. Yang, J. Lee, and S. J. Hwang
+Lifelong learning with dynamically expandable networks.
+In 6th International Conference on Learning Representations, ICLR 2018,
+Cited by: §3.4.
+Zhang et al. (2024)
+J. Zhang, J. Shi, J. Duan, and Y. Ren
+Latent side-information dynamic augmentation for incremental recommendation.
+Knowledge and Information Systems 66 (10), pp. 6051–6078.
+Cited by: §1.
+Zhang et al. (2025a)
+W. Zhang, L. Yang, W. Yang, H. P. Zou, Y. Liu, K. Xu, S. Medya, and P. S. Yu
+Llminit: a free lunch from large language models for selective initialization of recommendation.
+In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing: Industry Track,
+pp. 2016–2024.
+Cited by: §2.2.
+Zhang et al. (2025b)
+Y. Zhang, F. Feng, J. Zhang, K. Bao, Q. Wang, and X. He
+Collm: integrating collaborative embeddings into large language models for recommendation.
+IEEE Transactions on Knowledge and Data Engineering.
+Cited by: §3.3.
+Zhao et al. (2024)
+Z. Zhao, F. Lin, X. Zhu, Z. Zheng, T. Xu, S. Shen, X. Li, Z. Yin, and E. Chen
+DynLLM: when large language models meet dynamic graph recommendation.
+arXiv preprint arXiv:2405.07580.
+Cited by: §2.2,
+§5.3.
+Zhu et al. (2023)
+J. Zhu, G. Cai, J. Huang, Z. Dong, R. Tang, and W. Zhang
+ReLoop2: building self-adaptive recommendation models via responsive error compensation loop.
+In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+pp. 5728–5738.
+Cited by: §2.1,
+2nd item.
+Zhu et al. (2024)
+Y. Zhu, L. Wu, Q. Guo, L. Hong, and J. Li
+Collaborative large language model for recommender systems.
+In Proceedings of the ACM Web Conference 2024,
+pp. 3162–3172.
+Cited by: §3.3.

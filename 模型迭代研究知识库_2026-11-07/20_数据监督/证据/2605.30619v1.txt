@@ -1,0 +1,3250 @@
+
+=== PAGE 1 ===
+Reward Learning from Best-of-NPreference Data:
+Targets, Tradeoffs, and Design Principles
+Rattana Pukdee rpukdee@cs.cmu.edu
+Machine Learning Department
+Carnegie Mellon University
+Maria-Florina Balcanninamf@cs.cmu.edu
+Machine Learning Department
+Carnegie Mellon University
+Pradeep Ravikumar pkr@cs.cmu.edu
+Machine Learning Department
+Carnegie Mellon University
+Abstract
+Best-of-Nsampling is widely used to construct pairwise preference data:Ncandidates are
+drawn from a base distribution, and the best is paired with a rejected response. Despite
+its widespread use, what Bradley–Terry (BT) reward learning extracts from such data, and
+how to chooseNand the base distribution, remain unclear. We specialize a recent analysis
+of preference data via its induced conditional distribution to Best-of-N. For independent-
+reference variants, we derive closed-form reward targets as explicit functions ofNand the
+base distribution, and show that they preserve the latent reward ranking. For the practical
+Best-vs-Random and Best-vs-Worst variants, chosen and rejected responses are coupled
+through the same candidate set, so exact BT representability generally fails; nevertheless,
+bounded-class minimizers approach the reference targets asNgrows. Although margin and
+connectivity are known to govern sample efficiency in pairwise preference learning, Best-
+of-Ncouples them throughNin opposing directions: largerNwidens pairwise margins
+but reduces connectivity. This trade-off yields two design principles: use largerNwhen
+preference labels are the bottleneck, smallerNwhen generation is the bottleneck; and
+shape the base distribution to place mass between the responses whose comparison matters
+most at test time. Experiments on synthetic and real preference data support the predicted
+dependence on sample size and base-distribution shape.1
+1 Introduction
+Pairwise preference data is a general and increasingly important supervision signal in machine learning. It
+has been extensively studied in the literature on learning to rank (Cao et al., 2007; Wauthier et al., 2013)
+and learning preference (Fürnkranz & Hüllermeier, 2010; Qian et al., 2015), learning combinatorial functions
+(Balcan et al., 2016) and more recently has become central to modern AI systems, especially in reward
+learning and post-training of large language models (Christiano et al., 2017; Ouyang et al., 2022). This
+form of supervision is widely used because relative judgements are often easier to obtain, from both human
+annotators and increasingly AI evaluators (Zheng et al., 2023), than calibrated scalar scores.
+In modern AI systems, pairwise preference data is often used to train reward models, typically with a
+Bradley-Terry objective, and these reward models may then be used to further optimize a language model
+through reinforcement learning (Ziegler et al., 2019; Stiennon et al., 2020; Ouyang et al., 2022). Preference
+data is also used more directly in fine-tuning the model as well (Rafailov et al., 2023; Meng et al., 2024). A
+1Code available at: https://github.com/rattaoup/bon-preference
+1
+arXiv:2605.30619v1  [stat.ML]  28 May 2026
+
+=== PAGE 2 ===
+common approach to construct the preference data is through Best-of-Nsampling. For a given context,N
+responses are sampled from a base distribution, and an oracle identifies the best response as the chosen one.
+The rejected response is then selected either uniformly from the remainingN−1responses (Best-vs-Random)
+or as the worst response (Best-vs-Worst). The special caseN= 2recovers the standard pairwise-comparison
+setting (Christiano et al., 2017). The common intuition is that largerNimproves this data, since the chosen
+response is better in absolute terms. We show this intuition is incomplete: what matters is not only the
+quality of the chosen response, but which comparisons the dataset makes available. We study reward learning
+as a clean lens on the role of data with two fundamental questions.
+1. When preference data is generated through Best-of-N sampling, what reward function is induced by
+the resulting dataset under Bradley-Terry objective?
+2. How should the candidate-set size N and the base distribution be chosen ?
+Our analysis builds on a recent distribution-agnostic framework (Pukdee et al., 2026) that analyzes preference
+data through the conditional preference distribution (CPRD), characterizing when it is Bradley-Terry repre-
+sentable and showing that finite-sample learning is governed by margin and comparison connectivity. That
+framework leaves the induced reward targets, margins, and connectivity abstract, since they depend on the
+data-generation mechanism. We instantiate it for Best-of-Npreference data, where the order-statistic struc-
+ture makes these quantities concrete and reveals how they scale withN. Our contributions are summarized
+as follows:
+Contributions.
+1.Targets:We study a clean reference setting in which the rejected response is sampled independently.
+In this setting, we characterize the reward targets induced by Best-of-Npreference data in closed
+form and show that they preserve the ranking of an underlying ground-truth reward. This identifies
+what signal reward learning is recovering from the data. For the practical Best-vs-Random and
+Best-vs-Worst settings, we show that the corresponding population minimizers do not admit the
+same clean characterization, but approach these reference targets asNgrows.
+2.Tradeoffs:We show thatNcontrols a fundamental tradeoff between margin and comparison con-
+nectivity. IncreasingNpushes chosen responses toward the top of the reward distribution, which
+amplifies pairwise margins and makes individual comparisons more informative. But this same con-
+centration narrows the range of responses being compared, reducing comparison connectivity and
+leaving intermediate comparisons underrepresented. These two effects pull in opposite directions
+and govern sample efficiency.
+3.Design principles:We derive two actionable guidelines. The candidate-set sizeNshould be chosen
+based on the resource bottleneck: largerNis more helpful when preference labels are scarce, whereas
+smallerNisoftenpreferablewhenpreferencelabelsarecheapanddataisabundant. Beyondchoosing
+N, the base distribution itself is also a design lever through what we call the between-mass principle:
+the induced margin between two responses grows with the amount of base-distribution mass placed
+between them in reward order. Shaping the base distribution to put mass between the response
+pairs that matter under the target evaluation distribution selectively amplifies those margins. We
+validate these predictions on both synthetic and real preference data.
+Taken together, our results provide a learning-theoretic foundation for reward learning from Best-of-N
+preference data, while yielding concrete principles for data design in practice.
+2 Related work
+Best-of-NSampling for Inference and Training.Best-of-Nsampling (BoN) is an inference-time
+method with strong empirical performance (Stiennon et al., 2020; Cobbe et al., 2021b; Nakano et al., 2021;
+Brown et al., 2024). The idea is to sampleNresponses from a policy and select the one with the highest
+2
+
+=== PAGE 3 ===
+reward. Despite its simplicity, BoN is a strong baseline for inference-time scaling (Snell et al., 2024). Various
+works have studied the theoretical properties of the induced BoN policy (Huang et al., 2025b), including
+its distance from the reference policy and its win rate (Beirami et al., 2025; Yang et al., 2024a), and the
+soft BoN variants (Verdun et al., 2025; Aminian et al., 2025). These results suggest that win rate increases
+withN. However, largerNdoes not always improve performance in practice; whenNis too large, reward
+hacking can degrade output quality (Gao et al., 2023; Huang et al., 2025a). Given the effectiveness of BoN
+but itsN-fold inference cost, several works aim to train a policy that matches the BoN distribution while
+requiring only a single sample at inference time. This can be done offline with a fixed BoN dataset (Touvron
+et al., 2023; Dong et al., 2023; Amini et al., 2025) or iteratively (Sessa et al., 2025; Yang et al., 2025; Guo
+et al., 2024). Gui et al. (2024) provide theoretical analysis for this training time setting, showing that the
+BoN distribution is optimal in terms of win rate against the base model for a given KL distance budget.
+While this literature clarifies the role of BoN in improving generation quality and policy training, it leaves
+open the question of how BoN affects learning when it is used to construct preference data.
+Learning from Best-of-NPreference Data.Understanding how preference data affects the final model
+is an important question, since it can inform the design of better datasets. Recent work suggests that better
+preference data leads to better downstream policies (Ivison et al., 2024; Morimura et al., 2024; Pan et al.,
+2025). In this literature, however, better preference data is often identified using external proxies such as
+reward-model scores. While a higher score may indicate that a response is better in an absolute sense, it does
+not necessarily mean that the resulting pairwise comparison is more informative for preference learning. We
+study a related question from a different perspective: rather than analyzing the end-to-end policy outcome,
+we stop at the reward-learning stage and ask how the preference data shapes the learned reward function.
+This provides a cleaner view of the effect of the data itself, without conflating it with the base policy’s
+behavior. Razin et al. study the complementary direction, linking reward properties to downstream policy
+performance, closing the loop from data to policy.
+In practice, preference data can be constructed in several ways, including by comparing responses from
+language models of different capacities (Kim et al., 2023), using different prompts to produce chosen and
+rejected responses (Yang et al., 2024b), or, most commonly, by sampling multiple responses from the same
+base model and using a human annotator, reward model, or model-based judge to identify preferred and
+dispreferred responses from the candidate set (Bai et al., 2022; Guo et al., 2024; Lee et al., 2024). In this
+paper, we focus on the last setting, namely Best-of-Npreference data. Prior work has studied this setting
+empirically for reward learning: Pace et al. (2024) show that selecting the best and worst candidates from
+a pool can improve reward-model training, while Yuan et al. (2024) study settings in which the language
+model itself is also used to provide reward feedback. We ask a more foundational question: what reward
+function is induced when pairwise comparisons are generated through Best-of-Nsampling?
+3 Problem Setup
+In practice, Best-of-N(BoN) preference data pipelines may rely on human annotators, reward models, or
+LLM judges to identify preferred responses. We study a clean theoretical abstraction of this setting in which
+preferences are induced by an underlying latent reward functionr∗, even thoughr∗itself is never observed.
+This abstraction allows us to ask what reward function is learned from the resulting comparison data.
+LetXbeacontextspaceandYbeasetofoutcomes. AssumethatXandYarefinitebutcanbeexponentially
+large. Letr ∗:X×Y →Rbe a target latent reward function. The supervision signal is in the form of
+pairwise comparison data where triplets(x,y +,y−)indicate that a chosen outcomey + is preferred over a
+rejected outcomey−given a contextxi.e. the latent rewardr∗(x,y +)>r ∗(x,y−).
+To construct the pairwise preference data, the chosen outcomey+ is sampled from the Best-of-Nmechanism.
+First, we sampleNoutcomes from a base distributiony1,...,yN∼Pbase(·|x), the outcome with the highest
+reward score is the chosen outcome,y+ = arg maxyir∗(x,yi). This procedure only requires access to an oracle
+that can identify the best outcome amongNcandidates, rather than access to the reward scoresr∗(x,yi)
+themselves. This is a common approach in practice to construct pairwise preference data. For the rejected
+outcomey−, two dominant approaches are
+3
+
+=== PAGE 4 ===
+•Best-vs-Random(Khaki et al., 2024; Ivison et al., 2024): we sampley−from{y1,...,yN}\{y+}
+uniformly at random.
+•Best-vs-Worst(Pace et al., 2024; Yuan et al., 2024): the outcome with the lowest reward score
+among{y1,...,yN}is the rejected outcome,y−= arg minyir∗(x,yi). This may require another
+oracle call to identify the worst outcome.
+Whenever we observe a collisiony + =y −, we discard the triplet. Best-vs-Random and Best-vs-Worst
+guarantee that the latent reward scorey+ is always higher thany−. LetPbe the probability distribution
+of the BoN preference data. LetHbe a hypothesis class of reward functions. A common learning objective
+for reward learning is Bradley-Terry (BT) objective given by
+LP (r) =E P
+[
+−logσ(r(x,y+)−r(x,y−))
+]
+(1)
+whenσ(t) = 1
+1+e−tis the sigmoid function. Since the loss only depends on the difference between the
+reward scores of the chosen and rejected outcomes,r(x,y+)−r(x,y−), the reward is identifiable only up
+to an additive constant. To fix this ambiguity, we restrictHto normalized reward functions satisfying
+E(x,y)∼µ[r(x,y)] = 0for a fixed reference distributionµoverX×Y. For example, this can be a uniform
+distribution. Finally, we define some notations that will be useful for our analysis. First, score quantiles
+F(x,y)capture the probability that a random outcome from the base distributionPbase(·|x)has a lower
+or strictly lower reward score than the reward ofy.
+Definition 3.1(Strict and Inclusive Score Quantiles).For any outcomey∈Y, define thestrict quantile
+F−(x,y) := Pr
+y′∼Pbase(·|x)
+[r∗(x,y′)<r ∗(x,y) ](2)
+as the probability that a randomly drawn outcome from the base distribution has strictly lower reward than
+y. We also define theinclusive quantile
+F(x,y) := Pr
+y′∼Pbase(·|x)
+[r∗(x,y′)≤r∗(x,y) ] =F −(x,y) +P base(y|x).(3)
+We also define pairwise margin,
+Definition 3.2(Margin).For any reward functionrand any contextxand outcomesy,y ′, the pairwise
+margin ofris given by
+∆ r(x;y,y ′) :=r(x,y)−r(x,y′)(4)
+With these definitions in hand, we turn to our first question: what reward function does BoN preference
+data induce?
+4 Characterizing the Learned Reward
+We begin with the infinite data setting and analyze the minimizer of the population risk (equation 1).
+For analysis, we first define reference variantsBest-vs-IndependentandBest-vs-Worst-Independent,
+where the negative sample is drawn independently from the base distribution and the Worst-of-N sampling
+respectively. These variants have a much cleaner analysis and we will later on connect it back to the
+practical settings of Best-vs-Random and Best-vs-Worst. We will use subscriptBR,BW,BI,BWIto denote
+if the data distribution and the reward function corresponds to Best-vs-Random, Best-vs-Worst, Best-vs-
+Independent and Best-vs-Worst-Independent respectively.
+4.1 Independent Rejected Outcome
+We start with the Best-vs-Independent scenario. The rejected outcome is independent of the chosen one, we
+can factorize the probability mass ofPBI as
+PBI(x,y +,y−) =P(x)P BoN(y+|x)Pbase(y−|x)(5)
+whereP BoN(y|x)is the conditional distribution of the outcome sampled with the Best-of-N sampling. We
+can deriveP BoN(y|x)in terms of score quantiles.
+4
+
+=== PAGE 5 ===
+Lemma 4.1.Assuming that there is no tie in reward score, for any contextxand outcomey, the probability
+mass ofP BoN is given by
+PBoN(y|x) =F(x,y)N−F−(x,y)N (6)
+Positive-negative conditional independence underPBI is useful because Pukdee et al. (2026) showed that it
+is exactly the condition under which the induced pairwise preference admits a Bradley–Terry representation.
+In other words, the BT form is not merely a modeling assumption here, but the true functional form of
+PrBI(y≻y′|x), the conditional probability of preferringyovery′givenx:
+Pr
+BI
+(y≻y′|x) := PBI(x,y,y ′)
+PBI(x,y,y ′) +P BI(x,y′,y) =σ(r∗
+BI(x,y)−r∗
+BI(x,y′))(7)
+whenr∗
+BI is the population minimizer. Pukdee et al. (2026) also showed that the minimizer is given by the
+log ratio between the distribution of the chosen and rejected responses. These results allow us to characterize
+the target reward functionr∗
+BI underP BI.
+Theorem 4.2(Identification ofr ∗
+BI).Letr ∗
+BI∈arg minrLPBI(r)then there exists a functionc:X →R
+such that
+r∗
+BI(x,y) = log PBoN(y|x)
+Pbase(y|x)+c(x)(8)
+for almost every pair(x,y)with respect toP BI. Furthermore,r∗
+BI preserves the ranking induced byr∗that
+is for anyx,y,y ′with non-zero probability mass,
+r∗(x,y)>r ∗(x,y′) =⇒r∗
+BI(x,y)>r ∗
+BI(x,y′)(9)
+In other words, even though we never observer∗, minimizing the BT loss on BoN data recovers a reward
+function that agrees withr∗on every pairwise comparison. Similarly, for the Best-vs-Worst-Independent,
+by conditional independence, we can also factorize the distributionPBWI as
+PBWI(x,y +,y−) =P(x)P BoN(y+|x)PWoN(y−|x)(10)
+and derive a similar characterization forr∗
+BWI.
+Lemma 4.3.Assume that there is no tie in reward score, for any contextxand outcomey, the probability
+mass ofP WoN is given by
+PWoN(y|x) = (1−F−(x,y))N−(1−F(x,y))N (11)
+Theorem 4.4(Identification ofr∗
+BWI).Letr ∗
+BWI∈arg minrLPBWI(r)then there exists a functionc:X→R
+such that
+r∗
+BWI(x,y) = log PBoN(y|x)
+PWoN(y|x)+c(x)(12)
+for almost every pair(x,y). Furthermore,r ∗
+BWI preserves the ranking induced byr∗that is for anyx,y,y ′
+with non-zero probability mass,
+r∗(x,y)>r ∗(x,y′) =⇒r∗
+BWI(x,y)>r ∗
+BWI(x,y′)(13)
+4.2 Best-vs-Random and Best-vs-Worst
+Next, we turn to the Best-vs-Random and Best-vs-Worst scenarios where the chosen outcome and rejected
+outcome are no longer independent. Without independence, we show that the population risk minimizer
+with respect toP BR andP BW does not have a closed-form minimizer anymore. We introduce a notion of
+comparison distribution to help with the analysis. This captures how often a pair of outcomes are compared
+together for a given context, regardless of which is preferred.
+Definition 4.5(Comparison distribution).For any distributionPoverX×Y×Y, the comparison distri-
+bution ˜Pis a distribution overxand an unordered pair{y,y′}withy̸=y′with density
+˜P(x,{y,y′})∝P(x,y,y′) +P(x,y ′,y)(14)
+5
+
+=== PAGE 6 ===
+Proposition 4.6(Best-vs-Random and Best-vs-Worst perform pairwise margin maximization).Assume
+that there is no tie in reward score. For each context and pair of outcomes(x,{y,y′}), define
+ymax∈arg max
+u∈{y,y′}
+r∗(x,u), y min∈arg min
+u∈{y,y′}
+r∗(x,u)
+Then for any hypothesis classH, the population risk minimizerr∗
+BR∈arg minr∈HLPBR(r)satisfies
+r∗
+BR∈arg min
+r∈H
+E(x,{y,y′})∼˜PBR
+[
+−logσ
+(
+r(x,y max)−r(x,ymin)
+)]
+The same result holds forr∗
+BW by replacing the comparison distribution˜PBR with ˜PBW. In particular, both
+objectives are the same pairwise margin-maximization loss, differing only in the comparison distribution.
+The proposition shows that for any pair of outcomes({y,y′}), the BT objective maximizes the margin
+between the outcomes with higher and lower true reward scores. As a result, ifHis unbounded, then we
+can decrease the BT objective by increasing the margin on any pair indefinitely,∆r(x,y max,y min)→∞,
+which leads to an unbounded minimizer. As such, we do not have a nice closed-form minimizer forr∗
+BR and
+r∗
+BW, and the minimizer depends on properties ofH. Regardless, we can still show thatr∗
+BR→r∗
+BI and
+r∗
+BW→r∗
+BWI in margin semi-norm asNgrows.
+Definition 4.7(Margin semi-norm).For a preference distributionP, the margin semi-norm between two
+reward functionsr 1 andr 2 is defined as
+∥r1−r2∥∆,P =E (x,y,y′)∼P
+[
+(∆ r1−∆r2)2]
+(15)
+Theorem 4.8(r∗
+BR is close tor∗
+BI).LetHbe a convex hypothesis class that is bounded by some constantB.
+Letr∗
+BR∈arg minr∈HLPBR(r)then there exists a constantcB such that for anyN≥2,
+∥r∗
+BR−r∗
+BI∥∆,P BR≤cB
+N−1 (16)
+Theorem 4.9(r∗
+BW is close tor∗
+BWI).LetHbe a convex hypothesis class that is bounded by some constant
+B. Letr∗
+BW∈arg minr∈HLPBW(r)then there exists a constantcB andρ<1such that for anyN≥2,
+∥r∗
+BW−r∗
+BWI∥∆,P BW≤cBρN (17)
+The key step in the proof is to show thatPBR andP BW are close in total variation distance toPBI andP BWI,
+respectively. Establishing this requires deriving closed-form expressions for the probability mass functions of
+these distributions and then carrying out careful algebraic comparisons; this is the most technically involved
+part of the argument. The convexity ofHis then used only to transfer this distributional closeness to
+closeness of the corresponding population minimizers, via a standard argument from learning theory. We
+defer the full proof to Appendix A.
+These results imply that, asNgrows, the margins induced byr∗
+BR andr∗
+BW become close to those induced by
+r∗
+BI andr∗
+BWI, respectively. Sincer∗
+BI andr∗
+BWI achieve perfect accuracy, and since the ranking is determined
+by the sign of the margin, it follows that the Best-vs-Random and Best-vs-Worst settings also approximately
+recover the ranking induced byr∗. Having identified these as sensible population targets, we turn to the
+finite-sample setting, where a fundamental tradeoff emerges: increasingNhelps in one way, but hurts in
+another.
+Remark:Unlike the independent variants, the pairwise preferences induced byPBR andP BW do not admit
+a BT form. However, the TV bounds above imply they approach those of the independent variants asN
+grows, making BT an increasingly reasonable model.
+5 Sample Complexity
+In practice, we only have access to a finite number of triplets, so even if the population risk minimizer is
+a good target, we must also ask how quickly we can learn it. We measure the performance of the learned
+reward in terms of the consistency of ordering with respect to the target reward function. We define the
+accuracy as follows.
+6
+
+=== PAGE 7 ===
+Definition 5.1(Accuracy).LetQbe a test distribution overX×Y×Y. The accuracy of a reward function
+rwith respect toQandr ∗is given by
+AccQ(r) = Pr
+x,y,y′∼Q
+[sign(∆ r(x,y,y ′)) = sign(∆ r∗(x,y,y ′))](18)
+Here, we fix the test distributionQto represent the downstream quantity of interest, while varying the
+training distributionP, which depends onNand the base distributionP base. This lets us assess the impact
+oftheBoNpreferencedistribution. WewillfocusontheBest-vs-IndependentandBest-vs-Worst-Independent
+scenarios since they have clean target reward functions under BoN preference data(r∗
+BI,r∗
+BWI)which preserve
+the ranking asr∗. With finite samples, the learned rewardˆrdeviates from the target due to estimation error,
+and whether this error flips the ranking on a given pair depends on whether it exceeds the margin between
+them. Pukdee et al. (2026) formalized this intuition and showed that sample complexity is governed by
+two quantities: the margin and the connectivity of the comparison distribution. A larger margin between
+two pairs of outcomes implies that the correct ordering can tolerate a larger estimation error, and a larger
+connectivity leads to a smaller estimation error. We analyze how the BoN preference data shapes both
+quantities.
+5.1 Margin
+y′ y
+Probability density
+F(x, y′)
+Between mass
+1 − F(x, y)
+F(x, y)
+F(x, y′) = + 1 − F(x, y′)
+1 − F(x, y) = +
+Figure 1: Illustration of the terms that contribute to the margin ofr∗
+BI andr∗
+BWI.
+First, we derive the margin ofr∗
+BI andr∗
+BWI and show that they grow linearly withN.
+Proposition 5.2(Margin ofr∗
+BI).Assuming no ties in reward score, for any contextxand pair of outcomes
+y,y′with non-zero probability mass, the margin ofr∗
+BI admits the decomposition
+∆ r∗
+BI
+(x;y,y ′) =Nlog F(x,y)
+F(x,y′) +B N(x;y,y ′),(19)
+whereB N(x;y,y ′)is uniformly bounded inN.
+Proposition 5.3(Margin ofr ∗
+BWI).Assume no ties inr ∗(x,·). For any contextxand pair of outcomes
+y,y′with non-zero probability mass, the margin ofr∗
+BWI admits the decomposition
+∆ r∗
+BWI
+(x;y,y ′) =N
+(
+log F(x,y)
+F(x,y′) + log 1−F−(x,y′)
+1−F−(x,y)
+)
++BN(x;y,y ′)(20)
+whereB N(x;y,y ′)is uniformly bounded inN.
+The most immediate implication is that increasingNamplifies all pairwise margins uniformly, making it a
+straightforward way to make the target reward easier to learn. But the slope at which the margin grows
+7
+
+=== PAGE 8 ===
+reveals a more informative and targeted lever. The slope increases when the base distribution places more
+mass between the two outcomes in the reward ranking (Figure 1). We define this quantity as the between
+mass.
+Definition 5.4(Between Mass).For any contextxand outcomesy,y ′wherer ∗(x,y)> r ∗(x,y′), the
+between mass betweenyandy ′is given by
+Pr
+˜y∼Pbase(·|x)
+(r∗(x,y′)<r ∗(x,˜y)<r∗(x,y)) =F(x,y)−F(x,y′)(21)
+The higher the between mass between a pair of outcomes, the faster the margin between them grows with
+N.
+So far, we have treatedPbase as fixed and studied howNshapes the induced reward. The margin decomposi-
+tion reveals a complementary lever: the base distribution itself enters the margin through the between-mass
+term. Unlike increasingN, which raises all margins indiscriminately, shapingPbase allows one to selectively
+increase margins on specific pairs. This lever is available whenever the practitioner has some control over the
+generation distribution. For example, by choosing which model to sample from or applying filtering before
+BoN. This selectivity is appealing because, in practice, not all pairwise comparisons are equally important: in
+safety, comparisons that matter most are between harmful and acceptable outputs, in reasoning, the crucial
+distinctions are between correct solutions and plausible near-misses. Each setting induces a different test
+distribution, and our result provides a principled guide for designing the base distribution to increase margins
+precisely where they are needed. Concretely, we provide examples of how to design the base distribution to
+increase margins for three different applications for reward learning.
+Designing the Base Distribution to Increase Margins
+Safety.The key comparisons are those that separate harmful responses from acceptable ones. To enlarge
+these margins, the base distribution should place substantial mass in the mediocre region: responses that
+are flawed or suboptimal, but not obviously dangerous. This creates more separation between harmful and
+acceptable behavior.
+Reasoning.The critical distinction is between plausible-but-incorrect solutions and fully correct ones. If
+the base distribution produces too many clearly poor responses, then little mass lies between plausible and
+correct solutions. On the other hand, if it almost always produces perfect solutions, then this intermediate
+region again becomes small. Thus, the base distribution should be strong enough to reliably generate decent
+responses, while still concentrating substantial mass on near-correct but imperfect solutions.
+General.These tasks require distinguishing among responses across a broad mid-to-high quality range.
+Since the relevant comparisons are distributed over a wider band, the base distribution should spread its
+mass throughout this region in order to preserve sufficient between-mass across many comparisons.
+5.2 Connectivity
+Recall from Pukdee et al. (2026), the connectivity degree controls the estimation error of the reward learned
+from a training preference data distributionPon a test distributionQin the worst-case scenario. It is
+defined as follows,
+Definition 5.5(Connectivity).The connectivity degree of a comparison distributionPwith respect to a
+hypothesis classHand a test distributionQis defined as
+λconn(P,Q;H) = inf
+f,g∈H
+EP [(∆f−∆g)2]
+EQ[(∆f−∆g)2] (22)
+The original notion of connectivity degree corresponds to the case where the test distributionQranges over
+all comparisons in the outcome space, so that it measures how well the training distributionPcaptures
+8
+
+=== PAGE 9 ===
+0
+1
+2 3
+4
+5
+6
+Best-of-N vs Independent
+N = 2
+0
+1
+2 3
+4
+5
+6
+N = 4
+0
+1
+2 3
+4
+5
+6
+N = 8
+0
+1
+2 3
+4
+5
+6
+Best-of-N vs Worst-of-N
+N = 2
+0
+1
+2 3
+4
+5
+6
+N = 4
+0
+1
+2 3
+4
+5
+6
+N = 8
+Low
+(y0)
+High
+(y6)
+Reward score
+Figure 2: Comparison graph for Best-vs-Independent and Best-vs-Worst-Independent. It captures how often
+each pair of outcomes are compared in the BoN preference data.
+the pairwise variation over the entire comparison space. Here, we generalize this notion by allowingQto
+be an arbitrary, possibly selective test distribution. In this sense,λconn(P,Q;H)can also be interpreted as
+worst-case measure of how wellPcovers the pairwise variation that matters underQ.
+In contrast to the margin that grows linearly withN, we show that connectivity forPBI operates on an
+exponentially small scale inN. The intuition is that asNincreases, BoN sampling concentrates on outcomes
+with extremely high rewards while WoN sampling concentrates on outcomes with extremely low rewards.
+As a result, the observed comparisons become increasingly concentrated on a small subset of pairs, rather
+than covering a broad range of pairwise comparisons. Figure 2 illustrates this in a simple finite-outcome
+setting, where edge thickness represents the probability of observing each comparison. AsNincreases, the
+Best-vs-Independent graph converges to a star graph, while the Best-vs-Worst-Independent graph converges
+to a single edge between the best and worst outcomes. This loss of comparison diversity leaves intermediate
+comparisons underrepresented, which in turn degrades connectivity with respect to the test distributionQ.
+Theorem 5.6(Informal connectivity bounds forPBI).LetP base be a base distribution. For anyα∈Rand
+defineA x,α={y∈Y:r∗(x,y)≤α}as a set of outcomes which the reward is less thanαfor a given context
+x. IfHis expressive enough andQsatisfies coverage and nondegeneracy conditions, there exist constants
+CQ,DQ,α>0such that for anyN,
+CQ
+(
+min
+x,y
+Pbase(y|x)
+)N
+≤λconn(PBI,Q;H)≤DQ,αEx∼Px
+[
+Pbase(Ax,α|x)N +P base(Ax,α|x)
+]
+.
+Thus, the connectivity degree forPBI is controlled by an exponentially small term inN, together with a
+residual term determined by the mass of the cutAx,α.
+Overall, largeNcan reduce connectivity by concentrating probability mass on a narrower set of comparisons.
+The full formal statement and proof, along with a similar result forPBWI, are given in Appendix B.
+5.3 Accuracy Bound
+From previous sections,Nis a single knob that controls both margin and connectivity degree. However,
+there is a trade-off, increasingNleads to a larger margin but decreases the connectivity degree. To make
+this trade-off explicit, we combine the two results into an accuracy bound that yields a practical guideline
+for choosingNas a function of the sample sizen.
+9
+
+=== PAGE 10 ===
+Theorem 5.7(Accuracy Bound).Assume thatHis convex, bounded by some constantB, and realizable,
+r∗
+BI∈H. Assume also that for every triplet(x,y,y′)in the support ofQ, bothP base(y|x)andPbase(y′|x)
+are non-zero. Letˆrbe the empirical risk minimizer of the BT learning objective with respect toPBI. Then
+there exist constantsD>0andM Q >0such that with probability at least1−δ,
+AccQ(ˆr)≥sup
+k>0
+[
+Pr
+Q
+(⏐⏐⏐⏐log F(x,y)
+F(x,y′)
+⏐⏐⏐⏐≥k+MQ
+N
+)
+−DComp(n,H,δ)
+N2k2λconn
+]
+(23)
+whereλconn :=λconn(PBI,Q;H).
+The complexity termComp(n,H,δ)is a standard Rademacher-complexity quantity which we define rig-
+orously in Appendix B. The first term measures how often the absolute margin slope underQexceeds a
+threshold, up to a vanishingO(1/N)correction. In contrast, the second term captures the estimation error
+and decays like1/(N2λconn). The bound therefore preserves the same interpretation: increasingNhelps by
+enlarging the target margin, but hurts through the connectivity degree. The optimal choice ofNdepends
+on the sample sizen, which in turn depends on the resource bottleneck of preference label collection.
+Principle for SelectingNBased on Resource Bottlenecks
+Preference Label-Limited Regime.In many practical settings, obtaining preference labels requires
+human annotators, which severely limits the number of tripletsnthat can be collected. In this small-n
+regime, the complexity term is large, so it is often advantageous to use a largerN. Although a largerN
+increases the cost of identifying the BoN sample, the overhead can be modest in some applications: in visual
+tasks, selecting the best item fromNimages may be relatively easy. In addition, selecting the best item
+amongNcandidates is substantially easier than producing a full ranking, and can be done with at most
+⌈log2N⌉pairwise comparisons via a simple tournament procedure. Thus, when human annotation is the
+dominant bottleneck, it is often worthwhile to spend more effort per comparison triplet in order to improve
+the quality of each comparison.
+Generation-Limited Regime.When preference annotations are cheap or can be automated, for example
+with LLM judges, it becomes possible to collect many triplets. In this large-nregime, increasingNprovides
+diminishing returns because the complexity term is already small. It is therefore more compute-efficient to
+use a smallerNand spend the saved generation budget on collecting more triplets, rather than on generating
+many candidates for each triplet.
+Design Principles.
+1. When preference labels are scarce, choose a largerN.
+2. When preference labels are abundant, choose a smallerNand use the saved generation budget
+to collect more triplets.
+3. When the base distribution is under the practitioner’s control, shape it to maximize between
+mass on the comparisons that matter most under the target application.
+6 Experiments
+We validate our theoretical findings on synthetic data and real-world data. We provide a brief overview of
+the experiment setup and results in the main text. For full details, please refer to the Appendix C.
+6.1 The optimal choice ofNdepends on the sample sizen.
+Our theory identifiesNas a single knob that controls both margin and connectivity degree; a largerN
+increases the margin but also hurts the connectivity. Our design principle suggests that we should select
+10
+
+=== PAGE 11 ===
+Nbased on the sample sizen. A largerNcan help whennis small but whennis large, a smallerNcan
+become preferable.
+6.1.1 Synthetic Data
+8 32 128 512 2048 8192 32768 131072
+Number of Training Samples
+0.50
+0.55
+0.60
+0.65
+0.70
+0.75
+0.80
+0.85
+0.90T est Accuracy
+N=2
+N=3
+N=4
+N=5
+N=6
+N=7
+N=8
+(a) Accuracy
+8 32 128 512 2048 8192 32768 131072
+Number of Training Samples
+1
+2
+3
+4
+5
+6
+7 Rank (1 = best)
+N=2
+N=3
+N=4
+N=5
+N=6
+N=7
+N=8 (b) Ranking
+Figure 3: Test accuracy for Best-vs-Independent on synthetic data over 20 random seeds.
+Setup.We first validate this on a synthetic dataset following the setup in Pukdee et al. (2026). In this
+setup, the ground-truth reward function is a cosine similarity between two embedding vectors where this
+embedding is an output of a two-layer neural network. We generate the training data by samplingntriplets
+from the Best-vs-Independent setting and use it to train the reward model. Here, both base distribution and
+test distribution are uniform over the outcome space.
+Results.Figure 3 confirms the predicted tradeoff between margin and connectivity. Whennis small,
+largerNachieves higher accuracy; asnincreases, the optimalNdecreases. For sufficiently largen, smaller
+Nnot only catches up to largerNbut can outperform it. In particular, forn≥8192,N= 2matches or
+exceeds largerN, with a gap of up to 10 percent overN= 8atn= 131072. This is the regime where the
+loss in connectivity from largerNoutweighs its margin benefit. We also plot the connectivity degree for each
+N, and additional Best-vs-Worst-Independent results in Appendix C.5. The connectivity degree decreases
+asNincreases and the Best-vs-Worst-Independent setting shows the same pattern.
+6.1.2 Real-world Data
+Setup.We use prompts fromUltraFeedback(Cui et al., 2024) as contextsx, and generate responses
+withLlama-3.1-8B-Instruct(Grattafiori et al., 2024) under Best-vs-Random and Best-vs-Worst sampling.
+We useSkywork-Reward-V2(Liu et al., 2025) as the target reward function, and evaluate on a binarized
+UltraFeedbacktest set whose preference labels follow this reward. The learned reward model is a sequence
+classifier built on a frozenLlama-3.1-8B-Instructbackbone with a linear reward head.
+Results.Figure 4 supports our design principle that the optimal choice ofNdepends on the sample size
+n. Whennis small, largerNyields higher accuracy. Whennis large enough, smallerNachieves similar
+accuracy, allowingthesavedcomputetobeusedforgeneratingmoresamples. Forexample,n= 2048,N= 16
+achieves the same accuracy asn= 8192,N= 2, while the latter requires only half as much generation
+compute. In contrast to the synthetic data, we do not observe a crossover where smallerNoutperforms
+largerNwhennis large. One possible explanation is that the test distribution here is not uniform over the
+outcome space, so connectivity may be less important than in the synthetic setting.
+Additional Studies.Appendix C.3 reports additional ablation studies. The connectivity degree de-
+creases withN, consistent with our theory (Figure 10). The Best-vs-Worst setting shows the same overall
+11
+
+=== PAGE 12 ===
+32 128 512 2048 8192 32768 131072
+Number of Training Samples
+65.0
+67.5
+70.0
+72.5
+75.0
+77.5
+80.0
+82.5T est Accuracy
+ N=2
+N=4
+N=8
+N=16
+(a) Best-vs-Random
+32 128 512 2048 8192 32768 131072
+Number of Training Samples
+65.0
+67.5
+70.0
+72.5
+75.0
+77.5
+80.0
+82.5T est Accuracy
+ N=2
+N=4
+N=8
+N=16 (b) Best-vs-Worst
+Figure 4: Accuracy vs. Sample size for eachNfor the Best-vs-Random (left) and Best-vs-Worst (right)
+setting on UltraFeedback. The mean accuracy is computed over 3 random seeds and the standard error is
+reported.
+pattern and outperforms Best-vs-Random whennis small, while the two perform similarly whennis large.
+Across different base models, includinggemma-3-12b-it(Kamath et al., 2025),Qwen3-8B(Team, 2025), and
+Ministral-3-8B-Instruct-2512(Liu et al., 2026), the same broad pattern holds, although the variance is
+higher in the small-nregime.
+6.2 Increasing the between mass of the base distribution can improve the accuracy.
+Beyond choosingN, our margin analysis suggests a second design principle: when the practitioner has control
+over the base distribution,Pbase should place more mass between the comparisons that matter under the
+target test distribution. We now test whether reshapingPbase in this way translates into accuracy gains.
+Setup.We evaluate this design principle on 3 datasets representing safety, reasoning and general applica-
+tions:PKU-SafeRLHF(Ji et al., 2025), a dataset of prompts paired with responses annotated for harmlessness;
+GSM8K(Cobbeetal.,2021a), acollectionofgrade-schoolmathwordproblems; andUltraFeedback(Cuietal.,
+2024), a broad-coverage preference dataset spanning instruction-following, helpfulness, and honesty. Since
+GSM8Kis not natively a preference dataset, we construct preference pairs by pairing a randomly chosen cor-
+rect response against the highest-scoring incorrect one for each prompt. We refer to Appendix C.8 for more
+details. For each task, we reshape the base distribution by either increasing or decreasing the probability
+of responses whose scores fall into a chosen percentile band, allowing us to concentrate or disperse mass in
+different parts of the quality spectrum. The midpoint of the percentile band is parameterized byc. We
+then generate Best-vs-Random preference data from the modified base distribution withN= 4, train a re-
+ward model using the same setup as in the previous experiments and compare test accuracy across different
+reshaped distributions. Full details of the upsampling/downsampling procedure and parameterization are
+given in Appendix C.6
+Results.Our goal is to understand whether reshaping the base distribution following our design principle
+can improve the accuracy. Figure 5, 6 and 7 compare the test accuracy of reward models trained from BoN
+preference data with reshaped base distribution against the original base distribution. Overall, the results
+support our prediction: increasing between mass on the comparisons that matter for a given task tends to
+improve accuracy.
+Safety.The clearest improvement comes from upsampling lower-score responses (c= 15) while upsampling
+higher-score responses (c= 85) substantially hurts the accuracy. Downsampling lower-score responses also
+hurts accuracy. The score distributions show the same pattern: the best-performing base distribution places
+more mass on lower-score responses, whereas the worst-performing one shifts mass toward higher-score
+12
+
+=== PAGE 13 ===
+responses. This supports our prediction that, for safety tasks, keeping more mediocre responses in the base
+distribution increases between mass over the comparisons that matter, namely harmful versus acceptable
+outputs.
+c = 15 c = 30 c = 50 c = 70 c = 85
+Upsampling
+Downsampling
+69.8±0.9%
+ +2.9
+67.5±0.9%
+ +0.7
+67.1±0.8%
+ +0.2
+67.4±1.1%
+ +0.5
+63.2±1.0%
+ -3.6
+65.2±1.2%
+ -1.7
+67.1±1.4%
+ +0.2
+67.8±1.1%
+ +0.9
+67.5±0.6%
+ +0.7
+67.7±0.9%
+ +0.9
+4
+ 3
+ 2
+ 1
+ 0 1 2 3 4
+ accuracy from baseline (66.9±1.2%)
+(a) Test accuracy for different base distributions.
+10
+ 0 10 20 30 40 50
+Reward Score
+0.00
+0.02
+0.04
+0.06
+0.08
+0.10
+Density
+Baseline: 66.9±1.2%
+Best:  +2.9
+Worst:  -3.6
+(b) Distribution of the reward score between
+the best and worst performing distribution.
+Figure 5: Heat map of test accuracy for different base distribution averaged over 10 random seeds, reported
+with a standard error(left) and the comparison between the distribution of reward scores between the best
+performing and worst performing base distribution (right) forPKU-SafeRLHF.
+Reasoning.Downsampling medium-score responses (c= 50) leads to a higher accuracy while upsampling
+high-score responses (c= 85) leads to a lower accuracy. This suggests that in our setup, the useful compar-
+isons are not between strong and very strong responses, but between plausible but incorrect responses and
+the correct responses. The original base distribution is already strong: generated responses are concentrated
+around reward score 25, while in the test distribution the rejected responses average around 15 and the cho-
+sen responses around 25 (Appendix C.8). As a result, pushing more mass toward the very top end reduces
+the between mass over the comparisons that matter. This pattern is consistent with our theory.
+c = 15 c = 30 c = 50 c = 70 c = 85
+Upsampling
+Downsampling
+78.7±0.4%
+ +0.4
+78.4±0.4%
+ +0.1
+77.8±0.4%
+ -0.4
+77.1±0.6%
+ -1.1
+77.9±0.7%
+ -0.4
+78.1±0.7%
+ -0.2
+78.1±0.5%
+ -0.2
+79.4±0.4%
+ +1.2
+79.0±0.6%
+ +0.8
+78.2±0.6%
+ -0.1
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+ accuracy from baseline (78.3±0.5%)
+(a) Test accuracy for different base distributions.
+10
+ 0 10 20 30 40
+Reward Score
+0.00
+0.01
+0.02
+0.03
+0.04
+0.05
+0.06
+0.07
+0.08
+Density
+Baseline: 78.3±0.5%
+Best:  +1.2
+Worst:  -1.1
+(b) Distribution of the reward score between
+the best and worst performing distribution.
+Figure 6: Heat map of test accuracy for different base distribution averaged over 10 random seeds, reported
+with a standard error (left) and the comparison between the distribution of reward scores between the best
+performing and worst performing base distribution (right) forGSM8K.
+General.The key pattern is that upsampling mid-to-high score responses(c= 30,50,85)lowers accuracy,
+while downsampling in the same region improves the accuracy. This suggests that for this task, it is better
+to spread probability mass across this part of the quality range rather than concentrate it. The distribution
+of the reward score provides a weaker but compatible evidence: the worst-performing base distribution is
+slightly more peaked than the best-performing one.
+13
+
+=== PAGE 14 ===
+c = 15 c = 30 c = 50 c = 70 c = 85
+Upsampling
+Downsampling
+77.8±0.3%
+ +0.5
+76.7±0.6%
+ -0.6
+76.5±0.4%
+ -0.9
+76.6±0.4%
+ -0.7
+77.7±0.3%
+ +0.4
+77.3±0.5%
+ -0.0
+78.2±0.2%
+ +0.9
+78.3±0.2%
+ +1.0
+78.1±0.4%
+ +0.8
+77.6±0.2%
+ +0.3
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+ accuracy from baseline (77.3±0.7%)
+(a) Test accuracy for different base distributions.
+10
+ 0 10 20 30 40
+Reward Score
+0.00
+0.01
+0.02
+0.03
+0.04
+0.05
+Density
+Baseline: 77.3±0.7%
+Best:  +1.0
+Worst:  -0.9
+(b) Distribution of the reward score between
+the best and worst performing distribution.
+Figure 7: Heat map of test accuracy for different base distribution averaged over 10 random seeds, reported
+with a standard error (left) and the comparison between the distribution of reward scores between the best
+performing and worst performing base distribution (right) forUltraFeedback.
+7 Conclusion and Future Work
+We study preference data generated by Best-of-Nsampling through the lens of reward learning. This per-
+spective lets us characterize the reward targets induced by the data, identify the trade-off between margin
+and connectivity, and derive practical principles for data design. In particular, our analysis suggests choos-
+ingNbased on the resource bottleneck, and shaping the base distribution to place more mass between
+the comparisons that matter under the target test distribution. Several directions remain open, including
+understanding the small-Nregime, going beyond Bradley–Terry reward learning, and determining how these
+data-design effects propagate to downstream policy optimization and iterative training. More broadly, our
+results show that preference-data construction is not merely a collection detail: it shapes both what reward
+is learned and how efficiently it can be learned.
+Acknowledgments
+This work was supported in part by Bloomberg Data Science Fellowship, AFRL and DARPA via FA8750-23-
+2-1015, ONR via N00014-23-1-2368, and NSF via IIS-1955532 and IIS-1901403. The authors thank Korinna
+Fragkia for her insightful feedback on the draft.
+References
+Afra Amini, Tim Vieira, Elliott Ash, and Ryan Cotterell. Variational best-of-n alignment. InThe Thirteenth
+International Conference on Learning Representations, 2025.
+Gholamali Aminian, Idan Shenfeld, Amir R Asadi, Ahmad Beirami, and Youssef Mroueh. Best-of-n through
+the smoothing lens: Kl divergence and regret analysis. InES-FoMo III: 3rd Workshop on Efficient Systems
+for Foundation Models @ ICML, 2025.
+Yuntao Bai, Saurav Kadavath, Sandipan Kundu, Amanda Askell, Jackson Kernion, Andy Jones, Anna
+Chen, Anna Goldie, Azalia Mirhoseini, Cameron McKinnon, et al. Constitutional ai: Harmlessness from
+ai feedback.arXiv preprint arXiv:2212.08073, 2022.
+Maria-Florina Balcan, Ellen Vitercik, and Colin White. Learning combinatorial functions from pairwise
+comparisons. InConference on Learning Theory, pp. 310–335. PMLR, 2016.
+Ahmad Beirami, Alekh Agarwal, Jonathan Berant, Alexander Nicholas D’Amour, Jacob Eisenstein, Chirag
+Nagpal, and Ananda Theertha Suresh. Theoretical guarantees on the best-of-n alignment policy. In
+Forty-second International Conference on Machine Learning, 2025.
+14
+
+=== PAGE 15 ===
+Bradley Brown, Jordan Juravsky, Ryan Ehrlich, Ronald Clark, Quoc V Le, Christopher Ré, and Azalia
+Mirhoseini. Large language monkeys: Scaling inference compute with repeated sampling.arXiv preprint
+arXiv:2407.21787, 2024.
+Zhe Cao, Tao Qin, Tie-Yan Liu, Ming-Feng Tsai, and Hang Li. Learning to rank: from pairwise approach to
+listwise approach. InProceedings of the 24th international conference on Machine learning, pp. 129–136,
+2007.
+Paul F Christiano, Jan Leike, Tom Brown, Miljan Martic, Shane Legg, and Dario Amodei. Deep reinforce-
+ment learning from human preferences.Advances in neural information processing systems, 30, 2017.
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias
+Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. Training
+verifiers to solve math word problems.arXiv preprint arXiv:2110.14168, 2021a.
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias
+Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al. Training verifiers to solve math word
+problems.arXiv preprint arXiv:2110.14168, 2021b.
+Ganqu Cui, Lifan Yuan, Ning Ding, Guanming Yao, Bingxiang He, Wei Zhu, Yuan Ni, Guotong Xie, Ruobing
+Xie, Yankai Lin, et al. Ultrafeedback: Boosting language models with scaled ai feedback. InInternational
+Conference on Machine Learning, pp. 9722–9744. PMLR, 2024.
+Hanze Dong, Wei Xiong, Deepanshu Goyal, Yihan Zhang, Winnie Chow, Rui Pan, Shizhe Diao, Jipeng
+Zhang, KaShun SHUM, and Tong Zhang. Raft: Reward ranked finetuning for generative foundation
+model alignment.Transactions on Machine Learning Research, 2023.
+Johannes Fürnkranz and Eyke Hüllermeier. Preference learning and ranking by pairwise comparison. In
+Preference learning, pp. 65–82. Springer, 2010.
+Leo Gao, John Schulman, and Jacob Hilton. Scaling laws for reward model overoptimization. InInternational
+Conference on Machine Learning, pp. 10835–10866. PMLR, 2023.
+Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-
+Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al. The llama 3 herd of models.
+arXiv preprint arXiv:2407.21783, 2024.
+Lin Gui, Cristina Gârbacea, and Victor Veitch. Bonbon alignment for large language models and the
+sweetness of best-of-n sampling.Advances in Neural Information Processing Systems, 37:2851–2885, 2024.
+Shangmin Guo, Biao Zhang, Tianlin Liu, Tianqi Liu, Misha Khalman, Felipe Llinares, Alexandre Rame,
+Thomas Mesnard, Yao Zhao, Bilal Piot, et al. Direct language model alignment from online ai feedback.
+arXiv preprint arXiv:2402.04792, 2024.
+Audrey Huang, Adam Block, Qinghua Liu, Nan Jiang, Akshay Krishnamurthy, and Dylan J Foster. Is
+best-of-n the best of them? coverage, scaling, and optimality in inference-time alignment. InForty-second
+International Conference on Machine Learning, 2025a.
+Baihe Huang, Shanda Li, Tianhao Wu, Yiming Yang, Ameet Talwalkar, Kannan Ramchandran, Michael I
+Jordan, and Jiantao Jiao. Sample complexity and representation ability of test-time scaling paradigms.
+arXiv preprint arXiv:2506.05295, 2025b.
+Hamish Ivison, Yizhong Wang, Jiacheng Liu, Zeqiu Wu, Valentina Pyatkin, Nathan Lambert, Noah A Smith,
+Yejin Choi, and Hanna Hajishirzi. Unpacking dpo and ppo: Disentangling best practices for learning from
+preference feedback.Advances in neural information processing systems, 37:36602–36633, 2024.
+Jiaming Ji, Donghai Hong, Borong Zhang, Boyuan Chen, Josef Dai, Boren Zheng, Tianyi Alex Qiu, Jiayi
+Zhou, Kaile Wang, Boxun Li, et al. Pku-saferlhf: Towards multi-level safety alignment for llms with human
+preference. InProceedings of the 63rd Annual Meeting of the Association for Computational Linguistics
+(Volume 1: Long Papers), pp. 31983–32016, 2025.
+15
+
+=== PAGE 16 ===
+Aishwarya Kamath, Johan Ferret, Shreya Pathak, Nino Vieillard, Ramona Merhej, Sarah Perrin, Tatiana
+Matejovicova, Alexandre Ramé, Morgane Rivière, Louis Rouillard, et al. Gemma 3 technical report.arXiv
+preprint arXiv:2503.19786, 4, 2025.
+Saeed Khaki, JinJin Li, Lan Ma, Liu Yang, and Prathap Ramachandra. Rs-dpo: A hybrid rejection sampling
+and direct preference optimization method for alignment of large language models. InFindings of the
+Association for Computational Linguistics: NAACL 2024, pp. 1665–1680, 2024.
+Sungdong Kim, Sanghwan Bae, Jamin Shin, Soyoung Kang, Donghyun Kwak, Kang Yoo, and Minjoon Seo.
+Aligning large language models through synthetic feedback. InProceedings of the 2023 Conference on
+Empirical Methods in Natural Language Processing, pp. 13677–13700, 2023.
+Harrison Lee, Samrat Phatale, Hassan Mansoor, Thomas Mesnard, Johan Ferret, Kellie Ren Lu, Colton
+Bishop, Ethan Hall, Victor Carbune, Abhinav Rastogi, et al. Rlaif vs. rlhf: Scaling reinforcement learning
+from human feedback with ai feedback. InInternational Conference on Machine Learning, pp. 26874–
+26901. PMLR, 2024.
+Alexander H Liu, Kartik Khandelwal, Sandeep Subramanian, Victor Jouault, Abhinav Rastogi, Adrien Sadé,
+Alan Jeffares, Albert Jiang, Alexandre Cahill, Alexandre Gavaudan, et al. Ministral 3.arXiv preprint
+arXiv:2601.08584, 2026.
+Chris Yuhao Liu, Liang Zeng, Yuzhen Xiao, Jujie He, Jiacai Liu, Chaojie Wang, Rui Yan, Wei Shen, Fuxiang
+Zhang, Jiacheng Xu, Yang Liu, and Yahui Zhou. Skywork-reward-v2: Scaling preference data curation
+via human-ai synergy.arXiv preprint arXiv:2507.01352, 2025.
+Yu Meng, Mengzhou Xia, and Danqi Chen. Simpo: Simple preference optimization with a reference-free
+reward.Advances in Neural Information Processing Systems, 37:124198–124235, 2024.
+Tetsuro Morimura, Mitsuki Sakamoto, Yuu Jinnai, Kenshi Abe, and Kaito Ariu. Filtered direct preference
+optimization. InProceedings of the 2024 Conference on Empirical Methods in Natural Language Processing,
+pp. 22729–22770, 2024.
+Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu, Long Ouyang, Christina Kim, Christopher Hesse,
+Shantanu Jain, Vineet Kosaraju, William Saunders, et al. Webgpt: Browser-assisted question-answering
+with human feedback.arXiv preprint arXiv:2112.09332, 2021.
+Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang,
+Sandhini Agarwal, Katarina Slama, Alex Ray, et al. Training language models to follow instructions with
+human feedback.Advances in neural information processing systems, 35:27730–27744, 2022.
+Alizée Pace, Jonathan Mallinson, Eric Malmi, Sebastian Krause, and Aliaksei Severyn. West-of-n: Syn-
+thetic preference generation for improved reward modeling. InICLR 2024 Workshop on Navigating and
+Addressing Data Problems for Foundation Models, 2024.
+Yu Pan, Zhongze Cai, Guanting Chen, Huaiyang Zhong, and Chonghuan Wang. What matters in data for
+dpo?Advances in neural information processing systems, 2025.
+Rattana Pukdee, Maria-Florina Balcan, and Pradeep Ravikumar. What does preference learning recover
+from pairwise comparison data?, 2026. URLhttps://arxiv.org/abs/2602.10286.
+Li Qian, Jinyang Gao, and HV Jagadish. Learning user preferences by adaptive pairwise comparison.Pro-
+ceedings of the VLDB Endowment, 8(11):1322–1333, 2015.
+Rafael Rafailov, Archit Sharma, Eric Mitchell, Christopher D Manning, Stefano Ermon, and Chelsea Finn.
+Direct preference optimization: Your language model is secretly a reward model.Advances in neural
+information processing systems, 36:53728–53741, 2023.
+Noam Razin, Zixuan Wang, Hubert Strauss, Stanley Wei, Jason D Lee, and Sanjeev Arora. What makes a
+reward model a good teacher? an optimization perspective. InThe Thirty-ninth Annual Conference on
+Neural Information Processing Systems.
+16
+
+=== PAGE 17 ===
+Pier Giuseppe Sessa, Robert Dadashi-Tazehozi, Leonard Hussenot, Johan Ferret, Nino Vieillard, Alexandre
+Rame, Bobak Shahriari, Sarah Perrin, Abram L Friesen, Geoffrey Cideron, et al. Bond: Aligning llms with
+best-of-n distillation. InThe Thirteenth International Conference on Learning Representations, 2025.
+Charlie Snell, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. Scaling llm test-time compute optimally can be
+more effective than scaling model parameters.arXiv preprint arXiv:2408.03314, 2024.
+Nisan Stiennon, Long Ouyang, Jeffrey Wu, Daniel Ziegler, Ryan Lowe, Chelsea Voss, Alec Radford, Dario
+Amodei, and Paul F Christiano. Learning to summarize with human feedback.Advances in neural
+information processing systems, 33:3008–3021, 2020.
+Qwen Team. Qwen3 technical report, 2025. URLhttps://arxiv.org/abs/2505.09388.
+Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bash-
+lykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al. Llama 2: Open foundation and fine-tuned
+chat models.arXiv preprint arXiv:2307.09288, 2023.
+Claudio Mayrink Verdun, Alex Oesterling, Himabindu Lakkaraju, and Flavio P Calmon. Soft best-of-n
+sampling for model alignment.IEEE International Symposium on Information Theory, 2025.
+Fabian Wauthier, Michael Jordan, and Nebojsa Jojic. Efficient ranking from pairwise comparisons. In
+International Conference on Machine Learning, pp. 109–117. PMLR, 2013.
+Joy Qiping Yang, Salman Salamatian, Ziteng Sun, Ananda Theertha Suresh, and Ahmad Beirami. Asymp-
+totics of language model alignment. In2024 IEEE International Symposium on Information Theory
+(ISIT), pp. 2027–2032. IEEE, 2024a.
+Kevin Yang, Dan Klein, Asli Celikyilmaz, Nanyun Peng, and Yuandong Tian. Rlcd: Reinforcement learning
+from contrastive distillation for language model alignment. 2024b.
+Tong Yang, Jincheng Mei, Hanjun Dai, Zixin Wen, Shicong Cen, Dale Schuurmans, Yuejie Chi, and Bo Dai.
+Faster wind: Accelerating iterative best-of-ndistillation for llm alignment. InInternational Conference
+on Artificial Intelligence and Statistics, pp. 4537–4545. PMLR, 2025.
+WeizheYuan, RichardYuanzhePang, KyunghyunCho, XianLi, SainbayarSukhbaatar, JingXu, andJasonE
+Weston. Self-rewarding language models. InForty-first International Conference on Machine Learning,
+2024.
+Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin,
+Zhuohan Li, Dacheng Li, Eric Xing, et al. Judging llm-as-a-judge with mt-bench and chatbot arena.
+Advances in neural information processing systems, 36:46595–46623, 2023.
+Daniel M Ziegler, Nisan Stiennon, Jeffrey Wu, Tom B Brown, Alec Radford, Dario Amodei, Paul Chris-
+tiano, and Geoffrey Irving. Fine-tuning language models from human preferences.arXiv preprint
+arXiv:1909.08593, 2019.
+A Proofs for Characterizing the Learned Reward
+In this section, we provide full proof details for results in Section 4.
+Lemma 4.1.Assuming that there is no tie in reward score, for any contextxand outcomey, the probability
+mass ofP BoN is given by
+PBoN(y|x) =F(x,y)N−F−(x,y)N (6)
+Proof.For a specific responseyto be selected as the Best-of-N, two conditions must hold:
+1. At least one of theNsamples,y 1,...,yN equalsy
+17
+
+=== PAGE 18 ===
+2. No sample has score strictly greater thanr∗(x,y)
+Since we assume that there is no tie in the reward score, the conditions are equivalent to when the highest
+reward score isr∗(x,y)amongNsamples.
+PBoN(y|x) = Pr(max
+i
+r∗(x,yi) =r∗(x,y))(24)
+= Pr(r∗(x,yi)≤r∗(x,y))−Pr(r∗(x,yi)<r ∗(x,y))(25)
+=F(x,y) N−F−(x,y)N (26)
+The final line holds from independence betweeny1,...,yN.
+This Lemma resembles Lemma 2.3 of Beirami et al. (2025) which was for the BoN policy. We can provide a
+similar result for the Worst-of-N distribution as well.
+Lemma 4.3.Assume that there is no tie in reward score, for any contextxand outcomey, the probability
+mass ofP WoN is given by
+PWoN(y|x) = (1−F−(x,y))N−(1−F(x,y))N (11)
+Proof.Similar to the Best-of-N, the condition at which a responseyis the Worst-of-N is when the lowest
+score isr∗(x,y)amongNsamplesy 1,...,yN.
+PWoN(y|x) = Pr(min
+i
+r∗(x,yi) =r∗(x,y))(27)
+= Pr(r∗(x,yi)≥r∗(x,y))−Pr(r∗(x,yi)>r ∗(x,y))(28)
+= (1−F−(x,y))N−(1−F(x,y))N (29)
+We introduce the definition of Conditional Preference Distribution (CPRD) from Pukdee et al. (2026) which
+encodes the preference information of a comparison distribution. This allows us to refer to the result from
+Pukdee et al. (2026) and cleanly identify the population minimizer.
+Definition A.1(Conditional Preference Distribution (CPRD)).For a distributionPoverX×Y×Y, the
+conditional preference distribution (CPRD) ofPis defined on any unordered pair{y,y′}withy̸=y′and
+x∈Xas follows
+ωP (y≻y′|x) = P(x,y,y ′)
+P(x,y,y ′) +P(x,y ′,y).(30)
+Theorem 4.2(Identification ofr ∗
+BI).Letr ∗
+BI∈arg minrLPBI(r)then there exists a functionc:X →R
+such that
+r∗
+BI(x,y) = log PBoN(y|x)
+Pbase(y|x)+c(x)(8)
+for almost every pair(x,y)with respect toP BI. Furthermore,r∗
+BI preserves the ranking induced byr∗that
+is for anyx,y,y ′with non-zero probability mass,
+r∗(x,y)>r ∗(x,y′) =⇒r∗
+BI(x,y)>r ∗
+BI(x,y′)(9)
+Proof.Part 1: Show thatr∗
+BI is a log ratio.
+By Corollary 5.4 of Pukdee et al. (2026), when the comparison distribution satisfies the positive–negative
+conditional independence, the population minimizer of the BT learning objective, recovers the CPRD of the
+comparison distribution.
+Pr∗
+BI
+(y≻y′|x) =ωP (y≻y′|x)(31)
+almost everywhere with respect toPBI whenP r∗
+BI
+(y≻y′|x) =σ(r∗
+BI(x,y)−r∗
+BI(x,y′))is the preference
+distribution induced by the score functionr∗
+BI.
+18
+
+=== PAGE 19 ===
+In addition, by Theorem 4.4 of Pukdee et al. (2026), when the comparison distribution satisfies the positive–
+negative conditional independence, its CPRD is representable by a BT model where the score function is
+given by the log ratio,
+ωP (y≻y′|x) =σ(logPBoN(y|x)
+Pbase(y|x)−logPBoN(y′|x)
+Pbase(y′|x))(32)
+Combining the two results, we can conclude that for allx,y,y′with non-zero probability mass with respect
+toP BI,
+σ(r∗
+BI(x,y)−r∗
+BI(x,y′)) =σ(logPBoN(y|x)
+Pbase(y|x)−logPBoN(y′|x)
+Pbase(y′|x))(33)
+Sinceσis a strictly increasing function, we also have
+r∗
+BI(x,y)−r∗
+BI(x,y′) = logPBoN(y|x)
+Pbase(y|x)−logPBoN(y′|x)
+Pbase(y′|x) (34)
+For any contextx, lety0 be a fixed outcome with a positive probability mass then for anyy
+r∗
+BI(x,y) = log PBoN(y|x)
+Pbase(y|x)+r∗
+BI(x,y 0)−logPBoN(y0|x)
+Pbase(y|x) (35)
+Setc(x) =r ∗
+BI(x,y 0)−logPBoN(y0|x)
+Pbase(y|x)then we have
+r∗
+BI(x,y) = log PBoN(y|x)
+Pbase(y|x)+c(x)(36)
+for allywith non-zero probability mass with respect toPBI as desired.
+Part 2: Show thatr∗
+BI preserves the ranking ofr∗.
+It suffices to show thatr∗(x,y)>r ∗(x,y′)implies
+PBoN(y|x)
+Pbase(y|x)> PBoN(y′|x)
+Pbase(y′|x).(37)
+By Lemma 4.1, we have
+PBoN(y|x)
+Pbase(y|x)= F(x,y) N−F−(x,y)N
+Pbase(y|x) .(38)
+Using the factorizationaN−bN = (a−b)∑N−1
+j=0 aN−1−jbj and the fact thatF(x,y)−F−(x,y) =P base(y|x)
+this simplifies to
+PBoN(y|x)
+Pbase(y|x)=
+N−1∑
+j=0
+F(x,y) N−1−jF−(x,y)j.(39)
+Finally, by the definition ofF(x,y), we know that wheneverr ∗(x,y)> r ∗(x,y′)we also haveF(x,y)>
+F(x,y′)andF −(x,y)>F −(x,y′). Since PBoN(y|x)
+Pbase(y|x)can be written as a polynomial inF(x,y),F−(x,y)with
+positive coefficients, we can conclude that
+N−1∑
+j=0
+F(x,y) N−1−jF−(x,y)j >
+N−1∑
+j=0
+F(x,y′)N−1−jF−(x,y′)j.(40)
+PBoN(y|x)
+Pbase(y|x)> PBoN(y′|x)
+Pbase(y′|x) (41)
+This concludes our proof.
+19
+
+=== PAGE 20 ===
+Theorem 4.4(Identification ofr∗
+BWI).Letr ∗
+BWI∈arg minrLPBWI(r)then there exists a functionc:X→R
+such that
+r∗
+BWI(x,y) = log PBoN(y|x)
+PWoN(y|x)+c(x)(12)
+for almost every pair(x,y). Furthermore,r ∗
+BWI preserves the ranking induced byr∗that is for anyx,y,y ′
+with non-zero probability mass,
+r∗(x,y)>r ∗(x,y′) =⇒r∗
+BWI(x,y)>r ∗
+BWI(x,y′)(13)
+Proof.The first part follows the same idea as in the proof of Theorem 4.2 but just replacePbase withP WoN.
+For the second part, we need to show thatr∗
+BWI preserves the ranking ofr∗where we will show that whenever
+r∗(x,y)>r ∗(x,y′)we have
+PBoN(y|x)
+PWoN(y|x)> PBoN(y′|x)
+PWoN(y′|x).(42)
+By Lemma 4.1 and Lemma 4.3, we have
+PBoN(y|x)
+PWoN(y|x)= F(x,y) N−F−(x,y)N
+(1−F−(x,y))N−(1−F(x,y))N (43)
+Using the factorizationaN−bN = (a−b)∑N−1
+j=0 aN−1−jbj and the fact thatF(x,y)−F−(x,y) =P base(y|x)
+this simplifies to
+PBoN(y|x)
+PWoN(y|x)=
+∑N−1
+j=0 F(x,y) N−1−jF−(x,y)j
+∑N−1
+j=0 (1−F−(x,y))N−1−j(1−F(x,y))j
+.(44)
+Here the term(F(x,y)−F−(x,y))cancels out.
+By definition,r∗(x,y)> r∗(x,y′)impliesF(x,y)> F(x,y ′)and1−F−(x,y)<1−F−(x,y′). Therefore,
+for the numerator, we have
+N−1∑
+j=0
+F(x,y) N−1−jF−(x,y)j >
+N−1∑
+j=0
+F(x,y′)N−1−jF−(x,y′)j.(45)
+For the denominator, we have
+N−1∑
+j=0
+(1−F−(x,y))N−1−j(1−F(x,y))j <
+N−1∑
+j=0
+(1−F−(x,y′))N−1−j(1−F(x,y′))j.(46)
+Putting everything together, we can conclude that
+∑N−1
+j=0 F(x,y) N−1−jF−(x,y)j
+∑N−1
+j=0 (1−F−(x,y))N−1−j(1−F(x,y))j
+>
+∑N−1
+j=0 F(x,y′)N−1−jF−(x,y′)j
+∑N−1
+j=0 (1−F−(x,y′))N−1−j(1−F(x,y′))j
+.(47)
+Finally,
+PBoN(y|x)
+PWoN(y|x)> PBoN(y′|x)
+PWoN(y′|x).(48)
+This concludes our proof.
+Proposition 4.6(Best-vs-Random and Best-vs-Worst perform pairwise margin maximization).Assume
+that there is no tie in reward score. For each context and pair of outcomes(x,{y,y′}), define
+ymax∈arg max
+u∈{y,y′}
+r∗(x,u), y min∈arg min
+u∈{y,y′}
+r∗(x,u)
+20
+
+=== PAGE 21 ===
+Then for any hypothesis classH, the population risk minimizerr∗
+BR∈arg minr∈HLPBR(r)satisfies
+r∗
+BR∈arg min
+r∈H
+E(x,{y,y′})∼˜PBR
+[
+−logσ
+(
+r(x,y max)−r(x,ymin)
+)]
+The same result holds forr∗
+BW by replacing the comparison distribution˜PBR with ˜PBW. In particular, both
+objectives are the same pairwise margin-maximization loss, differing only in the comparison distribution.
+Proof.From Theorem 5.2 of Pukdee et al. (2026), the BT learning objective can be decomposed as the cross
+entropy between the CPRD and the preference distribution induced by the score function.
+LP (r) =C−Z E
+(x,{y,y′})∼˜P
+[
+ωP logσ(∆r) + (1−ωP ) log(σ(−∆r))
+]
+(49)
+whereωP (y≻y′|x)is the CPRD ofPand∆ r(x,y,y ′) =r(x,y)−r(x,y ′)is the margin between two
+outcomes.C,Zare constants and ˜Pis a comparison distribution induced byP.
+We claim that the CPRD of the Best-vs-Random scenario is either 0 or 1. For any context and pairs of
+outcomes(x,{y,y′}), letymax∈arg maxu∈{y,y′}r∗(x,u)andy min∈arg minu∈{y,y′}r∗(x,u)be the outcome
+with a higher and lower reward score. By the definition of Best-vs-Random, the reward score of the positive
+sample is always higher than the reward score of the negative sample. Therefore, we would always haveymax
+as a positive sample andymin as a negative sample. Therefore, the CPRD is given by
+ωPBR(ymax≻ymin|x) = P(x,y max,y min)
+P(x,y max,y min) +P(x,y min,y max) = 1(50)
+and
+ωPBR(ymin≻ymax|x) = P(x,y min,y max)
+P(x,y min,y max) +P(x,y max,y min) = 0.(51)
+Substitute this back, we have
+ωP logσ(∆r) + (1−ωP ) log(σ(−∆r)) = logσ(r(x,ymax)−r(x,ymin)).(52)
+With this result, we can conclude that the minimizer satisfies
+r∗
+BR∈arg min
+r∈H
+E(x,{y,y′})∼˜PBR
+[
+−logσ(r(x,ymax)−r(x,ymin))
+]
+.(53)
+The result also holds for Best-vs-Worst, which also guarantees that the reward score of the positive sample
+is always higher than the reward score of the negative sample.
+In the next part, we will show that ther∗
+BR would converge to ther∗
+BI asNgrows. To show this, we will first
+show thatP BR would be close toPBI asNincreases. The intuition is that asNis large, the random sample
+from the rest of outcomes would be close to drawing an independent sample from the base distribution. We
+start with first deriving the probability mass ofPBR.
+Lemma A.2(Probability mass ofPBR).Assume that there is no tie in reward score, for any contextxand
+outcomey,y ′there exists a constantc>0for which the probability mass ofP BR is given by
+PBR(x,y,y ′) =
+{
+0ify=y ′orr∗(x,y′)>r ∗(x,y)
+cN
+N−1P(x)P base(y′|x)PBoN,N−1(y|x)otherwise (54)
+whereP BoN,N−1is the probability mass ofPBoN withN−1draws.
+21
+
+=== PAGE 22 ===
+Proof.The first case is quite simple. When we see a pairy=y ′, we do not add it to the comparison
+distribution. Therefore, the probability mass is 0. In addition, ifr∗(x,y′)>r ∗(x,y), then it is not possible
+foryto be preferred overy′given the contextx. Therefore, the probability mass is 0 as well. For the second
+case, assume thaty,y′are two outcomes withr∗(x,y)>r ∗(x,y′)andy̸=y′. We can first factorize
+PBR(x,y,y ′) =P(x)P BR(y+ =y,y −=y′|x)(55)
+wherey + andy −are the positive and negative samples. To compute the second conditional probability
+term, we use the fact that for a given sampley1,...,yN, the probability of the positive sample beingyand
+the negative sample beingy′is given by
+PBR(y+ =y,y −=y′|x,y1,...,yN) = 1[arg max
+yi
+r∗(x,yi) =y]·|{i:yi =y′}|
+N−1 .(56)
+The first term is an indicator function which ensures that the sample with the maximum reward score is
+ywhile the second term is the probability that the random sample that is drawn uniformly from the rest
+of outcomes isy′which is basically the number of outcomes that is equal toy′divided by the number of
+remaining outcomes,N−1. We can rewrite this as
+PBR(y+ =y,y −=y′|x,y1,...,yN) = 1
+N−11[arg max
+yi
+r∗(x,yi) =y]·
+N∑
+i=1
+1[yi =y′].(57)
+Taking the expectation over ally1,...,yN, we have
+PBR(y+ =y,y −=y′|x) =Ey1:N [PBR(y+ =y,y −=y′|x,y1,...,yN)](58)
+= 1
+N−1
+N∑
+i=1
+Pr
+y1:N
+(yi =y′,arg max
+yj
+r∗(x,yj) =y)(59)
+= 1
+N−1
+N∑
+i=1
+Pr
+y1:N
+(yi =y′,arg max
+yj,j̸=i
+r∗(x,yj) =y) (sincer ∗(x,y)>r ∗(x,y′))
+(60)
+= 1
+N−1
+N∑
+i=1
+Pr
+yi
+(yi =y′)Pyj,j̸=i(arg max
+yj
+r∗(x,yj) =y) (by independence)
+(61)
+= N
+N−1Pbase(y′|x)Py2:N (arg max
+yj
+r∗(x,yj) =y)(62)
+= N
+N−1Pbase(y′|x)PBoN,N−1(y|x)(63)
+Finally, we note that the above result only holds wheny̸=y′. Wheny=y ′, we have to replace|{i:yi=y′}|
+N−1
+with|{i:yi=y′}|−1
+N−1 since one sample is already chosen asy. Regardless, we don’t need to worry about such case
+since we will discard the pair withy=y′and set the probability mass to 0. To ensure that the probability
+mass is valid, we need to scale up the probability mass of the rest by some factorc. This concludes the
+proof.
+Before we prove that the total variation betweenPBR andP BI is small, we first provide a lemma which
+relates the total variation between two distributions with its unnormalized probability mass.
+Lemma A.3(Normalization Preserves Closeness).Let ˜Pand ˜Qbe two unnormalized probability mass
+functions over a finite set of outcomesΩ. LetZp := ∑
+x∈Ω˜P(x)andZ q := ∑
+x∈Ω˜Q(x)be the normalization
+constants of ˜Pand ˜Qrespectively withP(x) = ˜P(x)
+Zp
+andQ(x) = ˜Q(x)
+Zq
+as the normalized probability mass
+22
+
+=== PAGE 23 ===
+functions. If there exists a constantc >0such thatZ p≥candZq≥c, then the total variation ofP,Qis
+bounded by the total variation of˜P, ˜Q,
+TV(P,Q)≤2
+c TV( ˜P, ˜Q)(64)
+Proof.Without loss of generality, assume thatZq≥Zp. The total variation ofP,Qis given by
+TV(P,Q) = 1
+2
+∑
+x∈Ω
+|P(x)−Q(x)|(65)
+= 1
+2
+∑
+x∈Ω
+|
+˜P(x)
+Zp
+−
+˜Q(x)
+Zq
+|(66)
+≤1
+2
+∑
+x∈Ω
+|
+˜P(x)
+Zp
+−
+˜Q(x)
+Zp
+|+1
+2
+∑
+x∈Ω
+|
+˜Q(x)
+Zq
+−
+˜Q(x)
+Zp
+|(67)
+= 1
+Zp
+TV( ˜P, ˜Q) +|Zp−Zq|
+2Zp
+(68)
+Since 1
+2|Zp−Zq|=1
+2|
+∑
+x∈Ω
+˜P(x)−
+∑
+x∈Ω
+˜Q(x)|≤1
+2
+∑
+x∈Ω
+|˜P(x)−˜Q(x)|= TV(˜P, ˜Q)(69)
+We have
+TV(P,Q)≤2
+Zp
+TV( ˜P, ˜Q)≤2
+c TV( ˜P, ˜Q)(70)
+Proposition A.4(Total Variation betweenPBR andP BI).Assume that there is no tie in the reward score
+and we discard the pair withy=y′. Then, for any base distributionPbase, there exists a constantc>0for
+which for anyN≥2, the total variation betweenPBR andP BI is given by
+TV(PBR,P BI)≤ c
+N−1 (71)
+Proof.For any fixed contextxand the positive outcomey, the probability mass ofPBI is given by
+PBI(y,y′|x) =
+{
+0ify=y ′
+1
+ZI
+PBoN(y|x)Pbase(y′|x)otherwise (72)
+whereZ I is a constant that compensates for the case when we discard the pair withy=y′. On the other
+hand, the probability mass ofPBR is given by
+PBR(y,y′|x) =
+
+
+
+0ify=y ′
+0ifr ∗(x,y′)>r ∗(x,y)
+1
+ZR
+N
+N−1Pbase(y′|x)PBoN,N−1(y|x)otherwise
+(73)
+andZ R is also a normalization constant. To show that the total variation betweenPBR andP BI is small,
+from Lemma A.3 it is sufficient to show that the unnormalized probability mass of these two distributions
+are close. Define the unnormalized probability mass ofPBR andP BI as
+˜PBI(y,y′|x) =
+{
+0ify=y ′
+PBoN(y|x)Pbase(y′|x)otherwise (74)
+˜PBR(y,y′|x) =
+
+
+
+0ify=y ′
+0ifr ∗(x,y′)>r ∗(x,y)
+N
+N−1Pbase(y′|x)PBoN,N−1(y|x)otherwise
+(75)
+23
+
+=== PAGE 24 ===
+Without loss of generality, let the set of outcomes{y1,...,ym}be ordered such thatr∗(x,y 1)<r ∗(x,y 2)<
+···<r∗(x,ym). As a result, we can write
+F(x,y j) =F(x,y j−1) +P base(yj|x)(76)
+for anyj∈{1,2,...,m}whenF(x,y0) = 0. Further, we will writeFj =F(x,y j)andp j =P base(yj|x)for
+the convenience of notation. With this notation, we know that˜PBR(yi,yj|x) = 0for anyi < jsince the
+reward score ofyi is lower thanyj so it’s not possible foryi to be preferred overyj under Best-vs-Random.
+Therefore, the total variation between˜PBI and ˜PBR is given by
+2 TV(˜PBI, ˜PBR) =
+∑
+y,y′
+|˜PBI(y,y′|x)−˜PBR(y,y′|x)|(77)
+=
+∑
+i>j
+|˜PBI(yi,yj|x)−˜PBR(yi,yj|x)|+
+∑
+i<j
+|˜PBI(yi,yj|x)−˜PBR(yi,yj|x)|(78)
+=
+∑
+i>j
+|˜PBI(yi,yj|x)−˜PBR(yi,yj|x)|+
+∑
+i<j
+|˜PBI(yi,yj|x)|(79)
+We can split the total variation into two parts. The first part is the difference between the probability mass
+of ˜PBI and ˜PBR wheni>jwhile the second part is just the probability mass of ˜PBI wheni<j. We bound
+the first part as follows:
+∑
+i>j
+|˜PBI(yi,yj|x)−˜PBR(yi,yj|x)|=
+∑
+i>j
+|PBoN(yi|x)Pbase(yj|x)−N
+N−1PBoN,N−1(yi|x)Pbase(yj|x)|
+(80)
+=
+∑
+i>j
+|(FN
+i −FN
+i−1)−N
+N−1(FN−1
+i −FN−1
+i−1)|pj (81)
+Letg(u) = N
+N−1uN−1−uN. Differentiatingg(u)with respect tou, we haveg ′(u) =Nu N−2(1−u)≥0for
+allu∈[0,1]which implies thatg(u)is increasing on[0,1]. We can write the term above in terms ofg,
+(FN
+i −FN
+i−1)−N
+N−1(FN−1
+i −FN−1
+i−1) =g(F i−1)−g(Fi)≤0(82)
+This follows from the fact thatg(u)is increasing whileFi >F i−1. Therefore, we have
+∑
+i>j
+|˜PBI(yi,yj|x)−˜PBR(yi,yj|x)|=
+∑
+i>j
+(g(Fi)−g(Fi−1))pj (83)
+=
+m−1∑
+j=1
+pj
+m∑
+i=j+1
+(g(Fi)−g(Fi−1))(84)
+=
+m−1∑
+j=1
+pj(g(Fm)−g(Fj))(85)
+≤
+m−1∑
+j=1
+pjg(Fm)(86)
+≤g(Fm) =g(1) = 1
+N−1 (87)
+24
+
+=== PAGE 25 ===
+For the second part, we have
+∑
+i<j
+|˜PBI(yi,yj|x)|=
+∑
+i<j
+(FN
+i −FN
+i−1)pj (88)
+=
+m−1∑
+i=1
+m∑
+j=i+1
+(FN
+i −FN
+i−1)pj (89)
+=
+m∑
+i=1
+(FN
+i −FN
+i−1)
+m∑
+j=i+1
+pj (90)
+=
+m−1∑
+i=1
+(FN
+i −FN
+i−1)(1−Fi)(91)
+=
+m−1∑
+i=1
+FN
+i −FN
+i−1−FN+1
+i +FiFN
+i−1 (92)
+=F N
+m−1−
+m−1∑
+i=1
+FN+1
+i +
+m−1∑
+i=1
+(Fi−1+pi)FN
+i−1 (93)
+=F N
+m−1−
+m−1∑
+i=1
+FN+1
+i +
+m−2∑
+i=0
+FN+1
+i +
+m−1∑
+i=1
+piFN
+i−1 (94)
+=F N
+m−1−FN+1
+m−1+
+m−1∑
+i=1
+piFN
+i−1 (95)
+=F N
+m−1(1−Fm−1) +
+m−1∑
+i=1
+piFN
+i−1 (96)
+=
+m∑
+i=1
+piFN
+i−1 (97)
+Here we use the telescoping technique. We observe that the third term is a left Riemann sum for approximat-
+ing the integral ofuN between0and1by splitting[0,1]into intervals with widthp 1,p 2,...,pm−1,pm. Since
+this function is increasing, we can conclude that the Riemann sum is upper bounded by the true integral.
+m∑
+i=1
+FN
+i−1pi≤
+∫ 1
+0
+uNdu= 1
+N+ 1 (98)
+Therefore,
+∑
+i<j
+|˜PBI(yi,yj|x)|≤1
+N+ 1 (99)
+Combining two parts, we can conclude that
+2 TV(˜PBI, ˜PBR)≤ 1
+N−1+ 1
+N+ 1 ≤ 2
+N−1 (100)
+The final step we need is to show that the normalization constant ofPBI andP BR are bounded below by a
+constant. We start withZI.
+25
+
+=== PAGE 26 ===
+ZI =
+∑
+i̸=j
+˜PBI(yi,yj|x)(101)
+= 1−
+m∑
+i=1
+˜PBI(yi,yi|x)(102)
+= 1−
+m∑
+i=1
+(FN
+i −FN
+i−1)pi (103)
+≥1−(maxpi)
+m∑
+i=1
+(FN
+i −FN
+i−1) = 1−maxpi (104)
+ZI is bounded below by1−maxpi for anyN. In addition, forZR, we have
+ZR =
+∑
+i>j
+˜PBR(yi,yj|x)(105)
+=
+∑
+i>j
+N
+N−1(FN−1
+i −FN−1
+i−1)pj (106)
+≥N
+N−1(FN−1
+m −FN−1
+m−1)pm (107)
+= N
+N−1(1−(1−pm)N−1)pm (108)
+≥p2
+m (109)
+The lower bound here is fairly loose but it is sufficient for us to use Lemma A.3 which now implies that there
+exists a constantcx >0such that
+TV(PBR(y,y′|x),PBI(y,y′|x))≤cx
+N−1 (110)
+for anyx∈X. Now, we take the summation over allxand will have the total variation betweenPBR and
+PBI is bounded by
+TV(PBR,P BI) =
+∑
+x
+P(x) TV(PBR(y,y′|x),PBI(y,y′|x))≤c
+N−1 (111)
+whenc= ∑
+xP(x)cx. This concludes the proof.
+Now, we have established thatP BR andP BI are close asNgrows, with this we can also show that the
+population risk minimizer would also be close to each other as well. Here we apply a standard technique in
+learning theory that first shows that a small TV distance means that the difference in the population risk
+would be small. Then, we use the strong convexity of the population risk to show that the difference in the
+population risk minimizer would be small as well. We will first prove some technical lemmas that will be
+useful for the proof and then will present the main proof accordingly.
+The first lemma shows that we can bound the population risk difference in terms of the total variation
+between the two distributions.
+Lemma A.5.LetHbe a hypothesis class that is bounded by some constantB. LetPandQbe two
+comparison distributions then there exists a constantMB such that
+sup
+r∈H
+|LP (r)−LQ(r)|≤2MB TV(P,Q)(112)
+26
+
+=== PAGE 27 ===
+Proof.First, we will show that ifHis bounded byBthen the BT loss is also bounded as well. Recall that
+the loss on any(x,y,y′)is given by
+ℓ(∆r) =−logσ(r(x,y+)−r(x,y−)) = log(1 + exp(r(x,y−)−r(x,y+))).(113)
+Sinceris bounded byB, we have|r(x,y−)−r(x,y+)|≤2Bso that
+ℓ(∆r)≤log(1 + exp(2B)) :=MB.(114)
+Next, we will show that the difference in the population risk is bounded by the total variation between the
+two distributions.
+|LP (r)−LQ(r)|=|
+∑
+x,y,y′
+P(x,y,y ′)ℓ(∆r(x,y,y ′))−
+∑
+x,y,y′
+Q(x,y,y ′)ℓ(∆r(x,y,y ′))|(115)
+=|
+∑
+x,y,y′
+(P(x,y,y ′)−Q(x,y,y′))ℓ(∆r(x,y,y ′))|(116)
+≤
+∑
+x,y,y′
+|P(x,y,y′)−Q(x,y,y′)|ℓ(∆r(x,y,y ′))|(117)
+≤
+∑
+x,y,y′
+|P(x,y,y′)−Q(x,y,y′)|MB (118)
+= 2MB TV(P,Q)(119)
+Since this is true for anyr∈H, it would also hold for the supremum over allr∈H. This concludes the
+proof.
+The second lemma shows that if the population risk between two distributions is small on all hypotheses in
+the hypothesis class, then the population risk minimizer of one distribution would also perform well on the
+other distribution.
+Lemma A.6.LetHbe a hypothesis class andP,Qbe two comparison distributions such that
+supr∈H|LP (r)−LQ(r)|≤ϵ. Letr∗
+P andr ∗
+Q be the population risk minimizer ofLP andL Q respectively.
+Then, we have
+LP (r∗
+Q)≤LP (r∗
+P ) + 2ϵ(120)
+LQ(r∗
+P )≤LQ(r∗
+Q) + 2ϵ(121)
+Proof.We write the difference between the population risk ofr∗
+P andr∗
+Q as
+LP (r∗
+Q)−LP (r∗
+P ) = (LP (r∗
+Q)−LQ(r∗
+Q)) + (LQ(r∗
+Q)−LQ(r∗
+P )) + (LQ(r∗
+P )−LP (r∗
+P ))(122)
+≤|LP (r∗
+Q)−LQ(r∗
+Q)|+ (LQ(r∗
+Q)−LQ(r∗
+P )) +|LQ(r∗
+P )−LP (r∗
+P )|(123)
+≤ϵ+ 0 +ϵ= 2ϵ(124)
+The first and third term follows from the assumption thatsupr∈H|LP (r)−LQ(r)|≤ϵ. The second term is
+at most 0 sincer∗
+Q is the population risk minimizer ofLQ so thatLQ(r∗
+Q)≤LQ(r)for anyr∈Hincluding
+r∗
+P. We have the first result and the second result follows from the same argument.
+In this Lemma, we show that when the hypothesis class is convex, we can bound the difference between the
+margin of a reward function with the population risk minimizer with the difference in their population risk.
+Lemma A.7.LetHbe a convex hypothesis class that is bounded by some constantB. LetPbe a comparison
+distribution andr∗
+P be the population risk minimizer ofLP. There exists a constantcB such that for any
+reward functionr∈H, we have
+∥r−r∗
+P∥∆,P ≤2
+σB
+(LP (r)−LP (r∗
+P ))(125)
+27
+
+=== PAGE 28 ===
+Proof.First, we will show that whenHis bounded,L P (r)is strongly convex. This result follows from the
+proof of Theorem 6.7 in Pukdee et al. (2026). We provide a brief proof here for completeness. We can write
+the BT objective as
+LP (r) =C+E (x,{y,y′})∼˜P [gx,y,y′(∆ r(x,y,y ′))].(126)
+whereg x,y,y′:R→R, is defined for each(x,{y,y′})as
+gx,y,y′(a) =−ωP (y≻y′|x) logσ(a)−(1−ωP (y≻y′|x)) log(1−σ(a))(127)
+We will write∆ r for∆ r(x,y,y ′)for convenience from now. The first thing we will show is thatgx,y,y′is
+strongly convex with respect toa. We can check this by taking the derivative. Using the property that
+σ′(a) =σ(a)(1−σ(a)), we have the first derivative
+g′
+x,y,y′(a) =σ(a)−ωP (128)
+and the second derivative
+g′′
+x,y,y′(a) =σ(a)(1−σ(a))(129)
+Since the score functionris bounded by a constantB, for any(x,{y,y′}), we know that|∆r|=|r(x,y)−
+r(x,y′)|≤2B. Now, fora∈[−2B,2B]we know that
+σ(a)(1−σ(a))≥σ(2B)(1−σ(2B)) :=σB >0(130)
+With this assumption, we can conclude thatgx,y,y′isσB-strongly convex. Recall that iffisσ B-strongly
+convex, then for anyx,y, we have
+f(x)−f(y)≥f′(y)(x−y) +σB
+2 (x−y)2.(131)
+Apply this inequality ongx,y,y′with∆ r and∆ r∗
+P
+and drop(x,y,y ′)for convenience.
+gx,y,y′(∆ r)−gx,y,y′(∆ r∗
+P
+)≥g′
+x,y,y′(∆ r∗
+P
+)(∆ r−∆r∗
+P
+) +σB
+2 (∆ r−∆r∗
+P
+)2.(132)
+Take the expectation over the distribution˜P, we have
+E˜P [gx,y,y′(∆ r)−gx,y,y′(∆ r∗
+P
+)]≥E˜P [g′
+x,y,y′(∆ r∗
+P
+)(∆ r−∆r∗
+P
+)] +σB
+2 E˜P [(∆ r−∆r∗
+P
+)2].(133)
+The left hand side is just the difference between the population risk, while the second term on the right hand
+side is the margin semi-norm with respect toP; since(∆r−∆r∗
+P
+)2 is invariant under swappingyandy′, its
+expectation under ˜Pis equal to the expectation overPwhich is exactly∥r−r∗
+P∥∆,P .
+LP (r)−LP (r∗
+P )≥E˜P [g′
+x,y,y′(∆ r∗
+P
+)(∆ r−∆r∗
+P
+)] +σB
+2∥r−r∗
+P∥∆,P .(134)
+Now, the final part is to show that the first term on the right hand side is non-negative. We achieve this by
+using the property ofHbeing convex. From convexity, we know that for anyt∈[0,1], we have
+rt = (1−t)r∗
+P +tr∈H(135)
+Sincer ∗
+P is the population risk minimizer, the right derivative of the population risk with respect totat
+t= 0must be non-negative.
+∂
+∂tLP (rt)
+⏐⏐⏐⏐
+t=0
+≥0(136)
+where
+∂
+∂tLP (rt) = ∂
+∂tE˜P [gx,y,y′(∆ rt)](137)
+=E ˜P [g′
+x,y,y′(∆ rt)∂
+∂t∆ rt](138)
+28
+
+=== PAGE 29 ===
+We can derive
+∂
+∂t∆ rt = ∂
+∂t((1−t)∆r∗
+P
++t∆ r) = ∆ r−∆r∗
+P
+.(139)
+Therefore,
+∂
+∂tLP (rt) =E ˜P [g′
+x,y,y′(∆ rt)(∆ r−∆r∗
+P
+)](140)
+Settingt= 0and substituting back, we would have that
+E˜P [g′
+x,y,y′(∆ r∗
+P
+)(∆ r−∆r∗
+P
+)]≥0(141)
+as desired. As a result, we can conclude that
+LP (r)−LP (r∗
+P )≥σB
+2∥r−r∗
+P∥∆,P .(142)
+This concludes the proof.
+Now, we are ready to prove the Theorem 4.8.
+Theorem 4.8(r∗
+BR is close tor∗
+BI).LetHbe a convex hypothesis class that is bounded by some constantB.
+Letr∗
+BR∈arg minr∈HLPBR(r)then there exists a constantcB such that for anyN≥2,
+∥r∗
+BR−r∗
+BI∥∆,P BR≤cB
+N−1 (16)
+Proof.First, by proposition A.4, we have that the total variation betweenPBR andP BI is bounded by c
+N−1
+for some constantc>0,
+TV(PBR,P BI)≤ c
+N−1.(143)
+By Lemma A.5, we can bound the population risk difference with the total variation,
+sup
+r∈H
+|LPBR(r)−LPBI(r)|≤2MB TV(PBR,P BI)≤2MBc
+N−1.(144)
+By Lemma A.6, we would have
+LPBR(r∗
+BI)−LPBR(r∗
+BR)≤4MBc
+N−1 (145)
+Finally, by the convexity ofHand Lemma A.7, we have
+∥r∗
+BR−r∗
+BI∥∆,P BR≤2
+σB
+(LPBR(r∗
+BI)−LPBR(r∗
+BR))≤ 8MBc
+σB(N−1).(146)
+Settingc B = 8MBc
+σB
+concludes the proof.
+The proof for Theorem 4.9 follows the same argument. The key difference is to show that the total variation
+betweenP BW andP BWI now decays exponentially.
+Proposition A.8(Total Variation betweenPBW andP BWI).Assume that there is no tie in the reward score
+and we discard the pair withy=y′. Then, there exists a constantc>0andρ<1for which for anyN≥2,
+the total variation betweenPBW andP BWI is given by
+TV(PBW,P BWI)≤cρN (147)
+Proof.The main idea of the proof is to bound the total variation betweenPBW andP BWI on the pair of
+best and worst outcome. This is because we know that asNgrows, we are more likely to see the outcome
+with the highest and lowest true reward score. For the first step, we will calculate the probability mass of
+29
+
+=== PAGE 30 ===
+PBW andP BWI.
+Part 1: Calculate the probability mass ofPBWI andP BW.We start with the probability mass of
+PBWI.
+PBWI(y,y′|x) =
+{
+0ify=y ′
+1
+cI
+PBoN(y|x)PWoN(y′|x)otherwise (148)
+HerecI is a constant that ensures thatPBWI is a valid probability distribution. We need this constant because
+whenevery=y ′, we discard the triplet. We will bound this constant term. Without loss of generality, assume
+that the set of outcomes is given byy1,y 2,...,ym wherer∗(x,y 1)<r ∗(x,y 2)<···<r∗(x,ym)so thaty 1 is
+the worst outcome andym is the best outcome. We also define the unnormalized probability mass ofPBWI
+as
+˜PBWI(y,y′|x) =PBoN(y|x)PWoN(y′|x)(149)
+From Lemma 4.1 and 4.3, we have
+˜PBWI(yi,yj|x) =PBoN(yi|x)PWoN(yj|x)(150)
+= (F(x,y i)N−F−(x,yi)N)((1−F−(x,yj))N−(1−F(x,yj))N)(151)
+= (F(x,y i)N−F(x,yi−1)N)((1−F(x,yj−1))N−(1−F(x,yj))N)(152)
+= (FN
+i −FN
+i−1)((1−Fj−1)N−(1−Fj)N)(153)
+This follows from the fact thatF−(x,yi) =F(x,y i−1). We also writeFi =F(x,y i)for convenience. It is
+clear thatP BWI is just ˜PBWI normalized by some constant that takes care of the case when we discard the
+pair withy=y ′. Therefore,
+cI =
+∑
+y̸=y′
+˜PBWI(y,y′|x)(154)
+= 1−
+m∑
+i=1
+˜PBWI(yi,yi|x)(155)
+= 1−
+m∑
+i=1
+(FN
+i −FN
+i−1)((1−Fi−1)N−(1−Fi)N)(156)
+For eachibetween 1 andm, the term(F N
+i −FN
+i−1)((1−Fi−1)N−(1−Fi)N)would converge to0asN
+grows. Further, wheni= 1, we have
+(FN
+1 −FN
+0 )((1−F0)N−(1−F1)N) =F N
+1 (1−(1−F1)N)(157)
+and wheni=m, we have
+(FN
+m−FN
+m−1)((1−Fm−1)N−(1−Fm)N) = (1−FN
+m−1)(1−Fm−1)N (158)
+Both terms also converge to0asNgrows. As a result, we can conclude thatcI→1asNgrows and there
+exists a constanta>0for whichc I≥a>0for allN. Combining everything together, we have
+PBWI(yi,yj|x) =
+{
+0ifi=j
+1
+cI
+(FN
+i −FN
+i−1)((1−Fj−1)N−(1−Fj)N)otherwise (159)
+whenc I→1asNgrows. Next, we will calculate the probability mass ofPBW. First, for anyi≤jwe know
+that
+PBW(yi,yj|x) = 0(160)
+becausey j has a higher reward score thanyi so it’s impossible foryi to be preferred overyj. For the case
+wheni > j, the probability is not zero anymore. LetY1,Y 2,...,YN be theNoutcomes sampled from the
+30
+
+=== PAGE 31 ===
+base distribution and let˜PBW be the unnormalized probability mass ofPBW then
+˜PBW(yi,yj|x) = Pr(arg max
+Yi
+r∗(x,Yi) =y i,arg min
+Yi
+r∗(x,Yi) =y j)(161)
+= Pr(maxr∗(x,Yi) =r∗(x,yi),minr∗(x,Yi) =r∗(x,yj))(162)
+= Pr(r∗(x,yj)≤r∗(x,Yi)≤r∗(x,yi))−Pr(r∗(x,yj)≤r∗(x,Yi)<r ∗(x,yi))(163)
+−Pr(r∗(x,yj)<r ∗(x,Yi)≤r∗(x,yi)) + Pr(r∗(x,yj)<r ∗(x,Yi)<r ∗(x,yi))(164)
+= (Fi−Fj−1)N−(Fi−1−Fj−1)N−(Fi−Fj)N + (Fi−1−Fj)N (165)
+This follows from the assumption that there is no tie in the reward score and the second to last line holds
+from an inclusion-exclusion principle. We have
+PBW(yi,yj|x) =
+{
+0ifi≤j
+1
+cD
+˜PBW(yi,yj|x) (166)
+Similarlyc D is a constant that ensures thatPBW is a valid probability distribution which handles the case
+wheni≤j. We know that
+cD =
+∑
+i>j
+˜PBW(yi,yj|x) =
+m−1∑
+j=1
+m∑
+i=j+1
+˜PBW(yi,yj|x)(167)
+LetS j = ∑m
+i=j+1 ˜PBW(yi,yj|x)then we can write
+Sj =
+m∑
+i=j+1
+˜PBW(yi,yj|x)(168)
+=
+m∑
+i=j+1
+(Fi−Fj−1)N−(Fi−1−Fj−1)N−(Fi−Fj)N + (Fi−1−Fj)N (169)
+=
+m∑
+i=j+1
+(Fi−Fj−1)N−
+m−1∑
+i=j
+(Fi−Fj−1)N−
+m∑
+i=j+1
+(Fi−Fj)N +
+m−1∑
+i=j
+(Fi−Fj)N (170)
+= (Fm−Fj−1)N−(Fj−Fj−1)N−(Fm−Fj)N (171)
+= (1−Fj−1)N−(1−Fj)N−(Fj−Fj−1)N (172)
+Therefore,
+cD =
+m−1∑
+j=1
+Sj (173)
+=
+m−1∑
+j=1
+((1−Fj−1)N−(1−Fj)N−(Fj−Fj−1)N)(174)
+=
+m−2∑
+j=0
+(1−Fj)N−
+m−1∑
+j=1
+(1−Fj)N−
+m−1∑
+j=1
+(Fj−Fj−1)N (175)
+= 1−(1−Fm−1)N−
+m−1∑
+j=1
+(Fj−Fj−1)N (176)
+= 1−
+m∑
+j=1
+(Fj−Fj−1)N (177)
+Similar tocI,c D→1asNgrows assuming that the base distribution does not concentrate all probability
+on a single outcome. There exists a constantb>0for whichc D≥b>0for allN.
+31
+
+=== PAGE 32 ===
+Part 2: Bound the total variation betweenPBWI andP BW.
+We will start with the total variation between the conditional distributionsPBWI(y,y′|x)andPBW(y,y′|x).
+Letδ(m,1) be the probability distribution that assigns probability1to the pair(ym,y 1)and0to all other
+pairs. By triangle inequality,
+TV(PBWI(y,y′|x),PBW(y,y′|x))≤TV(PBWI(y,y′|x),δ(m,1)) + TV(PBW(y,y′|x),δ(m,1))(178)
+= (1−PBWI(ym,y 1|x)) + (1−PBW(ym,y 1|x))(179)
+The final line follows fromδ(m,1) put zero probability mass everywhere and assign probability1to the pair
+(ym,y 1). Using the results from Part 1,
+1−PBWI(ym,y 1|x) = 1−(FN
+m−FN
+m−1)((1−F0)N−(1−F1)N)
+cI
+(180)
+= cI−(1−FN
+m−1)(1−(1−F1)N)
+cI
+(181)
+≤1−(1−(1−pm)N)(1−(1−p1)N)
+cI
+(182)
+= (1−pm)N + (1−p1)N−(1−pm)N(1−p1)N
+cI
+(183)
+≤(1−pm)N + (1−p1)N
+cI
+(184)
+whenp m andp 1 are the probability mass ofym andy 1 respectively. Similarly,
+1−PBW(ym,y 1|x) = 1−(Fm−F0)N−(Fm−1−F0)N−(Fm−F1)N + (Fm−1−F1)N
+cD
+(185)
+= cD−(1−(1−pm)N−(1−p1)N + (1−pm−p1)N)
+cD
+(186)
+≤1−(1−(1−pm)N−(1−p1)N + (1−pm−p1)N)
+cD
+(187)
+= (1−pm)N + (1−p1)N−(1−pm−p1)N
+cD
+(188)
+≤(1−pm)N + (1−p1)N
+cD
+(189)
+Therefore, we have
+TV(PBWI(y,y′|x),PBW(y,y′|x))≤
+((1−pm)N + (1−p1)N
+cI
++ (1−pm)N + (1−p1)N
+cD
+)
+(190)
+≤2(1
+a + 1
+b ) max(1−pm,1−p1)N (191)
+:=c xρN
+x (192)
+Since we have this TV bound for the conditional distribution, we also have a similar bound for the total
+variation betweenP BWI andP BW
+TV(PBWI,P BW)≤
+∑
+x
+TV(PBWI(y,y′|x),PBW(y,y′|x))P(x)(193)
+≤
+∑
+x
+P(x)cxρN
+x (194)
+≤(
+∑
+x
+P(x)cx) max
+x
+(ρx)N (195)
+:=cρN (196)
+This concludes the proof.
+32
+
+=== PAGE 33 ===
+Theorem 4.9(r∗
+BW is close tor∗
+BWI).LetHbe a convex hypothesis class that is bounded by some constant
+B. Letr∗
+BW∈arg minr∈HLPBW(r)then there exists a constantcB andρ<1such that for anyN≥2,
+∥r∗
+BW−r∗
+BWI∥∆,P BW≤cBρN (17)
+Proof.From Proposition A.8, we have that
+TV(PBW,P BWI)≤cρN (197)
+for some constantc>0andρ<1. We then apply the same argument as in the proof of Theorem 4.8, which
+allows us to bound the difference betweenr∗
+BW andr∗
+BWI in terms of the total variation betweenPBW and
+PBWI. This concludes the proof.
+B Sample Complexity
+In this section, we provide full proof details for results in Section 5.
+Proposition 5.2(Margin ofr∗
+BI).Assuming no ties in reward score, for any contextxand pair of outcomes
+y,y′with non-zero probability mass, the margin ofr∗
+BI admits the decomposition
+∆ r∗
+BI
+(x;y,y ′) =Nlog F(x,y)
+F(x,y′) +B N(x;y,y ′),(19)
+whereB N(x;y,y ′)is uniformly bounded inN.
+Proof.Recall the closed form forPBoN(y|x):
+PBoN(y|x) =F(x,y)N−F−(x,y)N =F(x,y) N−
+(
+F(x,y)−Pbase(y|x)
+)N
+.(198)
+We rewrite it as
+PBoN(y|x) =F(x,y)N
+(
+1−
+(
+1−Pbase(y|x)(y|x)
+F(x,y)
+)N )
+.(199)
+Letαx(y) := 1−Pbase(y|x)
+F(x,y) ∈[0,1). Then
+PBoN(y|x) =F(x,y)N
+(
+1−αx(y)N
+)
+.(200)
+Substituting into ther∗
+BI expression (up to an additive constant):
+r∗
+BI(x,y) = log
+(F(x,y) N(1−αx(y)N)
+Pbase(y|x)
+)
+=NlogF(x,y) + log(1−αx(y)N)−logPbase(y|x).(201)
+Subtracting foryandy ′:
+∆ r∗
+BI
+(x;y,y ′) =N
+(
+logF(x,y)−logF(x,y′)
+)
++
+[
+log
+(
+1−αx(y)N )
+−log
+(
+1−αx(y′)N )]
+−log
+(Pbase(y|x)
+Pbase(y′|x)
+)
+(202)
+=N
+(
+logF(x,y)−logF(x,y′)
+)
++BN(x;y,y ′)(203)
+Since0≤αx(y)<1, we haveαx(y)N→0asN→∞. The sequence{log(1−αx(y)N)}N≥1is monotone
+increasing and bounded above by0and below bylog(1−αx(y)). Therefore their difference remains bounded,
+and the final term−log(Pbase(y|x)/Pbase(y′|x))is constant. The dominant term isN(logF(x,y)−
+logF(x,y ′)). Ifr∗(x,y)>r ∗(x,y′), thenF(x,y)>F(x,y ′), so the margin diverges.
+33
+
+=== PAGE 34 ===
+Proposition 5.3(Margin ofr ∗
+BWI).Assume no ties inr ∗(x,·). For any contextxand pair of outcomes
+y,y′with non-zero probability mass, the margin ofr∗
+BWI admits the decomposition
+∆ r∗
+BWI
+(x;y,y ′) =N
+(
+log F(x,y)
+F(x,y′) + log 1−F−(x,y′)
+1−F−(x,y)
+)
++BN(x;y,y ′)(20)
+whereB N(x;y,y ′)is uniformly bounded inN.
+Proof.We use the result from Theorem 4.4 which provides a closed form forr∗
+BWI, we have
+r∗
+BWI(x,y) = log PBoN(y|x)
+PWoN(y|x)+c(x)(204)
+and
+∆ r∗
+BWI
+(x;y,y ′) =r∗
+BWI(x,y)−r∗
+BWI(x,y′)(205)
+= log PBoN(y|x)
+PWoN(y|x)−logPBoN(y′|x)
+PWoN(y′|x) (206)
+= log F(x,y) N−F−(x,y)N
+(1−F−(x,y))N−(1−F(x,y))N−log F(x,y′)N−F−(x,y′)N
+(1−F−(x,y′))N−(1−F(x,y′))N (207)
+= log
+F(x,y) N(1−(F−(x,y)
+F(x,y) )N)
+(1−F−(x,y))N(1−(1−F(x,y)
+1−F−(x,y) )N)
+−log
+F(x,y′)N(1−(F−(x,y′)
+F(x,y′) )N)
+(1−F−(x,y′))N(1−(1−F(x,y′)
+1−F−(x,y′))N)
+(208)
+We can see that the terms(1−(F−(x,y)
+F(x,y) )N)and1−( 1−F(x,y)
+1−F−(x,y) )N)are increasing withNand converge to1
+asN→∞. This also holds fory′. Therefore, we can write the margin as
+∆ r∗
+BWI
+(x;y,y ′) =Nlog F(x,y)
+1−F−(x,y) −Nlog F(x,y′)
+1−F−(x,y′) +BN(x;y,y ′)(209)
+=N
+(
+log F(x,y)
+F(x,y′) + log 1−F−(x,y′)
+1−F−(x,y)
+)
++BN(x;y,y ′)(210)
+whereB N(x;y,y ′)is uniformly bounded inN. This concludes the proof.
+Theorem B.1(Formal connectivity bounds forP BI).Assume that every triplet in the support ofQhas
+non-zero probability underPBI. Then there exists a constantCQ >0for which for anyN,
+λconn(PBI,Q;H)≥CQ(min
+x,y
+Pbase(y|x))N (211)
+Fixα∈Rand defineAx,α={y∈Y:r∗(x,y)≤α}. Assume thatHcontains functionsf,gsuch that
+f(x,·)−g(x,·)is constant onAx,αand on its complement for everyx, and that
+γQ,α:= Pr
+Q
+(y∈Ax,α,y′/∈Ax,α) + Pr
+Q
+(y /∈Ax,α,y′∈Ax,α)>0.
+Ifη:= 1−maxx,yPbase(y|x)>0, then there exists a constantDQ,α>0such that for anyN,
+λconn(PBI,Q;H)≤DQ,αEx∼Px[Pbase(Ax,α|x)N +P base(Ax,α|x)](212)
+Proof.We start with the lower bound. Recall the definition of the connectivity degree,
+λconn(PBI,Q;H) = inf
+f,g∈H
+EPBI[(∆f−∆g)2]
+EQ[(∆f−∆g)2] .(213)
+34
+
+=== PAGE 35 ===
+Ifλconn(PBI,Q;H) = 0, the lower bound is immediate. So assume thatλ conn(PBI,Q;H)>0. For any
+f,g∈H, we can rewrite
+EPBI[(∆f−∆g)2]≥
+∑
+Q(x,y,y′)>0
+PBI(x,y,y ′)(∆f−∆g)2 (214)
+=E Q[PBI(x,y,y ′)
+Q(x,y,y ′) (∆f−∆g)2](215)
+≥
+(
+min
+Q(x,y,y′)>0
+PBI(x,y,y ′)
+Q(x,y,y ′)
+)
+EQ[(∆f−∆g)2].(216)
+Therefore,
+λconn(PBI,Q;H)≥min
+Q(x,y,y′)>0
+PBI(x,y,y ′)
+Q(x,y,y ′) .(217)
+Let
+ZI(x) = 1−
+∑
+y∈Y
+PBoN(y|x)Pbase(y|x)(218)
+be the normalization constant that removes the eventy=y′. Then, for anyy̸=y′, we have
+PBI(x,y,y ′)
+Q(x,y,y ′) = P(x)P BoN(y|x)Pbase(y′|x)
+ZI(x)Q(x,y,y ′) (219)
+≥P(x)P BoN(y|x)Pbase(y′|x)
+Q(x,y,y ′) (220)
+sinceZ I(x)≤1. By Lemma 4.1,
+PBoN(y|x) =F(x,y)N−F−(x,y)N≥Pbase(y|x)N.(221)
+Hence, for every(x,y,y′)in the support ofQ,
+PBI(x,y,y ′)
+Q(x,y,y ′) ≥P(x)P base(y′|x)
+Q(x,y,y ′) Pbase(y|x)N≥CQ(min
+x,y
+Pbase(y|x))N (222)
+where
+CQ := min
+Q(x,y,y′)>0
+P(x)P base(y′|x)
+Q(x,y,y ′) >0.(223)
+Substituting back, we obtain
+λconn(PBI,Q;H)≥CQ(min
+x,y
+Pbase(y|x))N.(224)
+Now, we prove the upper bound. Fixα∈Rand define
+Ax,α={y∈Y:r∗(x,y)≤α}(225)
+and writepA(x) :=P base(Ax,α|x). Without loss of generality, let the set of outcomes be{y1,y 2,...,ym}
+such thatr∗(x,y 1)< r∗(x,y 2)<···< r∗(x,ym)(assuming that there is no tie in reward score). Letkbe
+the largest index for whichr∗(x,yk)≤α. Then
+pA(x) =
+k∑
+i=1
+Pbase(yi|x) =F(x,yk).(226)
+On the other hand, under the Best-of-Nsampling we have
+PBoN(Ax,α|x) =
+k∑
+i=1
+PBoN(yi|x) =
+k∑
+i=1
+(F(x,y i)N−F−(x,yi)N) =F(x,y k)N =p A(x)N.(227)
+35
+
+=== PAGE 36 ===
+By assumption,Hcontainsf,g∈Hsuch that for anyx,
+f(x,y)−g(x,y) =
+{
+γ1 ify∈Ax,α
+γ0 otherwise. (228)
+Denoteϕ=f−g. For this choice,
+λconn(PBI,Q;H)≤EPBI[(ϕ(x,y)−ϕ(x,y′))2]
+EQ[(ϕ(x,y)−ϕ(x,y′))2] (229)
+= PrPBI(y∈Ax,α,y′/∈Ax,α) + PrPBI(y /∈Ax,α,y′∈Ax,α)
+PrQ(y∈Ax,α,y′/∈Ax,α) + PrQ(y /∈Ax,α,y′∈Ax,α) .(230)
+By assumption, the denominator is exactlyγQ,α>0. For the numerator, first note that
+ZI(x) = 1−
+m∑
+i=1
+(FN
+i −FN
+i−1)pi (231)
+≥1−(max
+i
+pi)
+m∑
+i=1
+(FN
+i −FN
+i−1)(232)
+≥1−max
+i
+pi (233)
+≥1−max
+x,y
+Pbase(y|x) =η.(234)
+Therefore,
+Pr
+PBI
+(y∈Ax,α,y′/∈Ax,α) + Pr
+PBI
+(y /∈Ax,α,y′∈Ax,α)(235)
+=E x∼Px
+[ 1
+ZI(x) (PBoN(Ax,α|x)(1−pA(x)) + (1−PBoN(Ax,α|x))pA(x))
+]
+(236)
+≤1
+ηEx∼Px
+[
+pA(x)N(1−pA(x)) + (1−pA(x)N)pA(x)
+]
+(237)
+≤1
+ηEx∼Px
+[
+pA(x)N +pA(x)
+]
+.(238)
+Substituting back, we conclude that
+λconn(PBI,Q;H)≤ 1
+ηγQ,α
+Ex∼Px[pA(x)N +pA(x)].(239)
+This proves the upper bound withDQ,α= 1
+ηγQ,α
+.
+TheoremB.2(ConnectivityboundsforP BWI).LetP base be a base distribution. Then there exists a constant
+C >0such that for anyN,
+λconn(PBWI,Q;H)≥C
+(
+min
+x,y̸=y′
+Pbase(y|x)Pbase(y′|x)
+)N
+(240)
+On the other hand, for any real-valuedα, we define the set of outcomes for which the reward is less thanα
+for a given contextxasA x,α={y∈Y:r∗(x,y)≤α}. For anyα, ifHis flexible enough, then there exists
+a constantD>0such that for anyN,
+λconn(PBWI,Q;H)≤DEx∼Px[1 + (Pbase(Ax,α|x))N(1−Pbase(Ax,α|x))N](241)
+Proof.Here we absorb the normalization constant ofPBWI into the constants. The proof is similar to the
+proof of Theorem B.1, except that we replace the calculation of the probability mass ofPBI with that of
+PBWI. We start with the lower bound,
+36
+
+=== PAGE 37 ===
+PBWI(x,y,y ′)
+Q(x,y,y ′) = P(x)P BoN(y|x)PWoN(y′|x)
+Q(x,y,y ′) (242)
+= P(x)(F(x,y) N−F−(x,y)N)((1−F−(x,y′))N−(1−F(x,y′))N)
+Q(x,y,y ′) (243)
+≥P(x)P base(y|x)NPbase(y′|x)N
+Q(x,y,y ′) .(244)
+Again, the term that decays withNisP base(y|x)NPbase(y′|x)N. So there exists a constantC >0such
+that
+PBWI(x,y,y ′)
+Q(x,y,y ′) ≥C
+(
+min
+x,y̸=y′
+Pbase(y|x)Pbase(y′|x)
+)N
+.(245)
+For the upper bound, we first calculate the probability mass ofPWoN(Ax,α|x). We assume the same outcome
+ordering as in the proof ofPBI,
+PWoN(Ax,α|x) =
+k∑
+i=1
+PWoN(yi|x)(246)
+=
+k∑
+i=1
+((1−F−(x,yi))N−(1−F(x,yi))N)(247)
+= 1−(1−F(x,yk))N (248)
+= 1−(1−Pbase(Ax,α))N.(249)
+With this, we have
+Pr
+PBWI
+(y∈Ax,α,y′/∈Ax,α) + Pr
+PBWI
+(y /∈Ax,α,y′∈Ax,α)(250)
+= (PBoN(Ax,α|x))(1−PWoN(Ax,α|x)) + (1−PBoN(Ax,α|x))(PWoN(Ax,α|x))(251)
+= (Pbase(Ax,α))N(1−Pbase(Ax,α))N + (1−(Pbase(Ax,α))N)(1−(1−Pbase(Ax,α))N)(252)
+≤1 + (Pbase(Ax,α))N(1−Pbase(Ax,α))N.(253)
+Lemma B.3(General-Qestimation error).LetPbe a comparison distribution, letHbe a convex hypothesis
+class bounded by some constantB, and letr∗
+P∈arg minr∈HLP (r). LetSbe a set ofni.i.d. samples drawn
+fromP, and letˆrbe the empirical risk minimizer of the BT learning objective based onS. Then there exists
+a constantD>0such that with probability at least1−δ,
+EQ[(∆ ˆr−∆r∗
+P
+)2]≤DComp(n,H,δ)
+λconn(P,Q;H) (254)
+where
+Comp(n,H,δ) := 1
+σB
+(
+ˆRS(Hpair) +MB
+√
+log(2/δ)
+n
+)
+,(255)
+withM B := log(1 + exp(2B))andσB :=σ(2B)(1−σ(2B)).
+Proof.Ifλconn(P,Q;H) = 0, the claim is vacuous. So assume thatλconn(P,Q;H)>0. By the definition of
+the connectivity degree,
+EQ[(∆ ˆr−∆r∗
+P
+)2]≤ 1
+λconn(P,Q;H) EP [(∆ ˆr−∆r∗
+P
+)2].(256)
+37
+
+=== PAGE 38 ===
+By Lemma A.7,
+EP [(∆ ˆr−∆r∗
+P
+)2] =∥ˆr−r∗
+P∥∆,P ≤2
+σB
+(LP (ˆr)−LP (r∗
+P )).(257)
+Let ˆLP denote the empirical BT risk on the sampleS. Sinceˆris the empirical risk minimizer,
+LP (ˆr)−LP (r∗
+P ) = (LP (ˆr)−ˆLP (ˆr)) + (ˆLP (ˆr)−ˆLP (r∗
+P )) + (ˆLP (r∗
+P )−LP (r∗
+P ))(258)
+≤2 sup
+r∈H
+|LP (r)−ˆLP (r)|.(259)
+Now letℓ(a) =−logσ(a). SinceHis bounded byB, we have|r(x,y)−r(x,y′)|≤2B, so
+ℓ(a)≤log(1 + exp(2B)) :=MB (260)
+for all relevanta. Moreover,ℓis1-Lipschitz. Therefore, by the standard Rademacher-complexity bound and
+the contraction lemma, with probability at least1−δ,
+sup
+r∈H
+|LP (r)−ˆLP (r)|≤2ˆRS(Hpair) + 3MB
+√
+log(2/δ)
+n .(261)
+Combining the last three displays, we obtain
+EQ[(∆ ˆr−∆r∗
+P
+)2]≤ 1
+λconn(P,Q;H)
+(
+8
+σB
+ˆRS(Hpair) + 12MB
+σB
+√
+log(2/δ)
+n
+)
+.(262)
+Absorbing the numerical factors into a constantDproves the lemma.
+Theorem 5.7(Accuracy Bound).Assume thatHis convex, bounded by some constantB, and realizable,
+r∗
+BI∈H. Assume also that for every triplet(x,y,y′)in the support ofQ, bothP base(y|x)andPbase(y′|x)
+are non-zero. Letˆrbe the empirical risk minimizer of the BT learning objective with respect toPBI. Then
+there exist constantsD>0andM Q >0such that with probability at least1−δ,
+AccQ(ˆr)≥sup
+k>0
+[
+Pr
+Q
+(⏐⏐⏐⏐log F(x,y)
+F(x,y′)
+⏐⏐⏐⏐≥k+MQ
+N
+)
+−DComp(n,H,δ)
+N2k2λconn
+]
+(23)
+whereλconn :=λconn(PBI,Q;H).
+Proof.Sincer ∗
+BI preserves the ranking induced byr∗, the sign-based accuracy with respect tor∗is the same
+as the sign-based accuracy with respect tor∗
+BI. By Lemma B.3 applied withP=P BI andr∗
+P =r∗
+BI, there
+exists a constantD>0such that with probability at least1−δ,
+EQ[(∆ ˆr−∆r∗
+BI
+)2]≤DComp(n,H,δ)
+λconn(PBI,Q;H) .(263)
+For any thresholdu>0, order preservation implies
+AccQ(ˆr)≥Pr
+Q
+(|∆ˆr−∆r∗
+BI
+|≤|∆r∗
+BI
+|)(264)
+≥Pr
+Q
+(|∆r∗
+BI
+|≥u)−Pr
+Q
+(|∆ˆr−∆r∗
+BI
+|>u)(265)
+≥Pr
+Q
+(|∆r∗
+BI
+|≥u)−
+EQ[(∆ ˆr−∆r∗
+BI
+)2]
+u2 (266)
+≥Pr
+Q
+(|∆r∗
+BI
+|≥u)−DComp(n,H,δ)
+u2λconn(PBI,Q;H) ,(267)
+where the third line follows from Markov’s inequality.
+38
+
+=== PAGE 39 ===
+Next, we use Proposition 5.2. BecauseXandYare finite and every triplet in the support ofQhas non-zero
+probability mass underPbase(·|x), the uniform boundedness ofBN(x;y,y ′)implies that
+MQ := max
+(x,y,y′)∈supp(Q)
+sup
+N≥1
+|BN(x;y,y ′)|<∞.(268)
+For every(x,y,y ′)in the support ofQ, Proposition 5.2 gives
+∆ r∗
+BI
+(x;y,y ′) =Nlog F(x,y)
+F(x,y′) +BN(x;y,y ′).(269)
+Therefore,
+|∆r∗
+BI
+(x;y,y ′)|≥N
+⏐⏐⏐⏐log F(x,y)
+F(x,y′)
+⏐⏐⏐⏐−MQ.(270)
+In particular, for anyk>0,
+⏐⏐⏐⏐log F(x,y)
+F(x,y′)
+⏐⏐⏐⏐≥k+MQ
+N =⇒ |∆r∗
+BI
+(x;y,y ′)|≥Nk.(271)
+Hence,
+Pr
+Q
+(|∆r∗
+BI
+|≥Nk)≥Pr
+Q
+(⏐⏐⏐⏐log F(x,y)
+F(x,y′)
+⏐⏐⏐⏐≥k+MQ
+N
+)
+.(272)
+Substitutingu=Nkinto the accuracy bound above yields
+AccQ(ˆr)≥sup
+k>0
+[
+Pr
+Q
+(⏐⏐⏐⏐log F(x,y)
+F(x,y′)
+⏐⏐⏐⏐≥k+MQ
+N
+)
+−D Comp(n,H,δ)
+N2k2λconn(PBI,Q;H)
+]
+.(273)
+This is the desired result.
+C Experiment details
+In this section, we provide full experimental details and additional results that supplement the main exper-
+iments. We conduct experiments on synthetic data to validate our theoretical findings, following the setup
+of Pukdee et al. (2026).
+C.1 Synthetic Data Setup
+Context and Response Space.LetS={u1,u 2,...,um}be a finite set of items withui∈Rd, and let
+X=Y=S. We use the same space for contexts and responses to simplify the synthetic setting, so the
+score function can be interpreted as a similarity function between items. We setm= 16andd= 128for
+simplicity. To generate the dataset, we sample eachui fromN(0,I d).
+Ground-truth Score Function.The ground-truth score is defined via a two-layer neural networkf∗:
+Rd→Re with hidden dimensionh= 32and output embedding dimensione= 8, using ReLU activations:
+r∗(x,y) = cosine-similarity(f∗(x),f∗(y)),(274)
+ensuring scores lie in[−1,1].
+Triplet Generation.We generatentripletsS={(x i,y +
+i ,y−
+i )}n
+i=1 by samplingxi uniformly fromXand
+drawingy +
+i andy −
+i from a negative distributionp−(·|xi)and a positive distributionp +(·|xi)that is
+BT-consistent withr∗, i.e.,log(p +(y|x)/p−(y|x)) =r∗(x,y). By default, we use a uniform negative
+distributionp−(·|x) =1
+m. The validation set is also generated in the same way.
+Training and Evaluation.We train a two-layer neural network with the same architecture asf ∗to
+minimize the empirical BT loss onS. We use the Adam optimizer with learning rate selected from
+{10−4,10−3,10−2}. We train for 200 epochs and select hyperparameters via a validation set of 2048 triplets
+drawn from the same distribution based on validation loss. We report accuracy with respect to the uniform
+distributionQover all pairs(u i,uj), with standard error over 5 random seeds.
+39
+
+=== PAGE 40 ===
+C.2 Comparison between Best-vs-Random and Best-vs-Worst for eachN
+32 128 512 2048 8192 32768 131072
+Number of Training Samples
+68
+70
+72
+74
+76
+78
+80
+82T est Accuracy
+Best-vs-Random
+Best-vs-Worst
+(a)N= 4
+32 128 512 2048 8192 32768 131072
+Number of Training Samples
+68
+70
+72
+74
+76
+78
+80
+82T est Accuracy
+Best-vs-Random
+Best-vs-Worst (b)N= 8
+32 128 512 2048 8192 32768 131072
+Number of Training Samples
+75
+76
+77
+78
+79
+80
+81
+82T est Accuracy
+Best-vs-Random
+Best-vs-Worst (c)N= 16
+Figure 8: Test accuracy for Best-vs-Random and Best-vs-Worst on UltraFeedback for eachN∈{4,8,16}.
+C.3 Model ablation
+32 128 512 2048 8192
+Number of Training Samples
+62.5
+65.0
+67.5
+70.0
+72.5
+75.0
+77.5
+80.0T est Accuracy
+N=2
+N=4
+N=8
+N=16
+(a)gemma-3-12b-it
+32 128 512 2048 8192
+Number of Training Samples
+70
+72
+74
+76
+78
+80T est Accuracy
+N=2
+N=4
+N=8
+N=16 (b)Ministral-3-8B-Instruct-2512
+32 128 512 2048 8192
+Number of Training Samples
+65.0
+67.5
+70.0
+72.5
+75.0
+77.5
+80.0T est Accuracy
+N=2
+N=4
+N=8
+N=16 (c)Qwen3-8B
+Figure 9: Test accuracy for Best-vs-Random across different base models.
+C.4 Connectivity degree of UltraFeedback
+2 4 8 16
+N
+8.00
+8.25
+8.50
+8.75
+9.00Connectivity
+1e 3
+Figure 10: Connectivity vs.NforUltraFeedback.
+40
+
+=== PAGE 41 ===
+C.5 Additional results for synthetic data
+8 32 128 512 2048 8192 32768 131072
+Number of Training Samples
+0.55
+0.60
+0.65
+0.70
+0.75
+0.80
+0.85T est Accuracy
+N=2
+N=3
+N=4
+N=5
+N=6
+N=7
+N=8
+(a) Accuracy
+8 32 128 512 2048 8192 32768 131072
+Number of Training Samples
+1
+2
+3
+4
+5
+6
+7 Rank (1 = best)
+N=2
+N=3
+N=4
+N=5
+N=6
+N=7
+N=8 (b) Ranking
+Figure 11: Test accuracy for Best-vs-Worst-Independent on synthetic data.
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+0.5
+0.6
+0.7
+0.8
+0.9T est Accuracy
+N = 2
+BI
+BWI
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+N = 3
+BI
+BWI
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+N = 4
+BI
+BWI
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+N = 5
+BI
+BWI
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+0.5
+0.6
+0.7
+0.8
+0.9T est Accuracy
+N = 6
+BI
+BWI
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+N = 7
+BI
+BWI
+8 32 128 512 2048 8192 32768 131072
+# Training Samples
+N = 8
+BI
+BWI
+Figure 12: Test accuracy for Best-vs-Independent vs. Best-vs-Worst-Independent for eachN.
+C.6 Details on distribution reshaping
+To modify the shape of the base distribution in a standardized way, we use upsampling and downsampling.
+Each time we sample a response from the base distribution, we accept it with probability1−p. Otherwise,
+we evaluate its reward score. If the score lies in the percentile range[c−w/2,c+w/2]for the given context
+x, then we accept the response in the upsampling setting and reject it in the downsampling setting; outside
+this range, we do the opposite. We repeat this process until we obtainN= 4responses, and then apply
+the Best-vs-Random mechanism to generate the training data. Equivalently, this procedure increases or
+decreases the probability mass in a specified score band, yielding the modified base distributions
+Pbase,up∝(1−p)Pbase +pPc,w (275)
+Pbase,down∝(1−p)Pbase−pPc,w (276)
+whereP c,w denotes the base distribution with probability mass concentrated in the region whose reward
+score lies in the percentile range[c−w/2,c+w/2]. Herecis the percentile center andwis the width of
+41
+
+=== PAGE 42 ===
+2 3 4 5 6 7 8
+N
+0.5
+1.0
+1.5
+2.0
+2.5
+3.0
+3.5
+4.0Connectivity
+BI
+BWI
+Figure 13: Connectivity degree for Best-vs-Independent vs. Best-vs-Worst-Independent for eachN.
+the band. We usec∈{15,30,50,70,85},w= 30, andp= 0.8. This up/downsampling procedure provides a
+standardized way to reshape the base distribution. For example, settingc= 15targets lower-score responses,
+while settingc= 85targets higher-score responses. We usen= 512samples for each dataset and train a
+reward model with the same setup as in the previous experiments.
+C.7 Distribution of the reward score under different base distributions
+0.00
+0.05
+0.10
+Upsampling
+c = 15
+69.8±0.9%
+ +2.9
+c = 30
+67.5±0.9%
+ +0.7
+c = 50
+67.1±0.8%
+ +0.2
+c = 70
+67.4±1.1%
+ +0.5
+c = 85
+63.2±1.0%
+ -3.6
+0 20 40
+0.00
+0.05
+0.10
+Downsampling
+65.2±1.2%
+ -1.7
+0 20 40
+67.1±1.4%
+ +0.2
+0 20 40
+67.8±1.1%
+ +0.9
+0 20 40
+67.5±0.6%
+ +0.7
+0 20 40
+67.7±0.9%
+ +0.9
+3
+ 2
+ 1
+ 0 1 2 3
+ accuracy from baseline (66.9±1.2%)
+Reward Score
+Figure 14: Distribution of the reward score for different base distributions forPKU-SafeRLHF.
+42
+
+=== PAGE 43 ===
+0.000
+0.025
+0.050
+0.075
+Upsampling
+c = 15
+78.7±0.4%
+ +0.4
+c = 30
+78.4±0.4%
+ +0.1
+c = 50
+77.8±0.4%
+ -0.4
+c = 70
+77.1±0.6%
+ -1.1
+c = 85
+77.9±0.7%
+ -0.4
+0 20 40
+0.000
+0.025
+0.050
+0.075
+Downsampling
+78.1±0.7%
+ -0.2
+0 20 40
+78.1±0.5%
+ -0.2
+0 20 40
+79.4±0.4%
+ +1.2
+0 20 40
+79.0±0.6%
+ +0.8
+0 20 40
+78.2±0.6%
+ -0.1
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+ accuracy from baseline (78.3±0.5%)
+Reward Score
+Figure 15: Distribution of the reward score for different base distributions forGSM8K.
+0.00
+0.02
+0.04
+Upsampling
+c = 15
+77.8±0.3%
+ +0.5
+c = 30
+76.7±0.6%
+ -0.6
+c = 50
+76.5±0.4%
+ -0.9
+c = 70
+76.6±0.4%
+ -0.7
+c = 85
+77.7±0.3%
+ +0.4
+0 20 40
+0.00
+0.02
+0.04
+Downsampling
+77.3±0.5%
+ -0.0
+0 20 40
+78.2±0.2%
+ +0.9
+0 20 40
+78.3±0.2%
+ +1.0
+0 20 40
+78.1±0.4%
+ +0.8
+0 20 40
+77.6±0.2%
+ +0.3
+2.0
+ 1.5
+ 1.0
+ 0.5
+ 0.0 0.5 1.0 1.5 2.0
+ accuracy from baseline (77.3±0.7%)
+Reward Score
+Figure 16: Distribution of the reward score for different base distributions forUltraFeedback.
+43
+
+=== PAGE 44 ===
+C.8 Additional details for GSM8K
+GSM8K(Cobbe et al., 2021a) is a question-answering dataset rather than a preference dataset, so we construct
+preference pairs from model-generated responses. For each prompt in the test set, we sample multiple
+responses from the base generator and score them with the reward model. Each response is labeled as correct
+or incorrect by extracting the final numeric answer and comparing it to the gold answer. We then pair a
+randomly selected correct response against the highest-scoring incorrect response (i.e., the most convincing
+wrong answer according to the reward model), and discard prompts that lack either a correct or incorrect
+response.
+A complication is that the reward model is poorly calibrated for mathematical correctness onGSM8K: the
+score distributions for correct and incorrect responses overlap substantially, meaning a non-trivial fraction of
+correct responses receive lower reward scores than incorrect ones from the same prompt. To avoid contami-
+nating the test set with pairs where the reward model effectively disagrees with the ground-truth labeling, we
+additionally require the chosen (correct) response to outscore the rejected (incorrect) response by a reward
+margin of at least 2. Figure 17a shows the resulting score distributions: even after this filter, the chosen and
+rejected distributions remain heavily overlapping, indicating that the test set is far from trivial.
+20
+ 10
+ 0 10 20 30 40
+Reward score
+0
+10
+20
+30
+40
+50
+60
+70
+80
+Score distribution of Chosen vs Rejected (GSM8K)
+Chosen
+Rejected
+(a) Distribution of the reward score forGSM8K.
+10 15 20 25 30 35 40
+Score of Chosen Responses
+20
+10
+0
+10
+20
+30
+40
+Score of Rejected Responses
+Score distribution of Chosen vs Rejected (GSM8K)
+OLS: y = 0.963x + -5.060 (b) Scatter plot of the reward score forGSM8K.
+Figure 17: Reward scores onGSM8K: histogram and scatter.
+44

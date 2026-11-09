@@ -1,0 +1,1292 @@
+
+
+RecIS: Unifying Sparse and Dense Computation for Efficient Recommendation Training
+
+Skip to main content
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+ Contents
+
+ Reading mode
+
+ Colour theme
+
+Abstract.
+1 Introduction
+2 Background and Motivation
+
+2.1 Feature-Preprocessing Bottlenecks
+2.2 Repeated Requests and Embedding Imbalance
+2.3 Idle Time at Iteration Boundaries
+
+3 RecIS System Design
+
+3.1 Fused and Vectorized Feature Processing
+
+Dependency-aware fusion.
+Thread mapping for skewed inputs.
+Vectorized memory access.
+
+3.2 Embedding Engine with Hierarchical Communication
+
+Hash-based sharding.
+Hierarchical communication.
+Index-aware segment reduction.
+
+3.3 Multistage Pipeline Execution
+
+Resource demands and dependencies.
+Stage decomposition and scheduling.
+Preparation depth and contention.
+
+4 Evaluation
+
+4.1 Experimental Setup
+4.2 End-to-End Performance
+4.3 Training Loss and AUC
+4.4 Component Analysis
+
+5 Related Work
+6 Conclusion
+7 Acknowledgments
+References
+
+ License: CC BY 4.0
+
+arXiv:2610.41457v1 [cs.DC] 30 Oct 2026
+
+RecIS: Unifying Sparse and Dense Computation for Efficient Recommendation Training
+
+Conference: The 1st Workshop on Frontier Recommender Systems; November 15, 2026; Hong Kong, ChinaCCS: Information systems Recommender systemsCCS: Computer systems organization Heterogeneous (hybrid) systemsCCS: Computing methodologies Parallel computing methodologiesCCS: Software and its engineering Runtime environments
+Author version. Accepted to FRecSys 2026
+(ACM SIGOPS ATC 2026).
+
+Hua Zong
+
+Note: 
+Both authors contributed equally to this work.
+
+Affiliation: Alibaba Group, China
+
+email: yuhuan.zh@alibaba-inc.com
+
+, 
+Shuai Yang
+
+Affiliation: University of Chinese Academy of Sciences, China
+
+email: yangshuai2022@iscas.ac.cn
+
+, 
+Zhengxiong Zhou
+
+Affiliation: Alibaba Group, China
+
+email: zhouzhengxiong.zzx@alibaba-inc.com
+
+, 
+Qingtao Zeng
+
+Affiliation: Alibaba Group, China
+
+email: zengqingtao.zqt@alibaba-inc.com
+
+, 
+Jiawei Liu
+
+Affiliation: Alibaba Group, China
+
+email: lanling.ljw@alibaba-inc.com
+
+, 
+Hao Wan
+
+Affiliation: Alibaba Group, China
+
+email: wanhao.wh@alibaba-inc.com
+
+, 
+Hongbin Zhou
+
+Affiliation: Alibaba Group, China
+
+email: hongbin.zhouhb@alibaba-inc.com
+
+, 
+Jiahao Wang
+
+Affiliation: Alibaba Group, China
+
+email: wjh177423@alibaba-inc.com
+
+, 
+Hao Zhang
+
+Affiliation: Alibaba Group, China
+
+email: zh138764@alibaba-inc.com
+
+, 
+Bencheng Yan
+
+Affiliation: Alibaba Group, China
+
+email: bencheng.ybc@taobao.com
+
+, 
+Yuheng Huang
+
+Affiliation: Alibaba Group, China
+
+email: hexing.hyh@taobao.com
+
+, 
+Huimin Yi
+
+Affiliation: Alibaba Group, China
+
+email: huimin.yhm@alibaba-inc.com
+
+, 
+Jiamang Wang
+
+Affiliation: Alibaba Group, China
+
+email: jiamang.wang@alibaba-inc.com
+
+, 
+Han Zhu
+
+Affiliation: Alibaba Group, China
+
+email: zhuhan.zh@alibaba-inc.com
+
+, 
+Jian Xu
+
+Affiliation: Alibaba Group, China
+
+email: xiyu.xj@taobao.com
+
+, 
+Bo Zheng
+
+Affiliation: Alibaba Group, China
+
+email: bozheng@alibaba-inc.com
+
+ and 
+Lin Qu
+
+Affiliation: Alibaba Group, China
+
+email: xide.ql@taobao.com
+
+© , 2026
+
+Abstract.
+
+Modern recommender models scale sparse representations and dense computation together. They process thousands of heterogeneous feature fields, long user-behavior sequences, and trillion-scale Embedding parameters, while their dense networks increasingly use large Transformer architectures. The resulting execution mismatch creates fine-grained operations within stages, load imbalance and synchronization delays across devices, and GPU resource bubbles between stages. As models grow, these costs become a primary limit to scalable recommender training. Although existing systems improve Embedding caching and data prefetching, these inefficiencies still coexist in the GPU-centric workloads we study and jointly limit end-to-end throughput.
+
+We present RecIS, a unified framework for GPU-centric recommender training. RecIS treats the complete path from input features to dense computation as one optimization target and coordinates three complementary mechanisms. First, adaptive fusion combines fragmented feature transformations with vectorized memory access. Second, a GPU Embedding engine uses hash-based sharding and hierarchical communication to balance request placement and eliminate redundant transfers; it also specializes aggregation for forward and backward index structures. Third, a multistage pipeline overlaps input preparation for future iterations with dense computation in the current iteration. Together, these mechanisms reorganize a fragmented sparse front end into a dataflow that continuously feeds dense computation.
+
+We evaluate RecIS on representative industrial recommender models across distributed training platforms. Compared with PICASSO and TorchRec, RecIS reaches up to 2.62\times and 1.15\times their throughput, respectively, while reducing step latency by up to 61.5% and 12.9%. RecIS provides an efficient and scalable training system for large recommender models.
+
+Keywords: 
+Recommender systems, GPU training, Embedding communication, Operator fusion, Pipeline scheduling
+
+1. Introduction
+
+Modern recommender training places two nearly opposite execution paradigms on the same GPU dataflow. The sparse front end processes thousands of heterogeneous feature fields, long behavior sequences, and trillion-scale embedding parameters through fragmented transformations, random lookups, and irregular communication (Naumov et al., 2019; Acun et al., 2021; Zhang et al., 2022). The dense back end is evolving toward billion-parameter Transformers and sparse mixture-of-experts models (Vaswani et al., 2017; Fedus et al., 2022; Zhai et al., 2024; Yan et al., 2026) that require regular, continuous, and compute-intensive tensor pipelines. As both sides scale, the central systems challenge is no longer to accelerate sparse or dense components in isolation. It is to reorganize fragmented, skewed, and unevenly arriving sparse work into a stable stream that continuously feeds dense computation.
+
+This mismatch creates a chain of bottlenecks whose effects compound along the dataflow. Thousands of variable-length transformations decompose input processing into small kernels and scattered memory accesses. Skewed feature accesses further create imbalanced embedding lookups and all-to-all communication, allowing the slowest device to determine the iteration time. Coarse iteration boundaries finally expose sparse-side tail latency to the dense network, leaving compute, memory, and communication resources idle in turn. In other words, task granularity determines sparse execution efficiency, device load determines its tail latency, and iteration scheduling determines whether that latency can be hidden by dense computation. Existing systems improve operator packing, embedding caching, or data prefetching (Zhang et al., 2022; Ivchenko et al., 2022; Pan et al., 2024; Agarwal et al., 2023), but these mechanisms are generally designed around a particular stage or a fixed execution boundary. When the three problems occur together, accelerating one stage can simply move the bottleneck to the next point in the dataflow.
+
+We present RecIS, a unified framework for GPU-centric recommender training. RecIS treats the path from raw features to dense computation as a schedulable dataflow and reorganizes sparse work at three connected levels:
+
+• 
+
+Across operators. Adaptive fusion regularizes task granularity by grouping compatible transformations across fields into fewer CUDA kernels while preserving dependencies. Vectorized memory access reduces instruction overhead and improves bandwidth utilization.
+
+• 
+
+Across devices. Hash-based sharding distributes ownership of distinct IDs across workers in expectation. Hierarchical communication merges requests within each source node to reduce inter-node traffic, then deduplicates requests at each owner to reduce physical lookups. Index-aware aggregation reduces irregular memory access and atomic contention.
+
+• 
+
+Across iterations. The multistage pipeline overlaps future input preparation that is independent of parameter updates with current dense computation, using their complementary resource demands to hide sparse-side overhead.
+
+Together, these mechanisms reduce sparse-stage overhead and overlap the remaining preparation work, allowing the sparse front end to feed dense computation more continuously. The source code of RecIS is publicly available at https://github.com/alibaba/recis.
+
+2. Background and Motivation
+
+2.1. Feature-Preprocessing Bottlenecks
+
+GPU-centric training systems increasingly move feature preprocessing from CPUs to GPUs (Zhang et al., 2022; Pan et al., 2024). Offloading hashing, bucketization, and sequence truncation does not by itself ensure high throughput.
+
+Production models contain thousands of heterogeneous feature fields, each with a chain of two to five preprocessing operations. Executing each field independently launches many short kernels, whose launch and scheduling overhead can exceed their useful computation (Figure 1). Fusion reduces these costs, but feature fields differ in both operator dependencies and sequence lengths. Small fusion groups leave substantial launch overhead, whereas overly coarse groups can introduce divergence and long-running tasks. Effective fusion must therefore account for both the operator structure and the distribution of input sizes.
+
+Memory access presents a separate constraint. Hashing and modulo operations have low arithmetic intensity and are often limited by global-memory bandwidth (Williams et al., 2009). Scalar accesses add memory instructions and can underutilize the bandwidth available to contiguous, aligned transfers.
+
+Figure 1. A profiling timeline exposes fragmented feature-preprocessing work and frequent kernel launches.A GPU timeline contains many short preprocessing kernels separated by launch and scheduling gaps.
+
+2.2. Repeated Requests and Embedding Imbalance
+
+Embedding accesses are highly skewed. Popular IDs recur both within and across GPUs, amplifying lookup and communication work. Even a balanced distribution of stored parameters need not yield a balanced distribution of requests. Table-wise and contiguous row-wise sharding place parameters by table size or ID range, which need not match the access distribution of a particular batch (Ivchenko et al., 2022; Ma et al., 2023; Zhang et al., 2022). Unequal lookup and all-to-all traffic loads leave dense computation waiting for the slowest device.
+
+Aggregation remains expensive after requests reach their owners. Forward outputs follow ordered compressed sparse row (CSR) segments defined by offsets, whereas backward contributions can target embedding rows in an arbitrary and highly concentrated order. Using the same element-wise atomic scatter for both paths introduces unnecessary forward atomics and contention at popular rows during backward execution. The embedding engine must therefore address request imbalance, duplicate accesses, and index-dependent aggregation costs together.
+
+2.3. Idle Time at Iteration Boundaries
+
+Training systems commonly organize execution around fixed iteration boundaries. Even with prefetching or local communication overlap, input I/O, feature processing, embedding operations, and dense computation often follow a largely sequential schedule. Our profiling shows that these stages stress different resources. Executing them in sequence leaves compute, memory, and I/O resources idle at different points in the iteration.
+
+Some of this idle time comes from scheduling constraints rather than data dependencies. Work independent of parameter updates can begin before the current iteration finishes. However, prefetching a single batch is insufficient when preparation exceeds the available overlap window, and unrestricted background execution can interfere with dense kernels. Effective scheduling must expose more parallelism while preserving parameter consistency and controlling contention.
+
+3. RecIS System Design
+
+RecIS jointly optimizes feature preprocessing, distributed embedding operations, and pipeline scheduling. Each component reduces overhead that would otherwise delay the next stage of the sparse-to-dense dataflow.
+
+3.1. Fused and Vectorized Feature Processing
+
+FeatureEngine addresses kernel-launch overhead, work imbalance across feature fields, and inefficient scalar memory access.
+
+Dependency-aware fusion.
+
+Feature fields differ in both their transformation chains and input lengths. Small fusion groups retain substantial launch overhead, whereas overly coarse groups can introduce divergence and long-running tasks. FeatureEngine therefore fuses independent operations of the same category while preserving the dependencies of each feature.
+
+The transformations in Figure 2 include bucketization, modulo, hashing, sequence truncation, and masking. The scheduler first topologically orders these operations. For example, SeqTrunc must finish before Hash for Feature 4. Independent operations from other fields can join the same fusion group when they are of a compatible category. Fusion thus shares execution across fields without reordering a dependent transformation ahead of its input.
+
+For F feature fields, let d_{i} be the number of operations on field i and \mathcal{G} the resulting fusion groups. The kernel-launch counts satisfy
+
+ | (1)
+ | 
+ | K_{\mathrm{RecIS}}=|\mathcal{G}|\leq K_{\mathrm{base}}=\sum_{i=1}^{F}d_{i}.
+ | 
+
+Each group replaces multiple launches when fields share compatible transformations; otherwise, the inequality allows equality.
+
+Thread mapping for skewed inputs.
+
+Fusion exposes more work to each kernel, but equal treatment of feature fields would not imply equal work for threads. Long behavior sequences can contain many more elements than short categorical fields. Static assignment by field would carry this skew into the fused kernel, leaving some threads idle while others process long sequences.
+
+FeatureEngine flattens elements across fields into one logical index space and partitions it into equally sized tiles. A grid-stride mapping distributes these tiles to threads, which use feature-boundary indices to locate the corresponding input intervals. Work is therefore divided by element count rather than by the number of fields. This mapping reduces idle threads and limits the execution tail of long inputs without changing the transformation assigned to each element.
+
+Vectorized memory access.
+
+Fusion does not by itself eliminate memory-instruction overhead. Hashing and modulo have low arithmetic intensity and are often limited by memory bandwidth (Williams et al., 2009). Element-wise operators use fixed-width vector loads and stores where dependencies, alignment, and boundaries permit. Packed kernels process groups of elements; select_pack_size selects the largest valid pack at compile time, with up to 16 bytes accessed per thread per memory instruction. Smaller valid packs accommodate stricter alignment or boundary constraints. Contiguous, aligned transfers reduce instruction count and improve effective bandwidth.
+
+Per-feature transformation chains are reordered by dependency and combined into shared kernels for compatible operator categories.
+
+Figure 2. FeatureEngine preserves operator dependencies while fusing compatible transformations across feature fields.Per-feature transformation chains are reordered by dependency and combined into shared kernels for compatible operator categories.
+
+In summary, FeatureEngine regularizes feature preprocessing through these three complementary mechanisms, consolidating thousands of heterogeneous transformation chains into a small set of regular, high-throughput GPU kernels. This design improves data preparation for subsequent embedding lookups and pipelined execution across stages.
+
+3.2. Embedding Engine with Hierarchical Communication
+
+Hash-based sharding.
+
+Balanced storage need not imply balanced requests: table-wise and contiguous row-wise placement can concentrate popular tables or ID ranges. RecIS hashes IDs to spread ownership across workers in expectation, reducing this dependence on table size or ID range. Sharding distributes distinct IDs; repeated requests for the same ID still require deduplication.
+
+Hierarchical communication.
+
+Flat communication (Figure 3(a)) deduplicates IDs per GPU but still sends separate requests for IDs shared across GPUs. RecIS merges these requests within each source node over NVLink, routes them to their owners over same-rail links, and distributes each returned vector locally to the requesting GPUs.
+
+Figure 3(b) shows the forward path. Each deduplication stage retains an inverse map for restoring the original requests.
+\ding Local Reduce-ID: each GPU removes duplicate IDs from its local requests.
+\ding Intra Shuffle-Reduce-ID: NVLink routes requests to the source-node GPU with the same local GPU index as the owner, where duplicates from different GPUs are merged.
+\ding Inter Shuffle-Reduce-ID: same-rail groups connect corresponding GPUs across nodes and route remote requests to their owners, which merge duplicates from all source nodes.
+\ding Lookup Embed: each owner performs one lookup per unique ID in its local shard.
+\ding Inter Flatten-Shuffle-Embed: the inverse map from step \ding expands responses for return over the same rails, with one vector per ID per remote source node.
+\ding Intra Flatten-Shuffle-Embed: the inverse map from step \ding expands vectors for NVLink delivery to the requesting GPUs.
+\ding Local Flatten-Embed: the inverse map from step \ding restores the original request order and multiplicity.
+
+To compare traffic, consider one embedding table and the same batch, sharding, and GPU-local deduplication in both modes. There are N nodes with M GPUs each. Let I_{n,m} be the set of unique IDs requested by GPU m on node n whose owners reside on other nodes, and let I_{n}=\bigcup_{m=0}^{M-1}I_{n,m}. Counting each logical inter-node transfer once, with one vector returned per request, gives
+
+ | (2)
+ | 
+ | \displaystyle S_{i}^{\mathrm{flat}}=S_{e}^{\mathrm{flat}}
+ | \displaystyle=\sum_{n=0}^{N-1}\sum_{m=0}^{M-1}|I_{n,m}|,
+ | 
+
+ | 
+ | \displaystyle S_{i}^{\mathrm{hier}}=S_{e}^{\mathrm{hier}}
+ | \displaystyle=\sum_{n=0}^{N-1}|I_{n}|.
+ | 
+
+Let G_{n}(x)=|\{m\mid x\in I_{n,m}\}| be the number of GPUs on node n requesting ID x. The reduction in each type of transfer is
+
+ | (3)
+ | 
+ | \displaystyle\Delta S
+ | \displaystyle=S_{i}^{\mathrm{flat}}-S_{i}^{\mathrm{hier}}=S_{e}^{\mathrm{flat}}-S_{e}^{\mathrm{hier}}
+ | 
+
+ | 
+ | 
+ | \displaystyle=\sum_{n=0}^{N-1}\sum_{x\in I_{n}}\bigl(G_{n}(x)-1\bigr)\geq 0.
+ | 
+
+Thus, step \ding replaces G_{n}(x) inter-node requests and returned vectors with one of each. Owner-side deduplication in step \ding reduces physical lookups, but cannot remove transfers that have already occurred.
+
+Index-aware segment reduction.
+
+Restoring gathered embeddings to the original ragged layout requires weighted segment aggregation. Let \mathbf{E}\in\mathbb{R}^{U\times D} denote the unique embedding matrix, \mathbf{o} the CSR offsets defining S segments, \mathbf{i} the reverse indices mapping N contributions to embedding rows, and \mathbf{w} their weights. Although forward and backward share the same reduction semantics, their destination indices exhibit different access patterns, motivating specialized GPU kernels. Algorithm 1 outlines their execution workflows.
+
+Figure 3. Flat and hierarchical embedding communication. S_{i} counts IDs sent across nodes; S_{e} counts embedding vectors returned. The reduced IDs in (b) are the result of steps \ding and \ding; step \ding also deduplicates requests at the owner.The Flat path exchanges the unique requests from each GPU directly with owners. The hierarchical path merges requests over NVLink, exchanges them along corresponding inter-node rails, and expands returned vectors within each source node. Both paths restore the same per-GPU outputs.
+
+Forward.
+The CSR offsets define a contiguous contributor range [o_{s},o_{s+1}) for each output segment s. RecIS directly traverses these ranges and computes \mathbf{Y}_{s,:}=\sum_{r=o_{s}}^{o_{s+1}-1}w_{r}\mathbf{E}_{i_{r},:}. Each thread owns one or more non-overlapping feature packs of an output segment, gathers the corresponding embedding values, and accumulates the weighted sum in registers. Once the segment is processed, the thread commits its result through a vectorized store. Even when embedding IDs repeat within a segment, all contributions to each output element are handled by its unique writer. Empty segments produce zero. This ownership-based mapping eliminates global atomic operations and their associated read-modify-write traffic.
+
+Backward.
+In contrast, backward scatters gradients to embedding rows indexed by \mathbf{i}, whose entries may appear in arbitrary order and contain highly frequent duplicates. Each contributor r generates w_{r}\mathbf{G}_{s(r),:}, where s(r) is its forward segment ID and \mathbf{G} is the output gradient. RecIS assigns a group of GPU lanes to each contributor row. Lanes cooperatively load contiguous feature packs, then redistribute values through shuffle operations to enable coalesced feature-wise updates. Within each wave, row groups with identical destination IDs are identified and their contributions are reduced using lane shuffles. Only the leader row group performs atomic additions for the merged feature values. For k contributions targeting the same row within a wave, this reduces the number of scalar atomic updates from kD to D. Contributions targeting the same row across different waves or thread blocks are still combined through global atomics, preserving correctness without sorting destination indices.
+
+Algorithm 1 Index-aware Segment Reduction
+
+ 1:
+
+ Forward: CSR-guided reduction
+
+ 2:
+
+ for all output feature packs (s,p) in parallel do
+
+ 3:
+
+    \mathbf{a}\leftarrow\mathbf{0}
+
+ 4:
+
+    for r=o_{s} to o_{s+1}-1 do
+
+ 5:
+
+     \mathbf{a}\leftarrow\mathbf{a}+w_{r}\mathbf{E}[i_{r},p]
+
+ 6:
+
+    end for
+
+ 7:
+
+    \mathbf{Y}[s,p]\leftarrow\mathbf{a}
+\triangleright Unique writer
+
+ 8:
+
+ end for
+
+ 9:
+
+ 10:
+
+ Backward: Wave-level duplicate merging
+
+ 11:
+
+ Initialize \nabla\mathbf{E}\leftarrow 0
+
+ 12:
+
+ for all GPU waves \omega in parallel do
+
+ 13:
+
+    Assign one lane group to each contributor r
+
+ 14:
+
+    Load w_{r}\mathbf{G}[s(r),:] into lanes
+
+ 15:
+
+    Match identical destination IDs i_{r}
+
+ 16:
+
+    for all distinct destination IDs u in \omega do
+
+ 17:
+
+     \mathbf{a}_{u}\leftarrow\sum_{r\in\omega:\,i_{r}=u}w_{r}\mathbf{G}[s(r),:]
+
+ 18:
+
+     Elect one leader row group
+
+ 19:
+
+     for all features d assigned to leader lanes do
+
+ 20:
+
+       \mathrm{atomicAdd}(\nabla\mathbf{E}[u,d],a_{u,d})
+
+ 21:
+
+     end for
+
+ 22:
+
+    end for
+
+ 23:
+
+ end for
+
+3.3. Multistage Pipeline Execution
+
+Fixed iteration boundaries can serialize input preparation with dense computation even after the feature and embedding engines reduce sparse-stage costs. A largely sequential schedule leaves different resources idle at different times. The multistage pipeline in RecIS begins independent work earlier while preserving the dependencies of parameter access and updates.
+
+Resource demands and dependencies.
+
+Two observations guide scheduling. First, stages stress different resources. Input I/O uses host processing and interconnect bandwidth; feature transformations and request formatting mainly consume memory bandwidth; physical embedding lookup accesses device memory; and dense forward and backward passes mainly use Tensor Core computation. Overlapping these partly complementary demands can use otherwise idle capacity.
+
+Second, iteration boundaries can impose waits beyond those required by training semantics. RecIS restricts asynchronous cross-iteration preparation to modules that do not participate in backpropagation and do not depend on parameter values updated by the current iteration. Input loading, feature transformation, and ID request formatting satisfy these conditions and can proceed before the current update finishes. Physical embedding lookup, dense forward and backward computation, and all parameter updates remain in the main training workflow with their original ordering dependencies. In particular, preparation does not prefetch embedding values. The next iteration reads them only after the preceding updates on which it depends have completed. This separation preserves parameter-access and update semantics while allowing independent preparation to overlap training.
+
+Stage decomposition and scheduling.
+
+We divide each iteration into six stages: SPARSE_FORWARD, DENSE_FORWARD, METRICS_OP, BACKWARD, OPTIM_STEP, and PRE_FORWARD. SPARSE_FORWARD performs physical embedding lookups. PRE_FORWARD contains input I/O, feature transformations, and embedding request formatting and partitioning. Stage descriptors distinguish this preparation from the parameter-dependent training path.
+
+Figure 4 shows the resulting schedule. Iteration t follows its dependency order on the default stream. Independent preparation for subsequent iterations runs in a separate asynchronous workflow, the Group Stream, alongside compatible current-iteration stages. For example, input loading, feature transformations, and request formatting for iteration t+1 can overlap DENSE_FORWARD of iteration t. The prepared requests then feed SPARSE_FORWARD when its parameter dependencies are satisfied. The overlap pattern is configurable to suit the dependencies and resource demands of each model.
+
+A comparison of serial and overlapping schedules shows future-iteration preparation on a Group Stream alongside current computation on the default stream.
+
+Figure 4. Multistage scheduling overlaps future input preparation with current dense computation while preserving dependencies.A comparison of serial and overlapping schedules shows future-iteration preparation on a Group Stream alongside current computation on the default stream.
+
+Preparation depth and contention.
+
+Preparation time varies with the model and input. Prefetching a single batch is insufficient when this work exceeds the available overlap window: the unhidden remainder still delays the next iteration. RecIS supports multiple preparation stages that distribute work across threads and asynchronous streams. Figure 4 illustrates preparation for successive iterations in separate Group Stream workflows, allowing preparation to extend beyond the overlap window of a single iteration.
+
+More concurrency is useful only when contention remains manageable. Background kernels can compete with dense kernels for execution resources and memory bandwidth even when the dense computation is dominated by Tensor Core GEMMs. Asynchronous streams therefore use the conservative StreamPriority.DEFAULT policy to limit interference while exploiting otherwise idle capacity. Stage count and overlap topology provide controls for different workloads; the appropriate schedule depends on preparation time relative to the available overlap window.
+
+The pipeline hides preparation work that remains after feature and embedding optimization, while retaining the order required for parameter-dependent computation.
+
+4. Evaluation
+
+We evaluate end-to-end throughput and step latency, then examine feature fusion, hierarchical request merging, index-aware segment reduction, and multistage scheduling.
+
+4.1. Experimental Setup
+
+We evaluate three industrial recommender models on distributed training infrastructure: Ad and Lazada Ad for advertising ranking, and Search for search ranking. Table 1 summarizes their input features, logical embedding tables, embedding dimensions, and per-device batch sizes. Ad runs on 96 PPUs, Search on 64 NVIDIA H20 GPUs, and Lazada Ad on 8 NVIDIA L20 GPUs. For each model, all compared systems use the same hardware and training configuration.
+
+We compare RecIS with PICASSO (Zhang et al., 2022) and TorchRec (Ivchenko et al., 2022). For each model, all three frameworks use the same hardware, model, batch size, numerical precision, and optimizer configuration, including learning rates. End-to-end performance values are averaged across repeated runs to reduce the influence of run-to-run variability
+
+Table 1. Statistics of the evaluated recommender models.
+
+ | Model
+ | 
+
+Input
+features
+
+ | 
+
+Logical emb.
+tables
+
+ | 
+
+Batch /
+device
+
+ | 
+
+Embedding
+dimensions
+
+ | 
+
+Device
+Type
+
+ | 
+
+Nodes \times
+devices/node
+
+ | Ad
+ | 879
+ | 519
+ | 1,200
+ | 8–128
+ | PPU 810e
+ | 6\times 16
+
+ | Search
+ | 589
+ | 398
+ | 256
+ | 4–128
+ | H20
+ | 8\times 8
+
+ | Lazada Ad
+ | 367
+ | 73
+ | 1,024
+ | 4–416
+ | L20
+ | 1\times 8
+
+4.2. End-to-End Performance
+
+Figure 5 reports throughput per GPU and step latency. RecIS achieves the highest throughput and lowest latency on all three workloads. It delivers 1.04–1.15\times the throughput of TorchRec with 3.9%–12.9% lower step latency, and 1.48–2.62\times the throughput of PICASSO with 32.3%–61.5% lower latency. These results establish the end-to-end benefit of the combined system; the component experiments examine the underlying reductions in sparse work and exposed latency.
+
+RecIS reaches 924 IPS at 1,299 ms per step on Ad, 1,268 IPS at 202 ms on Search, and 2,058 IPS at 498 ms on Lazada Ad. These workloads use different deployment scales, so comparisons use a fixed training configuration for each model. The maximum gain over PICASSO occurs on Search, whereas the largest relative gain over TorchRec occurs on Ad.
+
+4.3. Training Loss and AUC
+
+To evaluate whether RecIS’s optimizations
+affect model accuracy, we compare its training behavior
+against TorchRec using the Search model.
+Both systems are trained from scratch for 5,000 steps
+under identical hyperparameters, including a per-device
+batch size of 256, a sparse learning rate of 0.01,
+and a dense learning rate of 10^{-5}.
+TorchRec runs on 32 NVIDIA H20 GPUs, while RecIS
+runs on 32 PPU 810e accelerators.
+
+Figure 6 compares the
+training loss and cumulative AUC of both systems.
+The loss is averaged across all 32 ranks at each
+sampled step, while the AUC is computed from globally
+aggregated statistics accumulated throughout training.
+Both systems exhibit similar training trends, with
+decreasing loss and increasing AUC.
+At their respective final recorded points, TorchRec
+and RecIS achieve training losses of 0.441442 and
+0.441274, and cumulative AUCs of 0.824599 and
+0.824424, respectively.
+These closely matched results indicate that RecIS’s
+optimizations preserve training accuracy without
+observable degradation compared to TorchRec.
+
+4.4. Component Analysis
+
+Two bar-chart panels compare throughput in instances per second and step latency in milliseconds on Lazada Ad, Search, and Ad.
+
+Figure 5. End-to-end throughput per GPU and step latency for PICASSO, TorchRec, and RecIS on three industrial workloads.Two bar-chart panels compare throughput in instances per second and step latency in milliseconds on Lazada Ad, Search, and Ad.
+
+Figure 6. Training loss and cumulative AUC of the Search model under TorchRec and RecIS.Two line charts compare TorchRec on 32 H20 GPUs with RecIS on 32 PPU 810e accelerators. Training loss decreases to approximately 0.441 in both runs, while cumulative training AUC increases to approximately 0.824 at their respective last recorded points. TorchRec has no recorded step-zero point, and RecIS has no recorded step-5000 point.
+
+Cumulative ablation. We evaluate successive configurations of Ad on a single server with eight H20 GPUs (Figure 7). Starting from the configuration with all studied optimizations disabled, intra-node request merging and hash-based sharding raise throughput from 385.19 to 716.26 IPS and reduce step latency from 3,115.36 to 1,675.38 ms, a 46.2% reduction. Vectorized access and dependency-aware fusion further increase throughput to 848.37 IPS and reduce latency to 1,414.48 ms. With these optimizations enabled, the multistage pipeline removes another 94 ms and raises throughput by 7.1%, reaching 908.76 IPS at 1,320.48 ms per step. Overall, RecIS achieves 2.36\times the baseline throughput and reduces latency by 57.6%.
+
+Dependency-aware fusion. Table 2 reports preprocessing operator invocations before and after cross-field fusion. Counts fall from 1,351 to 79 on Ad, from 1,071 to 158 on Search, and from 688 to 136 on Lazada Ad: reductions of 94.15%, 85.25%, and 80.23%, respectively. Across the three models, fusion reduces 3,110 invocations to 373, an 88.01% reduction. Fewer invocations reduce the launch and scheduling overhead addressed by FeatureEngine.
+
+Table 2. Preprocessing operator invocations before and after cross-field fusion.
+
+ | Model
+ | Baseline
+ | RecIS
+ | Reduction
+
+ | Ad
+ | 1,351
+ | 79
+ | 94.15%
+
+ | Search
+ | 1,071
+ | 158
+ | 85.25%
+
+ | Lazada Ad
+ | 688
+ | 136
+ | 80.23%
+
+Bars show step latency and throughput for full RecIS and cumulative removal of multistage scheduling, dependency-aware fusion, vectorized access, hash-based sharding, and intra-node request merging.
+
+Figure 7. Single-node cumulative ablation on Ad with eight H20 GPUs. From left to right, each configuration additionally disables the named optimization. Request merging denotes intra-node ID deduplication.Bars show step latency and throughput for full RecIS and cumulative removal of multistage scheduling, dependency-aware fusion, vectorized access, hash-based sharding, and intra-node request merging.
+
+Hierarchical communication.
+To evaluate the effectiveness of hierarchical communication,
+we compare its communication traffic and overhead against
+Flat communication using an advertising model deployed on
+16 nodes with 128 accelerators. Both approaches use identical
+configurations except for the communication strategy.
+Table 3 reports the average
+per-step communication costs across all ranks for three
+representative embedding tables.
+Compared with Flat, Hierarchical reduces inter-node embedding
+traffic by 59.34%, 72.37%, and 31.71%, respectively,
+with corresponding retained ID fractions of 40.71%,
+27.65%, and 68.36%.
+
+These reductions are achieved by merging redundant embedding
+requests within each source node before inter-node communication
+(Eq. 3).
+However, Hierarchical introduces additional overhead from
+intra-node embedding redistribution and ID partitioning.
+Consequently, its performance benefit depends on whether
+the inter-node communication savings outweigh these
+additional costs.
+
+The timing breakdown further illustrates this trade-off.
+For the FP32 embedding table with dimension 32,
+Hierarchical reduces inter-node communication time from
+76.695 ms to 30.487 ms, while introducing 5.405 ms
+of intra-node embedding communication and 5.262 ms
+of additional ID partitioning.
+In contrast, for the smaller FP32 table with dimension 16,
+the combined embedding communication time is 1.291 ms,
+only 0.740 ms lower than Flat, while the additional ID
+partitioning takes 0.851 ms.
+These results demonstrate that reducing inter-node traffic
+alone does not guarantee a performance improvement,
+as the additional intra-node processing overhead may
+offset the communication savings.
+The reported component times do not directly represent
+critical-path latency or end-to-end training time.
+
+Index-aware segment reduction. We compare the original and specialized aggregation kernels on AMD MI308X across four workloads (Figure 8). The forward kernel uses CSR segments to assign unique writers; the backward kernel locally merges contributions to the same row. Forward latency decreases by 71.0%–85.8% and backward latency by 60.5%–97.7%, with speedups of up to 7.02\times and 44.08\times, respectively. Exploiting the index structure substantially reduces aggregation overhead in both directions.
+
+Table 3. Comparison of communication traffic and overhead
+between Flat and Hierarchical embedding communication.
+All measurements are per-step averages across ranks.
+
+ | Table
+ | 1
+ | 2
+ | 3
+
+ | Type / dimension
+ | FP32 / 16
+ | FP32 / 32
+ | int8 / 128
+
+ | Flat emb traffic (GB)
+ | 2.976
+ | 215.590
+ | 193.013
+
+ | Hier inter emb traffic (GB)
+ | 1.210
+ | 59.568
+ | 131.806
+
+ | Retained IDs (%)
+ | 40.71
+ | 27.65
+ | 68.36
+
+ | Flat emb time (ms)
+ | 2.031
+ | 76.695
+ | 69.227
+
+ | Hier intra emb time (ms)
+ | 0.088
+ | 5.405
+ | 5.003
+
+ | Hier inter emb time (ms)
+ | 1.203
+ | 30.487
+ | 53.622
+
+ | Hier extra processing (ms)
+ | 0.851
+ | 5.262
+ | 5.487
+
+5. Related Work
+
+Wide & Deep, DeepFM, xDeepFM, and DCN V2 model feature interactions (Cheng et al., 2016; Guo et al., 2017; Lian et al., 2018; Wang et al., 2021), while DIN and DIEN model user interests from behavior sequences (Zhou et al., 2018; Zhou et al., 2019). To support these workloads, TensorFlow and PyTorch provide general execution primitives (Abadi et al., 2016; Paszke et al., 2019), while DeepRec, HugeCTR, TorchRec, and PERSIA specialize in large-scale recommendation training (DeepRec Contributors, nd; Wang et al., 2022b; Ivchenko et al., 2022; Lian et al., 2022).
+
+Feature heterogeneity motivates tailored GPU execution. RecFlex adapts schedules to heterogeneous features (Pan et al., 2024). RecIS groups compatible transformations across fields while preserving dependencies, using fusion and vectorized access to reduce preprocessing overhead.
+
+Forward and backward latency is compared for the original and specialized kernels on workloads with embedding dimensions of 8, 16, 32, and 128.
+
+Figure 8. Index-aware segment reduction on AMD MI308X. D is the embedding dimension; annotations show speedup over the original kernels.Forward and backward latency is compared for the original and specialized kernels on workloads with embedding dimensions of 8, 16, 32, and 128.
+
+Embedding optimizations target execution, storage, and communication. Kwon and Rhu optimize GPU embedding execution (Kwon and Rhu, 2022), while EL-Rec reduces storage via tensor-train representations (Wang et al., 2022a). ScaleFreeCTR and HET cache embeddings to reduce remote access (Guo et al., 2021; Miao et al., 2021); FEC combines embedding tiering with prefetching to reduce communication overhead (Ma et al., 2023). RecIS merges repeated IDs across GPUs in each source node before inter-node exchange, reducing both transmitted requests and returned vectors.
+
+Scheduling complements these optimizations by overlapping preparation and training. RAP co-schedules GPU preprocessing and training (Wang et al., 2024), while Bagpipe uses future minibatches to prefetch embeddings (Agarwal et al., 2023). PICASSO coordinates embedding-operation packing, interleaved execution, and hierarchical caching (Zhang et al., 2022). GPipe and PipeDream pipeline model stages across devices (Huang et al., 2019; Narayanan et al., 2019). RecIS pipelines preparation across iterations: parameter-independent feature processing and request preparation overlap current dense computation, while parameter accesses and updates retain their required ordering.
+
+6. Conclusion
+
+RecIS coordinates three aspects of GPU-centric recommender training: operator granularity, embedding request distribution, and execution order. Adaptive fusion and vectorization reduce preprocessing overhead; sharding, hierarchical communication, and index-aware aggregation reduce embedding costs; and multistage scheduling overlaps future preparation with current dense computation. Across the evaluated workloads, RecIS achieves up to 1.15\times the throughput of TorchRec and 2.62\times that of PICASSO, with step-latency reductions of up to 12.9% and 61.5%, respectively.
+
+7. Acknowledgments
+
+This work is supported by Alibaba Group. We thank Chuan Wang, Han Wu, Kui Ma, Yuejie Lei, Feifan Yang, Bin Liu, Zhangming Chan, Ziru Xu, and Yong Bai for useful pointers regarding the writing of this paper. We appreciate Qi Wang, Yiwen Hu, Hechen Sun, Mingjie Liu, Yihan Xian, Zhensong Yan, Houyuan Xiang, Wenjie Guo, Shihang Yan, Ning Zhang, and Yingyu Ji for implementing the key components of the training infrastructure. We also thank Lei Wu, Tianhao Shen, Fuwei Yang, and ChunHung Wang from AMD for their technical support and assistance in optimizing core components of the framework.
+
+References
+
+Abadi et al. (2016)
+
+Martín Abadi, Paul
+Barham, Jianmin Chen, Zhifeng Chen,
+Andy Davis, Jeffrey Dean,
+Matthieu Devin, Sanjay Ghemawat,
+Geoffrey Irving, Michael Isard,
+Manjunath Kudlur, Josh Levenberg,
+Rajat Monga, Sherry Moore,
+Derek G. Murray, Benoit Steiner,
+Paul Tucker, Vijay Vasudevan,
+Pete Warden, Martin Wicke,
+Yuan Yu, and Xiaoqiang Zheng.
+2016.
+
+TensorFlow: A System for Large-Scale Machine
+Learning. In 12th USENIX Symposium on Operating
+Systems Design and Implementation (OSDI 16) (OSDI
+’16). USENIX Association, Savannah,
+GA, USA, 265–283.
+
+https://www.usenix.org/conference/osdi16/technical-sessions/presentation/abadi
+
+Acun et al. (2021)
+
+Bilge Acun, Matthew
+Murphy, Xiaodong Wang, Jade Nie,
+Carole-Jean Wu, and Kim Hazelwood.
+2021.
+
+Understanding Training Efficiency of Deep Learning
+Recommendation Models at Scale. In 2021 IEEE
+International Symposium on High-Performance Computer Architecture (HPCA).
+IEEE, Piscataway, NJ, USA,
+802–814.
+
+doi:10.1109/hpca51647.2021.00072
+
+Agarwal et al. (2023)
+
+Saurabh Agarwal, Chengpo
+Yan, Ziyi Zhang, and Shivaram
+Venkataraman. 2023.
+
+Bagpipe: Accelerating Deep Recommendation Model
+Training. In Proceedings of the 29th Symposium on
+Operating Systems Principles (Koblenz, Germany)
+(SOSP ’23). Association for
+Computing Machinery, New York, NY, USA,
+348–363.
+
+doi:10.1145/3600006.3613142
+
+Cheng et al. (2016)
+
+Heng-Tze Cheng, Levent
+Koc, Jeremiah Harmsen, Tal Shaked,
+Tushar Chandra, Hrishi Aradhye,
+Glen Anderson, Greg Corrado,
+Wei Chai, Mustafa Ispir,
+Rohan Anil, Zakaria Haque,
+Lichan Hong, Vihan Jain,
+Xiaobing Liu, and Hemal Shah.
+2016.
+
+Wide & Deep Learning for Recommender Systems. In
+Proceedings of the 1st Workshop on Deep Learning
+for Recommender Systems. ACM, New
+York, NY, USA, 7–10.
+
+doi:10.1145/2988450.2988454
+
+DeepRec Contributors (nd)
+
+DeepRec Contributors.
+n.d..
+
+DeepRec.
+
+Software repository.
+
+Retrieved September 5, 2026 from https://github.com/DeepRec-AI/DeepRec
+
+Fedus et al. (2022)
+
+William Fedus, Barret
+Zoph, and Noam Shazeer.
+2022.
+
+Switch Transformers: Scaling to Trillion Parameter
+Models with Simple and Efficient Sparsity.
+
+Journal of Machine Learning Research
+23, 120 (2022),
+1–39.
+
+https://www.jmlr.org/papers/v23/21-0998.html
+
+Guo et al. (2021)
+
+Huifeng Guo, Wei Guo,
+Yong Gao, Ruiming Tang,
+Xiuqiang He, and Wenzhi Liu.
+2021.
+
+ScaleFreeCTR: MixCache-based Distributed
+Training System for CTR Models with Huge Embedding Table. In
+Proceedings of the 44th International ACM SIGIR
+Conference on Research and Development in Information Retrieval.
+ACM, New York, NY, USA,
+1269–1278.
+
+doi:10.1145/3404835.3462976
+
+Guo et al. (2017)
+
+Huifeng Guo, Ruiming
+Tang, Yunming Ye, Zhenguo Li, and
+Xiuqiang He. 2017.
+
+DeepFM: A Factorization-Machine based Neural
+Network for CTR Prediction. In Proceedings of
+the Twenty-Sixth International Joint Conference on Artificial Intelligence.
+International Joint Conferences on Artificial
+Intelligence Organization, 1725–1731.
+
+doi:10.24963/ijcai.2017/239
+
+Huang et al. (2019)
+
+Yanping Huang, Youlong
+Cheng, Ankur Bapna, Orhan Firat,
+Mia Xu Chen, Dehao Chen,
+HyoukJoong Lee, Jiquan Ngiam,
+Quoc V. Le, Yonghui Wu, and
+Zhifeng Chen. 2019.
+
+GPipe: Efficient Training of Giant Neural
+Networks using Pipeline Parallelism. In Advances
+in Neural Information Processing Systems, Vol. 32.
+Curran Associates, Inc., Red Hook, NY,
+USA, 10 pages.
+
+https://proceedings.neurips.cc/paper/2019/hash/093f65e080a295f8076b1c5722a46aa2-Abstract.html
+
+Ivchenko et al. (2022)
+
+Dmytro Ivchenko, Dennis
+Van Der Staay, Colin Taylor, Xing Liu,
+Will Feng, Rahul Kindi,
+Anirudh Sudarshan, and Shahin Sefati.
+2022.
+
+TorchRec: A PyTorch Domain Library for
+Recommendation Systems. In Proceedings of the 16th
+ACM Conference on Recommender Systems (Seattle, WA, USA)
+(RecSys ’22). Association for
+Computing Machinery, New York, NY, USA,
+482–483.
+
+doi:10.1145/3523227.3547387
+
+Kwon and Rhu (2022)
+
+Youngeun Kwon and Minsoo
+Rhu. 2022.
+
+Training Personalized Recommendation Systems from
+(GPU) Scratch: Look Forward Not Backwards. In
+Proceedings of the 49th Annual International
+Symposium on Computer Architecture. ACM,
+New York, NY, USA, 860–873.
+
+doi:10.1145/3470496.3527386
+
+Lian et al. (2018)
+
+Jianxun Lian, Xiaohuan
+Zhou, Fuzheng Zhang, Zhongxia Chen,
+Xing Xie, and Guangzhong Sun.
+2018.
+
+xDeepFM: Combining Explicit and Implicit Feature
+Interactions for Recommender Systems. In
+Proceedings of the 24th ACM SIGKDD International
+Conference on Knowledge Discovery & Data Mining
+(KDD ’18). Association for
+Computing Machinery, New York, NY, USA,
+1754–1763.
+
+doi:10.1145/3219819.3220023
+
+Lian et al. (2022)
+
+Xiangru Lian, Binhang
+Yuan, Xuefeng Zhu, Yulong Wang,
+Yongjun He, Honghuan Wu,
+Lei Sun, Haodong Lyu,
+Chengjun Liu, Xing Dong,
+Yiqiao Liao, Mingnan Luo,
+Congfei Zhang, Jingru Xie,
+Haonan Li, Lei Chen,
+Renjie Huang, Jianying Lin,
+Chengchun Shu, Xuezhong Qiu,
+Zhishan Liu, Dongying Kong,
+Lei Yuan, Hai Yu, Sen
+Yang, Ce Zhang, and Ji Liu.
+2022.
+
+Persia: An Open, Hybrid System Scaling Deep
+Learning-based Recommenders up to 100 Trillion Parameters. In
+Proceedings of the 28th ACM SIGKDD Conference on
+Knowledge Discovery and Data Mining. ACM,
+New York, NY, USA, 3288–3298.
+
+doi:10.1145/3534678.3539070
+
+Ma et al. (2023)
+
+Kaihao Ma, Xiao Yan,
+Zhenkun Cai, Yuzhen Huang,
+Yidi Wu, and James Cheng.
+2023.
+
+FEC: Efficient Deep Recommendation Model Training
+with Flexible Embedding Communication.
+
+Proceedings of the ACM on Management of
+Data 1, 2, Article
+165 (June 2023),
+21 pages.
+
+doi:10.1145/3589310
+
+Miao et al. (2021)
+
+Xupeng Miao, Hailin
+Zhang, Yining Shi, Xiaonan Nie,
+Zhi Yang, Yangyu Tao, and
+Bin Cui. 2021.
+
+HET: Scaling Out Huge Embedding Model Training
+via Cache-enabled Distributed Framework.
+
+Proceedings of the VLDB Endowment
+15, 2 (2021),
+312–320.
+
+doi:10.14778/3489496.3489511
+
+Narayanan et al. (2019)
+
+Deepak Narayanan, Aaron
+Harlap, Amar Phanishayee, Vivek
+Seshadri, Nikhil R. Devanur, Gregory R.
+Ganger, Phillip B. Gibbons, and Matei
+Zaharia. 2019.
+
+PipeDream: Generalized Pipeline Parallelism for
+DNN Training. In Proceedings of the 27th ACM
+Symposium on Operating Systems Principles. ACM,
+New York, NY, USA, 1–15.
+
+doi:10.1145/3341301.3359646
+
+Naumov et al. (2019)
+
+Maxim Naumov, Dheevatsa
+Mudigere, Hao-Jun Michael Shi, Jianyu
+Huang, Narayanan Sundaraman, Jongsoo
+Park, Xiaodong Wang, Udit Gupta,
+Carole-Jean Wu, Alisson G. Azzolini,
+Dmytro Dzhulgakov, Andrey Mallevich,
+Ilia Cherniavskii, Yinghai Lu,
+Raghuraman Krishnamoorthi, Ansha Yu,
+Volodymyr Kondratenko, Stephanie Pereira,
+Xianjie Chen, Wenlin Chen,
+Vijay Rao, Bill Jia,
+Liang Xiong, and Misha Smelyanskiy.
+2019.
+
+Deep Learning Recommendation Model for
+Personalization and Recommendation Systems.
+
+arXiv:1906.00091 [cs.IR]
+
+https://arxiv.org/abs/1906.00091
+
+Pan et al. (2024)
+
+Zaifeng Pan, Zhen Zheng,
+Feng Zhang, Bing Xie,
+Ruofan Wu, Shaden Smith,
+Chuanjie Liu, Olatunji Ruwase,
+Xiaoyong Du, and Yufei Ding.
+2024.
+
+RecFlex: Enabling Feature Heterogeneity-Aware
+Optimization for Deep Recommendation Models with Flexible Schedules. In
+SC24: International Conference for High Performance
+Computing, Networking, Storage and Analysis. IEEE,
+Piscataway, NJ, USA, 1–15.
+
+doi:10.1109/sc41406.2024.00047
+
+Paszke et al. (2019)
+
+Adam Paszke, Sam Gross,
+Francisco Massa, Adam Lerer,
+James Bradbury, Gregory Chanan,
+Trevor Killeen, Zeming Lin,
+Natalia Gimelshein, Luca Antiga,
+Alban Desmaison, Andreas K"opf,
+Edward Yang, Zach DeVito,
+Martin Raison, Alykhan Tejani,
+Sasank Chilamkurthy, Benoit Steiner,
+Lu Fang, Junjie Bai, and
+Soumith Chintala. 2019.
+
+PyTorch: An Imperative Style, High-Performance
+Deep Learning Library. In Advances in Neural
+Information Processing Systems, Vol. 32.
+Curran Associates, Inc., Red Hook, NY,
+USA, 8024–8035.
+
+https://proceedings.neurips.cc/paper/2019/hash/bdbca288fee7f92f2bfa9f7012727740-Abstract.html
+
+Vaswani et al. (2017)
+
+Ashish Vaswani, Noam
+Shazeer, Niki Parmar, Jakob Uszkoreit,
+Llion Jones, Aidan N. Gomez,
+Łukasz Kaiser, and Illia
+Polosukhin. 2017.
+
+Attention Is All You Need. In
+Advances in Neural Information Processing
+Systems, Vol. 30. Curran Associates,
+Inc., Red Hook, NY, USA, 5998–6008.
+
+https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html
+
+Wang et al. (2021)
+
+Ruoxi Wang, Rakesh
+Shivanna, Derek Cheng, Sagar Jain,
+Dong Lin, Lichan Hong, and
+Ed Chi. 2021.
+
+DCN V2: Improved Deep & Cross Network and
+Practical Lessons for Web-Scale Learning to Rank Systems. In
+Proceedings of the Web Conference 2021
+(WWW ’21). Association for
+Computing Machinery, New York, NY, USA,
+1785–1797.
+
+doi:10.1145/3442381.3450078
+
+Wang et al. (2024)
+
+Zheng Wang, Yuke Wang,
+Jiaqi Deng, Da Zheng,
+Ang Li, and Yufei Ding.
+2024.
+
+RAP: Resource-aware Automated GPU Sharing for
+Multi-GPU Recommendation Model Training and Input Preprocessing. In
+Proceedings of the 29th ACM International
+Conference on Architectural Support for Programming Languages and Operating
+Systems, Volume 2. ACM, New York,
+NY, USA, 964–979.
+
+doi:10.1145/3620665.3640406
+
+Wang et al. (2022a)
+
+Zheng Wang, Yuke Wang,
+Boyuan Feng, Dheevatsa Mudigere,
+Bharath Muthiah, and Yufei Ding.
+2022a.
+
+EL-Rec: Efficient Large-Scale Recommendation
+Model Training via Tensor-Train Embedding Table. In
+SC22: International Conference for High Performance
+Computing, Networking, Storage and Analysis. IEEE,
+Piscataway, NJ, USA, 1–14.
+
+doi:10.1109/SC41404.2022.00075
+
+Wang et al. (2022b)
+
+Zehuan Wang, Yingcan Wei,
+Minseok Lee, Matthias Langer,
+Fan Yu, Jie Liu, Shijie
+Liu, Daniel G. Abel, Xu Guo,
+Jianbing Dong, Ji Shi, and
+Kunlun Li. 2022b.
+
+Merlin HugeCTR: GPU-Accelerated Recommender
+System Training and Inference. In Proceedings of
+the 16th ACM Conference on Recommender Systems (Seattle, WA, USA)
+(RecSys ’22). Association for
+Computing Machinery, New York, NY, USA,
+534–537.
+
+doi:10.1145/3523227.3547405
+
+Williams et al. (2009)
+
+Samuel Williams, Andrew
+Waterman, and David Patterson.
+2009.
+
+Roofline: an insightful visual performance model
+for multicore architectures.
+
+Commun. ACM 52,
+4 (April 2009),
+65–76.
+
+doi:10.1145/1498765.1498785
+
+Yan et al. (2026)
+
+Bencheng Yan, Shilei Liu,
+Zhiyuan Zeng, Zihao Wang,
+Yizhen Zhang, Yujin Yuan,
+Langming Liu, Jiaqi Liu,
+Di Wang, Wenbo Su,
+Pengjie Wang, Jian Xu, and
+Bo Zheng. 2026.
+
+Unlocking Scaling Law in Industrial Recommendation
+Systems with a Three-step Paradigm based Large User Model. In
+Proceedings of the Nineteenth ACM International
+Conference on Web Search and Data Mining (WSDM
+’26). Association for Computing Machinery,
+New York, NY, USA, 798–807.
+
+doi:10.1145/3773966.3777970
+
+Zhai et al. (2024)
+
+Jiaqi Zhai, Lucy Liao,
+Xing Liu, Yueming Wang,
+Rui Li, Xuan Cao, Leon
+Gao, Zhaojie Gong, Fangda Gu,
+Jiayuan He, Yinghai Lu, and
+Yu Shi. 2024.
+
+Actions Speak Louder than Words: Trillion-Parameter
+Sequential Transducers for Generative Recommendations. In
+Proceedings of the 41st International Conference on
+Machine Learning (Vienna, Austria) (Proceedings of
+Machine Learning Research, Vol. 235).
+PMLR, 58484–58509.
+
+https://proceedings.mlr.press/v235/zhai24a.html
+
+Zhang et al. (2022)
+
+Yuanxing Zhang, Langshi
+Chen, Siran Yang, Man Yuan,
+Huimin Yi, Jie Zhang,
+Jiamang Wang, Jianbo Dong,
+Yunlong Xu, Yue Song,
+Yong Li, Di Zhang, Wei
+Lin, Lin Qu, and Bo Zheng.
+2022.
+
+PICASSO: Unleashing the Potential of
+GPU-Centric Training for Wide-and-Deep Recommender Systems. In
+2022 IEEE 38th International Conference on Data
+Engineering (ICDE). IEEE Computer Society,
+Los Alamitos, CA, USA, 3453–3466.
+
+doi:10.1109/icde53745.2022.00324
+
+Zhou et al. (2019)
+
+Guorui Zhou, Na Mou,
+Ying Fan, Qi Pi, Weijie
+Bian, Chang Zhou, Xiaoqiang Zhu, and
+Kun Gai. 2019.
+
+Deep Interest Evolution Network for Click-Through
+Rate Prediction.
+
+Proceedings of the AAAI Conference on
+Artificial Intelligence 33, 01
+(2019), 5941–5948.
+
+doi:10.1609/aaai.v33i01.33015941
+
+Zhou et al. (2018)
+
+Guorui Zhou, Xiaoqiang
+Zhu, Chenru Song, Ying Fan,
+Han Zhu, Xiao Ma,
+Yanghui Yan, Junqi Jin,
+Han Li, and Kun Gai.
+2018.
+
+Deep Interest Network for Click-Through Rate
+Prediction. In Proceedings of the 24th ACM SIGKDD
+International Conference on Knowledge Discovery & Data Mining
+(KDD ’18). Association for
+Computing Machinery, New York, NY, USA,
+1059–1068.
+
+doi:10.1145/3219819.3219823
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About ·
+ Help ·
+ Contact ·
+ Subscribe ·
+ Copyright ·
+ Privacy ·
+ Accessibility ·
+ Operational Status (opens in new tab)
+

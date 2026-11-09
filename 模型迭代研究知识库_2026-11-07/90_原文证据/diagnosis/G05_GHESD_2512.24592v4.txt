@@ -1,0 +1,2256 @@
+
+=== PDF PAGE 1 ===
+GH-ESD:GroundedHypothesis-DrivenErrorSlice
+       DiscoveryforInstance-LevelVisionTasks
+
+
+  WeiZhang1⋆,ChaoqunWang1∗,ZixuanGuan1,PingShengKao2,Pengfei
+                         Zhao1,PengWu1,andSifengHe1⋆⋆
+
+                                 1 Apple,Beijing,China
+{wzhang52,  chaoqun_wang,  zixuan_guan,  pzhao23,  pwu4,  he_sifeng}@apple.com
+                             2 Apple,Cupertino,CA,USA
+                               pingsheng_kao@apple.com
+
+
+
+       Abstract. Systematicfailuresofvisionmodelsonsemanticallycoherent
+       subsets,knownaserrorslices,reveallimitationsinrobustnessandevalu-
+       ation.Existingslicediscoveryapproacheslargelymodelslicesasclusters
+       inrepresentationspaceorcombinationsofpredefinedattributes.While
+       effectiveforimage-levelclassification,suchformulationsareinsufficient
+       forinstance-leveltaskssuchasobjectdetectionandsegmentation,where
+       failuresoftenarisefromcontextual,relational,andspatiallygrounded
+       visualpatterns.WeproposeGH-ESD(GroundedHypothesis-DrivenEr-
+       rorSliceDiscovery),agenerate-and-verifyframeworkthatreformulates
+       slicediscoveryasgroundedhypothesisgenerationandstatisticalveri-
+       fication.GH-ESDconstructsrelationalfailurehypothesesusingLLM
+       priorsandgroundedvisualevidence,discovershypothesisslicesatthe
+       instancelevelviaVision-LanguageModels,andverifiesthemthroughsta-
+       tisticaltrendanalysisoverinstance-levelerrors.WealsointroduceGESD
+       (GroundedErrorSliceDataset),anewbenchmarkforinstance-levelerror
+       slicediscovery,providingexpert-definedandspatiallygroundedslices
+       derivedfromdetectionandsegmentationfailures.Extensiveexperiments
+       demonstratethatGH-ESDconsistentlyoutperformsbaselines,improving
+       Precision@10by0.10(0.73vs.0.63)ontheGESDbenchmarkfordetection
+       tasks,whilealsosupportingsegmentationscenarios.GH-ESDidentifies
+       interpretableslicesthatfacilitateactionablemodelimprovements.GESD
+       ispubliclyavailableathttps://github.com/apple/ml-fine-grained-error-
+       slice-discovery-dataset.
+
+       Keywords:ErrorSliceDiscovery·Vision-LanguageModels·Model
+       Robustness·ObjectDetectionandSegmentationModelEvaluation
+
+1   Introduction
+
+Despitetheremarkableperformanceofmoderndeepvisionmodels,theirreliability
+remainschallengedbysystematicfailuresonsemanticallycoherentsubsetsof
+
+ ⋆Theseauthorscontributedequallytothisresearch.
+⋆⋆CorrespondingAuthor,ProjectLead
+
+=== PDF PAGE 2 ===
+2      W.Zhangetal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      Fig.1:Comparisonofimage-levelandinstance-levelerrorslicediscovery.
+
+
+
+data,commonlyreferredtoaserrorslices[5].Theseslicesexposestructured
+weaknessesinmodelbehaviorandprovidecriticalsignalsforrobustnessanalysis
+andmodelrefinement,particularlyinhigh-stakesdomainssuchasautonomous
+driving[2]androbotics[31].Identifyingsuchslicesisessentialfortrustworthy
+modelevaluation.
+    Mostexistingslicediscoverymethodsimplicitlymodelslicesasregionsin
+representationspaceorcombinationsofpredefinedattributes[4,8,9,11,12,
+29].Whileeffectiveforsurfacingspuriouscorrelationsinimageclassification
+(Fig.1(a)),theseglobalformulationsareinsufficientforinstance-leveltaskslike
+objectdetectionandsegmentation,wherefailuresareoftendrivenbycontextual,
+relational,andspatiallygroundedvisualpatterns(Fig.1(c)).Recenteffortshave
+extendedslicediscoverytodetectiontasksbyclusteringobjectembeddings[28]or
+generatingobjecttags[5].However,representingslicesasembeddingclustersor
+tagcombinationsmaynotalwayscapturecomplexcompositionalsemantics(e.g.,
+contextual,spatial,andsimilarityrelationships).Furthermore,thesemethods
+oftenrelyonimage-levelerrormetricsforevaluation(Fig.1(b)),whichcan
+restrictpreciseinstance-levelfailureanalysis.
+    Toaddresstheselimitations,weproposeGH-ESD(GroundedHypothesis-
+DrivenErrorSliceDiscovery).AsillustratedinFig.2,GH-ESDadoptsagrounded
+hypothesisgenerate-and-verifyparadigm.Itintegratestop-downsemanticpriors
+fromaLargeLanguageModel(LLM)withbottom-upregion-levelvisualde-
+scriptionstoconstructagroundedhypothesisspaceofcandidatefailurepatterns.
+ThesehypothesesarethenverifiedusingaVision-LanguageModel(VLM)to
+groundthemtospecificvisualregions.Crucially,tomitigatethehallucination
+risksofVLMs,weintroduceastatisticalhypothesisverificationmodulethattests
+whetherthemodelerrorprobabilityincreasesmonotonicallywithhypothesis
+intensity,therebyensuringreliableanddefensiblesliceidentification.
+    Progressinthisareaisfurtherlimitedbytheabsenceofprincipledbenchmarks.
+Existingslicediscoverybenchmarksfocusprimarilyonimage-levelclassification
+andartificialspuriouscorrelations(e.g.,Waterbirds[25],NICO++[30]),which
+donotcapturethecomplexityofreal-worldinstance-levelfailures.
+
+=== PDF PAGE 3 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery      3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.2:OverviewofGH-ESD.Theframeworkconstructsgroundedhypothesesand
+verifiesthemthroughinstance-levelgroundingandstatisticaltrendanalysis.
+
+
+   Toenablestandardizedevaluation,wepresentGESD(GroundedErrorSlice
+Dataset).GESDcomprisesexpert-annotated,spatiallygroundederrorslices
+derivedfromreal-worldfailuresofmultipleobjectdetectorsandasegmentation
+model,establishingagroundtruthforinstance-levelerrorslicediscovery.
+   Ourmaincontributionsare:
+
+ 1.WeproposeGH-ESD,agroundedhypothesisgenerate-and-verifyframework
+    torobustlyuncoversystematicfailurepatterns.GH-ESDreframesinstance-
+    levelerrorslicediscoveryastheconstructionofagroundedhypothesisspace
+    followedbystatisticalverification,enablingeffectivedetectionofspatially
+    localizedandcontextualrelationalerrors.
+ 2.WeestablishGESD,whichisthefirstbenchmarkdedicatedtoinstance-level
+    errorslicediscoverytoourknowledge.Itfeaturesexpert-annotatedground-
+    truthslices,representingspatiallylocalizedandcontextualrelationalvisual
+    difficulties.
+ 3. ExtensiveexperimentsdemonstratethatGH-ESDconsistentlyoutperforms
+    baselines,improvingPrecision@10by0.10(0.73vs.0.63)ontheGESD
+    benchmarkfordetectiontasks,whilealsosupportingsegmentationscenarios.
+    Wefurthervalidatetheutilityofdiscoveredslicesthroughmodelrepair
+    experiments,showingsignificantperformancegainsinobjectdetection.
+
+2   Related Work
+
+SliceDiscoveryasRepresentationorAttributePartitioning.Most
+existingslicediscoverymethodsimplicitlytreatslicesaspartitionsinrepresenta-
+tionspaceorcombinationsofpredefinedattributes.Earlyapproachesidentify
+failuremodesbyclusteringembeddingsorfittingmixturemodelsinfeature
+
+=== PDF PAGE 4 ===
+4      W.Zhangetal.
+
+space[6,8,14,27,29].Forinstance,Domino[8]andFACTS[29]discoversys-
+tematicerrorsbymodelingstructuredsubgroupsinembeddingspace.While
+effectiveforimage-levelclassification,thesemethodsoftenlackinterpretability,
+asslicescorrespondtoregionsinlatentspaceratherthanhuman-understandable
+concepts.Toimproveinterpretability,subsequentworkadoptsa“tag-then-slice”
+paradigm,firstgeneratingsemanticattributesandthensearchingforattribute
+combinationsassociatedwithpoorperformance[4,5,11,12,15,21,23].Although
+moreinterpretable,thisformulationassumesthatfailurepatternscanbede-
+composedintoindependentatomictags.Suchattributeenumerationbecomes
+inadequateforcapturingcompositionalorrelationalvisualpatternsandsuffers
+fromcombinatorialexplosionincomplexscenarios.
+   Instance-LevelErrorSliceDiscovery.Extendingslicediscoverytoobject
+detectionandsegmentationrequiresreasoningoverindividualinstancesandtheir
+spatialrelationships.VISLIX[28]adoptsacluster-then-explainstrategy,assisting
+domainexpertsthroughUI-drivenROIembeddingexplorationandsummarizing
+clustersusingLLMs.HiBug2[5]generatesdescriptivetagsforeachobjectinstance
+usingVLMsandsearchesfortagcombinationscorrelatedwitherrors.Whilethese
+methodsmovetowardinstance-levelclusteringorbag-of-tagsrepresentations,
+theystillrelyonimage-levelerrorcomputationforsliceevaluation,limiting
+theirabilitytoperformfine-grainedinstance-levelanalysis.Incontrast,ourwork
+formulatesinstance-levelslicediscoveryasgroundedhypothesisspaceconstruction
+withstatisticalverification,explicitlymodelinggroundedpatternsandprobing
+theirimpactonmodelperformance.
+   BenchmarksforSliceDiscoveryandRobustness.Existingslicediscov-
+erybenchmarksprimarilytargetimage-levelclassificationandsimplifiedspurious
+correlations,suchasWaterbirds[25],CelebA[20],andNICO++[30].Whileuseful
+forstudyingbiasandsubgrouprobustness,thesedatasetsdonotcapturethe
+relationalandspatialcomplexityoffailuresindetectionandsegmentationtasks.
+OODbenchmarksforcomplextasks,includingCOCO-O[22]andFishyscapes[2],
+focusondistributionshiftandanomalydetectionratherthanidentifyingin-
+terpretable,systematicfailureslices.Consequently,theydonotprovidethe
+grounded,slice-levelannotationsnecessaryforevaluatinginstance-levelslicedis-
+coverymethods.Toaddressthisgap,weintroduceGESDtoprovideaprincipled
+evaluationtestbedforinstance-levelslicediscovery.
+
+3   Grounded Hypothesis-Driven Error Slice Discovery
+
+AsillustratedinFig.2,weproposeGH-ESD,agroundedhypothesis-drivenframe-
+workthatdiscoversinstance-levelerrorslicesthroughhypothesisconstruction,
+matching,andstatisticalverification.Webeginbyformalizingtheerrorslice
+discoveryproblem.
+
+3.1  ProblemFormulation
+LetU ={u  i}Ni=1 denoteasetofevaluationunitsforaninstance-levelvisiontask.
+Eachevaluationunitcorrespondstoanobjectinstancepredictedcorrectly,oran
+
+=== PDF PAGE 5 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery      5
+
+error-associatedregionidentifiedthroughprediction–ground-truthcomparison,
+including(i)aground-truthinstancecorrespondingtoafalsenegative(FN),(ii)a
+predictedregioncorrespondingtoafalsepositive(FP),(iii)aprediction–ground-
+truthdiscrepancyregioncapturinglocalizationorsegmentationerrors,or(iv)the
+wholeimagewhenglobalfailurepatternsareevaluated.Thisunifieddefinition
+allowsGH-ESDtohandleFNs,FPs,localizationmismatchesandalsoglobal
+errorswithinasingleframework.Bothcorrectanderroneousregionsareevaluated
+tocomputetheperformancemetricforeachslice.
+    Let fbeamodeltobeanalyzedand ℓ(ui)denotetheperformancemetric
+(e.g.,errorrate,1−IoU)definedonevaluationunitu                          i.
+    Traditionalslicediscoverymethodsdefineacandidatesubgroupviaabinary
+function g(ui)∈{0,1},formingSg ={u  i|g (ui) = 1}. Asubgroupisconsidered
+anerrorsliceif E[ℓ(ui)|u i ∈Sg]−E  [ℓ(ui)] > τ,forapredefinedthreshold τ.
+Suchhardpartitioningreliesondiscretemembershipdecisionsandissensitiveto
+noisyslicesandfluctuationsinerrorrateswithinthedata.
+    Weinsteadassociateeachhypothesis h∈ H  withacontinuousmatching
+score c(h)   (ui)∈ [0,1],quantifyingthedegreetowhichevaluationunit   uisatisfies
+hypothesis h.Slicediscoveryisthereforereformulatedasanalyzinghowmodel
+performancevarieswithrespecttohypothesisintensity(quantifiedbythematch-
+ingscore): ℓ(ui)  conditionedonc     (h)   (ui).Asystematicerrorslicecorresponds
+toahypothesisforwhichmodelerrorincreasesconsistentlyasthehypothesisis
+morestronglysatisfied.
+
+3.2  GroundedHypothesisSpaceConstruction
+Thegoalofhypothesisconstructionistodefineahypothesisspace Hthat
+systematicallycharacterizespotentialfailurepatternsofthemodel.Ahypothesis
+h∈ H isdefinedasasemanticallyinterpretablevisualconditionthatcanbe
+evaluatedwithrespecttoanevaluationunit.Thehypothesisspacecoversboth
+intrinsictaskdifficultiesanddataset-specificdistributionalartifactsinspiredby
+thecategorizationoferrorsinHiBug2[5].
+    Knowledge-DrivenHypotheses:ModelingIntrinsicTaskDifficulty.
+Tocaptureinherentchallengesofatask,weadoptatop-downhypothesisgenera-
+tionstrategyguidedbyLLMs(promptinsupplementaryFig.S1).Givenaconcise
+taskdescription,theLLMleveragesworldknowledgetoenumerateplausiblefail-
+urescenarios.Thesehypothesestypicallycorrespondtoknownsourcesofvisual
+taskdifficulty,suchasappearanceambiguity,scalevariation,objectinteraction,
+andchallengingenvironmentalconditions.Importantly,thesehypothesesarenot
+tagsbutstructuredsemanticconditionsthatcanlaterbegroundedandverified.
+    Data-DrivenHypotheses:DiscoveringDistributionalPatterns.While
+knowledge-drivenhypothesescapturegeneraltaskdifficulty,real-worlddatasets
+oftenexhibitdistributionalbiasesandrareconfigurationsthatarenotfully
+anticipatedbypriorknowledge.Todiscoversuchpatterns,weadoptabottom-up
+groundedabstractionprocess,withprompttemplatesprovidedinsupplementary
+Figs.S2,S3,andS4.(a)GroundedAttribute-guidedCaptionExtraction.Fora
+sampledsubsetofimages,VLMgeneratesobject-orregion-groundedcaptions
+
+=== PDF PAGE 6 ===
+6      W.Zhangetal.
+
+basedontheattributesfromLLMworldknowledgetoavoiddivergentdescriptions.
+Thisattribute-guideddesignmitigatesnoisecausedbyunconstrained,overly
+diversecaptions.Unlikeimage-leveldescriptionsinTCIC[17],thesecaptions
+explicitlyassociatesemanticattributeswithspecificvisualregions,preserving
+spatialgrounding.(b)AttributeandValueInference.AnLLManalyzesthe
+groundedcaptionstoinferrecurringsemanticattributesandtheircandidate
+values(e.g.,occlusion:byperson,bycar).Thisstepidentifiessemanticdimensions
+presentinthedataset.(c)HypothesisSynthesis.Theinferredattribute–value
+combinationsarereformulatedintowell-formednatural-languagehypotheses.
+Eachresultinghypothesisspecifiesaconcrete,evaluablevisualconditionthat
+canbedirectlyusedasinputtothematchingstage.
+   Thisprocesstransformsdistributionalregularitiesintointerpretableand
+testablehypotheses.Knowledge-drivenhypothesesprovidebroadcoverageof
+intrinsictaskdifficulty.Incontrast,data-drivenhypothesesrevealdataset-specific
+distributionalcharacteristics,whichmayincluderareorlong-tailpatternsthatare
+amplifiedinthetargetdatadistributionduetoempiricalfrequencyandcontextual
+biases.Forthetaskofbicycledetection,GH-ESDmaygenerateknowledge-driven
+hypothesessuchas“bicyclelyingontheground”or“bicycleatnight”,capturing
+intrinsicdifficulty,anddata-drivenhypothesessuchas“dataset-specificcontextual
+configurationsco-occurringwithbicycles”,reflectingdataset-inducedregularities.
+Thesehypothesesareexpressedinstructurednaturallanguage,enablingdirect
+interactionwithvision-languagemodelsforgroundedverification.
+
+3.3  HypothesisMatching
+Givenahypothesis h∈ H  andevaluationunit u,wecomputeacontinuous
+matchingscorec(h)   (u)∈ [0,1],estimatingtheprobabilitythatthevisualevidence
+associatedwithusatisfiesh.
+   ApretrainedVLMcapableofgroundingreasoning(e.g.,Qwen2.5-VL[1])is
+promptedwiththehypothesistogetherwithgroundingsignals(e.g.,bounding
+boxesorpointcoordinates),andthenproducestoken-levellogitsoveritsvocab-
+ulary.Weextractlogitsforaffirmativeandnegativetokens(e.g.,‘yes’/‘no’)to
+computeacontinuousscore.Prompttemplatesareprovidedinsupplementary
+Figs.S5andS6.
+   Givenprompt P(h,u),let  z(t| P (h,u))denotethelogitcorrespondingto
+tokent.Wecomputethematchingscoreas
+
+             c(h)   (u) =                       exp(z(yes|P(h,u)))exp(z(yes|P(h,u)))+exp(z(no|P(h,u)))                          .
+
+   ThisprobabilisticformulationconvertstheVLM’sdiscriminativeresponse
+intoanormalizedcontinuousscorein[0,1].
+
+3.4  StatisticalHypothesisVerification
+Existingerrorslicediscoveryapproachesoftenidentifyslicesbythresholding
+empiricalerrorrateswithinpredefinedsubgroups.However,errorratescanvary
+
+=== PDF PAGE 7 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery      7
+
+substantiallyacrosspatterns,makingfixedthresholdsdifficulttochooseandoften
+unreliable.Moreover,ahighsubgrouperrorratedoesnotnecessarilyindicate
+asystematicfailuremode.Suchpatternsmayarisefromnoisygrouping,weak
+grounding,orhallucinatedhypothesismatches.Bayesiancorrection[29]relies
+onexplicitlymodeleduncertaintyoverapredefinedorstabletagspace,whichis
+incompatiblewithouropen-endedhypothesisgenerationframework.Weinstead
+formulatehypothesisverificationasamonotonicperformancesensitivitytest.
+Givenahypothesis handitsmatchingscores{c  (h)   (ui)}Ni=1 overevaluationunits
+{u  i}Ni=1,weexaminewhethermodelerrorprobabilityincreasesmonotonically
+withhypothesisintensity.
+   Thematchingscore c(h)   (u)reflectsthedegreetowhichevaluationunit  u
+satisfieshypothesis h.If hgenuinelycharacterizesafailuremodeofmodel f,
+unitsthatmorestronglysatisfyhshouldexhibithighererrorlikelihood.Formally,
+wetestwhetherthemodelperformancemetricshowsapositivemonotonictrend
+withrespecttoc  (h)   (u).
+   Low-confidencematchesincludeirrelevantunitsduetomatchingintensity
+orVLMhallucination.Therefore,werestrictanalysistotherelativelyhigh-
+confidenceregionU           γ ={u     i|c (h)   (u i)>γ},whereγisaneasy-to-tuneempirical
+thresholdestablishedviaconfidencecalibration,varyingacrossdifferentVLMs.
+   Within Uγ,evaluationunitsaresortedindescendingorderof c(h)   (ui).We
+applyaslidingwindowovertheorderedunits.Windowscontainingfewerthana
+minimumnumberofunits(e.g.,<5)arediscardedtoensurestability.
+   Foreachvalidwindow w,wecomputealocallinearregressionbetween
+matchingscoreandperformancemetric:
+
+
+                         slopew = Slope c(h)   (u),ℓ(u)   u∈w   .
+
+
+TheoveralltrendstatisticforhypothesishisdefinedasTrend(h) = maxw∈W slopew,
+whereWdenotesthesetofvalidwindows.Ahypothesisisretainedasasystem-
+aticerrorsliceifTrend(h)>τtrend,indicatingaconsistentmonotonicincrease
+inerrorprobabilitywithhypothesisintensity.Unlessotherwisespecified,wefix
+γ = 0.5and  τtrend = 0.2.AsshowninSec.5.2,themethodremainsstableacross
+abroadrangeofparametersettings.
+   Themaxsliding-windowslopeislightweightandinterpretable,anditdetects
+failurepatternsthatmanifestonlywhenthehypothesisisstronglysatisfiedand
+mitigatesspuriousmatchessincehallucinatedorweaklygroundedunitsdonot
+produceastablepositiveslope.Theunderlyingmonotonicsensitivityprinciplecan
+alsobeimplementedusingothermonotonicassociationmeasures.Weadditionally
+instantiateamulti-scaleSpearmanrank-correlationtest,retainingahypothesis
+onlywhentheassociationbetweenmatchingscoreanderrorisbothstrong
+andstatisticallysignificant(ρ≥  0.5,  p<0.05).Boththeslope-andcorrelation-
+basedtestsarevalidrealizationsofthemonotonicstrategy;wecomparethem
+quantitativelyinSec.5.2.
+
+=== PDF PAGE 8 ===
+8      W.Zhangetal.
+
+4   GESD (Grounded Error Slice Dataset)
+
+
+Toaddressthelimitationsofexistingbenchmarks,weconstructedGESD,anew
+benchmarkdatasetdesignedtocapturerealisticinstance-levelerrorslices.The
+GESDdatasetisbuiltuponacombinationofover12Kimagesfromthreewidely
+usedpublicvalidationsets:COCO(5Kimages)[19],KITTI(3,769images)[10],
+andapublicfacedetectionset(3,347images)[7].Wefollowedafour-steppipeline
+toconstructerrorslicesandensurethequality:
+
+
+ 1.AggregatedModelErrorsCollection:Weranfourrepresentativeobject
+    detectors(YOLO[26],FasterR-CNN[24],RetinaNet[18]andDETR[3])and
+    asegmentationmodel(MaskR-CNN[13])onthecombinedvalidationimages.
+    Insteadofrelyingonasinglemodel,weaggregatederrorsfrommultiplemodels
+    toensureadiverseandabundantcollectionoffailurepatterns.Specifically,
+    wecollectedallfalsepositiveandfalsenegativepredictionsfromthesemodels,
+    formingapoolofcandidateerrorinstances.
+ 2.Expert-DrivenHypothesesDefinition:Basedontheaggregatederror
+    pool,threeseniorcomputervisionresearchers(eachwithover4yearsof
+    experience)analyzedthefailurepatterns.Theycollaborativelydefineda
+    comprehensiveandrepresentativesetoferrorslicesbyformulatinghypotheses.
+    Throughiterativecross-validation,theyidentified21distincthypothesesfor
+    detectionand21forsegmentation(total42),categorizingthemintosemantic
+    confusion,contextualinterference,andintrinsicvisualdifficulties.Thisexpert-
+    drivenprocessensuresthatthedefinedslicescorrespondtomeaningfuland
+    systematicfailuremodesratherthanrandomnoise.
+ 3.HypothesesMatchingbyHumanAnnotation:Thisstepinvolved
+    rigoroushumanannotationtomatcherrorinstancestothedefinedhypotheses.
+    Ateamofannotators,investingatotalof1500person-hours,reviewedevery
+    relevantinstanceinthedataset.Foreachdefinedhypothesis,annotators(a)
+    verifiedthattheinstancestrictlymettheslicedefinitionandexhibitedthe
+    correctfailuretype,and(b)correcteditsground-truthboundingboxand/or
+    segmentationmasktoensuregeometricaccuracy.
+ 4.DatasetRefinement:Tocreateacleangroundtruthforevaluation,we
+    performedafinalrefinementstep.Forallinstancesnotbelongingtoany
+    definederrorslice,modelpredictionswereoverwrittenbygroundtruth.
+    Thiscreatesasynthetic“perfect”annotationfornon-errorpartsandensures
+    evaluationfocusespurelyonpredefinedslicesratherthanopen-worldunknown
+    errors.
+
+   TheerrorslicesinGESDcontainlocationandcategoryerrors,including
+bothfalsenegatives(FN)andfalsepositives(FP).Weprovideerrorregionswith
+boundingboxesorsegmentationmasks,alongwithhypothesesorslicedescriptions.
+DetailedslicestatisticsanderrorratesareprovidedinsupplementarySec.S2,
+andthefullhypothesislistisavailableinsupplementaryTabs.S3andS4.
+
+=== PDF PAGE 9 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery      9
+
+5   Experiments
+
+WeevaluateGH-ESDfromfourperspectives:(1)effectivenessoninstance-level
+slicediscovery,(2)ablationstudyofmajorcomponents,(3)generalizationto
+classicalimage-levelbiasbenchmarks,and(4)practicalutilityviamodelrepair.
+   WecompareGH-ESDagainststate-of-the-artslicediscoverymethods,includ-
+ing:(1)embedding-basedmethods:FD(FeatureDiscovery)[14],Domino[8],and
+FACTS[29];(2)interpretability-basedmethods:LADDER[11],ViG-FACTS[23],
+B2T(Bias-to-Text)[15],andViG-B2T[23].Theseapproacheswereoriginally
+designedforimage-levelbiasanalysisanddonotexplicitlyorintrinsicallysup-
+portinstance-levelerrorslicediscovery.Toevaluatetheproposedinstance-level
+framework,weadaptFACTS[29]byconvertingboundingboxpredictionsto
+image-levellabels—ifanyboundingboxinanimagehasanerror,theentireimage
+ismarkedaserroneous.HiBug[4]andHiBug2[5]aggregateinstanceerrorsto
+image-levelandcanbeadaptedtoextracttagsforobjects.Wethereforecompare
+theadaptedFACTS*,HiBug*andHiBug2onGESD.HiBugandHiBug2origi-
+nallyusedGPT-3.5-TurboandGPT-4o.WereproducedthemwithGPT-5.2to
+avoidunderestimatingthesebaselines,whilepreservingtheiroriginalalgorithms.
+   OurGH-ESDimplementationemploysGemini-2.5-ProasLLMandQwen2.5-
+VL-7BasVLM,selectedforatrade-offbetweenperformanceandefficiency(the
+influenceofselectingdifferentmodelsisevaluatedinsupplementarySec.S3.1).
+PromptsofGH-ESDareprovidedinsupplementarySec.S1.1.
+   Errorslicescanbedescribedatdifferentlevelsofgranularity,sopredicted
+andground-truthslicesmaysplitormergeanddonotcorrespondone-to-one.
+Consequently,recallbecomessensitivetotheslicematchingcriteria,andprior
+work[8,29]primarilyevaluatesslicediscoveryusingPrecision@k.Thismetric
+measurestheprecisionofthetop-kretrievedsamplesforeachground-trutherror
+slice.Formally,foragroundtruthslice Sgtandpredictedslice Spred,Precision@k
+isdefinedas:
+
+                           Precision@k=               |S gt∩S   (k)pred|          (1)
+                                                  k
+
+   where S(k)predrepresentsthetop-ksamplesintheslicerankedbyhypothesis
+matchingscores.Followingpriorwork,weset k = 10bydefault,ortheactual
+sizeiftheslicehasfewerthan10samples.
+   ThePrecision@kevaluatesaccuracyofinstancesbelongingtosliceswithout
+consideringhypothesiseffectiveness;thus,thehypothesisprecisionandrecallwill
+beprovidedinSec.5.2.
+
+
+5.1  ResultsonGESDInstance-LevelBenchmark
+
+WefirstevaluateGH-ESDonGESDandcompareagainstbaselines:FACTS*
+(adaptedviaimage-levelaggregation),HiBug*(extendedtoinstance-leveltag-
+ging)andHiBug2.Forthetag-basedbaselines,wereproducetheirtagextraction
+
+=== PDF PAGE 10 ===
+10     W.Zhangetal.
+
+               Table1:Precision@kresultsonGESDdataset.
+
+ Metric  FACTS*  HiBug*  HiBug2(GPT)  HiBug2(Gemini)  GH-ESD
+ P@5       0.35       0.34          0.73               0.77       0.78
+ P@10      0.28       0.31          0.63               0.63       0.73
+ P@20      0.20       0.26          0.53               0.52       0.66
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          Fig.3:Performancecomparisonacrossdifferenterrorcategories.
+
+
+
+procedures.HiBug*tagsareinteractivelysupplementedwithinstance-levelat-
+tributesderivedfromdetectedobjects(supplementarySec.S3.2),whileHiBug2
+attributesareextractedusingthereleasedimplementation.
+   Table1reportsthePrecision@kresultsontheGESDdetection-baseddataset.
+OnPrecision@10,themetricmostcommonlyadoptedinpriorslice-discovery
+work[8,29],GH-ESDachieves0.73,stronglyoutperformingHiBug2(0.63),HiBug*
+(0.31)andFACTS*(0.28)—anabsoluteimprovementof0.10overthestrongest
+baseline—anditleadsacrossallmetrics,withthelargestgainsatP@10and
+P@20.Forafaircomparison,wefurtherevaluatedHiBug2withthesameGemini-
+2.5-ProbackendusedbyGH-ESD;theresultsindicatethattheperformancegains
+stemfromourinstance-levelframeworkratherthanthechoiceofLLM.These
+improvementsareattributedtotheaccuratelydescribedhypotheses,grounding
+capability,andstatisticalhypothesisverificationofourinstance-levelframework.
+   Brokendownbyfailuremode,GH-ESDalsodemonstratessuperiorrobustness:
+itachievesaP@10of0.64forfalsepositives(FPs)and0.79forfalsenegatives
+(FNs),comparedtoHiBug2’s0.51and0.72,respectively.Thisconfirmsthat
+attribute-basedtaggingstruggleswithrelationalcontext,especiallyforcontext-
+heavyerrors,whereasourcontinuousVLMreasoningovercoherentnatural-
+languagehypotheseshandlesbothFPsandFNseffectively.
+   To further analyze performance across error categories, Fig. 3 presents
+category-wiseresultsunderourslicetaxonomy:(1)SemanticConfusion,cover-
+ingerrorsarisingfromlimitationsinthemodel’sconceptualunderstanding;(2)
+ContextualInterference,encompassingerrorscausedbyanobject’ssurroundings
+orrelationships;and(3)IntrinsicVisualDifficulty,referringtofailurescausedby
+
+=== PDF PAGE 11 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery     11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.4:Examplesofcandidatehypothesesandtheirverificationoutcomes.Theright
+columnshowsthestatisticaltrendbetweenmatchingscoreanderrorrateforeach
+hypothesis.
+
+
+theinherentvisualpropertiesoftheobjectinstanceitself.GH-ESDconsistently
+outperformsbaselinesacrossallcategories.
+   Figure4showsseveralcandidatehypothesesandtheirverificationoutcomes.
+Hypothesessuchasdumpstersthatvisuallyresembletrucksandsuitcasesthat
+willnotclosecorrespondtoclearsystematicerrorpatternsthatconsistently
+leadtoFPsorFNs.Incontrast,thehypothesisofverydistantcarsexhibits
+inconsistenterrortrendsandthereforedoesnotformareliableslice.Other
+hypotheses,suchascarsoccludedseverelybytrees,lacksufficientsupporting
+samples,makingtheirverificationinconclusive.Theseexamplesdemonstrate
+thatourframeworknotonlydiscoversmeaningfulerrorslicesbutalsofiltersout
+spuriousorstatisticallyunsupportedhypotheses.
+   Segmentation-basedslicediscoveryresultsarereportedinsupplementary
+Tab.S4,demonstratingthatGH-ESDgeneralizesacrossbothdetectionand
+segmentationtasks.Theboundingboxoftheerroneouspixelregionisusedasthe
+evaluationunit,andtheseresultsserveasbaselinereferencesforfuturestudies.
+
+
+5.2  AblationStudyofGH-ESD
+
+Wenowanalyzethecontributionofeachmajorcomponent:(1)groundedhy-
+potheses,(2)instance-levelhypothesismatching,and(3)statisticalhypothesis
+verification.
+
+
+GroundedHypothesesvs.AtomicTagsWecomparetheproposedlanguage-
+basedhypotheseswithattribute-basedtags(HiBug2)intermsoftheirsemantic
+alignmentwiththeground-truthfailureslices,usingresultsfromSec.5.1.Specifi-
+cally,anLLM-based(Gemini-2.5-Pro)evaluatordetermineswhetheradiscovered
+sliceissemanticallyrelatedtoanyground-truthslice(promptinsupplementary
+Sec.S1.3).Asliceisconsideredcorrectiftheevaluatorjudgesitasrelevant.Recall
+measurestheproportionofground-truthslicesthataresuccessfullyretrieved,
+
+=== PDF PAGE 12 ===
+12     W.Zhangetal.
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.5:Comparisonbetweentagsandourhypothesesonsemanticrelevancewithground
+trutherrorslices.
+
+
+whileprecisionmeasurestheproportionofdiscoveredslicesthataresemantically
+alignedwiththegroundtruth.
+   Thelanguage-basedhypotheses(102slices)achieveprecision/recallof0.74/0.90
+whenevaluatedforsemanticrelevancetoground-trutherrorslices.Incontrast,
+theattribute-basedtaggingmethodHiBug2(3,666slices)generatesalargenum-
+berofattributecombinations(183/713/2,770forsingle/dual/triple-attribute
+combinations),yieldingprecision/recallof0.36/0.71underaloosematchingcri-
+terion.Figure5illustratesthatlanguage-basedhypothesescapturethesemantic
+structureofreal-worldfailurepatternsmorecoherentlyandcompactly,while
+tagcombinationstendtoprovidegeneralsemanticdescriptionsthatlackspecific
+failurecontexts.
+   Thisperformancegapreflectsstructurallimitationsoftag-basedslicesin
+thedetectionbenchmark.Severalfailuremodesinvolveinteraction-orcontext-
+dependentpatterns,suchas“bicyclepartiallyoccludedbyaperson,”and“a
+dumpsterthatlookslikeatruck.”Theseconditionscannotbefaithfullyrepre-
+sentedassimpleconjunctionsofatomictags(e.g.,object+isoccluded),since
+atomictagsaresemanticallydivergentandcannotreadilycapturerelational
+directionality,embeddedcontext,orvisualsimilarityrelations.Language-based
+hypothesescapturethesestructuredpatternsdirectly.
+   Furthermore,Knowledge-Driven(KD)andData-Driven(DD)hypothesesex-
+hibitstrongcomplementarity;furtheranalysisoftheexperimentsinTab.1reveals
+thatKD-onlyandDD-onlyachieveP@10scoresof0.62and0.21,respectively,
+yettheircombinationreaches0.73witha14%patternoverlap.
+
+
+Instance-LevelGroundingvs.Image-LevelAggregationWeevaluate
+theimportanceofspatialgroundingbycomparinginstance-levelconditioning
+withimage-levelaggregationonthefixedhypothesis“facespartiallyhiddenby
+objects.”Instance-levelgroundingachievesPrecision@10of0.80,muchhigher
+than0.60underimage-levelanalysis.Moreover,trend-basedverificationyieldsa
+strongermatchingscore-errortrendstatisticunderinstance-levelconditioning
+thanunderimage-levelevaluation(1.32vs.0.84),confirmingthatinstance-level
+conditioningmitigatesdilutioneffectswherecorrectpredictionsonunrelated
+instancesobscurelocalizedfailures.TheLLMandVLMarekeptfixedinthis
+
+=== PDF PAGE 13 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery     13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.6:Comparisonbetweenerrorratethresholdingandstatisticalhypothesisverifica-
+tion.
+
+
+experiment,suggestingthattheperformancegainsprimarilystemfromthe
+groundingmechanism.
+
+StatisticalHypothesisVerificationvs.Error-RateThresholdingWe
+compareourmonotonictrend-basedhypothesisverificationwithtraditional
+error-ratethresholding[5,11]usingresultsfromSec.5.1.Foralldiscovered
+errorslices,wecomputetherecallofground-truthconsistenthypotheses,the
+precisionofvalidatederrorsliceswithrespecttothegroundtruth,andreport
+thecorrespondingF1score.AsshowninFig.6,trend-basedverificationachieves
+anaverage3.7%improvementinF1scoreanddemonstratesgreaterrobustness
+tothresholdvariation.Wefurtherevaluatethemulti-scaleSpearmanvariant
+definedinSec.3.4,whichachievesanF1scoreof0.78comparedto0.77usingthe
+originalslope,andremainsstableunderBenjamini–HochbergFDRcorrectionfor
+multiple-hypothesiscontrol.Thesesuggestthattheeffectivenessofourapproach
+arisesfromthemonotonicsensitivityprincipleitself.
+
+5.3  GeneralizationtoImage-LevelBiasBenchmarks
+AlthoughGH-ESDisdesignedforinstance-levelreasoning,weevaluateour
+methodonthreebiasdiscoverybenchmarks:(1)Waterbirds[25],whichcontains
+twoerror-proneslicesusedforbiasevaluation:waterbirdsonlandandlandbirds
+onwater;(2)CelebA[20],where,following[29],wefocusontheblondehairclas-
+sificationtaskthatexhibitsaspuriouscorrelationbetweengenderandhaircolor;
+and(3)NICO++[30],wherewesimulatecontrolledspurious-correlationsettings
+followingFACTS[29]andevaluateunderthreecorrelationstrengths—75%,90%,
+and95%—representingincreasinglevelsofspuriousassociationbetweenconcepts
+andcontexts.ResultsaresummarizedinTab.2.GH-ESDachievescompetitive
+orstate-of-the-artPrecision@10acrossdatasets,andperformsparticularlywell
+undercomplexspuriouscorrelationsettingsonNICO++.Implementationdetails
+areprovidedinsupplementarySec.S3.4.
+
+=== PDF PAGE 14 ===
+                              14     W.Zhangetal.
+
+                              Table2:Precision@10resultsonbiasdiscoverydatasets.Bestresultsareshown
+                              inbold,second-bestareunderlined     .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                              Table3:Modelrepairperformanceonbicycledetection.Resultsareaveragedover3
+                              repetitions.
+
+                                           Method              mAP-bicycle  mAR-bicycle
+                                           Nomodelrepair              27.20          39.33
+                                           Baselinemodelrepair     28.58±0.016   41.14±0.031
+                                           GroupDRO+GH-ESD  33.59±0.02847.09±0.230
+
+
+                              5.4  ModelRepairandPracticalImpact
+
+                              RepaironObjectDetectionBenchmarks.WeevaluatewhetherGH-ESDcan
+                              facilitatetargetedmodelrepairforobjectdetection(e.g.,bicycles).Afterverifying
+                              theerrorslice“bicyclepartiallyoccludedbyaperson”onGESD,wetransferthe
+                              discoveredhypothesistotheCOCOtrainingsetandcomputeinstance-levelslice
+                              matchingscoresusingGH-ESD.Asabaseline,wefine-tuneapre-trainedFaster
+                              R-CNNonallCOCOtrainingimagescontainingbicycleinstances.Forslice-aware
+                              repair,weadaptGroupDRO[25]toemphasizefailure-pronesamplesidentifiedby
+                              GH-ESD.Specifically,imageswithhighsliceconfidenceareupweightedduring
+                              fine-tuning,andreweightingisappliedtothedetectionheadlosses.Detailsare
+                              insupplementarySec.S3.5.
+                                  AsshowninTab.3,slice-awarerepairsignificantlyimprovesbicycle-class
+                              mAPandmARoverthebaseline.Theseresultsdemonstratethatgrounded,
+                              instance-levelslicediscoveryenablesmoreeffectivemodeladaptation.
+                                  RepaironClassificationBenchmarks.Weevaluatesliceactionability
+                              onCelebAandWaterbirdsfollowing[11].Duetofundamentaldifferencesin
+                              slicedefinitionstrategies,weemploytworepairprotocols.ForLADDER,which
+                              producesglobalslicedefinitions,weadoptitsnativestrategyoftrainingaclassifier
+                              persliceandensemblingtheirpredictions.ForFACTS,Domino,andGH-ESD,
+                              whoseslicesaredefinedoverdatasubsets,weinsteadapplyaunifiedDFR-based
+                              repairframework[16].Specifically,wecomputeaper-samplefailurescoreasthe
+
+
+
+
+
+
+Method          Waterbirds  CelebA  NICO++(75/90/95)
+FD                      0.90         0.70         0.19/0.19/0.19
+Domino        1.00    0.90                                 0.24/0.25/0.27
+FACTS           1.00    0.90                               0.56/0.60/0.62
+LADDER               0.86         0.85         0.32/0.52/0.54
+ViG-FACTS       1.00       1.00   0.60                         /0.67/0.65
+B2T                     0.92         0.64                -
+ViG-B2T                0.97                 0.70                -
+GH-ESD(Ours)     1.00       1.00       0.64/0.66                     /0.69
+
+=== PDF PAGE 15 ===
+                GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery     15
+
+Table4:WorstGroupAccuracy(WGA)results.Bestresultsareshowninbold,
+second-bestareunderlined.Allresultsareaveragedover10independentrunstoaccount
+forthestochasticityofSGDduringfine-tuning.
+
+                Method          Waterbirds     CelebA
+                LADDER          0.896        ±0.014   0.878    ±0.015
+                Domino            0.898±0.022   0.827±0.002
+                FACTS            0.889±0.028   0.600±0.011
+                GH-ESD(Ours)  0.904±0.0170.882±0.004
+
+
+maximumsimilarityoverdiscoveredslices,andfine-tunetheclassifierheadon
+high-andlow-scoringsubsets.DetailsareinsupplementarySec.S3.5.
+   AsshowninTab.4,GH-ESDachievescomparableorbetterperformancethan
+existingslicediscoverybaselines,indicatingthatthediscoveredsliceseffectively
+mitigateerrorsinducedbyspuriouscorrelationsinimageclassification.
+
+6   Conclusion
+
+WepresentedGH-ESD,aspatiallygrounded,hypothesis-drivenframeworkfor
+instance-levelerrorslicediscovery,andintroducedGESD,theexpert-annotated
+benchmarkenablingevaluationofinstance-levelslicediscovery.
+   DiscussionandFutureWork.Errorslicediscoveryisinherentlycon-
+strainedbythecoverageandbiasoftheevaluationdataset.Whencertainfailure
+modesareunderrepresented,purelystatisticalanalysismaybeinsufficientto
+revealthem.Moreover,thehypothesisspaceinreal-worlddeploymentsisfunda-
+mentallyopen-ended,andautomaticallygeneratedhypothesesmaynotguarantee
+completeness.Theseobservationssuggestthatscalableerrorslicediscoverywill
+likelyrequiretighterintegrationbetweenautomateddiscoveryandhumanrea-
+soning.Promisingdirectionsincludedynamicallyincorporatingdomain-specific
+knowledgesources,developingadaptivehypothesisexpansionmechanisms,and
+exploringmoreprincipledhuman-in-the-loopstrategiesforinteractivedebugging.
+Ourinteractivevisualizationtool,presentedinsupplementarySec.S4,provides
+aninitialsteptowardthisdirection.
+
+References
+
+ 1. Bai,S.,Chen,K.,Liu,X.,Wang,J.,Ge,W.,Song,S.,Dang,K.,Wang,P.,Wang,
+    S.,Tang,J.,Zhong,H.,Zhu,Y.,Yang,M.,Li,Z.,Wan,J.,Wang,P.,Ding,W.,
+    Fu,Z.,Xu,Y.,Ye,J.,Zhang,X.,Xie,T.,Cheng,Z.,Zhang,H.,Yang,Z.,Xu,H.,
+    Lin,J.:Qwen2.5-VLtechnicalreport.arXivpreprintarXiv:2502.13923(2025)
+ 2. Blum,H.,Sarlin,P.E.,Nieto,J.,Siegwart,R.,Cadena,C.:Thefishyscapesbench-
+    mark:Measuringblindspotsinsemanticsegmentation.IJCV129(12),3119–3135
+    (2021)
+
+=== PDF PAGE 16 ===
+16     W.Zhangetal.
+
+ 3. Carion,N.,Massa,F.,Synnaeve,G.,Usunier,N.,Kirillov,A.,Zagoruyko,S.:
+    End-to-endobjectdetectionwithtransformers.In:ECCV.pp.213–229(2020)
+ 4. Chen,M.,Li,Y.,Xu,Q.:HiBug:Onhuman-interpretablemodeldebug.In:NeurIPS.
+    vol.36,pp.4753–4766(2023)
+ 5. Chen,M.,Zhao,C.,Xu,Q.:HiBug2:Efficientandinterpretableerrorslicediscovery
+    forcomprehensivemodeldebugging.In:ICLR(2025)
+ 6. d’Eon,G.,d’Eon,J.,Wright,J.R.,Leyton-Brown,K.:Thespotlight:Ageneral
+    methodfordiscoveringsystematicerrorsindeeplearningmodels.In:Proceedingsof
+    the2022ACMConferenceonFairness,Accountability,andTransparency(FAccT).
+    pp.1962–1981(2022)
+ 7. Elmenshawii,F.:Facedetectiondataset.Kaggledataset. https://www.kaggle.
+    com/datasets/fareselmenshawii/face-detection-dataset/versions/2(2025),
+    accessed:Aug.22,2025
+ 8. Eyuboglu,S.,Varma,M.,Saab,K.,Delbrouck,J.B.,Lee-Messer,C.,Dunnmon,J.,
+    Zou,J.,Ré,C.:Domino:Discoveringsystematicerrorswithcross-modalembeddings.
+    ICLR(2022)
+ 9. Gannamaneni,S.S.,Rao,R.P.,Mock,M.,Akila,M.,Wrobel,S.:Detectingsystem-
+    aticweaknessesinvisionmodelsalongpredefinedhuman-understandabledimensions.
+    TransactionsonMachineLearningResearch(TMLR)(2025)
+10. Geiger,A.,Lenz,P.,Urtasun,R.:Arewereadyforautonomousdriving?TheKITTI
+    visionbenchmarksuite.In:CVPR.pp.3354–3361(2012)
+11. Ghosh,S.,Syed,R.,Wang,C.,Choudhary,V.,Li,B.,Poynton,C.B.,Visweswaran,
+    S.,Batmanghelich,K.:LADDER:Language-drivenslicediscoveryanderrorrec-
+    tificationinvisionclassifiers.In:FindingsoftheAssociationforComputational
+    Linguistics:ACL.pp.22935–22970(2025)
+12. Guimard,Q.,D’Incà,M.,Mancini,M.,Ricci,E.:Classifier-to-Bias:Towardunsu-
+    pervisedautomaticbiasdetectionforvisualclassifiers.In:CVPR.pp.15151–15161
+    (2025)
+13. He,K.,Gkioxari,G.,Dollár,P.,Girshick,R.:MaskR-CNN.In:ICCV.pp.2961–2969
+    (2017)
+14. Jain,S.,Lawrence,H.,Moitra,A.,Madry,A.:Distillingmodelfailuresasdirections
+    inlatentspace.In:ICLR(2023)
+15. Kim,Y.,Mo,S.,Kim,M.,Lee,K.,Lee,J.,Shin,J.:Discoveringandmitigating
+    visualbiasesthroughkeywordexplanation(Bias-to-Text).In:CVPR(2024)
+16. Kirichenko,P.,Izmailov,P.,Wilson,A.G.:Lastlayerre-trainingissufficientfor
+    robustnesstospuriouscorrelations.In:ICLR(2023)
+17. Kwon,S.,Park,J.,Kim,M.,Cho,J.,Ryu,E.K.,Lee,K.:Imageclusteringcondi-
+    tionedontextcriteria.In:ICLR(2024)
+18. Lin,T.,Goyal,P.,Girshick,R.,He,K.,Dollár,P.:Focallossfordenseobject
+    detection.IEEETPAMI42(2),318–327(2020)
+19. Lin,T.,Maire,M.,Belongie,S.,Bourdev,L.,Girshick,R.,Hays,J.,Perona,P.,
+    Ramanan,D.,Zitnick,C.L.,Dollár,P.:MicrosoftCOCO:Commonobjectsin
+    context.In:ECCV.pp.740–755(2014)
+20. Liu,Z.,Luo,P.,Wang,X.,Tang,X.:Deeplearningfaceattributesinthewild.In:
+    ICCV.pp.3730–3738(2015)
+21. Luo,Y.,An,R.,Zou,B.,Tang,Y.,Liu,J.,Zhang,S.:LLMasdatasetanalyst:
+    Subpopulationstructurediscoverywithlargelanguagemodel.In:ECCV.pp.235–
+    252.Springer(2024)
+22. Mao,X.,Chen,Y.,Zhu,Y.,Chen,D.,Su,H.,Zhang,R.,Xue,H.:COCO-O:A
+    benchmarkforobjectdetectorsundernaturaldistributionshifts.In:ICCV(2023)
+
+=== PDF PAGE 17 ===
+                 GH-ESD:GroundedHypothesis-DrivenErrorSliceDiscovery     17
+
+23. Marani,B.,Hanini,M.,Malayarukil,N.,Christodoulidis,S.,Vakalopoulou,M.,
+    Ferrante,E.:ViG-Bias:Visuallygroundedbiasdiscoveryandmitigation.In:ECCV.
+    pp.414–429.LectureNotesinComputerScience,Springer(2024)
+24. Ren,S.,He,K.,Girshick,R.,Sun,J.:FasterR-CNN:Towardsreal-timeobject
+    detectionwithregionproposalnetworks.IEEETPAMI39(6),1137–1149(2017)
+25. Sagawa,S.,Koh,P.W.,Hashimoto,T.B.,Liang,P.:Distributionallyrobustneural
+    networks.In:ICLR(2020)
+26. Wang,C.Y.,Bochkovskiy,A.,Liao,H.Y.M.:YOLOv7:Trainablebag-of-freebies
+    setsnewstate-of-the-artforreal-timeobjectdetectors.In:CVPR.pp.7464–7475
+    (2023)
+27. Wang,F.,Adebayo,J.,Tan,S.,Garcia-Olano,D.,Kokhlikyan,N.:Errordiscovery
+    byclusteringinfluenceembeddings.In:NeurIPS.vol.36,pp.41765–41777(2023)
+28. Yan,X.,Xuan,X.,Ono,J.P.,Guo,J.,Mohanty,V.,Kumar,S.A.,Gou,L.,Wang,
+    B.,Ren,L.:VISLIX:AnXAIframeworkforvalidatingvisionmodelswithslice
+    discoveryandanalysis.In:ComputerGraphicsForum(CGF).p.e70125(2025)
+29. Yenamandra,S.,Ramesh,P.,Prabhu,V.,Hoffman,J.:Firstamplifycorrelations
+    andthenslicetodiscoverbias(FACTS).In:ICCV(2023)
+30. Zhang,X.,He,Y.,Xu,R.,Yu,H.,Shen,Z.,Cui,P.:Nico++:Towardsbetter
+    benchmarkingfordomaingeneralization.In:CVPR.pp.16036–16047(2023)
+31. Zhou,E.,Su,Q.,Chi,C.,Zhang,Z.,Wang,Z.,Huang,T.,Sheng,L.,Wang,H.:
+    Code-as-monitor:Constraint-awarevisualprogrammingforreactiveandproactive
+    roboticfailuredetection.In:CVPR.pp.6919–6929(2025)
+
+=== PDF PAGE 18 ===
+GH-ESD:GroundedHypothesis-DrivenErrorSlice
+      DiscoveryforInstance-LevelVisionTasks
+               —SupplementaryMaterial—
+
+
+WeiZhang1,ChaoqunWang1,ZixuanGuan1,PingShengKao2,PengfeiZhao1,
+                          PengWu1,andSifengHe1
+
+                            1 Apple,Beijing,China
+                                 2 Apple,USA
+
+
+S1   Prompts
+
+S1.1  SystemPromptTemplatesUsedinGH-ESD
+
+Acompletepromptconsistsofasystemprompttemplateandatask-specific
+userprompt.Forspecifictasks,taskdescriptionsareprovidedinuserprompts,
+asdetailedinSec.S1.2.Thissectionpresentsdetailedsystemprompttemplates
+usedinGH-ESDhypothesisgenerationmodule.
+
+
+Knowledge-drivenHypothesisGenerationPromptThesystemprompt
+guidesthemodeltoconsidervariousfactors,suchasobjectattributesandimage
+quality,andtostructureitsoutputinaspecificJSONformat.Thisstructured
+outputcontainstask-specificdifficultiesandattributesthataffectmodelperfor-
+mance.Thetask-specificdifficultiesserveaslanguage-basedhypothesesforslice
+discovery(the‘search’typeintheprompt),whiletheattributesareusedfor
+data-drivenhypothesisgeneration(the‘cluster’typeintheprompt).Detailsare
+showninFig.S1.
+
+
+Data-drivenHypothesisGenerationPrompt
+
+ –GroundedAttribute-awareCaptionExtractionPrompt.Thisprompt
+   directsthemodeltofocusonaspecificimageregiondefinedbyboundingbox
+   coordinatesandtogenerateadescriptivecaptionthathighlightspotential
+   reasonsforfailurerelatedtoagivenattribute.Theattributeoriginatesfrom
+   the“cluster”typepromptsdiscussedintheprecedingsection.Thisprocessis
+   crucialforgeneratingfine-grained,instance-leveldescriptionsfromdatasets.
+   (DetailsareshowninFig.S2).
+ –AttributeInferencePrompt.Thissectionoutlinesatwo-stepprocess
+   forinferringattributevaluesfromcaptions.Inthefirststep,aprompt
+   instructsaLargeLanguageModel(LLM)toextractvaluesorkeywords
+   fromcaptionsbasedongivenattributes.Thesecondstepinvolvesprocessing
+   therawlistofextractedvaluesorkeywordsbyremovingduplicatesand
+
+=== PDF PAGE 19 ===
+                                       GH-ESD—SupplementaryMaterial     19
+
+    irrelevanttermsandorganizingtheremainderintosemanticallycoherent
+    categories.Thisstructuredprocesstransformsunstructuredoutputsfrom
+    theVision-LanguageModel(VLM)intoaclean,hierarchicalsetofattributes
+    andvaluesforsubsequentdata-drivenhypothesisgeneration.(Detailsare
+    showninFig.S3).
+ –RefinementPromptforGroundedQueryPhrases.Thisprompt
+    instructsthemodeltoconvertastructuredlistofsemanticattributesand
+    valuesintonaturallanguagehypothesessuitablefortext-to-imageretrieval.
+    Thestrictconstrainttopreservesemanticsensuresthattheresultingqueries
+    accuratelyreflectthediscoverederrorattributesandvalues,formingour
+    data-drivenhypothesis.(DetailsareshowninFig.S4).
+
+
+HypothesisMatchingPromptforPoint-basedGroundingSignal
+
+ –Point-basedprompttemplate.ThispromptshowninFig.S5grounds
+    hypothesistogetherwithpointsignalsbasedonVLMinference.
+
+
+HypothesisMatchingPromptforBoundingbox-basedGrounding
+Signal
+
+ –Boundingbox-basedprompttemplate.ThispromptshowninFig.S6
+    groundshypothesistogetherwithbboxsignalsbasedonVLMinference.
+
+
+S1.2  UserPromptsforHypothesisGenerationonSpecificDatasets
+
+Thefollowinguserpromptsareusedastaskcontexttogenerateknowledge-driven
+hypothesesforthespecifictasksordatasetsinGH-ESD.Thecorresponding
+systempromptsareshowninFig.S1.Eachpromptistailoredtothespecific
+characteristicsandchallengesofitsrespectivedataset.
+
+
+UserPromptsforGESDDatasetFortheGESD(GroundedErrorSlice
+Dataset)experiments,weusetwoseparateprompts:onefordetection-relatederror
+slicesandanotherforsegmentation-relatederrorslices.Theuserpromptusedfor
+objectdetectionhypothesisgenerationisshowninFig.S7,whichfocusesonthree
+mainerrortypes:falsepositives,falsenegatives,andmisclassification.FigureS8
+showsthecomprehensivepromptforinstancesegmentationtasks,addressing
+failuremodessuchasboundaryerrors,incompletemasks,over-segmentation,and
+under-segmentation.
+   Thesetask-specificuserpromptsenableGH-ESDtogeneratecomprehensive
+failurehypothesesthatcoverallrelevantaspectsofdetectionandinstance
+segmentationmodels,ensuringthoroughcoverageofpotentialerrorpatternsin
+instance-levelcomputervisiontasks.
+
+=== PDF PAGE 20 ===
+                               20     W.Zhangetal.
+
+                               UserPromptforWaterbirdsDatasetTheuserpromptfortheWaterbirds
+                               Datasetisasfollows:
+
+
+
+
+
+
+
+                               UserPromptforCelebADatasetTheuserpromptfortheCelebAdataset
+                               isasfollows:
+
+
+
+
+
+
+                               UserPromptforNICO++DatasetTheuserpromptfortheNICO++
+                               Datasetisasfollows:
+
+
+
+
+
+
+
+
+
+                               S1.3  SemanticRelevanceEvaluatorPrompt
+                               Eachalgorithmoutputisprocessedindividuallyusingthefollowingpromptfor
+                               semanticrelevanceevaluation:
+
+
+
+
+
+
+
+
+
+
+
+
+                               S2   GESD Dataset Details
+
+                               Thedistributionofdetectionandsegmentationerrorslicesissummarizedin
+                               thissection.FigureS9showsdetection-relatedslices,whileFig.S10shows
+                               segmentation-relatedslices.
+Ihaveadescriptionofanerrorpatternfromacomputervisionmodel,andalistof
+groundtrutherrorpatterns.
+Pleaseidentifywhichofthefollowinggroundtruthpatternsissemanticallythe
+sameasthe{algorithmoutput}.Forexample,Non-uprightface(nonverticalpose)is
+similartofaceswithextremeheadtilt,butnotsimilartobicyclelyingongroundor
+bicycleupsidedown.ThegroundtruthpatternsareprovidedbelowasanumberedAmodelisusedformulti-labelclassification,classifyingimagesintooneof
+list.sixcategories:mammals,birds,plants,airways,waterways,andlandways.
+PleaserespondwithONLYthenumberofthematchinggroundtruthpattern.IfThedatasetconsistsofreal-worldimagesofthesecategoriesappearing
+noneofthegroundtruthpatternsareagoodsemanticmatch,respondwith“-1”.Amodelthatclassifieswhetherabirdisawaterbirdoralandbird.The
+  insixdifferentcontexts(dimlighting,outdoor,grass,rock,autumn,and
+NOTE:ThegroundtruthpatternsandalgorithmpatternsshouldindicatethesameAmodelthatdetectswhetherapersoninanimagehasblondehair,datasetisconstructedbycroppingoutbirdsfromphotosandtransferring
+objects,context,conditionsandactions.water).themontodifferentbackgrounds.consideringvariousattributesoftheperson.
+
+=== PDF PAGE 21 ===
+                                        GH-ESD—SupplementaryMaterial     21
+
+TableS1:ComparisonofDifferentVLMsforHypothesisMatchingon
+NICO++(95%).GPT-4otestedwith10concurrentrequests.SigLIPtimesexclude
+embeddingextractionoverhead.
+
+              VLM         Precision@10       Speed
+              SigLIP               0.51       0.1s/1000images
+              GPT-4o              0.71       5min/1000images
+              Qwen2.5-VL-7B       0.69        10s/1000images
+
+
+   WereporterrorratesseparatelyforFalseNegative(FN)andFalsePositive
+(FP)errorsthatarerelatedtodifferentslices.FN-dominanterrors(missed
+detectionsorsegmentations)arecomputedasFN/     (TP+FN)overground-truth
+instances,whileFP-dominanterrors(over-segmentation,mis-segmentation,or
+mis-detection)arecomputedasFP/(TP+FP)overpredictedinstances.
+   Theleftpanelsshowtheabsolutenumberoferrors(redbars)togetherwith
+thetotalnumberofrelevantinstances(greybars),whiletherightpanelsshow
+thecorrespondingerrorrates.Thesestatisticsrevealthatsomeerrortypesare
+frequentinabsoluteterms,whereasothersexhibithigherconditionalerrorrates
+despitesmallersamplesizes.
+
+S3   More Detailed Experimental Results
+
+S3.1  LLMsandVLMsSelectioninGH-ESD
+
+WecomparedifferentLLMsforconstructingslicehypotheses:Gemini-2.5-Pro
+(ourchoice),GPT-4o,andClaude-3.5-Sonnet.Performancevariationsareminimal
+(0.69vs.0.68vs.0.67onNICO++(95%)),suggestingthattheconstructing
+methodisrobusttoLLMchoice.Thisrobustnessindicatesthattheworldknowl-
+edgeofpowerfulLLMinvisiontasksissufficientforanalyzingtask-intrinsic
+difficultiesanddatadistributionattributes.TheeffectivenessofGH-ESDprimar-
+ilydependsonthevision-languagegroundingcomponentratherthanthespecific
+languagemodelusedforhypothesisgeneration.
+   WeevaluatedthreedifferentVision-LanguageModels(VLMs)forhypothe-
+sismatchingtoanalyzethetrade-offbetweeneffectivenessandcomputational
+efficiency.AsshowninTab.S1,ourevaluationontheNICO++(95%)dataset
+revealsacleardistinctionbetweenmodelfamilies.
+   Embedding-basedmodelslikeSigLIPareexceptionallyfastduetotheiruse
+ofpre-computedembeddings,buttheyachievelowerprecisionastheirglobal
+representationsstrugglewithinstancediscriminationandgroundedreasoning.
+Incontrast,reasoning-basedmodelsdemonstratesuperiorperformance.While
+GPT-4oachievesthehighestprecision@10(0.71),itsAPIlatencyisprohibitive
+at5minutesper1,000images.
+   Qwen2.5-VL-7B,deployedlocallywiththevLLM[2]framework,offersthe
+bestpracticalbalance.Tooptimizeitsperformance,westructurethehypotheses
+
+=== PDF PAGE 22 ===
+22     W.Zhangetal.
+
+matchingpromptstosharethesamesystempromptandimageprefix.Leveraging
+prefillingtechnology,onlythetextintheuserpromptsrequiresprocessingafter
+theinitialhypothesismatchingscorecomputation.Furthermore,themodel’s
+outputisrestrictedto“yes”or“no”,whichmakesthedecodingprocesshighly
+efficient.Asaresult,itdeliverscompetitiveprecision(0.69)withasignificantly
+lowerlatencyof10secondsper1,000imagesononeA100GPU.Thismakesit
+ourchoiceforGH-ESD.
+   WeconductanablationstudyonlogitselectionofVLMtoevaluatestatistical
+robustness.Weevaluatethreedifferentmatchingscorecomputationstrategieson
+asubsetoftheGH-ESDbenchmark(mAPacross5runs):(1)usingaffirmative
+andnegativetokens(yes/nologits),whichachieves0.47;(2)usingdirectnumerical
+outputs,achieving0.23;and(3)acategorical“yes/no/not-sure”strategy,achieving
+0.18.DirectnumericaloutputssufferfromVLMregressioninstability,whilethe
+“yes/no/not-sure”strategyreintroducesquantizationerrorsanalogoustobinary
+tags.Bycontrast,theproposedyes/noprobabilisticlogitconversionprovides
+thesmoothestsignal,suppressingspuriousmatchesandfacilitatingmorerobust
+statisticalverification.
+
+
+S3.2  HiBugBaselineImplementationDetails
+
+ForcomparisonwithHiBugonourGESDdataset,wegeneratedacomprehensive
+attributecorpusfollowingtheHiBugmethodologyinteractively.Wegenerated
+visualattributesrelevanttoobjectdetectionfailuresbychattingwithChatGPT.
+TableS2presentsthecompletesetofattributesusedforHiBug’sinstance-level
+analysisondetectiontasks.
+   ThiscomprehensiveattributesetdemonstratesHiBug’ssystematicapproach
+throughpredefinedvisualattributes.Eachattributeisdesignedtocapture
+specificvisualcharacteristicsthatmaycontributetomodelfailures.Weprovide
+illustrationsoftheresultshereduetothesubjectivenatureoftheprocess.
+
+
+S3.3  GH-ESDResultsonGESDDataset
+
+DetailedResultsonGESDObjectDetectionDatasetTableS3provides
+comprehensivePrecision@10resultsforall21groundtrutherrorslicesinthe
+objectdetectionsetting,complementingthesummaryresultspresentedinthe
+mainpaper.GH-ESDachievesanoverallaveragePrecision@10of0.729,with5
+perfectmatchesandvalidpredictionsforallgroundtruthslices.
+   ThedetailedresultsrevealGH-ESD’seffectivenessacrossbothfalsepositive
+andfalsenegativeerrortypes.Themethoddemonstratesparticularlystrong
+performanceonsystematicfailurepatternssuchas“Redtrafficsignismistakenly
+detectedasstopsign”and“Artisticfaceismistakenlydetectedasface”achieving
+perfectPrecision@10scores.Evenforchallengingcaseslike“Nonverticalfaceinthe
+imagemissed”,GH-ESDmaintainscompetitiveperformancewithPrecision@10
+scoresof0.8.
+
+=== PDF PAGE 23 ===
+                                        GH-ESD—SupplementaryMaterial     23
+
+ResultsonGESDInstanceSegmentationDatasetTodemonstratethe
+generalizabilityofGH-ESDbeyondobjectdetection,weevaluateourmethodon
+instancesegmentationtasksusingtheGESDdataset.
+   TableS4presentsthedetailedPrecision@10resultsforall21groundtruth
+errorslicesintheinstancesegmentationsetting.GH-ESDachievesanoverall
+averagePrecision@10of0.805,demonstratingstrongperformanceacrossdiverse
+segmentationfailurepatterns.Themethodsuccessfullyidentifies8perfectmatches
+(Precision@10=1.0)andachievesvalidmatchesfor20outof21groundtruth
+slices.
+   TheresultsdemonstratethatGH-ESDeffectivelytransferstoinstanceseg-
+mentationtasks,maintaininghighprecisionacrossvariousfailuremodesincluding
+occlusionpatterns,objectstatevariations,andcontextualconfusionscenarios.
+Notably,themethodachievesperfectprecisiononchallengingslicessuchas
+“laptopkeyboardmergedwithlaptopbody”(fine-grainedobjectparts),“Tie
+boundaryunclearduetocolorblending”(visualsimilaritychallenges),andshape-
+relatedpatternslike“Slicedorangeunder-segmentedduetoshapechange”.The
+methodshowsrobustperformanceacrossdifferentobjectcategoriesincluding
+fruits,furniture,andeverydayobjects,withonlyoneslice:“Surfboardonland
+missed(expectedwatercontext)”receivingzeroprecision,indicatingthechallenge
+ofsegmentingsurfboardsinland-basedcontexts.
+
+S3.4 GeneralizationtoImage-levelBiasBenchmarkImplementation
+        Details
+Togetpredictionsformodelerrors,forWaterbirdsandCelebAexperiments
+weutilizepre-trainedmodelcheckpointsprovidedbyLADDER[1],whichwere
+trainedwithstandardempiricalriskminimization(ERM).ForNICO++ex-
+periments,wetrainmodelsfollowingtheFACTS[3],usingResNet-50with
+learningrate10     −5  andweightdecaysweepingover[10 −3  ,10−2  ,10−1  ,1.0,2.0]to
+amplifyspuriouscorrelations.Wereporttheperformancemetricsdirectlyfrom
+theoriginalpapersforallcomparedmethods.ForLADDERonNICO++,where
+resultswerenotavailable,wegeneratedthembyrunningtheFACTStraining
+codes[3]andLADDER’sslicefindingcodes.
+
+S3.5  ModelRepairExperimentSetupDetails
+ObjectDetectionModelRepaironInstance-levelPatternsWeevaluate
+theactionabilityofdiscoveredslicesviamodelrepairexperimentsonobject
+detectiontasks.WeusetheCOCObicyclesubset(3,252images,7,113bicycle
+instances)andapretrainedFasterR-CNN(ResNet-50-FPN)model.Thebaseline
+repairmethodisfine-tuningonallCOCOimagescontainingatleastonebicycle
+instance.OptimizationusesSGD(momentum0      .9),weightdecay5  ×10−4 ,batch
+size16,initiallearningrate1           ×10−5 ,andaMultiStepLRschedulerwithmilestones
+atepochs8and11(γ=0.1)foratotalof10epochs.
+   Hypothesismatchingscoresofinstancesforthevalidatederrorslice“bicycle
+partiallyoccludedbyaperson”arecomputedbyGH-ESDslicediscoverymethod.
+
+=== PDF PAGE 24 ===
+24     W.Zhangetal.
+
+Theimage-levelbinaryattributeisdefinedas1  {max instancessi≥ 0.9},where si
+istheinstancescore.Eachobjectclassdefinesagroup(e.g.,         person, bicycle).
+Forexample,apair(person,True)denotesapersoninstanceco-occurring
+withalikely“bicyclepartiallyoccludedbyaperson”case,whereas(   bicycle,
+False)representsabicycleinstancewithnosuchocclusioninthesameimage.We
+initializeweightsuniformlyacrossall(group,attribute)pairs.Onlydetection-head
+losses(classificationandboxregression)arereweighted;RPNlosses(objectness,
+RPNbox)remainunweightedandareaddeddirectlytothetotalloss.
+   Forthegroundedrepair,weadapttheonlineGroupDROframeworkto
+instance-levelobjectives.Eachobjectclassistreatedasagroup,andanimage-
+levelbinaryattributeisdefinedbythresholdingthemaximuminstance-level
+hypothesismatchingscoreat0.9.Per-grouplossesarecomputedbyaggregating
+proposal-levelclassificationandregressionlosseswithineachgroup.Theweighted
+detection-headlossisthen
+                                          P
+                                 ˜Lhead =   PuquLu
+
+                                              uqu  ,
+whereLuisthemeandetectionlossforgroup uand quisitscurrentweight.The
+totallossaddsunweightedRPNterms:
+
+                      Ltotal = ˜Lhead+L RPN,obj+L RPN,box,
+
+whereLRPN,objandLRPN,boxaretheRPNobjectnessandboundingboxregres-
+sionlosses,respectively.
+   Aftereachiteration,groupweightsareupdatedonlineas
+
+                       qu←q    uexp(ηL          u),    q u←q    u/Xqv,
+                                                         v
+
+with η= 10−5 .TheGroupDROvariantusesbatchsize16,learningrate5            ×10−5 ,
+andthesameoptimizersettingsandschedulerasthebaseline.
+   Insummary,eachiterationaggregatesinstancelossesbygroup,computesa
+reweighteddetection-headloss,addsRPNlosses,andupdatesthegroupweights
+usingtheexponentialruleabove.Uniformweightinitializationisappliedatthe
+startoffine-tuning,andallotherarchitecturaldetailsfollowthemaintext.
+
+
+ModelRepaironImageClassificationWealsoconductmodelrepairexperi-
+mentsonCelebAandWaterbirds,followingtheofficialLADDERimplementation.
+WeusethepretrainedResNetweightsandtheauthor-releaseddiscoveredslices
+providedbyLADDER,andmodifyonlythefinalerror-mitigationstageinthe
+officialtrainingscriptsforCelebAandWaterbirds.ForLADDER,wefollowits
+originalrepairprocedure:eachdiscoveredslicedefinesahypothesismatching
+scoreovervalidationsamples.Foreveryslice,wefine-tuneaseparateclassifier
+usingthetopandbottom nsamplesbysimilarityandaggregatepredictionsvia
+LADDER’sensemble.
+
+=== PDF PAGE 25 ===
+                                       GH-ESD—SupplementaryMaterial     25
+
+   ForFACTS,Domino,andGH-ESD,thediscoveredslicesexistonlywithin
+localsubsets,oftencontainingfewersamplesthanrequiredbyLADDER’sper-
+slicetraining.Thus,weadopttheunifiedDeepFeatureReweighting(DFR)
+framework,whichservesastheunderlyingprocedureusedinLADDER.
+   Foreachsample,wecomputeasinglehypothesismatchingscorebytaking
+themaximumacrossalldiscoveredslices,representingthelikelihoodofany
+failurepattern.Fine-tuningisappliedonlytotheclassifierheadonthetopand
+bottomsubsetsrankedbythisscore,producingasinglerepairedclassifierwithout
+ensembleaggregation.AllhyperparametersmatchtheofficialLADDERscripts
+exceptthatwerandomizetherandomseedforeachruntocomputestandard
+deviationswhiletheoriginalLADDERimplementationusesafixedseed.
+
+
+S4   Error Slice Discovery Tool based on GH-ESD
+
+TodemonstratethepracticalutilityofGH-ESD,wedevelopedaproduction-ready
+toolforerrorslicediscoveryincomputervisionsystems.WhiletheGH-ESD
+describedinourpaperisanautomatedpipelinegivenataskcontextforevaluation
+purposes,thedeployedtoolisdesignedforaninteractiveworkflow.Itprovidesa
+userinterfacethatallowshumanexpertisetobeincorporatedintoeachstageof
+thediscoveryprocess.Thefollowingscreenshotsillustratethekeycomponentsof
+ourimplementationacrossdifferentstepsontheWaterbirdsdataset.
+
+
+S4.1  InteractiveChatInterfaceforHypothesisConstruction
+
+FigureS11showsthemaininterfaceofthetool,featuringadual-paneldesign
+withadatagalleryontheleftfordatasetvisualizationandaninteractivechatbox
+ontherightforconversationalhypothesisconstructionanddataretrieval.
+
+
+S4.2  HypothesisSelectionandSubmission
+
+FigureS12demonstratesthehypothesisselectioninterface,whereuserscan
+reviewGH-ESDconstructedfailurepatternhypothesesandselectthemost
+promisingcandidates.Theinterfaceallowsuserstosubmitselectedhypotheses
+forinstance-levelmatchingandstatisticalverification.
+
+
+S4.3  HypothesisVerificationTaskManagement
+
+FigureS13presentsthetaskmanagementinterface,whichdisplaysallsubmitted
+hypothesesalongwiththeirvalidationstatus.Eachhypothesis-validationtask
+runsasynchronously,allowinguserstomonitorprogressandaccessresultsupon
+completion.Thesetasksareexecutedinbatchestoimproveperformancethrough
+prefillingandbatchedrequestoptimizationinthevLLMframework.
+
+=== PDF PAGE 26 ===
+26     W.Zhangetal.
+
+S4.4  ErrorSliceHypothesisVerification
+
+FigureS14showsanexampleofthestatisticalanalysisresultsforavalidated
+hypothesis.Theinterfacepresentsthestatisticalrelationshipbetweenhypothesis
+matchingscoresandperformancemetric(e.g.,accuracy).Unlikeexperimentsin
+thepaper,whichreporterrorratesastheperformancemetric,thetoolsupports
+analysisusingeitheraccuracyorerrorrate,andtheanalysisadaptsautomatically
+totheselectedmetric.Thisprovidesrobustevidencesupportingthevalidityof
+thediscoverederrorslicesacrossmultiplemetrics.
+
+References
+
+1. Ghosh,S.,Syed,R.,Wang,C.,Choudhary,V.,Li,B.,Poynton,C.B.,Visweswaran,S.,
+   Batmanghelich,K.:LADDER:Language-drivenslicediscoveryanderrorrectification
+   invisionclassifiers.In:FindingsoftheAssociationforComputationalLinguistics:
+   ACL.pp.22935–22970(2025)
+2. Kwon,W.,Li,Z.,Zhuang,S.,Sheng,Y.,Zheng,L.,Yu,C.H.,Gonzalez,J.E.,Zhang,
+   H.,Stoica,I.:Efficientmemorymanagementforlargelanguagemodelservingwith
+   pagedattention.In:ProceedingsoftheACMSIGOPS29thSymposiumonOperating
+   SystemsPrinciples(SOSP)(2023)
+3. Yenamandra,S.,Ramesh,P.,Prabhu,V.,Hoffman,J.:Firstamplifycorrelations
+   andthenslicetodiscoverbias(FACTS).In:ICCV(2023)
+
+=== PDF PAGE 27 ===
+                                                                                                        GH-ESD—SupplementaryMaterial     27
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     SystemPromptforKnowledge-drivenHypothesisGeneration
+
+     You are an expert in computer vision failure analysis. A user will provide the  {Task
+     Description}(e.g.,"acatbodydetection").Yourgoalistoidentifyandlistallpossi-
+     blereasonswhyacomputervisionmodelmightfailonthistask.Inyouranalysis,considera
+     comprehensivesetoffactors,includingbutNOTLIMITEDTO:
+     –ObjectAttributesandinteractions
+     –BackgroundDescriptions
+     –ImageQualities
+     –EnvironmentalConditions
+     –Limitationsinhandlingedgecasesorextremeconditions
+     –Cameracapturingconditions
+     –Anyadditionaldomain-specificchallenges
+     Forthegiventaskdescription,generateastructuredanddetailedlistoffailurehypotheses.
+     Youroutputmustinclude:
+     –Comprehensivedifferentfactors(e.g.,ObjectAttributes,ImageQualities,etc.).
+     –Undereachfactor,listcomprehensivefailurepatterns.
+     –Foreachfailurepattern,include:
+           •Atitlethatsummarizesthepotentialfailurereason.
+           •Adescriptionthatexplainsindetailwhythismightbeanissue.
+           •Alistofpromptstofurtherexplorethehypothesis.Eachpromptmustinclude:
+                 ∗Apromptfieldwithaspecificqueryorclusterdescription.
+                 ∗ Atypefield,wherethevalueiseither“cluster”or“search”.Use“cluster”ifthe
+                    promptprovidesabroaddescriptionwithmanypossibleattributesforfurther
+                    investigation(e.g.,“catcolors”or“cattypes”).Use“search”ifthepromptcan
+                    bedirectlyusedtoretrieverelevantimages(e.g.,“awhitecat”).
+     –IMPORTANT:Ensurethatyourfinaloutputdoesnotcontainanyduplicatefailure
+        patternsorprompts.EveryentrymustbeuniqueanddirectlyrelevanttoimageretrievalFig.S1:Thedetailedsystempromptforgeneratingacomprehensivesetofknowledge-
+        orimageclustering.                     drivenhypotheses.The {Task  Description}placeholderisreplacedwiththespecific
+     Pleasethinkthroughatleastthreeiterationsinternallytoensurecompleteness,accuracy,
+     anduniqueness.Then,outputyourfinalresultsinavalidJSONobjectformattedexactlyastaskbeinganalyzed.
+     follows:
+
+ 1   {
+ 2        "title":"Possible   failure   reasons   for[task   description]model",
+ 3        "hypothesis":{
+ 4            "Object   Attributes":[
+ 5                 {
+ 6                      "title":"[Short   title   for   failure   pattern1]",
+ 7                      "description":"[Detailed   explanation]",
+ 8                      "prompts":[
+10                             "prompt":"[related   query   or   cluster   description   term]",9                           {
+11                             "type":"[cluster   or   search]"
+12                        },
+13                        ...
+14                   ]
+15              },
+16              ...
+17         ],
+18         "Background   Descriptions":[...],
+19         ...  (other   categories   as   comprehensively   as   possible)
+20     }
+21}
+
+=== PDF PAGE 28 ===
+                                  28     W.Zhangetal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  Fig.S2:ThepromptusedtoinstructtheVision-LanguageModel(VLM)forgrounded
+                                  attribute-awarecaptionextraction.The {Attribute}placeholderisreplacedwiththe
+                                  specificattributebeinganalyzed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GroundedAttribute-awareCaptionExtraction
+
+YouareanAImodeldesignedtoanalyzeimagesandprovidedetailedcaptionsforaspecific
+regionrelevanttothe {Attribute}.Thespecifiedregionisdefinedbyboundingboxcoordinates
+intheformat[xmin,  ymin,  xmax,  ymax].
+
+=== PDF PAGE 29 ===
+                                                                           GH-ESD—SupplementaryMaterial     29
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Two-StepPromptforAttributeInference
+
+Step1:AttributeValueorKeywordExtraction
+Youwillbegivenadescriptionofthe {Attribute}.Yourjobistodetermine
+themostrelevant {Attribute}basedontheprovideddescription.Don’treturn
+anythingexcepttheresult.
+ExampleInput:
+
+Attribute:  activity
+Caption:  The  image  depicts  a  person  performing  a  handstand  on  a  purple
+mat  in  a  spacious,  well-lit  room  with  white  walls  and  a  high  ceiling.
+
+ExpectedOutput:
+
+handstand
+
+Ifthedescriptionisirrelevantto{Attribute},pleaseoutput’none’.
+Now,processtheprovidedlist:
+
+
+Step2:KeywordRefinementandClustering
+Youareahelpfultextclusteringassistant.Youwillbegivenalistofkeyword
+text.Yourjobistorefineandcategorizethelisttoclusters.Yourgoalisto
+processtheprovidedkeywordlistto:
+
+  •EliminateDuplicateSemantics:Identifyandremovekeywordsthat
+    representsimilarmeaning,evenifexpresseddifferently(e.g.,’car’and
+    ’automobile’).
+  •Eliminateirrelevantkeywords:Identifyandremovekeywordsthatare
+    notrelatedto{Attribute}.
+  •GroupintoCategories:Organizekeywordsintodistinct,non-overlapping
+    categoriesbasedontheirmeaningandcontext.
+  •EnsureClarity:Avoidoverlybroadoroverlynarrowcategories.EachFig.S3:Thepromptsusedforattributeinferenceviatextclustering.Step1extracts
+    keywordshouldfitlogicallywithinitsassignedcategory.relevantvaluesfromattributesandcaptions,andStep2clustersthemintosemantic
+
+ExampleInput:                  categories.The {Attribute}placeholdersarereplacedwiththespecificattributebeing
+                               analyzed.
+[’car’,  ’automobile’,  ’vehicle’,  ’bike’,  ’bicycle’,  ’motorcycle’,
+’transport’]
+
+ExpectedOutput(JSONformat):
+
+{"transport":["car",  "bike",  "motorcycle"]}
+
+Pleasethinkandimproveyourresultsatleastthreeturns.Andtheneliminate
+duplicatesemanticsinonemoreturn.Now,processtheprovidedkeywordlistand
+outputthefinalresultsinJSONformatattheendwithunique,non-overlapping
+semantics.
+
+=== PDF PAGE 30 ===
+                                   30     W.Zhangetal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   Fig.S4:Thepromptusedforrefiningattributesandvaluesintogroundedqueryphrases.
+                                   The {Attribute}placeholderisreplacedwiththespecifictaskcontextandattribute
+                                   beinganalyzed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   Fig.S5:The prompt for grounded hypothesis matching with point signals. The
+                                  {Hypothesis}and {(x,y)}placeholdersarereplacedwiththespecifichypothesisand
+                                   thepointcoordinatesbeinganalyzed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   Fig.S6:Thepromptforgroundedhypothesismatchingwithboundingboxsignals.The
+                                  {Hypothesis}placeholderandcoordinatesarereplacedwiththespecifichypothesisand
+                                   regionbeinganalyzed.
+   RefinementPromptforGroundedQueryPhrases
+
+   YouwillbegivenaJSONlistofattributeswithvaluesorclusternameswith
+   categories.Theseclusternamesaresummarizedfromdescriptionsrelatedtothe
+  {Attribute}.Yourjobistocomposeatexttoimageretrievalpromptfromeach
+   categoryanditeminthelist.Thepromptshouldbephrasesorsentencesnot
+   keywordsandonlycontainthegiveninformation.
+   Youcanstartorendwithgeneraldescriptions,forexample“aphotoof”etc.
+   PleaseDONOTaddormodifythecontextandsemantics.TheoutputJSON
+   Point-basedPromptTemplate
+   formatis:
+   BoundingBox-basedPromptTemplate
+1  {"results":[prompt1,prompt2,...]}"If  the  region  pointed  to  by  point_2d: (x,y)  matches  the
+   description  {Hypothesis},  please  answer  yes  else  no."  where(        x,y)"If  the  region [xmin,ymin,xmax,ymax]  matches  the  description
+  {Hypothesis},  please  answer  yes  else  no."Nowprocessthelistandgeneratepromptsonebyoneforeachitem.denotesthe2Dcoordinatewithintheerrorregion.
+
+=== PDF PAGE 31 ===
+                                                                            GH-ESD—SupplementaryMaterial     31
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                Fig.S7:Thespecializeduserpromptusedforobjectdetectionknowledge-driven
+                                hypothesisgenerationontheGESDdataset.Thepromptfocusesonthethreemain
+                                typesofdetectionerrors:falsepositives,falsenegatives,andmisclassification.The
+                               {label}placeholderisreplacedwiththespecificobjectclassbeinganalyzed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UserPromptforGESDInstanceSegmentationHypothesisGenerationFig.S8:Thespecializeduserpromptusedforinstancesegmentationknowledge-driven
+                                hypothesisgenerationontheGESDdataset.Thispromptaddressescomprehensive
+AnInstanceSegmentationmodeldesignedtodetectandsegment {label}.Thinkerrors(falsepositives,falsenegatives,misclassification,boundaryerrors,incomplete
+systematicallyfromthefollowingperspectives,anddescribepossiblescenariosmasks,over-segmentation,under-segmentation)tocoverpotentialfailurepatterns
+foreachtypeoferrorbelow:        thoroughlyininstancesegmentationtasks.The {label}placeholderisreplacedwith
+FalsePositive:Inwhatsituationsmightotherobjectsbemistakenlysegmentedthespecificobjectclassbeinganalyzed.
+as{label}?
+UserPromptforGESDObjectDetectionHypothesisGeneration
+FalseNegative:Inwhatsituationsmight{label}failtobesegmented?
+Misclassification:Inwhatsituationsmight                                  {label}beincorrectlysegmented
+Anobjectdetectionmodeldesignedtodetect {label}.Specifically,consider
+asanotherobjectclass?
+anddescribepossiblescenariosforthefollowingtypesoferrors:
+BoundaryError:Whenmightthesegmentationmaskboundarydeviatefrom
+FalsePositive:Inwhatsituationsmightotherobjectsbemistakenlydetectedthetrueobjectcontour(e.g.,occlusion,unevenlighting,blurryedges)?
+as{label}IncompleteMask:?Whenmightthemodelsegmentonlypartofthe             {label}
+insteadoftheentireobject?
+FalseNegative:Inwhatsituationsmight    {label}failtobedetectedbythe
+Over-segmentation:Whenmightthemodelmistakenlysplitone              {label}
+model?
+instanceintomultiplesegments?
+Under-segmentation:Misclassification:Inwhatsituationsmight                                   {label}beincorrectlydetectedWhenmightthemodelmergemultiplenearby              {label}
+instancesintoasinglemask?asanotherobjectclass?
+
+=== PDF PAGE 32 ===
+32     W.Zhangetal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.S9:Distributionofinstance-leveldetectionerrorstatisticsontheGESD
+dataset.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.S10:Distributionofinstance-levelsegmentationerrorstatisticsonthe
+GESDdataset.
+
+=== PDF PAGE 33 ===
+                                                                                                                      GH-ESD—SupplementaryMaterial     33
+
+
+                                                    TableS2:HiBugattributecorpusgeneratedforinstance-levelerrorslice
+                                                    discoveryonGESDdataset.AttributesaregeneratedinteractivelyusingChatGPT
+                                                    followingHiBugmethodology.Eachattributeincludescategoricalvalues,prompttem-
+                                                    plates,andevaluationquestionsforsystematicanalysis.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Attribute       Type    Values          PromptTemplate       EvaluationQuestion
+ObjectReality      Description real_object,     im-           Adetectedobjectinobjectreal-      Whatistheobjectinthephoto,andisit
+                                     age_in_image,             ity                              atruerepresentationofreality?
+                                     artistic_rendering,
+                                     reflection_mirror,
+                                     screen_display
+ImageSharpness    Description very_sharp,   sharp,            Adetectedobjectwithsharpim-       Howwouldyouratethesharpnessofthe
+                                     slightly_blurry, blurry,  age_sharpness                    detectedobjectinthephoto?
+                                     very_blurry
+ObjectVisibility    Description 100_percent, 80_per-          Adetectedobjectwith90%ob-         Whatistheobject_visibility_percentage
+                                     cent,       50_per-       jectvisibility                   ofthedetectedobjectinthephoto?
+                                     cent,    30_percent,
+                                     less_than_20
+VehicleSubtype     Description car,truck,bus,trailer,         AdetectedcarwithaSUVsub-          Whatisthevehicle_subtypeofthede-
+                                     van,motorcycle,bicycle,   type                             tectedobjectinthephoto?
+                                     stroller,cart,dumpster
+PersonActivity     Description standing, walking, sit-        A#DETECTED_OBJECTdo-              Whatistheactivityofthepersoninthe
+                                     ting,  riding_bicycle,    ing#1                            photo?
+                                     in_vehicle,  running,
+                                     lying
+FaceAgeGroup     Description infant, child, teenager,         A#LABELintheyouth#1   Whatagegroupdoesthedetectedobject’s
+                                     young_adult,adult,el-                                      facebelongtointhephoto?
+                                     derly
+FaceOrientation    Description upright_frontal,  up-          A  #LABEL  with  #1               Whatistheorientationofthefaceinthe
+                                     right_side,    tilted,    face_orientation                 detectedobjectinthephoto?
+                                     horizontal,upside_down
+ObjectState       Description closed, partially_open,         A#LABELinmotion       Whatistheobject_stateofthedetected
+                                     fully_open,in_use,idle                                     objectinthephoto?
+ObjectMaterial     Description solid,paper,metal,glass,       A#1ballwithmetalmaterial  Whatmaterialisthedetectedobjectin
+                                     plastic,fabric                                             thephotomadeof?
+ObjectScale       Description fills_frame, dominates,         Adetectedobjectwithasmall         Whatistheobject_scale_in_frameof
+                                     medium,small,tiny         objectscaleintheframe            thedetectedobjectinthisphoto?
+ObjectSize       Description small,medium,large   A #LABEL with small ob-                       Whatisthesizeofthedetectedobjectin
+                                                               ject_size                        thephoto?
+OcclusionLevel     Description not_occluded,   par-           Adetectedobjectwithlowocclu-      Whatistheocclusionlevelofthedetected
+                                     tially_occluded, heav-    sionlevel                        objectinthephoto?
+                                     ily_occluded
+MotionBlur       Binary    yes,no           -                    Isthedetectedobjectinthephotoshow-
+                                                                                                ingsignsofmotionblur?
+LightingCondition   Description bright,normal,dark   An#LABELin#1lightingcon-                   Whatisthelightingconditionofthede-
+                                                               dition                           tectedobjectinthephoto?
+ViewAngle       Description frontal,side,back,top  A#LABELfroma#1viewangle Whatistheviewangleofthedetected
+                                                                                                objectinthephoto?
+ObjectTruncation   Description complete,      par-            Atruncateddetectedobject   Whatistheobject_truncationvalueof
+                                     tially_truncated, heav-                                    thedetectedobjectinthephoto?
+                                     ily_truncated
+ColorContrast     Description low_contrast,                   A#LABELwithhighcolorcon-          Whatisthecolorcontrastofthedetected
+                                     medium_contrast,          trast                            objectinthephoto?
+                                     high_contrast
+BackgroundClutter  Description simple_background,             A #LABEL with busy back-          Whatisthebackgroundclutterofthe
+                                     moderate_clutter,         ground_clutter                   detectedobjectinthephoto?
+                                     heavy_clutter
+ObjectDistance     Description close,medium,far     Adetectedobjectatclosedis-                  Whatisthedistanceofthedetectedob-
+                                                               tance                            jectinthephoto?
+ObjectPose       Description upright,tilted,horizon-          An#LABELina#1pose    Whatistheposeofthedetectedobject
+                                     tal,inverted                                               inthephoto?
+Mirror/GlassPresence Binary    yes,no           -                    Isthereamirrororglasspresentinthe
+                                                                                                photo?
+ColorSimilarity     Description distinct,      simi-          A #LABEL with #1 ob-              Whatisthesimilaritybetweenthede-
+                                     lar_to_background,        ject_color_similarity            tectedobjectandthecolorofthephoto?
+                                     blends_with_background
+ObjectReflection    Description no_reflection,                Adetectedobjectwithashiny         Whatdoesthedetectedobjectinthe
+                                     slight_reflection,        reflection                       photoreflect?
+                                     strong_reflection
+TimeofDay       Description morning, noon, after-             Askywithmorninglight     Whatisthetimeofdayofthedetected
+                                     noon,evening,night                                         objectinthephoto?
+TexturePattern     Description smooth,textured,pat-           A#LABELwith#1texturepat-          Whatisthetexturepatternofthede-
+                                     terned                    tern                             tectedobjectinthephoto?
+PartialVisibility    Binary    yes,no           -                    Isthedetectedobjectinthephotopar-
+                                                                                                tiallyvisible?
+
+=== PDF PAGE 34 ===
+                                    34     W.Zhangetal.
+
+
+
+
+
+
+                                    TableS3:DetailedresultsonGESDobjectdetectiondataset.Complete
+                                    Precision@10scoresforeachgroundtrutherrorslice,showingthebreakdownofGH-
+                                    ESDperformanceacrossdifferentfailuretypes(FP:FalsePositive,FN:FalseNegative).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GTID GTSliceName     GTSize BestPredictedSlice             P@10
+   0   Strollertrolleyismistak-       33    foldingbicycle                       0.2
+         enlydetectedasabicycle
+   1   Blurryfacemissed       2265   faceswithmotionblur                 0.5
+   2   Carsthatarepartially          1558   Carsthataremorethan30%obscured     0.8
+         obscuredmissed.
+   3   Nonphysical face (e.g.,       1127   Facesonscreens:afaceappearingona              0.7
+         facereflectedinamirror)              TV,computermonitor,orphonewithin
+         ismistakenlydetectedas               theimage.
+         face
+   4   Paperismistakenlyde-           334   Notebooks,journals,orplannersthatlook         0.5
+         tectedasbook                         likeabook
+   5   Redtrafficsignismistak-       2449   redoctagonalobjectnearstopsign    1.0
+         enlydetectedasstopsign
+   6   Personinthecarmissed   249   outoffocusperson                   0.9
+   7   Closedumbrellamissed    78    Closedumbrella                      0.6
+   8   Artisticfaceismistakenly      1000   Statues,busts,orsculptures    1.0
+         detectedasface
+   9   Partialfacemissed       1672   facespartiallyhiddenbyobjects         0.8
+  10   Vasewithnofloweror             136   Vasewithnoflowerorplantsinside       0.5
+         plantsinsidemissed
+  11   Babyfacemissed         108   babyfaces                   1.0
+  12   Trailerismistakenlyde-         242   Trailersthatlooklikeatruck            0.7
+         tectedastruck
+  13   Dumpsterismistakenly           604   Dumpstersorlargebinsthatlooklikea             1.0
+         detectedastruck                      truck
+  14   Artificialfaceismistak-        305   objectsresemblingfaces                0.4
+         enlydetectedasface
+  15   Openbookmissed        29    anopenbook                       0.9
+  16   Watchmissedwhende-             25   watchthatlookslikeaclock          1.0
+         tectingclock
+  17   Opensuitcasemissed      12    suitcasethatwillnotclose              0.8
+  18   Bicycles seen from the         335   bicyclepartiallyoccludedbyaperson     0.8
+         front/backthatbeingrid-
+         den/pushedbypeople
+  19   Carswithopendoorsare           127   Freightcarsthatlooklikeatruck         0.4
+         mistakenly detected as
+         truck
+  20   Nonverticalfaceinthe           64    faceswithextremeheadtilt             0.8
+         imagemissed
+AveragePrecision@10                                          0.729
+PerfectMatches(P@10=1.0)                                    5/21
+ValidMatches(P@10>0)                                       21/21
+
+=== PDF PAGE 35 ===
+                                                                                  GH-ESD—SupplementaryMaterial     35
+
+                                    TableS4:DetailedresultsonGESDinstancesegmentationdataset.Preci-
+                                    sion@10scoresforeachgroundtrutherrorslice,showingGH-ESD’sperformanceacross
+                                    diversesegmentationfailurepatterns.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GTID GTSliceName     GTSize BestPredictedSlice             P@10
+   0   Clustered    bananas          183   bananabunch                       0.8
+         merged,    boundaries
+         unclear
+   1   Airplane boundary ex-          25    airplaneswithcustompaintjobs         0.9
+         pandedunderocclusion
+   2   Bedover-segmentedwith          36    petlyingonbed                     0.9
+         pet
+   3   Laptopkeyboardmerged          136   laptopkeyboard                1.0
+         withlaptopbody
+   4   Papermis-segmentedas          334   Notebooks,journals,orplannersthatlook         0.7
+         book                                likeabook
+   5   Apple   logo   mis-            34    partiallyoccludedapple                0.7
+         segmentedasapple
+   6   Tieboundaryuncleardue          82    tiessimilartootherclothing     1.0
+         tocolorblending
+   7   Sliced  carrot  under-        432   bunchesofcarrots                    0.9
+         segmentedduetoshape
+         change
+   8   Adjacent toys merged           81    teddybearwithaccessories     1.0
+         withteddybear
+   9   Clustered     oranges          37    pileoforanges                       0.7
+         merged,    boundaries
+         unclear
+  10   Open suitcase missed           12    overstuffedandbulgingsuitcase          0.6
+         (non-canonicalform)
+  11   Openbookmisseddueto            29    openbook                          0.6
+         shapevariation
+  12   Clusteredapplesmerged,         45    appleinfruitstand             1.0
+         boundariesunclear
+  13   Sliced banana under-           90    Bananaslice                        0.7
+         segmentedduetoshape
+         change
+  14   Closedumbrellamissed           78    Closedumbrella               1.0
+         (non-typicalpose)
+  15   Vase without flowers          136   Vasewithnoflowersorplantsinside       0.6
+         missed due to context
+         prior
+  16   Sliced  orange  under-         97    orangeslice                   1.0
+         segmentedduetoshape
+         change
+  17   Bedover-segmentedto-           44    personlyingonbed               1.0
+         getherwithperson
+  18   Surfboardonlandmissed          36   -                                 0.0
+         (expectedwatercontext)
+  19   Watchmissedwhenseg-            25   watchthatlookslikeaclock          1.0
+         mentingclock
+  20   Sliced  apple  under-          82    appleslice                          0.8
+         segmentedduetoshape
+         change
+AveragePrecision@10                                          0.805
+PerfectMatches(P@10=1.0)                                    8/21
+ValidMatches(P@10>0)                                       20/21
+
+=== PDF PAGE 36 ===
+36     W.Zhangetal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.S11:Maintoolinterfacewithinteractivechatfunctionality.Theleftpanel
+displaysthedatagalleryfordatasetvisualization,whiletherightpanelprovidesa
+conversationalinterfaceforuserstointeractwiththeLLMforhypothesisgeneration
+anderrorslicediscoverytasks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.S12:Hypothesisselectionandsubmissioninterface.Userscanreview
+automaticallygeneratedfailurepatternhypotheses,assesstheirplausibility,andsubmit
+selectedcandidatesforvalidation.
+
+=== PDF PAGE 37 ===
+                                           GH-ESD—SupplementaryMaterial     37
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.S13:Hypothesisverificationtaskmanagementinterface.Theinterface
+displaysallsubmittedvalidationtaskswiththeircurrentstatus,allowinguserstotrack
+progressandaccesscompletedresultsincludinghypothesismatchingandstatistical
+verificationresults.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fig.S14:Statisticalhypothesisverificationresultsinterface.Exampleshow-
+ingthestatisticalhypothesisverificationthroughmonotonictrendanalysisbetween
+hypothesismatchingscoresandmodelperformance,demonstratingrobustevidence
+fordiscoverederrorslices.NotethattheY-axisinthisexampleismodel accuracy,not
+model error rate;therefore,adownwardtrend(ratherthananupwardtrend)ofthe
+curvesuggestsitisafailurepattern.

@@ -54,3 +54,12 @@ created: "2026-11-04"
 - [[研究前沿/面向决策的履约建模/02-可复用方法卡/LatentForesight-action-consistency|真实与预测转移共享逆动作头的表示约束]]
 - [[研究前沿/面向决策的履约建模/02-可复用方法卡/LatentForesight-joint-prefix-scoring|目标进展与联合时序先验重排动作前缀]]
 - [[研究前沿/uplift模型迭代/02-可复用方法卡/DoubleDiagonal-inventory-correction|利用四格预约率的库存干扰对照估计]]
+
+## 2026-11-09 新增与关联
+
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/PerturbedGreedy-persistent-seed|资源固定种子的扰动贪心]]
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/StructuredStoppingQ-generator-q|带停止罚项的生成算子 q 函数]]
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/AdaptiveMatchingQueries-round-cap|乐观图逐轮匹配的端点查询上界]]
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/AdaptiveMatchingQueries-interior-first|稀缺端点延后询问与批内中止]]
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/NonlinearStoppingDual-local-certificate|从当前时点构造停止价值的非线性上界]]
+- [[研究前沿/动态等待与匹配决策/02-可复用方法卡/DFQI-目标与源市场的 Bellman 联合回归|目标与源市场的 Bellman 联合回归]]

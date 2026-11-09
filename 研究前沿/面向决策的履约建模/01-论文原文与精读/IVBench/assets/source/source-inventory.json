@@ -1,0 +1,199 @@
+{
+  "source": "https://arxiv.org/html/2611.05907v1",
+  "pdf_sha256": "d0ad67842b3df10a2024360da2f5ea205461bfc4418b43ccc45b80401262528c",
+  "sections": [
+    [
+      "S1",
+      "1 Introduction"
+    ],
+    [
+      "S2",
+      "2 Related work"
+    ],
+    [
+      "S3",
+      "3 A benchmark of real within-trial contrasts"
+    ],
+    [
+      "S4",
+      "4 Interventional skill"
+    ],
+    [
+      "S5",
+      "5 Experiments"
+    ],
+    [
+      "S5.SS1",
+      "5.1 Systems"
+    ],
+    [
+      "S5.SS2",
+      "5.2 Held-out accuracy looks fine for everyone"
+    ],
+    [
+      "S5.SS3",
+      "5.3 The registry-trained simulator has no interventional skill"
+    ],
+    [
+      "S5.SS4",
+      "5.4 Language models have interventional skill, in proportion to scale"
+    ],
+    [
+      "S5.SS5",
+      "5.5 How blind is blind?"
+    ],
+    [
+      "S5.SS6",
+      "5.6 Reliability: coverage, ranking and error control"
+    ],
+    [
+      "S6",
+      "6 Discussion"
+    ],
+    [
+      "S7",
+      "7 Responsible-use statement"
+    ],
+    [
+      "A1",
+      "Appendix A Benchmark construction and data card"
+    ],
+    [
+      "A2",
+      "Appendix B Features, models and hyperparameters"
+    ],
+    [
+      "A3",
+      "Appendix C Conformal and selective prediction"
+    ],
+    [
+      "A4",
+      "Appendix D Language-model arm"
+    ],
+    [
+      "A5",
+      "Appendix E Full result tables"
+    ],
+    [
+      "A6",
+      "Appendix F Screen of NeurIPS 2025 workshop papers"
+    ]
+  ],
+  "figures_tables": [
+    [
+      "S4.F1",
+      "Figure 1: Held-out accuracy does not separate the systems; the blind control does. (a) Benchmark construction. (b) Skill against the global training mean on the 878 binary test contrasts with the intervention shown or withheld; GBT = registry-trained gradient boosting (five-seed "
+    ],
+    [
+      "S5.T1",
+      "Table 1: Skill against the global training mean and interventional skill, v2.1 temporal test split. Binary: 878 contrasts / 655 trials; continuous: 1,329 / 978. gbt: five-seed mean, 95% interval from one shared set of 1,000 trial resamples; language models (large = Claude Sonnet "
+    ],
+    [
+      "S5.F2",
+      "Figure 2: Interventional skill by system and stratum (v2.1). Whiskers are 95% trial-bootstrap intervals; nn = test contrasts. Grey labels: registry-trained models; blue labels: language models with protocol-only prompts (continuous row posted-record), and Llama 3.1 70B on the unc"
+    ],
+    [
+      "S5.F3",
+      "Figure 3: Reliability layer (v2.1). (a) Coverage of 90% cross-fitted conformal intervals for the registry model, in-distribution, under temporal shift and with each therapeutic area held out. (b) Selective prediction on the shifted test set, ranking by cross-fitted error scale (r"
+    ],
+    [
+      "A1.T2",
+      "Table 2: Cohort counts at each construction step (harvest of 9 September 2026; v2.1 pairing of 4 October 2026)."
+    ],
+    [
+      "A2.T3",
+      "Table 3: Feature groups. blind = endpoint text + population + design + comparator type; blind- omits comparator type; full = blind + intervention text + intervention type."
+    ],
+    [
+      "A4.T4",
+      "Table 4: All language-model runs. Upper block: benchmark arms on the v2.1 temporal test split; protocol-only prompts contain registered protocol fields only, posted-record prompts are the original prompts (continuous uses the posted-record prompt). Lower block: perturbation runs "
+    ],
+    [
+      "A4.T5",
+      "Table 5: Interventional skill inside and outside each model’s uncontaminated set, v2.1 binary temporal test split (878 contrasts). A trial is uncontaminated for a model when its primary completion and first results posting both fall on or after the model’s boundary date and no li"
+    ],
+    [
+      "A4.T6",
+      "Table 6: Exposure test with Llama 3.1 70B (knowledge cutoff December 2023). Interventional skill with 95% trial-level bootstrap intervals (2,000 resamples). Uncontaminated: primary completion and first results posting on or after 2024-01-01 and no earlier linked results publicati"
+    ],
+    [
+      "A5.T7",
+      "Table 7: Gradient boosting, binary risk difference, v2.1 temporal test split (878 contrasts / 655 trials), by seed. Columns 2–5: skill against the global training mean. blind- omits comparator type; blind includes it and is the reference for IS\\mathrm{IS}. The mean-row interval a"
+    ],
+    [
+      "A5.T8",
+      "Table 8: Robustness of the registry-model null on v2.1 (headline split: 878 contrasts / 655 trials): alternative temporal cuts (retrained), comparator/phase strata and the rich-intervention-text subset (headline models evaluated on the stratum, and retrained within it). Skill aga"
+    ],
+    [
+      "A5.T9",
+      "Table 9: Registry-model architectures on the v2.1 binary temporal test split (878 contrasts, 655 trials). Skill columns are against the global training mean; blind includes comparator type, and IS\\mathrm{IS} is full vs blind of the same architecture. The headline GBT embeds endpo"
+    ],
+    [
+      "A5.T10",
+      "Table 10: Feature-group gains (gradient boosting, seed 0, v2.1 binary test split, 878 contrasts / 655 trials). “design-only” = phase, sponsor class, allocation, masking, purpose, area, sex. 95% trial-level bootstrap intervals (1,000 resamples). Group definitions follow ivbench.sp"
+    ],
+    [
+      "A5.T11",
+      "Table 11: Seen vs unseen interventions on v2.1 (878 binary test contrasts; five-seed means; headline models evaluated on the stratum). “Seen” = the test contrast’s intervention key appears among training contrasts. Intervals: one shared set of 1,000 trial resamples applied to all"
+    ],
+    [
+      "A5.T12",
+      "Table 12: Arm-level task on v2.1 (predicting each test arm’s event proportion; 4,177 arms / 1,945 trials; pooled or total groups excluded, repaired arm roles). “blind_norole” additionally omits the arm’s role. 95% trial-level bootstrap intervals (1,000 resamples). v2 values in th"
+    ],
+    [
+      "A5.T13",
+      "Table 13: Same-molecule retrieval positive control on v2.1 (binary test split, k=3k=3 matched training contrasts of the same normalised treatment name). “residual” adds the shrunk mean out-of-fold blind residual of the matched contrasts to the blind prediction; “level” replaces t"
+    ],
+    [
+      "A5.T14",
+      "Table 14: Same-molecule retrieval, MeSH-keyed variants (provisional). union keys = normalised treatment names ∪\\cup intervention MeSH terms; mesh keys = MeSH terms only. The harvest-time MeSH terms were not preserved; the terms used here were re-fetched from ClinicalTrials.gov in"
+    ],
+    [
+      "A5.T15",
+      "Table 15: Interventional skill on design subsets of the v2.1 binary temporal test split. Randomized parallel-group: allocation and intervention model from an October 2026 re-fetch of the registry records. Participant-level unit: the binary outcome is a count or percentage of part"
+    ],
+    [
+      "A5.T16",
+      "Table 16: Interventional skill on design and valid-conversion subsets of the v2.1 continuous temporal test split (posted-record prompt for the language model). Strict: arithmetic means only; sensitivity rows also admit least-squares means. gbt: five-seed mean with one shared set "
+    ],
+    [
+      "A5.T17",
+      "Table 17: Language-model revision checks. (a) Interventional skill with protocol-only and posted-record prompts on the v2.1 binary test split, with the paired difference on one shared set of 2,000 trial resamples. (b)–(d) use Claude Sonnet 5 with the original (posted-record) prom"
+    ],
+    [
+      "A5.T18",
+      "Table 18: How blind is blind? (a) Claude Haiku 4.5 reads the original condition-B prompt and guesses the withheld treatment’s drug class, mechanism and an example agent; a Haiku 4.5 judge scores the guess against the true treatment and, as a chance reference, against the treatmen"
+    ],
+    [
+      "A5.T19",
+      "Table 19: Conformal coverage and mean width (nominal 90%) for the registry model, v2.1 binary contrasts, both calibration recipes, all regimes. Coverage intervals are 95% trial-level bootstrap intervals (1,000 resamples over trials), not Wilson intervals. The last column recalibr"
+    ],
+    [
+      "A5.T20",
+      "Table 20: Answer-or-abstain operating points for the registry model, cross-fitted recipe, v2.1 binary contrasts: answer the contrasts whose predicted error scale is below a threshold. Calibration rows choose the threshold on out-of-fold calibration residuals (largest answered fra"
+    ],
+    [
+      "A5.T21",
+      "Table 21: Answer-or-abstain operating points, split recipe, v2.1. The split recipe fits its error-scale model to in-sample residuals of the proper training half, which are compressed towards zero; the fitted scale therefore sits at its floor value for most contrasts (0.00 to 0.75"
+    ],
+    [
+      "A5.T22",
+      "Table 22: Language model (Claude Sonnet 5) by therapeutic area, v2.1 binary test split (878 contrasts / 655 trials). Protocol-only prompts (headline condition) and posted-record prompts. skill(full) and skill(blind) against the training mean; IS\\mathrm{IS} with 95% trial-level bo"
+    ],
+    [
+      "A5.T23",
+      "Table 23: Selective prediction, language model (Claude Sonnet 5) condition A on the v2.1 binary test split (878 contrasts), ranked by the model’s stated interval width: MAE at answered fractions 0.10 / 0.25 / 0.50 / 0.75 / 1.00, protocol-only (headline) and posted-record prompts."
+    ],
+    [
+      "A5.F4",
+      "Figure 4: Probes (v2.1). (a) Feature-group gains over a design-only registry model (Table 10). (b) Interventional skill of the registry model for test contrasts whose intervention was or was not seen in training, two matching rules (Table 11): seen molecules do not help. (c) Larg"
+    ],
+    [
+      "A6.F5",
+      "Figure 5: NeurIPS 2025 workshop screen. (a) Cumulative filter over 447 clinically grounded papers. (b) Co-occurrence of task and validation-evidence axes."
+    ]
+  ],
+  "equation_anchors": [
+    "S4.Ex1"
+  ]
+}

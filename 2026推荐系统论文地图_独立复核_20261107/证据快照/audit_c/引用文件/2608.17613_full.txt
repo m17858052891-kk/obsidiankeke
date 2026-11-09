@@ -1,0 +1,3687 @@
+
+
+Once Generated, Ranked: End-to-End Generative Slate Recommendation with Unified Semantic-Collaborative IDs
+
+ Report GitHub Issue
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract
+
+Introduction
+
+Related Works
+
+Methodology
+
+Problem Formulation
+
+Two-Stage Unified SID Construction (TUSID)
+
+Semantic Fusion
+
+Collaborative Injection
+
+Global Listwise Preference Planning Architecture (GL2P)
+
+History Encoder
+
+List-Wise Preference Planner
+
+Position-Wise SID Decoder
+
+Feedback-Aware Supervision
+
+Slate-Level Preference Alignment (SPA)
+
+Candidate Rollouts
+
+Reward-Consistent Calibration
+
+Conservative Policy Optimization
+
+Experiment
+
+Experimental Settings
+
+Datasets and Evaluation Metrics
+
+Implementation Details
+
+Results
+
+Overall Performance Comparison
+
+Comparison of SID Construction Methods
+
+Ablation Study of SID Construction
+
+Ablation Study of Slate Generation and Alignment
+
+Efficiency Analysis
+
+Online A/B Testing
+
+Conclusion
+
+References
+
+A Appendix 0: Appendix Overview
+
+B Appendix 1: Additional Related Work on SID Construction
+
+C Appendix 2: B-Tags and C-Tags
+
+D Appendix 3: RQ-KMeans for SID Construction
+
+E Appendix 4: Details of Collaborative Injection
+
+Preliminaries of CountSketch
+
+CountSketch-Based Collaborative Embedding
+
+Confidence-Aware Weighting
+
+F Appendix 5: Details of Reward-Consistent Calibration
+
+Primary Reward
+
+Auxiliary Reward
+
+Relative Reward
+
+G Appendix 6: Hyperparameter Configuration
+
+H Appendix 7: Symbol Glossary
+
+Symbols Used in the Main Paper
+
+Symbols Introduced Only in the Appendix
+
+Notation Conventions
+
+References
+
+ License: CC BY 4.0
+
+arXiv:2608.17613v1 [cs.IR] 18 Aug 2026
+
+Once Generated, Ranked: End-to-End Generative Slate Recommendation with Unified Semantic-Collaborative IDs
+
+Yang Hu
+
+Jiayi Guo
+
+Jingui Ma
+
+Ning Li\corresponding
+
+Jiangling Qin
+
+Yanming Li
+
+Yang Deng
+
+Xiaoshuang Chen\corresponding
+
+Kaiqiao Zhan
+
+Abstract
+
+Slate Recommendation treats a slate rather than an individual item as the fundamental recommendation unit, requiring list-wise optimization of item interactions and overall slate utility. However, existing approaches rely on cascaded pipelines that separate candidate generation from ranking and constrain optimization within retrieved candidates. Recently, Generative Recommendation based on Semantic ID (SID) has provided a promising direction toward end-to-end recommendation. However, existing SID construction methods often lack recommendation-aware semantics and effective integration of local collaborative signals, while current generative recommenders optimize with next-token prediction objectives that are misaligned with slate-level optimization and overall utility. To address these challenges, we propose OGR, an end-to-end generative slate recommendation framework that directly generates ordered slates without separating generation and ranking—“Once Generated, Ranked.” First, we introduce TUSID, a recommendation-aware SID construction framework that adaptively integrates item-specific semantic information and local collaborative signals to construct hierarchical SIDs for generative slate recommendation. Based on these SIDs, OGR performs list-wise preference planning to model global slate preferences and inter-item dependencies, enabling pipelined position-wise SID decoding to directly generate ordered slates. Furthermore, we propose SPA, which leverages reward-guided conservative policy optimization to align generated slates with user preferences beyond likelihood imitation. Extensive offline experiments demonstrate the effectiveness of OGR over representative baselines (+48.2%/+27.2% relative gains in NDCG@5 on industrial/public datasets), while online A/B testing on Kuaishou, a large-scale short-video platform, further confirms its practical value, yielding a 1.120% improvement in Effective Views.
+
+1Kuaishou Technology
+
+2Peking University
+
+3Nanjing University
+
+yanghu@stu.pku.edu.cn, jiayiguo@smail.nju.edu.cn
+
+Introduction
+
+Slate Recommendation treats a slate rather than an individual item as the fundamental recommendation unit, requiring joint modeling of item interactions and optimization of list-wise objectives.
+Existing approaches typically follow a cascaded paradigm of candidate generation–ranking–reranking, where candidate pools are constructed through multi-stage retrieval and filtering.
+Although efficient for practical deployment, its optimization scope is constrained by the candidate space, making it impossible to recover potentially relevant items that are not retrieved.
+Moreover, the objective misalignment across different stages of the cascaded pipeline prevents end-to-end optimization, leaving candidate generation and final ranking as separated processes—“Generated, Then Ranked.”
+
+Recently, Generative Recommendation (GR) (Rajput et al. 2023; Charikar et al. 2002) based on SID has emerged as a promising direction to overcome the limitations of candidate-constrained recommendation.
+By mapping items into discrete SID spaces, generative recommenders can directly generate target items from user histories, enabling an end-to-end recommendation paradigm.
+However, existing SID construction methods mainly focus on semantic discretization and inject collaborative information through representation alignment or contrastive regularization (Luo et al. 2025; Wang et al. 2024a; Chen et al. 2026), but do not explicitly encode distance-weighted local co-occurrence distributions for slate construction.
+Moreover, existing GR methods usually optimize autoregressive SID generation with the Next Token Prediction (NTP) objective, which is inherently misaligned with the list-wise optimization of overall slate utility.
+Additionally, such token-level likelihood optimization focuses on predicting individual SID tokens rather than capturing user preference over the entire slate, limiting the potential of GR in Slate Recommendation.
+
+To address these challenges, we first propose Two-stage Unified SID Construction (TUSID), tailored to generative slate recommendation.
+TUSID extracts rich item information from multimodal semantics and structured high-level attributes, and performs recommendation-aware adaptive fusion to obtain semantic representations that are customized to different items and recommendation scenarios.
+Furthermore, we introduce a CountSketch-based collaborative injection mechanism to incorporate local user behavioral co-occurrence structures, together with confidence-aware fusion to regulate the contribution of collaborative signals.
+The resulting unified representations are quantized by residual K-means (RQ-KMeans) (Charikar et al. 2002) into recommendation-aware hierarchical SIDs.
+
+Based on the proposed SID, we further introduce OGR, an end-to-end generative slate recommendation framework.
+Different from existing generative methods that focus on next-item generation, OGR uses a listwise preference planner to capture the global slate structure and dependencies across display positions.
+Once the planned preference representation for a position becomes available, its SID chain is decoded while the planner proceeds to subsequent positions, forming a pipeline that avoids serial item-by-item SID generation.
+We further introduce Slate-Level Preference Alignment (SPA), which derives calibrated preference signals from user-feedback-based primary rewards and slate-level auxiliary rewards.
+Conservative policy optimization then aligns generated slates beyond likelihood imitation while preventing excessive deviation from the reference policy.
+Together, OGR unifies item-level generation and listwise organization—“Once Generated, Ranked.”
+
+Extensive experiments on both large-scale industrial data and public benchmarks demonstrate the effectiveness of OGR, while online A/B testing on Kuaishou, a real-world recommendation platform serving hundreds of millions of daily active users, further confirms its practical value.
+
+Our main contributions are summarized as follows:
+
+• 
+
+We propose TUSID, a recommendation-aware SID construction framework that adaptively integrates item-specific semantic information and local collaborative signals to construct hierarchical SIDs for generative slate recommendation.
+
+• 
+
+We propose OGR, an end-to-end generative slate recommendation framework that combines list-wise preference planning with pipelined position-wise SID decoding. We further introduce SPA to align generated slates with user preferences through calibrated multi-objective rewards and conservative policy optimization. We further introduce SPA to align generated slates with user preferences through calibrated multi-objective rewards and conservative policy optimization.
+
+• 
+
+Extensive offline experiments on industrial and public datasets, together with online A/B testing results, demonstrate the effectiveness and practical impact of our methods.
+
+Figure 1: The overall framework of OGR.
+
+Related Works
+
+Slate Recommendation jointly selects and orders multiple items by modeling inter-item interactions and listwise utility.
+However, existing methods (Pei et al. 2019; Bello et al. 2018; Fu et al. 2026; Xu et al. 2023; Pang et al. 2026) are typically formulated over retrieved candidate sets or predefined action spaces, leaving slate quality bounded by upstream selection.
+Pioneered by TIGER (Rajput et al. 2023), SID-based GR enables end-to-end recommendation by generating hierarchical semantic identifiers instead of atomic item IDs in conventional sequential recommenders (Xie et al. 2022; Qiu et al. 2022; Rendle et al. 2009; Du et al. 2023; Sarwar et al. 2001; Yue et al. 2024).
+Subsequent studies extend this paradigm through recommendation-aware SID construction with semantic–collaborative alignment (Zheng et al. 2024; Wang et al. 2024a; Pan et al. 2026; Hidasi et al. 2016; Li et al. 2025; Xiao et al. 2026), joint SID–recommendation optimization (Liu et al. 2024; Kabbur et al. 2013), and efficient
+generation through tree-structured or hybrid retrieval, order-agnostic and parallel generation, and decoding/cache acceleration (Si et al. 2024; Hu et al. 2026; Hou et al. 2025; Qu et al. 2025; Lin et al. 2025a; Lin et al. 2025b; Yang et al. 2025a).
+However, prevailing NTP objectives optimize the likelihood of individual SID tokens rather than inter-item dependencies and overall slate utility, limiting the effectiveness of the generative paradigm for Slate Recommendation.
+
+Methodology
+
+As illustrated in Figure 1, we propose OGR, an end-to-end generative slate recommendation framework that directly generates ordered slates conditioned on user histories, comprising TUSID for recommendation-aware SID construction, GL2P for list-wise slate generation, and SPA for preference alignment.
+
+Problem Formulation
+
+For a user $u$ , let $\mathcal{H}_{u}=(i_{1},\ldots,i_{T})$ denote the chronological interaction history, where $i_{t}$ denotes the item at the $t$ -th interaction.
+Each item $i$ is represented by a hierarchical $D$ -level SID $\mathbf{s}_{i}=(s_{i}^{1},\ldots,s_{i}^{D})$ .
+Given $\mathcal{H}_{u}$ , OGR parameterized by $\theta$ directly generates an ordered SID slate $\widehat{\mathcal{S}}_{u}$ of size $K$ and maps it into an item slate:
+
+ | 
+ | $\widehat{\mathcal{S}}_{u}=F_{\theta}(\mathcal{H}_{u}),\qquad\widehat{\mathcal{Y}}_{u}=\mathrm{Map}(\widehat{\mathcal{S}}_{u}),$ 
+ | 
+ | (1)
+
+where $\mathrm{Map}(\cdot)$ denotes SID-to-item lookup.
+Training uses the observed exposure slate $\mathcal{Y}_{u}=(y_{1},\ldots,y_{K})$ and associated feedback signals $\mathcal{W}_{u}=(w_{1},\ldots,w_{K})$ , where $y_{k}$ and $w_{k}$ denote the item and its feedback at slate position $k$ , respectively.
+
+Figure 2: The overall framework of TUSID.
+
+Two-Stage Unified SID Construction (TUSID)
+
+To construct SIDs tailored to generative slate recommendation, we propose TUSID, as illustrated in Figure 2.
+
+Semantic Fusion
+
+Existing SID methods mainly rely on general content representations, which may underrepresent structured high-level attributes whose relevance varies across items in recommendation scenarios.
+For example, products may rely more on brand-related attributes, whereas explainer videos may benefit more from style- or audience-related attributes.
+To obtain item-specific semantic representations, we encode each item from two complementary views.
+An MLLM encodes the image, audio, and text of item $i$ into a fine-grained semantic representation $e_{i}^{\mathrm{M}}$ , while a shared text encoder produces four high-level attribute representations $e_{i}^{a}$ , where ${\mathrm{a}}\in\{\mathrm{b},\mathrm{c},\mathrm{Bt},\mathrm{Ct}\}$ denotes Brand, Category, B-tags (supply-side content characteristics), and C-tags (demand-side user value), respectively.
+The complete attribute taxonomy is provided in the appendix.
+
+Since different items may rely on different high-level attributes, we retain the MLLM representation as the semantic backbone and use it to adaptively aggregate item-specific attribute information.
+Specifically, $e_{i}^{\mathrm{M}}$ serves as the query $Q_{i}$ , while $\mathcal{E}_{i}^{\mathrm{attr}}=[e_{i}^{\mathrm{b}},e_{i}^{\mathrm{c}},e_{i}^{\mathrm{Bt}},e_{i}^{\mathrm{Ct}}]^{\top}$ provides the keys $K_{i}$ and values $V_{i}$ .
+The aggregated attribute representation is computed as
+
+ | 
+ | $h_{i}^{\mathrm{attr}}=\operatorname{CrossAttention}\left(Q_{i}=e_{i}^{\mathrm{M}},K_{i}=V_{i}=\mathcal{E}_{i}^{\mathrm{attr}}\right).$ 
+ | 
+ | (2)
+
+To regulate the overall attribute contribution, we predict a scalar sigmoid gate $g_{i}$ from $[e_{i}^{\mathrm{M}};h_{i}^{\mathrm{attr}}]$ and perform gated residual fusion:
+
+ | 
+ | $e_{i}^{\mathrm{sem}}=e_{i}^{\mathrm{M}}+g_{i}h_{i}^{\mathrm{attr}}.$ 
+ | 
+ | (3)
+
+This asymmetric fusion preserves the MLLM representation as the semantic backbone while introducing item-adaptive attribute residuals.
+
+To make the fused representations recommendation-aware, we use $e_{i}^{\mathrm{sem}}$ as the item embeddings in SASRec (Kang and McAuley 2018a) and train the fusion parameters with its next-item prediction loss $\mathcal{L}_{\mathrm{rec}}$ .
+We further regularize the attribute residual to prevent attribute branch from overwhelming the MLLM backbone:
+
+ | 
+ | $\mathcal{L}_{\mathrm{fusion}}=\mathcal{L}_{\mathrm{rec}}+\frac{\beta_{\mathrm{res}}}{|\mathcal{B}|}\sum_{i\in\mathcal{B}}\left\|g_{i}h_{i}^{\mathrm{attr}}\right\|_{2}^{2},\\
+$ 
+ | 
+ | (4)
+
+where $\mathcal{L}_{\mathrm{fusion}}$ denotes the overall fusion objective, $\mathcal{B}$ denotes the set of positive and sampled negative items in SASRec, and $\beta_{\mathrm{res}}$ controls the residual regularization strength.
+
+Collaborative Injection
+
+Although Semantic Fusion aligns semantic representations with recommendation objectives through $\mathcal{L}_{\mathrm{rec}}$ , it fails to capture local item-item co-occurrence structures.
+We instead inject collaborative information before quantization, treating collaboration as an evidence-weighted complement, allowing items with sufficient behavioral evidence to exploit collaborative structures while preserving original semantic information for sparse and cold-start items.
+
+CountSketch-Based Collaborative Embedding (CCE).
+
+For each user $u$ , we construct co-occurrences only from the high-quality positive-feedback training prefix, excluding validation and test interactions to prevent information leakage.
+For a center item $i$ at position $p$ , each item $j$ at position $q$ satisfying $0<|p-q|\leq\omega$ is treated as a contextual item and assigned the distance-based weight $1/|p-q|$ since nearby interactions may indicate stronger local interest correlations.
+
+To avoid storing the full item-item co-occurrence matrix, we employ Signed CountSketch (Charikar et al. 2004) to compress the local contextual distribution of each item into a fixed-dimensional statistical vector. For a center item $i$ and its contextual item $j$ , the update process is defined as:
+
+ | 
+ | $\mathcal{C}_{i}[h(j)]\leftarrow\mathcal{C}_{i}[h(j)]+\frac{\sigma(j)}{|p-q|},$ 
+ | 
+ | (5)
+
+where $\mathcal{C}_{i}$ is the collaborative sketch of item $i$ , $h(j)$ maps contextual item $j$ to a sketch coordinate, and $\sigma(j)\in\{-1,+1\}$ is its sign hash.
+Because $h(\cdot)$ and $\sigma(\cdot)$ are shared across sketches, a common contextual item contributes positively to their inner product, whereas cross terms caused by unrelated collisions have zero expectation under the random sign hash.
+
+We further apply signed-log transformation to reduce the dominance of frequent co-occurrences, followed by normalization and random projection to obtain the dense collaborative embedding $e_{i}^{\mathrm{col}}$ with the same dimensionality as $e_{i}^{\mathrm{sem}}$ .
+
+Confidence-Aware Weighting (CAW).
+
+During CountSketch construction, we record $U_{i}$ , the number of distinct users contributing valid contextual updates to item $i$ , as a measure of behavioral support while limiting the influence of repeated interactions from highly active users.
+
+Based on $U_{i}$ , we define the collaborative confidence $\gamma_{i}$ and fusion weight $\alpha_{i}$ as:
+
+ | 
+ | $\gamma_{i}=\frac{\log(1+U_{i})}{\log(1+U_{i})+\tau},\qquad\alpha_{i}=\alpha_{\mathrm{col}}\gamma_{i},$ 
+ | 
+ | (6)
+
+where $\tau>0$ controls the saturation speed of the confidence and $\alpha_{\mathrm{col}}\in[0,1]$ is the maximum collaborative weight.
+
+A larger $U_{i}$ increases the contribution of collaborative information, whereas a smaller $U_{i}$ downweights unreliable behavioral evidence for interaction-sparse or cold-start items, and when $U_{i}=\gamma_{i}=\alpha_{i}=0$ , the representation relies entirely on the semantic branch, consistent with the common industrial cold-start practice of using content information to compensate for sparse behavioral evidence.
+
+After $\ell_{2}$ normalization, we construct $e_{i}^{\mathrm{uni}}$ by confidence-weighted concatenation:
+
+ | 
+ | $e_{i}^{\mathrm{uni}}=\left[\sqrt{1-\alpha_{i}}e_{i}^{\mathrm{sem}};\sqrt{\alpha_{i}}e_{i}^{\mathrm{col}}\right].$ 
+ | 
+ | (7)
+
+The square-root coefficients preserve its norm, after which RQ-KMeans quantizes $e_{i}^{\mathrm{uni}}$ into the final SIDs.
+
+Global Listwise Preference Planning Architecture (GL2P)
+
+Existing GR methods usually optimize autoregressive SID generation with NTP loss, which is misaligned with the slate-level optimization of item selection and ordering, limiting the explicit modeling of global slate-level preferences and inter-item dependencies.
+Different from next-item generation, OGR treats the entire slate as the fundamental prediction unit by combining listwise preference planning with pipelined position-wise SID decoding.
+
+History Encoder
+
+The history encoder $\mathrm{Enc}_{\mathrm{hist}}$ converts the ordered SID interaction history into contextual representations by aggregating hierarchical SID embeddings and incorporating temporal information:
+
+ | 
+ | $\displaystyle\mathcal{Z}^{\mathrm{h}}$ 
+ | $\displaystyle=\mathrm{Enc}_{\mathrm{hist}}\left([\sum_{d=1}^{D}\mathcal{E}[s_{t}^{d}]+p^{\mathrm{h}}_{t}]_{t=1}^{T}\right),$ 
+ | 
+ | (8)
+
+where $\mathcal{E}$ denotes the shared SID embedding table and $p^{\mathrm{h}}_{t}$ denotes the temporal embedding at position $t$ .
+
+List-Wise Preference Planner
+
+Rather than directly decoding item SIDs, OGR models cross-item dependencies in a coarse-grained preference space through the preference planner.
+During training, the planner adopts teacher forcing.
+For each target item at position $m$ , we aggregate its $D$ -level SID embeddings and construct the right-shifted planner input as:
+
+ | 
+ | $g_{m}=\sum_{d=1}^{D}\mathcal{E}[s_{m}^{d}],\qquad\mathcal{Q}^{\mathrm{tr}}=[\mathrm{BOS},g_{1},\ldots,g_{K-1}],$ 
+ | 
+ | (9)
+
+where $\mathcal{E}$ denotes the shared SID embedding table. A causally masked Transformer decoder then produces one planned preference representation for each slate position:
+
+ | 
+ | $\mathcal{P}=\operatorname{Dec}_{\mathrm{plan}}(\mathcal{Q}^{\mathrm{tr}},\mathcal{Z}^{\mathrm{h}})=[p_{1},\ldots,p_{K}].$ 
+ | 
+ | (10)
+
+Causal self-attention captures dependencies among preceding slate positions, while cross-attention retrieves signals relevant to the user’s preferences from $\mathcal{Z}^{\mathrm{h}}$ .
+During inference, the planner starts from $\mathrm{BOS}$ and autoregressively feeds the previously generated representation $p_{m-1}$ to produce $p_{m}$ .
+Once $p_{m}$ becomes available, the decoder starts generating the SID chain at position $m$ while the planner proceeds to position $m+1$ , forming a pipeline between preference planning and SID decoding.
+
+Position-Wise SID Decoder
+
+For the $m$ -th position, SID tokens are generated autoregressively conditioned on the planned preference embedding $p_{m}$ , preceding SID tokens $s_{m}^{<d}$ , and historical representations $\mathcal{Z}^{\mathrm{h}}$ :
+
+ | 
+ | $\mathbf{s}_{m}=\mathrm{Dec}_{\mathrm{sid}}\left(p_{m},\mathcal{E}[s_{m}^{<d}],\mathcal{Z}^{\mathrm{h}}\right).$ 
+ | 
+ | (11)
+
+Since cross-position dependencies are captured by the listwise preference planner, the SID chain at each position can be decoded independently once its planned representation $p_{m}$ becomes available.
+This allows current-position SID decoding to overlap with subsequent preference planning, yielding pipelined execution while preserving intra-item SID dependencies.
+
+Feedback-Aware Supervision
+
+We construct two complementary supervision sequences over the same target slate:
+the exposure sequence $\mathcal{Y}^{\mathrm{eps}}_{u}$ maintains the original display order, whereas the feedback sequence $\mathcal{Y}^{\mathrm{fb}}_{u}$ rearranges items according to their observed item-level feedback.
+For each supervision type $o\in\{\mathrm{eps},\mathrm{fb}\}$ , the SID generation loss is defined as:
+
+ | 
+ | $\mathcal{L}^{o}_{\mathrm{sid}}=-\frac{1}{|\mathcal{U}|KD}\sum_{u}\sum_{m=1}^{K}\sum_{d=1}^{D}\log\pi^{o,d}_{u,m}[s^{o,d}_{u,m}],$ 
+ | 
+ | (12)
+
+where $s^{o,d}_{u,m}$ denotes the target SID token at depth $d$ , $\pi^{o,d}_{u,m}[s^{o,d}_{u,m}]$ denotes its predicted probability, and $|\mathcal{U}|$ denotes the number of training users.
+
+Thus, the supervised training objective is:
+
+ | 
+ | $\mathcal{L}_{\mathrm{sup}}=\mathcal{L}^{\mathrm{eps}}_{\mathrm{sid}}+\alpha\mathcal{L}^{\mathrm{fb}}_{\mathrm{sid}},$ 
+ | 
+ | (13)
+
+where $\alpha$ controls the strength of feedback-aware supervision.
+
+Under this supervision scheme, the exposure branch preserves fidelity to logged slate distributions, while the feedback branch injects user preference signals into the generation process.
+
+ | 
+ | Industrial
+ | KuaiRec
+
+ | Methods
+ | Impressions
+ | Effective Views
+ | NDCG@5
+ | Impressions
+ | Effective Views
+ | NDCG@5
+
+ | 
+ | hit@5
+ | recall@5
+ | hit@5
+ | recall@5
+ | 
+ | hit@5
+ | recall@5
+ | hit@5
+ | recall@5
+ | 
+
+ | BERT4Rec
+ | 0.1137
+ | 0.0196
+ | 0.0689
+ | 0.0152
+ | 0.0214
+ | 0.3538
+ | 0.0908
+ | 0.2393
+ | 0.0983
+ | 0.0870
+
+ | SASRec
+ | 0.1206
+ | 0.0220
+ | 0.0702
+ | 0.0181
+ | 0.0223
+ | 0.3760
+ | 0.0952
+ | 0.2348
+ | 0.1013
+ | 0.0878
+
+ | Caser
+ | 0.1094
+ | 0.0164
+ | 0.0605
+ | 0.0134
+ | 0.0201
+ | 0.3329
+ | 0.0813
+ | 0.1966
+ | 0.0802
+ | 0.0765
+
+ | PRM
+ | 0.1119
+ | 0.0235
+ | 0.0819
+ | 0.0201
+ | 0.0413
+ | 0.3705
+ | 0.0973
+ | 0.2470
+ | 0.1102
+ | 0.1024
+
+ | Seq2Slate
+ | 0.1212
+ | 0.0251
+ | 0.0872
+ | 0.0220
+ | 0.0427
+ | 0.3760
+ | 0.0982
+ | 0.2500
+ | 0.1094
+ | 0.1017
+
+ | TIGER
+ | 0.0984
+ | 0.0125
+ | 0.0517
+ | 0.0109
+ | 0.0181
+ | 0.3036
+ | 0.0779
+ | 0.2012
+ | 0.0867
+ | 0.0819
+
+ | OneRec
+ | 0.1642
+ | 0.0413
+ | 0.0953
+ | 0.0321
+ | 0.0394
+ | 0.4448
+ | 0.1105
+ | 0.2782
+ | 0.1117
+ | 0.0949
+
+ | OGR (Ours)
+ | 0.2155
+ | 0.0511
+ | 0.1227
+ | 0.0416
+ | 0.0633
+ | 0.5468
+ | 0.1393
+ | 0.2991
+ | 0.1475
+ | 0.1303
+
+Table 1: Offline performance of OGR and baselines on industrial and public datasets.
+
+Slate-Level Preference Alignment (SPA)
+
+Although feedback-aware supervised learning provides OGR with both exposure-order and feedback-informed supervision, it remains a likelihood-based imitation of fixed targets and lacks the ability to optimize relative preferences among multiple generated slates.
+Inspired by preference alignment methods in large language models (Rafailov et al. 2023; Koren et al. 2009), we propose a preference alignment post-training stage to further align generated slates with user preferences.
+
+Candidate Rollouts
+
+Let $\theta_{0}$ denote the frozen supervised model as the reference policy.
+For each user $u$ , we perform beam search at each slate position using its corresponding planned preference embedding and combine the generated candidates into a non-duplicate slate-level action set $\mathcal{A}_{u}$ .
+Each action $a\in\mathcal{A}_{u}$ is defined as:
+
+ | 
+ | $a=(\mathbf{s}_{u,1},\ldots,\mathbf{s}_{u,K}),$ 
+ | 
+
+where $\mathbf{s}_{u,k}$ denotes the SID sequence at position $k$ and the reference log-likelihood of a candidate slate is computed as:
+
+ | 
+ | $\ell_{0}(a|u)=\sum_{m=1}^{K}\sum_{d=1}^{D}\log p_{\theta_{0}}\left(s^{d}_{u,m}\mid\mathcal{Z}^{\mathrm{h}}_{u},p_{u,m},s^{<d}_{u,m}\right),$ 
+ | 
+ | (14)
+
+where $p_{u,m}$ denotes the position-aware preference embedding generated by the List-Wise Preference Planner.
+
+Reward-Consistent Calibration
+
+To evaluate candidate slates from multiple perspectives, we define a primary reward $r_{\mathrm{pri}}$ that measures slate-level user preference by aggregating feedback signals over the entire slate, such as effective views and likes, and an auxiliary reward $r_{\mathrm{aux}}$ that provides additional guidance through slate-level quality signals, such as diversity. The details are provided in the appendix.
+
+For $o\in\{\mathrm{pri},\mathrm{aux}\}$ , we standardize rewards within $\mathcal{A}_{u}$ to obtain the relative reward score $\delta^{o}_{u,a}$ , and the final calibrated preference signal $\Delta_{u,a}$ is computed as:
+
+ | 
+ | $\displaystyle\kappa_{u,a}$ 
+ | $\displaystyle=\begin{cases}\displaystyle\frac{\min\big(|\delta^{\mathrm{pri}}_{u,a}|,|\delta^{\mathrm{aux}}_{u,a}|\big)}{\max\big(|\delta^{\mathrm{pri}}_{u,a}|,|\delta^{\mathrm{aux}}_{u,a}|,\varepsilon\big)},&\delta^{\mathrm{pri}}_{u,a}\cdot\delta^{\mathrm{aux}}_{u,a}>0,\\[8.0pt]
+0,&\mathrm{otherwise},\end{cases}$ 
+ | 
+ | (15)
+
+ | 
+ | $\displaystyle\Delta_{u,a}$ 
+ | $\displaystyle=\delta^{\mathrm{pri}}_{u,a}+\kappa_{u,a}\delta^{\mathrm{aux}}_{u,a}.$ 
+ | 
+
+Here, $\kappa_{u,a}$ scales the auxiliary contribution according to the relative score magnitudes and suppresses it when the primary and auxiliary scores have conflicting directions, and $\varepsilon>0$ avoids division by zero.
+Consequently, the calibration preserves the primary recommendation objective while incorporating reliable auxiliary signals, resulting in a more robust preference alignment process.
+
+Conservative Policy Optimization
+
+Given the same candidate action sets, we compute the importance ratio
+ $\rho_{u,a}=\exp(\ell_{\theta}(a\mid u)-\ell_{0}(a\mid u))$ 
+and optimize the clipped policy objective (Schulman et al. 2017):
+
+ | 
+ | $\displaystyle\mathcal{L}_{\mathrm{pol}}$ 
+ | $\displaystyle=-\frac{1}{N_{A}}\sum_{u}\sum_{a\in\mathcal{A}_{u}}\min\Bigl\{\rho_{u,a}\Delta_{u,a},$ 
+ | 
+ | (16)
+
+ | 
+ | 
+ | $\displaystyle\operatorname{clip}\!\left(\rho_{u,a},1-\epsilon,1+\epsilon\right)\Delta_{u,a}\Bigr\}.$ 
+ | 
+
+where $N_{A}$ denotes the number of retained user-action pairs and $\epsilon$ is the clipping radius.
+
+To further constrain policy drift, we derive the candidate slate distributions from the reference and current policy likelihoods:
+ $q_{0}(a\mid u)=\mathrm{softmax}_{a\in\mathcal{A}_{u}}(\ell_{0}(a\mid u))$ 
+and
+ $q_{\theta}(a\mid u)=\mathrm{softmax}_{a\in\mathcal{A}_{u}}(\ell_{\theta}(a\mid u))$ 
+. Their divergence is then defined as:
+
+ | 
+ | $\mathcal{L}_{\mathrm{KL}}=\frac{1}{N_{U}}\sum_{u}\sum_{a\in\mathcal{A}_{u}}q_{0}(a\mid u)\log\frac{q_{0}(a\mid u)}{q_{\theta}(a\mid u)},$ 
+ | 
+ | (17)
+
+where $N_{U}$ denotes the number of retained users.
+We additionally replay the supervised objective $\mathcal{L}_{\mathrm{sup}}$ and the final alignment objective is as follows:
+
+ | 
+ | $\mathcal{L}_{\mathrm{SPA}}=\mathcal{L}_{\mathrm{pol}}+\gamma\mathcal{L}_{\mathrm{KL}}+\eta\mathcal{L}_{\mathrm{sup}}.$ 
+ | 
+ | (18)
+
+where $\gamma$ and $\eta$ denote the corresponding weights.
+
+During refinement, we update only the List-Wise Preference Planner and the Position-Wise SID Decoder, while keeping remaining model components frozen. Consequently, slate-level planning and item-level decoding are jointly aligned with user feedback while avoiding excessive deviation from the supervised generation policy.
+
+Experiment
+
+Experimental Settings
+
+Datasets and Evaluation Metrics
+
+We conduct experiments on KuaiRec (Gao et al. 2022) and a proprietary industrial dataset collected from Kuaishou. The industrial dataset contains interaction sequences, multimodal content, high-level attributes, exposure logs, and item-level feedback. For both datasets, interactions are chronologically ordered and evaluated using a leave-five-out protocol. We report Hit Rate, Recall, and NDCG (Järvelin and Kekäläinen 2002) on positive-feedback lists to assess the model’s ability to capture users’ preference, and additionally report impression-based Hit Rate and Recall on logged exposures to evaluate the model’s ability to capture observed exposure patterns.
+
+Implementation Details
+
+All offline experiments are conducted on NVIDIA L20 GPUs. We use a maximum history length of 128 and generate slates of size 5. The SID tokenizer adopts a four-level configuration with a codebook size of 1,024 at each level. During inference, we perform beam search with a beam width of 20. Additional implementation details are provided in the appendix.
+
+Results
+
+Overall Performance Comparison
+
+As shown in Table 1, we compare OGR against three categories of baselines: sequential recommenders (Caser, SASRec, and BERT4Rec) (Tang and Wang 2018b; Kang and McAuley 2018a; Sun et al. 2019), listwise rerankers (PRM and Seq2Slate) (Pei et al. 2019; Bello et al. 2018), and generative recommenders (TIGER and OneRec) (Rajput et al. 2023; Charikar et al. 2002). All generative baselines are implemented with comparable parameter sizes to OGR (32 MB).
+
+Discriminative sequential recommendation methods directly estimate item scores and select the highest-scoring items, leading to stable performance in Top-5 recommendation.
+Listwise reranking methods explicitly model interactions among items within a candidate set and therefore provide stronger slate-level ordering ability.
+Meanwhile, although OneRec achieves strong Hit Rate and Recall, the method yields lower NDCG than listwise reranking baselines, highlighting a decoding dilemma: autoregressive slate generation captures cross-item dependencies but suffers from serial latency and error accumulation, whereas probability-based Top-5 selection is efficient but not listwise-aligned under NTP loss.
+In contrast, OGR addresses this dilemma by combining global slate planning with pipelined position-wise SID decoding, preserving cross-position dependencies while avoiding serial item-by-item SID generation and thereby achieving consistent gains across all evaluation metrics.
+
+Comparison of SID Construction Methods
+
+ | SID Method
+ | 
+
+Downstream
+Recommendation
+
+ | Codebook Balance
+ | 
+
+Content
+Preservation
+
+ | 
+ | 
+
+Eff.
+Recall@5 $\uparrow$ 
+
+ | NDCG@5 $\uparrow$ 
+ | ICR $\uparrow$ 
+ | CUR $\uparrow$ 
+ | 
+
+Min.
+PPL $\uparrow$ 
+
+ | 
+
+Top-1
+Load $\downarrow$ 
+
+ | 
+
+V-measure
+Level-1 $\uparrow$ 
+
+ | SC $\uparrow$ 
+
+ | RQ-VAE (TIGER)
+ | 0.117
+ | 0.112
+ | 0.996
+ | 0.752
+ | 7.8
+ | 0.047
+ | 0.305
+ | 0.622
+
+ | RQ-KMeans (OneRec)
+ | 0.121
+ | 0.116
+ | 0.995
+ | 1.000
+ | 468.1
+ | 0.028
+ | 0.431
+ | 0.737
+
+ | R3-VAE
+ | 0.120
+ | 0.114
+ | 0.984
+ | 0.683
+ | 12.4
+ | 0.041
+ | 0.269
+ | 0.619
+
+ | GNPR-SID
+ | 0.129
+ | 0.115
+ | 1.000
+ | 0.955
+ | 836.8
+ | 0.004
+ | 0.412
+ | 0.741
+
+ | LC-Rec
+ | 0.116
+ | 0.111
+ | 1.000
+ | 0.764
+ | 52.9
+ | 0.011
+ | 0.381
+ | 0.660
+
+ | LETTER
+ | 0.114
+ | 0.109
+ | 0.999
+ | 0.335
+ | 39.8
+ | 0.030
+ | 0.241
+ | 0.608
+
+ | TUSID (Ours)
+ | 0.148
+ | 0.130
+ | 1.000
+ | 1.000
+ | 681.7
+ | 0.005
+ | 0.424
+ | 0.747
+
+Table 2: Comparison of SID methods on KuaiRec across three evaluation dimensions.
+
+ | 
+
+Variant
+
+ | 
+
+High-level
+Attr.
+
+ | 
+
+ $e^{\mathrm{sem}}$ Fusion
+
+ | 
+
+ $e^{\mathrm{col}}$ 
+
+ | 
+
+ $e^{\mathrm{col}}$ Fusion
+
+ | 
+
+CAW
+
+ | 
+
+Eff. Recall@5
+
+ | 
+
+NDCG@5
+
+ | 
+
+Base SID
+(RQ-KMeans)
+
+ | 
+
+ $\times$ 
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+0.1214
+
+ | 
+
+0.1162
+
+ | 
+
++ Semantic
+Fusion
+
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+Add
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+0.1138
+
+ | 
+
+0.1096
+
+ | 
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+Cross-Attn
+& Gate
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+N/A
+
+ | 
+
+0.1295
+
+ | 
+
+0.1198
+
+ | 
+
++ Collaborative
+Injection
+
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+Cross-Attn
+& Gate
+
+ | 
+
+CCE
+
+ | 
+
+Add
+
+ | 
+
+ $\times$ 
+
+ | 
+
+0.1387
+
+ | 
+
+0.1248
+
+ | 
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+Cross-Attn
+& Gate
+
+ | 
+
+InfoNCE Loss
+
+ | 
+
+N/A
+
+ | 
+
+ $\times$ 
+
+ | 
+
+0.1404
+
+ | 
+
+0.1275
+
+ | 
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+Cross-Attn
+& Gate
+
+ | 
+
+CCE
+
+ | 
+
+Concat
+
+ | 
+
+ $\times$ 
+
+ | 
+
+0.1437
+
+ | 
+
+0.1298
+
+ | 
+
+TUSID (Full)
+
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+Cross-Attn
+& Gate
+
+ | 
+
+CCE
+
+ | 
+
+Concat
+
+ | 
+
+ $\checkmark$ 
+
+ | 
+
+0.1475
+
+ | 
+
+0.1303
+
+Table 3: Ablation study of the proposed components in TUSID on KuaiRec. Here, $e^{\mathrm{sem}}$ denotes the attribute-enriched semantic embedding, and $e^{\mathrm{col}}$ denotes the collaborative embedding. InfoNCE Loss (Liu et al. 2025) denotes the contrastive variant that aligns semantic embeddings using item co-occurrence-based positive and negative pairs directly.
+
+Table 2 compares SID methods (Rajput et al. 2023; Charikar et al. 2002; Wan et al. 2026; Wang et al. 2025; Zheng et al. 2024; Wang et al. 2024a) under the same OGR backbone and codebook size.
+
+TUSID consistently outperforms all public baselines on both downstream recommendation metrics, which indicates that the resulting SIDs more effectively capture user preferences and collaborative structures.
+ICR and CUR measure SID uniqueness and codebook coverage (Chen et al. 2026), while Min. PPL and Top-1 Load evaluate code assignment balance by reflecting code utilization and concentration in dominant codes (Deng et al. 2025).
+The results show that TUSID produces collision-free SIDs while maintaining balanced code assignments across the hierarchical levels.
+For semantic preservation, TUSID maintains comparable V-measure (Rosenberg and Hirschberg 2007) and SC (Wan et al. 2026), which evaluate category consistency and semantic cohesion, respectively.
+This result suggests that effective SIDs require a balance of semantic preservation, collaborative structure, and codebook quality rather than optimizing a single metric.
+
+Ablation Study of SID Construction
+
+Table 3 further investigates the contribution of each component in TUSID.
+Compared with cross-attention and gated fusion, direct addition of high-level attributes yields lower performance, indicating that naive fusion of heterogeneous semantic sources can disrupt the original semantic structure.
+For collaborative injection, CCE with concatenation outperforms both additive fusion and InfoNCE-based collaborative supervision, showing that preserving complementary semantic and collaborative structures is more effective than collapsing them into a shared space.
+CAW further improves performance, demonstrating that confidence-based scaling of collaborative information helps prevent sparse or accidental interactions from being amplified into reliable preference signals.
+
+ | 
+
+Variant
+
+ | 
+
+Eff.
+Recall@5
+
+ | 
+
+NDCG@5
+
+ | 
+
+GL2P+SPA (Full)
+
+ | 
+
+0.0416
+
+ | 
+
+0.0633
+
+ | 
+
+w/o List-Wise Planner
+
+ | 
+
+0.0201
+
+ | 
+
+0.0359
+
+ | 
+
+w/o SPA
+
+ | 
+
+0.0344
+
+ | 
+
+0.0419
+
+ | 
+
+w/o Primary Reward
+
+ | 
+
+0.0332
+
+ | 
+
+0.0467
+
+ | 
+
+w/o Auxiliary Reward
+
+ | 
+
+0.0403
+
+ | 
+
+0.0554
+
+ | 
+
+w/o Conservative Regularization
+
+ | 
+
+0.0227
+
+ | 
+
+0.0312
+
+Table 4: Ablation study of the proposed GL2P and SPA on Industrial. All variants use the same TUSID tokenizer.
+
+Ablation Study of Slate Generation and Alignment
+
+Table 4 evaluates the major components of GL2P and SPA.
+Removing the List-Wise Planner substantially degrades both metrics despite reallocating its parameter budget to the Encoder/Decoder, demonstrating that global preference planning is essential for coordinating item selection and slate ordering.
+Removing SPA also hurts performance, indicating that supervised generation alone is insufficient to optimize user-preferred slates.
+
+Within SPA, removing the primary reward causes a larger degradation than removing the auxiliary reward, confirming that user feedback provides the dominant alignment signal while slate-level quality signals offer complementary guidance.
+The full model achieves the best performance by combining both signals with confidence-aware calibration.
+Finally, removing conservative regularization results in a significant decline, validating the importance of constraining policy deviation during preference alignment.
+
+Table 5 further examines the supervision objectives in GL2P. Removing either $\mathcal{L}^{\mathrm{eps}}_{\mathrm{sid}}$ or $\mathcal{L}^{\mathrm{fb}}_{\mathrm{sid}}$ reduces both metrics, indicating that exposure-order supervision provides structural guidance for slate generation, while feedback-aware supervision refines generation according to user responses. Only their joint supervision enables OGR to learn stable and effective slate-level sequential dependencies.
+
+ | 
+
+Variant
+
+ | 
+
+Effective-View
+Recall@5
+
+ | 
+
+NDCG@5
+
+ | 
+
+ $\mathcal{L}_{\mathrm{sup}}=\mathcal{L}^{\mathrm{eps}}_{\mathrm{sid}}+\alpha\mathcal{L}^{\mathrm{fb}}_{\mathrm{sid}}$ 
+
+ | 
+
+0.1475
+
+ | 
+
+0.1303
+
+ | 
+
+w/o $\mathcal{L}^{\mathrm{eps}}_{\mathrm{sid}}$ 
+
+ | 
+
+0.1382
+
+ | 
+
+0.1201
+
+ | 
+
+w/o $\mathcal{L}^{\mathrm{fb}}_{\mathrm{sid}}$ 
+
+ | 
+
+0.1230
+
+ | 
+
+0.1139
+
+Table 5: Ablation study of the supervision objectives in GL2P on
+KuaiRec. All other generation and alignment components are fixed.
+
+Efficiency Analysis
+
+Figure 3: Efficiency comparison under Beam-5 and Top-5 decoding modes for TIGER and OneRec, together with OGR.
+
+For a fair and comprehensive efficiency comparison, we consider two decoding modes for the generative baselines in Fig. 3.
+Beam-5 autoregressively generates a $K$ -item slate by serially decoding the $D$ -level SID of each slate position.
+Because all $K\times D$ SID tokens are generated
+one after another, completing the slate requires $KD$ consecutive
+autoregressive decoding steps, resulting in the sequential decoding depth $\mathrm{Depth}_{\mathrm{Beam\text{-}5}}=KD$ .
+In contrast, Top-5 performs a single next-item beam search and directly returns the $K$ highest-scoring item candidates.
+The SID chains of all $K$ items are decoded in parallel within the same beam search, so the sequential decoding depth depends only on the $D$ intra-item decoding steps, giving $\mathrm{Depth}_{\mathrm{Top\text{-}5}}=D$ .
+
+In OGR, the efficiency improvement arises from the reduction in sequential dependencies.
+Once the planned representation $p_{m}$ is available, $\mathrm{Dec}_{\mathrm{sid}}$ can generate its SID chain while $\mathrm{Dec}_{\mathrm{plan}}$ continues producing subsequent preference representations.
+For position $m$ , the $d$ -th SID token $s_{m}^{d}$ becomes available after $m$ planning steps and $d$ intra-item SID-decoding steps, so
+its sequential dependency depth is $m+d$ .
+The complete slate is available when the final token $s_{K}^{D}$ is generated, giving $\mathrm{Depth}_{\mathrm{OGR}}=K+D$ .
+
+Accordingly, OGR reduces the sequential dependency depth
+from $\mathcal{O}(KD)$ to $\mathcal{O}(K+D)$ by overlapping each position’s SID decoding with preference planning for subsequent positions, while preserving cross-position dependencies through $\mathrm{Dec}_{\mathrm{plan}}$ .
+Under our setting of $K=5$ and $D=4$ , the idealized critical-path reduction factor is $KD/(K+D)=20/9\approx 2.22$ .
+This shortened sequential path provides a structural explanation for the observed acceleration.
+As Fig. 3 shows, OGR achieves measured throughput improvements of $2.43\times$ and $2.49\times$ over TIGER-Beam and OneRec-Beam, respectively, while obtaining the highest NDCG@5.
+By contrast, the Top-5 variants require only one next-item beam search but achieve substantially lower recommendation quality because they return alternative next-item candidates without explicitly modeling dependencies and ordering preferences across slate positions.
+Consequently, these results suggest that OGR provides an effective
+quality–efficiency trade-off for generative slate recommendation.
+
+Online A/B Testing
+
+We conduct online A/B testing on Kuaishou with 3% of the production traffic. Compared with the existing system, OGR improves Effective Views, Comments, Likes, and Forwards by 1.120%, 2.954%, 0.505%, and 1.255%, respectively, demonstrating its effectiveness and practical value in real-world large-scale recommendation scenarios.
+
+Conclusion
+
+We propose OGR, an end-to-end generative framework for slate recommendation that realizes “Once Generated, Ranked.”
+OGR integrates TUSID for constructing recommendation-aware hierarchical SIDs and a list-wise generation architecture with preference alignment for directly producing ordered slates.
+Extensive offline experiments and online A/B testing demonstrate its effectiveness and practical impact in real-world recommendation scenarios.
+
+References
+
+Bello et al. (2018)
+I. Bello, S. Kulkarni, S. Jain, C. Boutilier, E. H. Chi, E. Eban, X. Luo, A. Mackey, and O. Meshi
+
+Seq2Slate: re-ranking and slate optimization with RNNs.
+
+External Links: 1810.02019,
+Document
+
+Cited by: Related Works,
+Overall Performance Comparison.
+
+Charikar et al. (2002)
+Charikar et al.
+
+Cited by: Appendix E.
+
+Charikar et al. (2004)
+M. Charikar, K. Chen, and M. Farach-Colton
+
+Finding frequent items in data streams.
+
+Theoretical Computer Science 312 (1), pp. 3–15.
+
+External Links: Document
+
+Cited by: Collaborative Injection.
+
+Chen et al. (2026)
+B. Chen, X. Guo, S. Wang, Z. Liang, Y. Ma, Y. Lv, C. Lei, Y. Ding, W. Ou, H. Li, and K. Gai
+
+OneSearch: a preliminary exploration of the unified end-to-end generative framework for e-commerce search.
+
+In Proceedings of the 43rd International Conference on Machine Learning,
+
+Proceedings of Machine Learning Research, Vol. 306.
+
+External Links: Link
+
+Cited by: Comparison of SID Construction Methods.
+
+Chen et al. (2026)
+Chen et al.
+
+Cited by: Appendix B.
+
+Deng et al. (2025)
+Deng et al.
+
+Cited by: Appendix B.
+
+Deng et al. (2025)
+J. Deng, S. Wang, K. Cai, L. Ren, Q. Hu, W. Ding, Q. Luo, and G. Zhou
+
+OneRec: unifying retrieve and rank with generative recommender and iterative preference alignment.
+
+External Links: 2502.18965,
+Document
+
+Cited by: Introduction,
+Introduction,
+Overall Performance Comparison,
+Comparison of SID Construction Methods.
+
+Du et al. (2023)
+X. Du, H. Yuan, P. Zhao, J. Qu, F. Zhuang, G. Liu, Y. Liu, and V. S. Sheng
+
+Frequency enhanced hybrid attention network for sequential recommendation.
+
+In Proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 78–88.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Fu et al. (2026)
+Fu et al.
+
+Cited by: Appendix B.
+
+Gao et al. (2022)
+C. Gao, S. Li, W. Lei, J. Chen, B. Li, P. Jiang, X. He, J. Mao, and T. Chua
+
+KuaiRec: a fully-observed dataset and insights for evaluating recommender systems.
+
+In Proceedings of the 31st ACM International Conference on Information and Knowledge Management,
+
+pp. 540–550.
+
+External Links: Document
+
+Cited by: Datasets and Evaluation Metrics.
+
+Hidasi et al. (2016)
+Hidasi et al.
+
+Cited by: Appendix B.
+
+Hou et al. (2025)
+Y. Hou, J. Li, A. Shin, J. Jeon, A. Santhanam, W. Shao, K. Hassani, N. Yao, and J. McAuley
+
+Generating long semantic IDs in parallel for recommendation.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2,
+
+pp. 956–966.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Hu et al. (2026)
+Hu et al.
+
+Cited by: Appendix B.
+
+Hu et al. (2026)
+Z. Hu, Y. Chen, Y. Pan, X. Yuan, Y. Yin, D. Wang, B. Xia, Z. Luo, H. Wang, S. Ni, D. Liang, J. Wang, S. Cai, T. Zhou, F. Ren, and W. Ou
+
+Stop treating collisions equally: qualification-aware semantic ID learning for recommendation at industrial scale.
+
+External Links: 2603.00632,
+Document
+
+Cited by: Introduction.
+
+Järvelin and Kekäläinen (2002)
+K. Järvelin and J. Kekäläinen
+
+Cumulated gain-based evaluation of IR techniques.
+
+ACM Transactions on Information Systems 20 (4), pp. 422–446.
+
+External Links: Document
+
+Cited by: Datasets and Evaluation Metrics.
+
+Kabbur et al. (2013)
+Kabbur et al.
+
+Cited by: Appendix B.
+
+Kang and McAuley (2018a)
+Kang and McAuley
+
+Cited by: Appendix B.
+
+Kang and McAuley (2018b)
+W. Kang and J. McAuley
+
+Self-attentive sequential recommendation.
+
+In 2018 IEEE International Conference on Data Mining,
+
+pp. 197–206.
+
+External Links: Document
+
+Cited by: Semantic Fusion,
+Overall Performance Comparison.
+
+Koren et al. (2009)
+Koren et al.
+
+Cited by: Appendix B.
+
+Li et al. (2017)
+Li et al.
+
+Cited by: Appendix B.
+
+Li et al. (2025)
+G. Li, X. Zhang, Y. Zhang, Y. Yin, G. Yin, and W. Lin
+
+Semantic convergence: harmonizing recommender systems via two-stage alignment and behavioral semantic tokenization.
+
+Proceedings of the AAAI Conference on Artificial Intelligence 39 (11), pp. 12040–12048.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Lin et al. (2025a)
+X. Lin, H. Shi, W. Wang, F. Feng, Q. Wang, S. Ng, and T. Chua
+
+Order-agnostic identifier for large language model-based generative recommendation.
+
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 1923–1933.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Lin et al. (2025b)
+X. Lin, C. Yang, W. Wang, Y. Li, C. Du, F. Feng, S. Ng, and T. Chua
+
+Efficient inference for large language model-based generative recommendation.
+
+In The Thirteenth International Conference on Learning Representations,
+
+External Links: Link
+
+Cited by: Related Works.
+
+Liu et al. (2025)
+E. Liu, B. Zheng, C. Ling, L. Hu, H. Li, and W. X. Zhao
+
+Generative recommender with end-to-end learnable item tokenization.
+
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 729–739.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Liu et al. (2025)
+Liu et al.
+
+Cited by: Appendix B.
+
+Liu et al. (2024)
+Q. Liu, J. Zhu, L. Fan, Z. Zhao, and X. Wu
+
+STORE: streamlining semantic tokenization and generative recommendation with a single LLM.
+
+External Links: 2409.07276,
+Document
+
+Cited by: Related Works.
+
+Luo et al. (2025)
+Luo et al.
+
+Cited by: Appendix B,
+Appendix B.
+
+Luo et al. (2025)
+X. Luo, J. Cao, T. Sun, J. Yu, R. Huang, W. Yuan, H. Lin, Y. Zheng, S. Wang, Q. Hu, C. Qiu, J. Zhang, X. Zhang, Z. Yan, J. Zhang, S. Zhang, M. Wen, Z. Liu, and G. Zhou
+
+QARM: quantitative alignment multi-modal recommendation at kuaishou.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 5915–5922.
+
+External Links: Document
+
+Cited by: Introduction.
+
+Ouyang et al. (2022)
+L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin, C. Zhang, S. Agarwal, K. Slama, A. Ray, J. Schulman, J. Hilton, F. Kelton, L. Miller, M. Simens, A. Askell, P. Welinder, P. F. Christiano, J. Leike, and R. Lowe
+
+Training language models to follow instructions with human feedback.
+
+In Advances in Neural Information Processing Systems,
+
+Vol. 35, pp. 27730–27744.
+
+External Links: Document
+
+Cited by: Slate-Level Preference Alignment (SPA).
+
+Pan et al. (2026)
+Pan et al.
+
+Cited by: Appendix B.
+
+Pan et al. (2026)
+Y. Pan, Y. Chen, Z. Hu, X. Yuan, D. Wang, Y. Yin, S. Ni, H. Wang, J. Wang, F. Ren, and W. Ou
+
+Beyond static collision handling: adaptive semantic ID learning for multimodal recommendation at industrial scale.
+
+External Links: 2604.23522,
+Document
+
+Cited by: Comparison of SID Construction Methods.
+
+Pang et al. (2026)
+Pang et al.
+
+Cited by: Appendix B.
+
+Pei et al. (2019)
+C. Pei, Y. Zhang, Y. Zhang, F. Sun, X. Lin, H. Sun, J. Wu, P. Jiang, J. Ge, W. Ou, and D. Pei
+
+Personalized re-ranking for recommendation.
+
+In Proceedings of the 13th ACM Conference on Recommender Systems,
+
+pp. 3–11.
+
+External Links: Document
+
+Cited by: Related Works,
+Overall Performance Comparison.
+
+Qiu et al. (2022)
+R. Qiu, Z. Huang, H. Yin, and Z. Wang
+
+Contrastive learning for representation degeneration problem in sequential recommendation.
+
+In Proceedings of the Fifteenth ACM International Conference on Web Search and Data Mining,
+
+pp. 813–823.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Qu et al. (2025)
+H. Qu, W. Fan, Z. Zhao, and Q. Li
+
+TokenRec: learning to tokenize ID for LLM-based generative recommendations.
+
+IEEE Transactions on Knowledge and Data Engineering 37 (10), pp. 6216–6231.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Rafailov et al. (2023)
+R. Rafailov, A. Sharma, E. Mitchell, C. D. Manning, S. Ermon, and C. Finn
+
+Direct preference optimization: your language model is secretly a reward model.
+
+In Advances in Neural Information Processing Systems,
+
+Vol. 36, pp. 53728–53741.
+
+External Links: Document
+
+Cited by: Slate-Level Preference Alignment (SPA).
+
+Rajput et al. (2023)
+Rajput et al.
+
+Cited by: Appendix B.
+
+Rajput et al. (2023)
+S. Rajput, N. Mehta, A. Singh, R. H. Keshavan, T. Vu, L. Heldt, L. Hong, Y. Tay, V. Tran, J. Samost, M. Kula, E. Chi, and M. Sathiamoorthy
+
+Recommender systems with generative retrieval.
+
+In Advances in Neural Information Processing Systems,
+
+Vol. 36, pp. 10299–10315.
+
+External Links: Document
+
+Cited by: Introduction,
+Related Works,
+Overall Performance Comparison,
+Comparison of SID Construction Methods.
+
+Ren et al. (2023)
+Y. Ren, X. Han, X. Zhao, S. Zhang, and Y. Zhang
+
+Slate-aware ranking for recommendation.
+
+In Proceedings of the Sixteenth ACM International Conference on Web Search and Data Mining,
+
+pp. 499–507.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Ren et al. (2024)
+Y. Ren, Q. Yang, Y. Wu, W. Xu, Y. Wang, and Z. Zhang
+
+Non-autoregressive generative models for reranking recommendation.
+
+In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 5625–5634.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Rendle et al. (2009)
+Rendle et al.
+
+Cited by: Appendix B.
+
+Rosenberg and Hirschberg (2007)
+A. Rosenberg and J. Hirschberg
+
+V-measure: a conditional entropy-based external cluster evaluation measure.
+
+In Proceedings of the 2007 Joint Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning,
+
+Prague, Czech Republic, pp. 410–420.
+
+External Links: Link
+
+Cited by: Comparison of SID Construction Methods.
+
+Sarwar et al. (2001)
+Sarwar et al.
+
+Cited by: Appendix B.
+
+Schulman et al. (2017)
+J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov
+
+Proximal policy optimization algorithms.
+
+External Links: 1707.06347,
+Document
+
+Cited by: Conservative Policy Optimization.
+
+Shin et al. (2024)
+Y. Shin, J. Choi, H. Wi, and N. Park
+
+An attentive inductive bias for sequential recommendation beyond the self-attention.
+
+Proceedings of the AAAI Conference on Artificial Intelligence 38 (8), pp. 8984–8992.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Si et al. (2024)
+Z. Si, Z. Sun, J. Chen, G. Chen, X. Zang, K. Zheng, Y. Song, X. Zhang, J. Xu, and K. Gai
+
+Generative retrieval with semantic tree-structured identifiers and contrastive learning.
+
+In Proceedings of the 2024 Annual International ACM SIGIR Conference on Research and Development in Information Retrieval in the Asia Pacific Region,
+
+pp. 154–163.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Sun et al. (2019)
+Sun et al.
+
+Cited by: Appendix B.
+
+Sun et al. (2019)
+F. Sun, J. Liu, J. Wu, C. Pei, X. Lin, W. Ou, and P. Jiang
+
+BERT4Rec: sequential recommendation with bidirectional encoder representations from transformer.
+
+In Proceedings of the 28th ACM International Conference on Information and Knowledge Management,
+
+pp. 1441–1450.
+
+External Links: Document
+
+Cited by: Overall Performance Comparison.
+
+Tang and Wang (2018a)
+Tang and Wang
+
+Cited by: Appendix B.
+
+Tang and Wang (2018b)
+J. Tang and K. Wang
+
+Personalized top-N sequential recommendation via convolutional sequence embedding.
+
+In Proceedings of the Eleventh ACM International Conference on Web Search and Data Mining,
+
+pp. 565–573.
+
+External Links: Document
+
+Cited by: Overall Performance Comparison.
+
+van den Oord et al. (2018)
+A. van den Oord, Y. Li, and O. Vinyals
+
+Representation learning with contrastive predictive coding.
+
+External Links: 1807.03748,
+Document
+
+Cited by: Table 3.
+
+Wan et al. (2026)
+Q. Wan, Z. Yang, D. Yang, Y. Fan, X. Yan, S. Liu, Y. Liu, C. Zhang, W. Xu, J. Qin, and K. Wang
+
+R3-VAE: reference vector-guided rating residual quantization VAE for generative recommendation.
+
+External Links: 2604.11440,
+Document
+
+Cited by: Comparison of SID Construction Methods,
+Comparison of SID Construction Methods.
+
+Wang et al. (2025)
+D. Wang, Y. Huang, S. Gao, Y. Wang, C. Huang, and S. Shang
+
+Generative next POI recommendation with semantic ID.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2,
+
+pp. 2904–2914.
+
+External Links: Document
+
+Cited by: Comparison of SID Construction Methods.
+
+Wang et al. (2024)
+Wang et al.
+
+Cited by: Appendix B.
+
+Wang et al. (2024a)
+W. Wang, H. Bao, X. Lin, J. Zhang, Y. Li, F. Feng, S. Ng, and T. Chua
+
+Learnable item tokenization for generative recommendation.
+
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+
+pp. 2400–2409.
+
+External Links: Document
+
+Cited by: Introduction,
+Related Works,
+Comparison of SID Construction Methods.
+
+Wang et al. (2024b)
+Y. Wang, Z. Ren, W. Sun, J. Yang, Z. Liang, X. Chen, R. Xie, S. Yan, X. Zhang, P. Ren, Z. Chen, and X. Xin
+
+Content-based collaborative generation for recommender systems.
+
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+
+pp. 2420–2430.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Xiao et al. (2026)
+L. Xiao, H. Wang, C. Wang, L. Ji, Y. Wang, J. Zhu, Z. Dong, R. Zhang, and R. Li
+
+UNGER: generative recommendation with a unified code via semantic and collaborative integration.
+
+ACM Transactions on Information Systems 44 (2), pp. 31:1–31:31.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Xie et al. (2022)
+X. Xie, F. Sun, Z. Liu, S. Wu, J. Gao, J. Zhang, B. Ding, and B. Cui
+
+Contrastive learning for sequential recommendation.
+
+In 2022 IEEE 38th International Conference on Data Engineering,
+
+pp. 1259–1273.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Xu et al. (2023)
+Y. Xu, H. Chen, Z. Wang, J. Yin, Q. Shen, D. Wang, F. Huang, L. Lai, T. Zhuang, J. Ge, and X. Hu
+
+Multi-factor sequential re-ranking with perception-aware diversification.
+
+In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+
+pp. 5327–5337.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Xue et al. (2026)
+Xue et al.
+
+Cited by: Appendix B.
+
+Yang et al. (2025a)
+C. Yang, X. Lin, W. Wang, Y. Li, T. Sun, X. Han, and T. Chua
+
+EARN: efficient inference acceleration for LLM-based generative recommendation by register tokens.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2,
+
+pp. 3483–3494.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Yang et al. (2025b)
+L. Yang, F. Paischer, K. Hassani, J. Li, S. Shao, Z. G. Li, Y. He, X. Feng, N. Noorshams, S. Park, B. Long, R. D. Nowak, X. Gao, and H. Eghbalzadeh
+
+Unifying generative and dense retrieval for sequential recommendation.
+
+Transactions on Machine Learning Research.
+
+External Links: ISSN 2835-8856,
+Link
+
+Cited by: Related Works.
+
+Yang et al. (2023)
+Y. Yang, C. Huang, L. Xia, C. Huang, D. Luo, and K. Lin
+
+Debiased contrastive learning for sequential recommendation.
+
+In Proceedings of the ACM Web Conference 2023,
+
+pp. 1063–1073.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Yao et al. (2025)
+Yao et al.
+
+Cited by: Appendix B.
+
+Yuan et al. (2019)
+Yuan et al.
+
+Cited by: Appendix B.
+
+Yue et al. (2024)
+Z. Yue, Y. Wang, Z. He, H. Zeng, J. McAuley, and D. Wang
+
+Linear recurrent units for sequential recommendation.
+
+In Proceedings of the 17th ACM International Conference on Web Search and Data Mining,
+
+pp. 930–938.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Zheng et al. (2024)
+B. Zheng, Y. Hou, H. Lu, Y. Chen, W. X. Zhao, M. Chen, and J. Wen
+
+Adapting large language models by integrating collaborative semantics for recommendation.
+
+In 2024 IEEE 40th International Conference on Data Engineering,
+
+pp. 1435–1448.
+
+External Links: Document
+
+Cited by: Related Works,
+Comparison of SID Construction Methods.
+
+Zhou et al. (2020)
+Zhou et al.
+
+Cited by: Appendix B.
+
+Zhou et al. (2025)
+Zhou et al.
+
+Cited by: Appendix B.
+
+Zhu et al. (2024)
+J. Zhu, M. Jin, Q. Liu, Z. Qiu, Z. Dong, and X. Li
+
+CoST: contrastive quantization based semantic tokenization for generative recommendation.
+
+In Proceedings of the 18th ACM Conference on Recommender Systems,
+
+pp. 969–974.
+
+External Links: Document
+
+Cited by: Related Works.
+
+Technical Appendix
+
+Appendix A Appendix 0: Appendix Overview
+
+This section provides an overview of the supplementary material
+and its correspondence to the main paper.
+
+ | 
+
+Appendix
+
+ | 
+
+Contents
+
+ | 
+
+Main-paper subsection
+
+ | 
+
+Appendix 1
+
+ | 
+
+Additional Related Work on SID Construction
+
+ | 
+
+Related Works
+
+ | 
+
+Appendix 2
+
+ | 
+
+B-Tags and C-Tags
+
+ | 
+
+Semantic Fusion
+
+ | 
+
+Appendix 3
+
+ | 
+
+RQ-KMeans for SID Construction
+
+ | 
+
+Collaborative Injection
+
+ | 
+
+Appendix 4
+
+ | 
+
+Details of Collaborative Injection
+
+ | 
+
+Collaborative Injection
+
+ | 
+
+Appendix 5
+
+ | 
+
+Details of Reward-Consistent Calibration
+
+ | 
+
+Reward-Consistent Calibration
+
+ | 
+
+Appendix 6
+
+ | 
+
+Hyperparameter Configuration
+
+ | 
+
+Implementation Details
+
+ | 
+
+Appendix 7
+
+ | 
+
+Symbol Glossary
+
+ | 
+
+Main paper
+
+Table 6: Overview of the supplementary material
+and its correspondence to the main paper.
+
+Appendix B Appendix 1: Additional Related Work on SID Construction
+
+The related work on SID construction methods is presented below:
+
+Traditional recommender systems have long represented items using atomic IDs,
+a paradigm widely adopted in collaborative filtering and factorization methods
+(ItemKNN, MF, BPR-MF, and FISM)
+(Sarwar et al. 2001; Koren et al. 2009; Rendle et al. 2009; Kabbur et al. 2013),
+deep sequential models (GRU4Rec, Caser, NARM, and NextItNet)
+(Hidasi et al. 2016; Tang and Wang 2018a; Charikar et al. 2004; Yuan et al. 2019), and
+Transformer-based recommenders (SASRec, BERT4Rec, and S3-Rec)
+(Kang and McAuley 2018a; Sun et al. 2019; Zhou et al. 2020).
+However, atomic IDs are arbitrary and unstructured symbols that encode no
+shared item structure, hindering the effective modeling of sparsely observed,
+long-tail, and newly introduced items.
+To address this limitation, TIGER (Lin et al. 2025b) uses RQ-VAE to
+quantize content representations into hierarchical SIDs, while QARM and
+OneRec (Järvelin and Kekäläinen 2002; Deng et al. 2025; Zhou et al. 2025) adopt RQ-KMeans to
+improve codebook utilization and assignment balance.
+These studies establish the foundation for SIDs in generative recommendation,
+yet the effective integration of content semantics and local collaborative
+structures remains underexplored.
+
+Existing semantic-collaborative SID construction methods broadly follow two
+directions.
+The first directly imposes collaborative constraints during quantization, as
+in LETTER, ETEGRec, HiGR, QuaSID, and
+AdaSID (Wang et al. 2024; Liu et al. 2025; Pang et al. 2026; Hu et al. 2026; Pan et al. 2026).
+However, jointly optimizing collaborative alignment with reconstruction and
+codebook objectives may introduce competing gradients, increasing the risk of
+training instability and codebook collapse.
+The second aligns semantic and behavioral representations in the continuous
+space before quantization, as in QARM, FORGE, OneSearch, SaviorRec, and
+GR4AD (Järvelin and Kekäläinen 2002; Fu et al. 2026; Chen et al. 2026; Yao et al. 2025; Xue et al. 2026).
+These approaches decouple representation learning from discrete encoding but
+typically rely on sampled item pairs and contrastive learning, making it
+difficult to fully capture local co-occurrence structures of varying strengths
+and limiting their suitability for generative slate recommendation.
+
+Appendix C Appendix 2: B-Tags and C-Tags
+
+ | Type
+ | Dimension
+ | Examples
+
+ | B-tags (supply side)
+ | Positioning
+ | knowledge sharing; entertainment; daily life; product promotion
+
+ | Persona
+ | expert; friend-like creator; comedian; reviewer
+
+ | Monetization
+ | product/brand promotion; traffic acquisition; course conversion
+
+ | Format
+ | narration; plot; review; tutorial; interview; Vlog
+
+ | Style
+ | professional; humorous; authentic; premium; fast-paced
+
+ | Emotion
+ | joyful; warm; healing; tense; encouraging
+
+ | Depth
+ | entertainment; introduction; practical explanation; in-depth analysis
+
+ | Operation
+ | trend leverage; suspense hook; interaction prompt; serialization
+
+ | C-tags (demand side)
+ | Pain Point
+ | makeup difficulty; low efficiency; weight loss; product selection
+
+ | Benefit
+ | knowledge; problem solving; relaxation; discounts; efficiency
+
+ | Scenario
+ | commute; bedtime; home; office; travel; purchase decision
+
+ | Audience
+ | students; professionals; mothers; novices; digital enthusiasts
+
+Table 7: Taxonomy of B-tags and C-tags. Each dimension may contain multiple values.
+
+In addition to Brand and Category, we use two multi-label
+high-level attributes for each item, as shown in
+Table 7. B-tags characterize the
+supply side of content, including how it is positioned,
+presented, and operated; C-tags characterize the demand side,
+including the user need, value, scenario, and target audience.
+The two tag records are separately converted into text and encoded by
+the shared text encoder to obtain $e_{i}^{\mathrm{Bt}}$ and
+ $e_{i}^{\mathrm{Ct}}$ , which are fused with the multimodal item
+representation as described in the main text.
+
+Appendix D Appendix 3: RQ-KMeans for SID Construction
+
+Given the unified item representation $e_{i}^{\mathrm{uni}}$ , we apply
+residual-quantized K-means (RQ-KMeans) to construct the hierarchical SID
+ $\mathbf{s}_{i}$ . RQ-KMeans recursively quantizes the residual representation,
+so that early codewords typically capture larger-scale variation, whereas later
+codewords encode the remaining residual detail.
+
+Let $\zeta_{i}^{(1)}=e_{i}^{\mathrm{uni}}$ be the initial residual of item $i$ .
+Here, $i\in\{1,\ldots,N_{\mathrm{item}}\}$ , $D$ is the SID depth used in
+the main paper, $n_{d}^{\mathrm{cb}}$ is the codebook size at depth $d$ , and
+
+ | 
+ | $\Xi^{(d)}=\{\xi_{n}^{(d)}\}_{n=1}^{n_{d}^{\mathrm{cb}}}$ 
+ | 
+
+denotes the depth- $d$ codebook. RQ-KMeans assigns the residual to its nearest
+centroid:
+
+ | 
+ | $s_{i}^{d}=\arg\min_{n\in\{1,\ldots,n_{d}^{\mathrm{cb}}\}}\left\lVert\zeta_{i}^{(d)}-\xi_{n}^{(d)}\right\rVert_{2}^{2}.$ 
+ | 
+ | (19)
+
+The residual is then updated as
+
+ | 
+ | $\zeta_{i}^{(d+1)}=\zeta_{i}^{(d)}-\xi_{s_{i}^{d}}^{(d)}.$ 
+ | 
+ | (20)
+
+After $D$ quantization levels, the SID and reconstructed representation are
+
+ | 
+ | $\mathbf{s}_{i}=(s_{i}^{1},\ldots,s_{i}^{D}),\qquad\widehat{e}_{i}^{\mathrm{rq}}=\sum_{d=1}^{D}\xi_{s_{i}^{d}}^{(d)}.$ 
+ | 
+ | (21)
+
+During validation, testing, and online inference, the codebooks are frozen and
+each item is encoded by recursively selecting the nearest centroid at every
+depth. This ensures a consistent SID vocabulary across training and
+evaluation.
+
+Appendix E Appendix 4: Details of Collaborative Injection
+
+Preliminaries of CountSketch
+
+CountSketch was originally introduced for frequency estimation in data
+streams (Charikar et al. 2002). Given a frequency vector
+ $x\in\mathbb{R}^{n_{\mathrm{vocab}}}$ , it maintains a compressed table
+ $\mathbf{G}_{\mathrm{cs}}\in\mathbb{R}^{n_{\mathrm{row}}\times n_{\mathrm{bucket}}}$ .
+For row $v$ , a bucket hash
+ $\mathfrak{h}_{v}:[n_{\mathrm{vocab}}]\rightarrow[n_{\mathrm{bucket}}]$ 
+and a sign hash
+ $\varsigma_{v}:[n_{\mathrm{vocab}}]\rightarrow\{-1,+1\}$ 
+map a weighted update $(j,\upsilon)$ to
+
+ | 
+ | $\mathbf{G}_{\mathrm{cs},v,\mathfrak{h}_{v}(j)}\leftarrow\mathbf{G}_{\mathrm{cs},v,\mathfrak{h}_{v}(j)}+\varsigma_{v}(j)\upsilon,\qquad v=1,\ldots,n_{\mathrm{row}}.$ 
+ | 
+ | (22)
+
+The corresponding row estimate is
+
+ | 
+ | $\widehat{x}_{j}^{(v)}=\varsigma_{v}(j)\mathbf{G}_{\mathrm{cs},v,\mathfrak{h}_{v}(j)}.$ 
+ | 
+ | (23)
+
+For independent sign hashes, cross terms caused by unrelated coordinates have
+zero expectation; additional buckets reduce collisions, while the median
+across independent rows makes classical point queries robust to an occasional
+large collision.
+
+CCE uses only the two feature-mapping operations needed for collaborative
+representation learning: fixed-dimensional bucket hashing and random sign
+hashing. It shares one bucket hash and one sign hash across all center items
+and constructs an $n_{\mathrm{bucket}}$ -dimensional sketch for each item.
+Unlike classical CountSketch, CCE does not recover individual coordinates or
+aggregate multiple point-query estimates. It directly applies a signed-log
+transform, normalization, and random projection to the shared-hash sketch.
+This design requires one bucket update per observed context pair and reduces
+the item–context storage to a fixed-dimensional representation per item.
+
+Algorithm 1 Collaborative embedding construction and confidence-aware fusion
+
+Input: Training prefixes $\{\mathcal{R}_{u}^{+}\}$ ; semantic embeddings
+ $\{e_{i}^{\mathrm{sem}}\}$ 
+
+Parameter: $\omega,n_{\mathrm{bucket}},h,\sigma,\Lambda_{\mathrm{col}},\tau,\alpha_{\mathrm{col}},\vartheta_{\mathrm{n}}$ 
+
+Output: $\{e_{i}^{\mathrm{col}}\}$ ,
+ $\{e_{i}^{\mathrm{uni}}\}$ , and $\{U_{i}\}$ 
+
+ 1:
+
+  Initialize $\mathcal{C}_{i}\leftarrow 0_{n_{\mathrm{bucket}}}$ and $U_{i}\leftarrow 0$ 
+for all items $i$ .
+
+ 2:
+
+  for each user $u$ do
+
+ 3:
+
+    $\mathcal{I}_{u}^{\mathrm{ctx}}\leftarrow\emptyset$ 
+
+ 4:
+
+   for $p=1$ to $|\mathcal{R}_{u}^{+}|$ do
+
+ 5:
+
+     $i\leftarrow\mathcal{R}_{u}^{+}[p]$ 
+
+ 6:
+
+    for $q=\max(1,p-\omega)$ to $\min(|\mathcal{R}_{u}^{+}|,p+\omega)$ do
+
+ 7:
+
+     if $q\neq p$ then
+
+ 8:
+
+       $j\leftarrow\mathcal{R}_{u}^{+}[q]$ ,
+ $\upsilon\leftarrow 1/|p-q|$ 
+
+ 9:
+
+       $\mathcal{C}_{i}[h(j)]\leftarrow\mathcal{C}_{i}[h(j)]+\sigma(j)\upsilon$ ;
+ $\mathcal{I}_{u}^{\mathrm{ctx}}\leftarrow\mathcal{I}_{u}^{\mathrm{ctx}}\cup\{i\}$ 
+
+ 10:
+
+     end if
+
+ 11:
+
+    end for
+
+ 12:
+
+   end for
+
+ 13:
+
+    $U_{i}\leftarrow U_{i}+1$ for each $i\in\mathcal{I}_{u}^{\mathrm{ctx}}$ 
+
+ 14:
+
+  end for
+
+ 15:
+
+  for each item $i$ do
+
+ 16:
+
+    $z_{i}[\nu]\leftarrow\operatorname{sign}(\mathcal{C}_{i}[\nu])\log(1+|\mathcal{C}_{i}[\nu]|)$ for all $\nu$ 
+
+ 17:
+
+    $\bar{z}_{i}\leftarrow z_{i}/\max(\lVert z_{i}\rVert_{2},\vartheta_{\mathrm{n}})$ 
+
+ 18:
+
+    $\widetilde{e}_{i}^{\mathrm{col}}\leftarrow\Lambda_{\mathrm{col}}\bar{z}_{i}$ ;
+ $e_{i}^{\mathrm{col}}\leftarrow\widetilde{e}_{i}^{\mathrm{col}}/\max(\lVert\widetilde{e}_{i}^{\mathrm{col}}\rVert_{2},\vartheta_{\mathrm{n}})$ 
+
+ 19:
+
+    $\bar{e}_{i}^{\mathrm{sem}}\leftarrow e_{i}^{\mathrm{sem}}/\max(\lVert e_{i}^{\mathrm{sem}}\rVert_{2},\vartheta_{\mathrm{n}})$ 
+
+ 20:
+
+    $\gamma_{i}\leftarrow\log(1+U_{i})/[\log(1+U_{i})+\tau]$ ;
+ $\alpha_{i}\leftarrow\alpha_{\mathrm{col}}\gamma_{i}$ 
+
+ 21:
+
+    $e_{i}^{\mathrm{uni}}\leftarrow[\sqrt{1-\alpha_{i}}\bar{e}_{i}^{\mathrm{sem}};\sqrt{\alpha_{i}}e_{i}^{\mathrm{col}}]$ 
+
+ 22:
+
+  end for
+
+ 23:
+
+  return
+ $\{e_{i}^{\mathrm{col}}\}$ ,
+ $\{e_{i}^{\mathrm{uni}}\}$ , and $\{U_{i}\}$ 
+
+CountSketch-Based Collaborative Embedding
+
+Building on the bucket-hashing and sign-hashing operations summarized above,
+CCE uses signed hashing as a
+fixed-dimensional feature map for item-level collaborative structures.
+
+Let
+ $\mathcal{R}_{u}^{+}=(\jmath_{u,1},\ldots,\jmath_{u,L_{u}^{+}})$ 
+denote the high-quality positive-feedback training prefix of user $u$ .
+Validation and test interactions are excluded from collaborative feature
+construction. For each item $i$ , we define its uncompressed local-context
+vector $x_{i}\in\mathbb{R}^{n_{\mathrm{vocab}}}$ as
+
+ | 
+ | $x_{i}[j]=\sum_{u}\sum_{\begin{subarray}{c}p,q:\;\jmath_{u,p}=i,\;\jmath_{u,q}=j\\
+0<|p-q|\leq\omega\end{subarray}}\frac{1}{|p-q|},$ 
+ | 
+ | (24)
+
+where $n_{\mathrm{vocab}}$ is the item vocabulary size and $\omega$ is the context-window
+radius. The value $x_{i}[j]$ measures the distance-weighted local co-occurrence
+between center item $i$ and contextual item $j$ , with nearby interactions
+receiving larger weights. When the same item appears at different sequence
+positions, $j=i$ is permitted; such repeated-item co-occurrences are retained,
+while only the identical position $q=p$ is excluded.
+
+Explicitly storing all $\{x_{i}\}$ requires an item–context matrix whose size
+grows with the item vocabulary. CCE instead employs one bucket hash
+
+ | 
+ | $h:[n_{\mathrm{vocab}}]\rightarrow[n_{\mathrm{bucket}}]$ 
+ | 
+ | (25)
+
+and one sign hash
+
+ | 
+ | $\sigma:[n_{\mathrm{vocab}}]\rightarrow\{-1,+1\},$ 
+ | 
+ | (26)
+
+which are shared by all center items. The compressed collaborative sketch of
+item $i$ is defined as
+
+ | 
+ | $\mathcal{C}_{i}[\nu]=\sum_{j:h(j)=\nu}\sigma(j)x_{i}[j],\qquad\nu=1,\ldots,n_{\mathrm{bucket}}.$ 
+ | 
+ | (27)
+
+Equivalently, when contextual item $j=\jmath_{u,q}$ occurs within the local
+window of center item $i=\jmath_{u,p}$ , the corresponding sketch is updated by
+
+ | 
+ | $\mathcal{C}_{i}[h(j)]\leftarrow\mathcal{C}_{i}[h(j)]+\frac{\sigma(j)}{|p-q|}.$ 
+ | 
+ | (28)
+
+Sharing $h$ and $\sigma$ across all center items makes their compressed
+contextual distributions directly comparable. In particular, the raw
+sketches satisfy
+
+ | 
+ | $\mathbb{E}\left[\left\langle\mathcal{C}_{i},\mathcal{C}_{i^{\prime}}\right\rangle\right]=\left\langle x_{i},x_{i^{\prime}}\right\rangle.$ 
+ | 
+ | (29)
+
+A contextual item $j$ shared by items $i$ and $i^{\prime}$ contributes
+
+ | 
+ | $\sigma(j)^{2}x_{i}[j]x_{i^{\prime}}[j]=x_{i}[j]x_{i^{\prime}}[j],$ 
+ | 
+ | (30)
+
+whereas a cross term produced by unrelated items $j\neq j^{\prime}$ contains
+ $\sigma(j)\sigma(j^{\prime})$ and has zero expectation. Therefore, common local
+contexts make consistent positive contributions, while unrelated hash
+collisions do not systematically increase the raw-sketch similarity.
+
+The sketch buckets may still contain large values caused by highly frequent
+co-occurrences. We therefore apply a signed-log transformation:
+
+ | 
+ | $z_{i}[\nu]=\operatorname{sign}\left(\mathcal{C}_{i}[\nu]\right)\log\left(1+\left|\mathcal{C}_{i}[\nu]\right|\right).$ 
+ | 
+ | (31)
+
+This transformation preserves the sign of each aggregated bucket while
+compressing its magnitude, thereby reducing the dominance of frequent
+contextual items and large residual bucket values.
+
+We then perform per-item $\ell_{2}$ normalization:
+
+ | 
+ | $\bar{z}_{i}=\frac{z_{i}}{\max\left(\lVert z_{i}\rVert_{2},\vartheta_{\mathrm{n}}\right)},$ 
+ | 
+ | (32)
+
+where $\vartheta_{\mathrm{n}}>0$ is a numerical stability constant. A shared
+fixed random projection maps the normalized sketch to the collaborative
+embedding space:
+
+ | 
+ | $\widetilde{e}_{i}^{\mathrm{col}}=\Lambda_{\mathrm{col}}\bar{z}_{i},\qquad\Lambda_{\mathrm{col}}\in\mathbb{R}^{n_{\mathrm{col}}\times n_{\mathrm{bucket}}},$ 
+ | 
+ | (33)
+
+where $n_{\mathrm{col}}$ matches the semantic embedding dimension. The
+projected representation is further normalized as
+
+ | 
+ | $e_{i}^{\mathrm{col}}=\frac{\widetilde{e}_{i}^{\mathrm{col}}}{\max\left(\left\lVert\widetilde{e}_{i}^{\mathrm{col}}\right\rVert_{2},\vartheta_{\mathrm{n}}\right)}.$ 
+ | 
+ | (34)
+
+Confidence-Aware Weighting
+
+For each user $u$ , let
+ $\mathcal{R}_{u}^{+}=(\jmath_{u,1},\ldots,\jmath_{u,L_{u}^{+}})$ 
+denote the chronologically ordered high-quality positive-feedback training
+sequence, where $\jmath_{u,p}$ is the item at position $p$ and $L_{u}^{+}$ is the
+sequence length. Validation and test interactions are excluded from
+ $\mathcal{R}_{u}^{+}$ .
+
+Given the context-window radius $\omega$ , user $u$ contributes contextual
+information to item $i$ if $i$ occurs at some position $p$ in
+ $\mathcal{R}_{u}^{+}$ and
+there exists another position $q$ within its context window. We define the
+distinct-user support of item $i$ as
+
+ | 
+ | $U_{i}=\sum_{u}\mathbf{1}\left[\begin{gathered}\exists\,p,q\in\{1,\ldots,L_{u}^{+}\}:\\
+\jmath_{u,p}=i,\qquad 0<|p-q|\leq\omega\end{gathered}\right],$ 
+ | 
+ | (35)
+
+where $\mathbf{1}[\cdot]$ is an indicator function. For a given user $u$ ,
+the indicator equals $1$ if the user’s sequence provides at least one valid
+contextual update for item $i$ , and equals $0$ otherwise. Since each user
+corresponds to only one binary indicator, repeated occurrences of item $i$ 
+or multiple contextual updates from the same user do not increase $U_{i}$ .
+Therefore, $U_{i}$ counts the number of distinct users that contribute
+collaborative evidence to item $i$ , rather than the total number of
+interactions.
+
+Since distinct-user support is typically long-tailed, we first apply
+logarithmic compression and then convert it into an item-level collaborative
+confidence:
+
+ | 
+ | $\gamma_{i}=\frac{\log(1+U_{i})}{\log(1+U_{i})+\tau},\qquad\alpha_{i}=\alpha_{\mathrm{col}}\gamma_{i},$ 
+ | 
+ | (36)
+
+where $\tau>0$ controls the saturation speed of the confidence and
+ $\alpha_{\mathrm{col}}\in[0,1]$ specifies the maximum collaborative weight.
+The logarithmic transformation compresses large differences among
+high-support items and introduces diminishing returns as additional users
+are observed. Consequently, items with sufficient behavioral support can
+make greater use of collaborative information without allowing highly
+popular items to dominate solely because of their interaction scale.
+
+A smaller $U_{i}$ produces a smaller $\alpha_{i}$ , downweighting potentially
+unreliable collaborative evidence for interaction-sparse or cold-start
+items. In particular, $U_{i}=0$ directly gives
+ $\gamma_{i}=\alpha_{i}=0$ , so an item without valid collaborative support relies
+entirely on its semantic representation.
+
+Before fusion, the semantic representation is normalized as
+
+ | 
+ | $\bar{e}_{i}^{\mathrm{sem}}=\frac{e_{i}^{\mathrm{sem}}}{\max\left(\lVert e_{i}^{\mathrm{sem}}\rVert_{2},\vartheta_{\mathrm{n}}\right)}.$ 
+ | 
+ | (37)
+
+The unified representation is then constructed through confidence-weighted
+concatenation:
+
+ | 
+ | $e_{i}^{\mathrm{uni}}=\left[\sqrt{1-\alpha_{i}}\,\bar{e}_{i}^{\mathrm{sem}};\sqrt{\alpha_{i}}\,e_{i}^{\mathrm{col}}\right].$ 
+ | 
+ | (38)
+
+This concatenation retains the complementary structures of the semantic and
+collaborative branches, while $\alpha_{i}$ controls their relative
+contributions according to item-level behavioral support.
+
+When both branches are nonzero and unit-normalized, the square-root
+coefficients preserve the norm of the unified representation:
+
+ | 
+ | $\displaystyle\left\lVert e_{i}^{\mathrm{uni}}\right\rVert_{2}^{2}$ 
+ | $\displaystyle=(1-\alpha_{i})\left\lVert\bar{e}_{i}^{\mathrm{sem}}\right\rVert_{2}^{2}+\alpha_{i}\left\lVert e_{i}^{\mathrm{col}}\right\rVert_{2}^{2}$ 
+ | 
+ | (39)
+
+ | 
+ | 
+ | $\displaystyle=(1-\alpha_{i})+\alpha_{i}$ 
+ | 
+
+ | 
+ | 
+ | $\displaystyle=1.$ 
+ | 
+
+Thus, under the stated nonzero, unit-normalized condition, CAW adjusts the
+relative contribution of semantic and collaborative information without
+introducing item-dependent variation in the overall representation scale.
+
+The complete construction of the collaborative embeddings and their
+confidence-aware fusion with the semantic representations is summarized in
+Algorithm 1.
+
+Appendix F Appendix 5: Details of Reward-Consistent Calibration
+
+Due to confidentiality constraints, the full industrial reward schema cannot
+be disclosed. We therefore report the retained feedback signals, fixed weights,
+and exposure-only calibration procedure used in the experiments.
+
+For user $u$ , let $\mathcal{E}_{u}$ be the collection of complete slates
+recorded in the training exposure log. Operationally, the “candidate
+rollouts” in the main paper refer to evaluating logged candidate slates under
+the policy, rather than generating new slates for reward assignment. The
+alignment action set $\mathcal{A}_{u}\subseteq\mathcal{E}_{u}$ is therefore formed
+only from these logged exposure slates. For each $a\in\mathcal{A}_{u}$ , the
+frozen reference policy and the current policy are used only to compute the
+corresponding slate log-likelihoods $\ell_{0}(a\mid u)$ and
+ $\ell_{\theta}(a\mid u)$ . Newly generated or counterfactual slates are not
+assigned observed-feedback rewards and are excluded from reward calibration.
+
+ | 
+
+Component
+
+ | 
+
+Retained signals and fixed weights
+
+ | 
+
+Primary (positive)
+
+ | 
+
+Effective view $+0.10$ ; completion $+0.15$ ; like $+0.20$ ; share $+0.15$ .
+
+ | 
+
+Primary (negative)
+
+ | 
+
+Immediate skip $-0.15$ ; dislike $-0.25$ .
+
+ | 
+
+Auxiliary
+
+ | 
+
+Diversity $0.90$ ; novelty $0.10$ .
+
+Table 8: Fixed reward components and weights used in alignment.
+
+Primary Reward
+
+For an exposed item at position $k$ of action $a$ , let
+ $b_{u,a,k}^{\mathrm{ev}}$ , $b_{u,a,k}^{\mathrm{comp}}$ ,
+ $b_{u,a,k}^{\mathrm{like}}$ , $b_{u,a,k}^{\mathrm{share}}$ ,
+ $b_{u,a,k}^{\mathrm{skip}}$ , and $b_{u,a,k}^{\mathrm{dislike}}$ be binary
+indicators for an effective view, completion, like, share, immediate skip,
+and dislike, respectively. A zero means that the item was exposed but the
+event did not occur. We use the following fixed slate reward:
+
+ | 
+ | $\displaystyle r_{u,a}^{\mathrm{pri}}=\frac{1}{K}\sum_{k=1}^{K}\Bigl($ 
+ | $\displaystyle 0.10\,b_{u,a,k}^{\mathrm{ev}}+0.15\,b_{u,a,k}^{\mathrm{comp}}$ 
+ | 
+ | (40)
+
+ | 
+ | 
+ | $\displaystyle+0.20\,b_{u,a,k}^{\mathrm{like}}+0.15\,b_{u,a,k}^{\mathrm{share}}$ 
+ | 
+
+ | 
+ | 
+ | $\displaystyle-0.15\,b_{u,a,k}^{\mathrm{skip}}-0.25\,b_{u,a,k}^{\mathrm{dislike}}\Bigr).$ 
+ | 
+
+The six signals cover consumption quality, explicit positive actions, and
+explicit negative actions. Effective view receives the smallest positive
+weight; completion and share receive equal intermediate weights; and like
+receives the largest positive weight. Dislike incurs a larger penalty than
+immediate skip. The absolute weights sum to one, which keeps the per-position
+scale easy to interpret.
+
+Auxiliary Reward
+
+We retain only intra-slate diversity and novelty. Let $\bar{e}_{i}$ be the
+unit-normalized semantic representation of item $i$ , let $c_{i}$ be its
+exposure count in the training split, and define the Laplace-smoothed total
+ $C=\sum_{j\in\mathcal{I}}(c_{j}+1)$ . For the exposed item sequence
+ $(y_{u,a,1},\ldots,y_{u,a,K})$ , the two scores are
+
+ | 
+ | $\displaystyle d_{u,a}$ 
+ | $\displaystyle=\frac{2}{K(K-1)}\sum_{1\leq p<q\leq K}\frac{1-\bar{e}_{y_{u,a,p}}^{\top}\bar{e}_{y_{u,a,q}}}{2},$ 
+ | 
+ | (41)
+
+ | 
+ | $\displaystyle n_{u,a}$ 
+ | $\displaystyle=\frac{1}{K}\sum_{k=1}^{K}\frac{-\log\!\left((c_{y_{u,a,k}}+1)/C\right)}{\log C}.$ 
+ | 
+
+Both terms lie in $[0,1]$ : $d_{u,a}$ is the mean pairwise cosine
+distance, and $n_{u,a}$ is larger for less frequently exposed items. The
+auxiliary reward is
+
+ | 
+ | $r_{u,a}^{\mathrm{aux}}=0.90\,d_{u,a}+0.10\,n_{u,a}.$ 
+ | 
+ | (42)
+
+These fixed weights are used throughout the alignment experiments. Diversity
+receives the dominant weight because it directly measures redundancy at the
+slate level; novelty is retained as a smaller secondary correction.
+
+Relative Reward
+
+For $o\in\{\mathrm{pri},\mathrm{aux}\}$ , we compute statistics over the
+same exposure-only action set:
+
+ | 
+ | $\displaystyle\operatorname{Mean}_{u}^{o}$ 
+ | $\displaystyle=\frac{1}{|\mathcal{A}_{u}|}\sum_{a\in\mathcal{A}_{u}}r_{u,a}^{o},$ 
+ | 
+ | (43)
+
+ | 
+ | $\displaystyle\left(\operatorname{Std}_{u}^{o}\right)^{2}$ 
+ | $\displaystyle=\frac{1}{|\mathcal{A}_{u}|}\sum_{a\in\mathcal{A}_{u}}\left(r_{u,a}^{o}-\operatorname{Mean}_{u}^{o}\right)^{2}.$ 
+ | 
+
+The relative reward score used in the main paper is
+
+ | 
+ | $\delta_{u,a}^{o}=\frac{r_{u,a}^{o}-\operatorname{Mean}_{u}^{o}}{\max(\operatorname{Std}_{u}^{o},\varepsilon)}.$ 
+ | 
+ | (44)
+
+A positive $\delta_{u,a}^{o}$ indicates that the slate performs better than
+the user’s candidate average, while a negative value indicates worse relative
+performance. Users with fewer than two logged slates are excluded from the
+alignment batch. If a reward component is constant within $\mathcal{A}_{u}$ ,
+its standardized score is zero for every action and it contributes no
+preference direction.
+
+Appendix G Appendix 6: Hyperparameter Configuration
+
+Tables 9 and 10
+summarize the principal TUSID, OGR, and SPA configurations.
+All offline results reported in the main paper and this appendix are means over
+five independent runs with seeds 2025–2029.
+
+ | 
+
+TUSID setting
+
+ | 
+
+Value
+
+ | 
+
+Attributes
+
+ | 
+
+Brand; Category; B-tags; C-tags
+
+ | 
+
+Semantic fusion
+
+ | 
+
+Semantic dimensions 128; projection dimensions 512; 4 cross-attention layers; 8 heads
+
+ | 
+
+Regularization
+
+ | 
+
+ $\beta_{\mathrm{res}}=0.001$ 
+
+ | 
+
+CCE data
+
+ | 
+
+Positive-feedback training prefixes only
+
+ | 
+
+Sketch
+
+ | 
+
+ $\omega=5$ ; $n_{\mathrm{bucket}}=256$ ; seed 2026
+
+ | 
+
+Collaborative branch
+
+ | 
+
+Collaborative dimensions 128; $\tau=0.5$ ; $\alpha_{\mathrm{col}}=0.35$ 
+
+ | 
+
+Quantization
+
+ | 
+
+RQ-KMeans; $D=4$ ; 1,024 codes per level
+
+Table 9: Principal TUSID configurations.
+
+ | 
+
+OGR/SPA setting
+
+ | 
+
+Value
+
+ | 
+
+Data and setup
+
+ | 
+
+Industrial; KuaiRec; history 128; $K=5$ ; AdamW; 5 runs (seeds 2025–2029); NVIDIA L20
+
+ | 
+
+A/B testing time
+
+ | 
+
+1 week
+
+ | 
+
+History encoder
+
+ | 
+
+4 layers; 8 heads; hidden 512; FFN 2,048
+
+ | 
+
+Planner
+
+ | 
+
+2 layers; 8 heads; hidden 512; FFN 2,048
+
+ | 
+
+SID decoder
+
+ | 
+
+2 layers; 8 heads; hidden 512; FFN 2,048; beam width 20
+
+ | 
+
+SID embedding
+
+ | 
+
+512 dimensions; 1,024 code tokens plus one anomaly token; shared across 4 levels
+
+ | 
+
+Supervised decoding
+
+ | 
+
+ $\alpha=0.3$ 
+
+ | 
+
+Primary reward
+
+ | 
+
+Effective view $+0.10$ ; completion $+0.15$ ; like $+0.20$ ; share $+0.15$ ; immediate skip $-0.15$ ; dislike $-0.25$ 
+
+ | 
+
+Auxiliary reward
+
+ | 
+
+Diversity $0.90$ ; novelty $0.10$ 
+
+ | 
+
+SPA
+
+ | 
+
+ $\varepsilon=10^{-6}$ ; $\epsilon=0.1$ ; $\gamma=0.05$ ; $\eta=0.1$ ; learning rate $10^{-5}$ ; batch 64; 3 epochs; planner and SID decoder trainable
+
+Table 10: Principal OGR and SPA configurations.
+
+Appendix H Appendix 7: Symbol Glossary
+
+This section consolidates notation used throughout the paper.
+Tables 11–13 list
+main-paper symbols, while Tables 14–15 list appendix-only notation; symbols reused
+with the same meaning are not repeated.
+
+Symbols Used in the Main Paper
+
+ | 
+
+Symbol
+
+ | 
+
+Meaning
+
+ | 
+
+ $u$ ; $i,j$ 
+
+ | 
+
+User index; item indices.
+
+ | 
+
+ $t,p,q,T$ 
+
+ | 
+
+History/context positions and history length.
+
+ | 
+
+ $k,m,K$ 
+
+ | 
+
+Slate-position indices and slate size.
+
+ | 
+
+ $d,D$ 
+
+ | 
+
+SID-depth index and total SID depth.
+
+ | 
+
+ $\mathcal{H}_{u}$ 
+
+ | 
+
+Chronological interaction history of user $u$ .
+
+ | 
+
+ $\mathbf{s}_{i},s_{i}^{d}$ 
+
+ | 
+
+Hierarchical SID of item $i$ and its depth- $d$ token.
+
+ | 
+
+ $F_{\theta},\theta$ 
+
+ | 
+
+OGR mapping and its parameters.
+
+ | 
+
+ $\widehat{\mathcal{S}}_{u},\widehat{\mathcal{Y}}_{u}$ 
+
+ | 
+
+Generated SID slate and mapped item slate.
+
+ | 
+
+ $\mathrm{Map}(\cdot)$ 
+
+ | 
+
+SID-to-item lookup.
+
+ | 
+
+ $\mathcal{Y}_{u},\mathcal{W}_{u},y_{k},w_{k}$ 
+
+ | 
+
+Exposure slate, feedback sequence, item, and feedback at position $k$ .
+
+ | 
+
+ $e_{i}^{\mathrm{M}}$ 
+
+ | 
+
+Fine-grained multimodal representation.
+
+ | 
+
+ $\mathrm{a},e_{i}^{\mathrm{a}}$ 
+
+ | 
+
+Attribute-source identifier and representation, with
+ $\mathrm{a}\in\{\mathrm{b},\mathrm{c},\mathrm{Bt},\mathrm{Ct}\}$ .
+
+ | 
+
+ $\mathcal{E}_{i}^{\mathrm{attr}}$ 
+
+ | 
+
+Stack of the four attribute representations.
+
+ | 
+
+ $Q_{i},K_{i},V_{i}$ 
+
+ | 
+
+Cross-attention query, keys, and values.
+
+ | 
+
+ $h_{i}^{\mathrm{attr}},g_{i},e_{i}^{\mathrm{sem}}$ 
+
+ | 
+
+Attribute aggregate, residual gate, and fused semantic representation.
+
+ | 
+
+ $\mathcal{L}_{\mathrm{rec}},\mathcal{L}_{\mathrm{fusion}}$ 
+
+ | 
+
+Recommendation and Semantic-Fusion objectives.
+
+ | 
+
+ $\mathcal{B},\beta_{\mathrm{res}}$ 
+
+ | 
+
+Fusion training batch and residual-regularization coefficient.
+
+Table 11: Main-paper notation for Problem Formulation and Semantic Fusion.
+
+ | 
+
+Symbol
+
+ | 
+
+Meaning
+
+ | 
+
+ $\omega$ 
+
+ | 
+
+Local co-occurrence window radius.
+
+ | 
+
+ $\mathcal{C}_{i},h,\sigma$ 
+
+ | 
+
+Collaborative sketch, bucket hash, and sign hash.
+
+ | 
+
+ $e_{i}^{\mathrm{col}}$ 
+
+ | 
+
+Dense collaborative representation.
+
+ | 
+
+ $U_{i}$ 
+
+ | 
+
+Number of distinct users supporting item $i$ .
+
+ | 
+
+ $\gamma_{i},\tau$ 
+
+ | 
+
+Collaborative confidence and smoothing coefficient.
+
+ | 
+
+ $\alpha_{i},\alpha_{\mathrm{col}}$ 
+
+ | 
+
+Item-specific and maximum collaborative weights.
+
+ | 
+
+ $e_{i}^{\mathrm{uni}}$ 
+
+ | 
+
+Unified semantic–collaborative representation.
+
+ | 
+
+ $\mathcal{E}$ 
+
+ | 
+
+Shared SID embedding table.
+
+ | 
+
+ $\mathrm{Enc}_{\mathrm{hist}},p_{t}^{\mathrm{h}},\mathcal{Z}^{\mathrm{h}}$ 
+
+ | 
+
+History encoder, temporal embedding, and encoded history.
+
+ | 
+
+ $g_{m}$ 
+
+ | 
+
+Aggregated target SID embedding at slate position $m$ .
+
+ | 
+
+ $\mathcal{Q}^{\mathrm{tr}},\mathrm{BOS}$ 
+
+ | 
+
+Teacher-forced planner input and beginning-of-sequence token.
+
+ | 
+
+ $\mathcal{P},p_{m},\mathrm{Dec}_{\mathrm{plan}}$ 
+
+ | 
+
+Planned preference sequence, position- $m$ representation, and planner.
+
+ | 
+
+ $\mathbf{s}_{m},s_{m}^{<d},\mathrm{Dec}_{\mathrm{sid}}$ 
+
+ | 
+
+Decoded SID, its prefix, and position-wise SID decoder.
+
+ | 
+
+ $\mathcal{Y}_{u}^{\mathrm{eps}},\mathcal{Y}_{u}^{\mathrm{fb}}$ 
+
+ | 
+
+Exposure-order and feedback-order supervision slates.
+
+ | 
+
+ $o$ 
+
+ | 
+
+Branch identifier: $\mathrm{eps}/\mathrm{fb}$ for supervision and
+ $\mathrm{pri}/\mathrm{aux}$ for reward calibration.
+
+ | 
+
+ $\mathcal{U}$ 
+
+ | 
+
+Set of training users.
+
+ | 
+
+ $s_{u,m}^{o,d},\pi_{u,m}^{o,d}$ 
+
+ | 
+
+Target SID token and predicted token distribution.
+
+ | 
+
+ $\mathcal{L}_{\mathrm{sid}}^{o},\mathcal{L}_{\mathrm{sup}},\alpha$ 
+
+ | 
+
+Branch SID loss, supervised objective, and feedback-branch weight.
+
+Table 12: Main-paper notation for Collaborative Injection and GL2P.
+
+ | 
+
+Symbol
+
+ | 
+
+Meaning
+
+ | 
+
+ $\theta_{0};\ell_{0},\ell_{\theta}$ 
+
+ | 
+
+Frozen reference-policy parameters; reference and current slate log-likelihoods.
+
+ | 
+
+ $\mathcal{A}_{u},a;\mathbf{s}_{u,k}$ 
+
+ | 
+
+Candidate slate-action set and action; candidate SID at position $k$ .
+
+ | 
+
+ $r_{\mathrm{pri}},r_{\mathrm{aux}};\delta_{u,a}^{o}$ 
+
+ | 
+
+Primary and auxiliary slate rewards; within-user standardized reward component.
+
+ | 
+
+ $\begin{gathered}\kappa_{u,a},\Delta_{u,a};\\
+\varepsilon,\rho_{u,a}\end{gathered}$ 
+
+ | 
+
+Agreement gate and calibrated preference signal; numerical floor and likelihood ratio.
+
+ | 
+
+ $\mathcal{L}_{\mathrm{pol}},N_{A},\epsilon$ 
+
+ | 
+
+Clipped policy loss, retained action count, and clipping radius.
+
+ | 
+
+ $q_{0},q_{\theta};\mathcal{L}_{\mathrm{KL}},N_{U}$ 
+
+ | 
+
+Reference/current action distributions; candidate-distribution KL loss and retained-user count.
+
+ | 
+
+ $\gamma,\eta,\mathcal{L}_{\mathrm{SPA}}$ 
+
+ | 
+
+KL weight, supervised-replay weight, and SPA objective.
+
+ | 
+
+HR, Recall, NDCG; ICR, CUR
+
+ | 
+
+Ranking metrics at the stated cutoff; SID uniqueness and codebook coverage.
+
+ | 
+
+Min. PPL, Top-1 Load; V-measure, SC
+
+ | 
+
+Minimum assignment perplexity and maximum code load; category consistency and semantic cohesion.
+
+ | 
+
+ $\begin{gathered}\mathrm{Work}_{\mathrm{serial}},\\
+\mathrm{Work}_{\mathrm{OGR}}\end{gathered}$ 
+
+ | 
+
+Total serial and OGR decoding work.
+
+ | 
+
+ $\begin{gathered}\mathrm{cost}_{t}^{\mathrm{serial}},\\
+\mathrm{cost}_{m}^{\mathrm{plan}},\\
+\mathrm{cost}_{d}^{\mathrm{sid}}\end{gathered}$ 
+
+ | 
+
+Per-stage serial, planning, and SID-decoding costs.
+
+ | 
+
+ $\begin{gathered}\mathrm{Depth}_{\mathrm{serial}},\\
+\mathrm{Depth}_{\mathrm{OGR}}\end{gathered}$ 
+
+ | 
+
+Sequential dependency depths.
+
+Table 13: Main-paper notation for SPA, Evaluation, and Efficiency Analysis.
+
+Symbols Introduced Only in the Appendix
+
+ | 
+
+Symbol
+
+ | 
+
+Meaning
+
+ | 
+
+ $N_{\mathrm{item}};n_{d}^{\mathrm{cb}},n$ 
+
+ | 
+
+Number of quantized items; depth- $d$ codebook size and centroid index.
+
+ | 
+
+ $\Xi^{(d)},\xi_{n}^{(d)};\zeta_{i}^{(d)},\widehat{e}_{i}^{\mathrm{rq}}$ 
+
+ | 
+
+Depth- $d$ codebook and centroid; pre-quantization residual and reconstruction.
+
+ | 
+
+ $\begin{gathered}n_{\mathrm{vocab}};\\
+n_{\mathrm{row}},n_{\mathrm{bucket}};v,\nu\end{gathered}$ 
+
+ | 
+
+Coordinate-universe size; CountSketch row/bucket counts and indices.
+
+ | 
+
+ $x;\mathbf{G}_{\mathrm{cs}}$ 
+
+ | 
+
+Classical CountSketch frequency vector and table.
+
+ | 
+
+ $\mathfrak{h}_{v},\varsigma_{v}$ 
+
+ | 
+
+Row-specific bucket and sign hashes.
+
+ | 
+
+ $\upsilon;\widehat{x}_{j}^{(v)}$ 
+
+ | 
+
+Stream-update magnitude and row-wise estimate; $j$ retains its main-paper meaning.
+
+Table 14: Appendix-only notation for RQ-KMeans and CountSketch preliminaries.
+
+ | 
+
+Symbol
+
+ | 
+
+Meaning
+
+ | 
+
+ $\mathcal{R}_{u}^{+},\jmath_{u,p},L_{u}^{+}$ 
+
+ | 
+
+Positive-feedback training prefix, its item, and its length.
+
+ | 
+
+ $x_{i}$ 
+
+ | 
+
+Uncompressed local-context vector.
+
+ | 
+
+ $\mathcal{I}_{u}^{\mathrm{ctx}}$ 
+
+ | 
+
+Items receiving a valid context update from user $u$ .
+
+ | 
+
+ $z_{i},\bar{z}_{i}$ 
+
+ | 
+
+Signed-log sketch and normalized form.
+
+ | 
+
+ $\Lambda_{\mathrm{col}},n_{\mathrm{col}}$ 
+
+ | 
+
+Fixed collaborative projection and output dimension.
+
+ | 
+
+ $\vartheta_{\mathrm{n}}$ 
+
+ | 
+
+Numerical floor used in appendix normalization.
+
+ | 
+
+ $\widetilde{e}_{i}^{\mathrm{col}},\bar{e}_{i}^{\mathrm{sem}}$ 
+
+ | 
+
+Projected collaborative and normalized semantic embeddings.
+
+ | 
+
+ $\mathcal{E}_{u}$ 
+
+ | 
+
+Complete slates recorded in the training exposure log.
+
+ | 
+
+ $\begin{gathered}b_{u,a,k}^{\mathrm{ev}},b_{u,a,k}^{\mathrm{comp}},\\
+b_{u,a,k}^{\mathrm{like}},b_{u,a,k}^{\mathrm{share}},\\
+b_{u,a,k}^{\mathrm{skip}},b_{u,a,k}^{\mathrm{dislike}}\end{gathered}$ 
+
+ | 
+
+Binary indicators for the six retained feedback signals.
+
+ | 
+
+ $\bar{e}_{i},c_{i},C$ 
+
+ | 
+
+Unit-normalized semantic representation, training exposure count, and Laplace-smoothed total.
+
+ | 
+
+ $y_{u,a,k},d_{u,a},n_{u,a}$ 
+
+ | 
+
+Exposed item, intra-slate diversity score, and novelty score.
+
+ | 
+
+ $\operatorname{Mean}_{u}^{o},\operatorname{Std}_{u}^{o}$ 
+
+ | 
+
+Candidate-set reward mean and standard deviation.
+
+Table 15: Appendix-only notation for CCE and detailed rewards.
+
+Notation Conventions
+
+Symbols inherited from the main paper retain exactly the same meaning in the
+appendix. In particular, $\alpha$ and $\gamma$ without item subscripts are
+training-objective weights, whereas $\alpha_{i}$ , $\alpha_{\mathrm{col}}$ ,
+and $\gamma_{i}$ belong to confidence-aware collaborative fusion. The reward
+floor $\varepsilon$ and policy clipping radius $\epsilon$ are also distinct.
+Appendix-only symbols use distinct names or typefaces and are summarized in
+Tables 14–15.
+
+References
+
+Charikar et al. (2002)
+
+Charikar, M.; Chen, K.; and Farach-Colton, M. 2002.
+
+Finding Frequent Items in Data Streams.
+
+In Proceedings of ICALP, 693–703.
+
+Chen et al. (2026)
+
+Chen, B.; Guo, X.; Wang, S.; Liang, Z.; Ma, Y.; Lv, Y.; Lei, C.; Ding, Y.;
+Ou, W.; Li, H.; and Gai, K. 2026.
+
+OneSearch: A Preliminary Exploration of the Unified End-to-End
+Generative Framework for E-Commerce Search.
+
+In Proceedings of the 43rd International Conference on
+Machine Learning, volume 306 of Proceedings of Machine Learning
+Research. PMLR.
+
+Deng et al. (2025)
+
+Deng, J.; Wang, S.; Cai, K.; Ren, L.; Hu, Q.; Ding, W.; Luo, Q.; and
+Zhou, G. 2025.
+
+OneRec: Unifying Retrieve and Rank with Generative Recommender and
+Iterative Preference Alignment.
+
+arXiv:2502.18965.
+
+Fu et al. (2026)
+
+Fu, K.; Zhang, T.; Xiao, S.; Wang, Z.; Zhang, X.; Zhang, C.; et al. 2026.
+
+FORGE: Forming Semantic Identifiers for Generative Retrieval in
+Industrial Datasets.
+
+arXiv:2509.20904.
+
+Hidasi et al. (2016)
+
+Hidasi, B.; Karatzoglou, A.; Baltrunas, L.; and Tikk, D. 2016.
+
+Session-Based Recommendations with Recurrent Neural Networks.
+
+In Proceedings of ICLR.
+
+Hu et al. (2026)
+
+Hu, Z.; Chen, Y.; Pan, Y.; Yuan, X.; Yin, Y.; Wang, D.; et al. 2026.
+
+Stop Treating Collisions Equally: Qualification-Aware Semantic ID
+Learning for Recommendation at Industrial Scale.
+
+arXiv:2603.00632.
+
+Kabbur et al. (2013)
+
+Kabbur, S.; Ning, X.; and Karypis, G. 2013.
+
+FISM: Factored Item Similarity Models for Top-N Recommender Systems.
+
+In Proceedings of KDD, 659–667.
+
+Kang and McAuley (2018)
+
+Kang, W.-C.; and McAuley, J. 2018.
+
+Self-Attentive Sequential Recommendation.
+
+In Proceedings of ICDM, 197–206.
+
+Koren et al. (2009)
+
+Koren, Y.; Bell, R.; and Volinsky, C. 2009.
+
+Matrix Factorization Techniques for Recommender Systems.
+
+Computer, 42(8): 30–37.
+
+Li et al. (2017)
+
+Li, J.; Ren, P.; Chen, Z.; Ren, Z.; Lian, T.; and Ma, J. 2017.
+
+Neural Attentive Session-Based Recommendation.
+
+In Proceedings of CIKM, 1419–1428.
+
+Liu et al. (2025)
+
+Liu, E.; Zheng, B.; Ling, C.; Hu, L.; Li, H.; and Zhao, W. X. 2025.
+
+Generative Recommender with End-to-End Learnable Item Tokenization.
+
+In Proceedings of SIGIR.
+
+Luo et al. (2025)
+
+Luo, X.; Cao, J.; Sun, T.; Yu, J.; Huang, R.; Yuan, W.; Lin, H.; Zheng, Y.;
+Wang, S.; Hu, Q.; Qiu, C.; Zhang, J.; Zhang, X.; Yan, Z.; Zhang, J.; Zhang, S.;
+Wen, M.; Liu, Z.; and Zhou, G. 2025.
+
+QARM: Quantitative Alignment Multi-Modal Recommendation at
+Kuaishou.
+
+In Proceedings of the 34th ACM International Conference on
+Information and Knowledge Management, 5915–5922. ACM.
+
+Pan et al. (2026)
+
+Pan, Y.; Chen, Y.; Hu, Z.; Yuan, X.; Wang, D.; Yin, Y.; et al. 2026.
+
+Beyond Static Collision Handling: Adaptive Semantic ID Learning for
+Multimodal Recommendation at Industrial Scale.
+
+arXiv:2604.23522.
+
+Pang et al. (2026)
+
+Pang, Y.; Liu, Z.; Li, Y.; Zhu, S.; Luo, Z.; Yu, C.; et al. 2026.
+
+HiGR: Industrial-Scale Hierarchical Generative Slate Recommendation
+Framework in Tencent.
+
+arXiv:2512.24787.
+
+Rajput et al. (2023)
+
+Rajput, S.; Mehta, N.; Singh, A.; Keshavan, R. H.; Vu, T.; Heldt, L.; et al.
+2023.
+
+Recommender Systems with Generative Retrieval.
+
+In Advances in Neural Information Processing Systems,
+volume 36.
+
+Rendle et al. (2009)
+
+Rendle, S.; Freudenthaler, C.; Gantner, Z.; and Schmidt-Thieme, L. 2009.
+
+BPR: Bayesian Personalized Ranking from Implicit Feedback.
+
+In Proceedings of UAI, 452–461.
+
+Sarwar et al. (2001)
+
+Sarwar, B.; Karypis, G.; Konstan, J.; and Riedl, J. 2001.
+
+Item-Based Collaborative Filtering Recommendation Algorithms.
+
+In Proceedings of WWW, 285–295.
+
+Sun et al. (2019)
+
+Sun, F.; Liu, J.; Wu, J.; Pei, C.; Lin, X.; Ou, W.; and Jiang, P. 2019.
+
+BERT4Rec: Sequential Recommendation with Bidirectional Encoder
+Representations from Transformer.
+
+In Proceedings of CIKM, 1441–1450.
+
+Tang and Wang (2018)
+
+Tang, J.; and Wang, K. 2018.
+
+Personalized Top-N Sequential Recommendation via Convolutional
+Sequence Embedding.
+
+In Proceedings of WSDM, 565–573.
+
+Wang et al. (2024)
+
+Wang, W.; Bao, H.; Lin, X.; Zhang, J.; Li, Y.; Feng, F.; Ng, S.-K.; and
+Chua, T.-S. 2024.
+
+Learnable Item Tokenization for Generative Recommendation.
+
+In Proceedings of CIKM, 2400–2409.
+
+Xue et al. (2026)
+
+Xue, B.; Liu, D.; Wang, L.; Sun, M.; Wang, P.; Zhang, P.; et al. 2026.
+
+Generative Recommendation for Large-Scale Advertising.
+
+arXiv:2602.22732.
+
+Yao et al. (2025)
+
+Yao, Y.; Li, Z.; Xiao, S.; Du, B.; Zhu, J.; Zheng, J.; Kong, X.; and
+Jiang, Y. 2025.
+
+SaviorRec: Semantic-Behavior Alignment for Cold-Start
+Recommendation.
+
+arXiv:2508.01375.
+
+Yuan et al. (2019)
+
+Yuan, F.; Karatzoglou, A.; Arapakis, I.; Jose, J. M.; and He, X. 2019.
+
+A Simple Convolutional Generative Network for Next Item
+Recommendation.
+
+In Proceedings of WSDM, 582–590.
+
+Zhou et al. (2020)
+
+Zhou, K.; Wang, H.; Zhao, W. X.; Zhu, Y.; Wang, S.; Zhang, F.; Wang, Z.; and
+Wen, J.-R. 2020.
+
+S3-Rec: Self-Supervised Learning for Sequential Recommendation with
+Mutual Information Maximization.
+
+In Proceedings of CIKM, 1893–1902.
+
+Zhou et al. (2025)
+
+Zhou, G.; Deng, J.; Zhang, J.; Cai, K.; Ren, L.; et al. 2025.
+
+OneRec Technical Report.
+
+arXiv:2506.13695.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

@@ -1,0 +1,1173 @@
+
+
+ConnectionMind: Leveraging Social Networks and Large Language Models for Personalized Recommendation at Meta
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract.
+1 Introduction
+2 Related Work
+
+2.1 Social Recommendation
+2.2 LLM-based Recommendation
+
+3 Social Graph and Path Formulation
+
+3.1 Heterogeneous Social–item Interaction Graph Construction
+
+Graph schema.
+Relation types.
+Item representations (multimodal to text).
+User and page representations.
+
+3.2 Recommendation as Path Discovery
+
+4 Method
+
+4.1 LLM-guided Graph Exploration
+
+Exploration state.
+Exploration action.
+Termination and outputs.
+
+4.2 Stage I: Supervised Fine-Tuning (SFT)
+
+Trajectory construction.
+SFT objective.
+
+4.3 Stage II: End-to-End Reinforcement Learning
+
+Rollout.
+Reward design.
+Overall reward.
+
+5 Experiments on Public Datasets
+
+5.1 Experimental Settings
+5.2 Overall Performance Comparison
+5.3 Ablation Study
+
+6 System Deployment and Evaluation
+
+6.1 Hybrid Inference Infrastructure
+6.2 Experimental Results
+
+Offline Evaluation
+Online A/B Test
+Summary.
+
+7 Conclusion
+References
+
+ License: CC BY 4.0
+
+arXiv:2608.10187v1 [cs.IR] 10 Aug 2026
+
+ConnectionMind: Leveraging Social Networks and Large Language Models for Personalized Recommendation at Meta
+
+DOI: XXXXXXX.XXXXXXXConference: Make sure to enter the correct
+conference title from your rights confirmation email; June 03–05,
+2018; Woodstock, NY
+
+Haoyu Han
+
+Affiliation: Michigan State University, East Lansing, Michigan, USA
+
+email: hanhaoy1@msu.edu
+
+, 
+Yuming Liu
+
+Affiliation: Meta Platforms, Inc., Menlo Park, California, USA
+
+email: yumliu@meta.com
+
+, 
+Lei Huang
+
+Affiliation: Meta Platforms, Inc., Menlo Park, California, USA
+
+email: leihuang@meta.com
+
+, 
+Lizhu Zhang
+
+Affiliation: Meta Platforms, Inc., Menlo Park, California, USA
+
+email: lizhu@meta.com
+
+, 
+Jiliang Tang
+
+Affiliation: Michigan State University, East Lansing, Michigan, USA
+
+email: tangjili@msu.edu
+
+ and 
+Xiangjun Fan
+
+Affiliation: Meta Platforms, Inc., Menlo Park, California, USA
+
+email: maxfan@meta.com
+
+2018
+
+Abstract.
+
+Modern recommendation systems on social media platforms such as Meta must model complex social relationships, including friendships, group memberships, and creator interactions, alongside massive and heterogeneous content such as text and video. Traditional recommendation models, however, often omit these signals or treat them independently, lacking the reasoning capability to integrate multi-relational context for fine-grained personalization. We present ConnectionMind, a production-ready recommendation framework that tightly integrates the social network structure with large language models (LLMs) to enable scalable, interpretable, and reasoning-aware personalization in Meta. ConnectionMind constructs a heterogeneous graph connecting users, items, friends, groups, and creator pages, and formulates recommendation as a graph reasoning problem: discovering personalized paths from users to candidate items. An LLM-based policy is employed to reason over these graph structures and guide recommendation decisions. To train the system at scale, ConnectionMind adopts a two-stage learning strategy. We first perform supervised fine-tuning (SFT) on large-scale user–item interaction trajectories to initialize the reasoning policy, followed by end-to-end reinforcement learning (RL) to refine the model’s ability to reason over social graphs for personalized recommendation.
+Extensive experiments on multiple real-world datasets demonstrate the effectiveness of ConnectionMind compared to representative baselines. More importantly, ConnectionMind has been deployed in Meta’s large-scale recommendation pipeline and has been evaluated through online A/B tests, achieving a 0.43% improvement in video watch time. These results demonstrate measurable real-world impact in a production recommendation system.
+
+Keywords: 
+Recommender systems; Social networks; Large language models
+
+1. Introduction
+
+Recommendation systems (Ko et al., 2022; Li et al., 2024a; Han et al., 2020) are the backbone of modern online platforms, enabling users to efficiently discover relevant content from an overwhelming volume of information. From e-commerce to short-video and social media platforms, these systems connect users with products, videos, and posts that align with their interests and engagement behaviors. Traditional approaches (Koren et al., 2009; He et al., 2017; Cheng et al., 2016), such as collaborative filtering and deep neural recommendation models, primarily rely on user–item interaction histories to learn personalized preferences. More recently, recommender systems (Wu et al., 2024; Liu et al., 2024b) have incorporated rich side information, including text, images, and videos, and benefited from large-scale foundation models such as large language models (LLMs) (Zhao et al., 2023; Touvron et al., 2023) and large vision models (LVMs) (Liu et al., 2024a; Zhang et al., 2024), which enable high-level semantic understanding of multimodal content beyond simple interaction patterns.
+
+However, understanding users in isolation is insufficient for social platforms (Fan et al., 2019; Tang et al., 2016), where engagement is strongly shaped by social relationships and community dynamics. On social platforms such as Meta, users often interact with content that is endorsed by friends with shared interests, originates from creators they follow, or is discussed within groups they belong to. Friend networks, group memberships, and creator interactions encode signals of trust, influence, and shared preferences that cannot be captured by user–item interactions alone.
+
+To leverage social signals, a broad spectrum of social recommendation methods (Tang et al., 2013; Li et al., 2023) augments recommender systems with social networks, ranging from social regularization (Ma et al., 2008) and trust-aware factorization (Guo et al., 2015) to diffusion-based models (Wu et al., 2019; Li et al., 2024b) and graph neural networks (GNNs) (Fan et al., 2019). Despite their differences, most existing approaches share a common design principle: social information is propagated or aggregated across the network and ultimately compressed into latent user or item representations that are consumed by a downstream model. Although this paradigm has proven to be effective, it presents several challenges in large-scale social recommendation settings.
+First, many methods (Wu et al., 2019; Wu et al., 2020) rely on broad propagation or diffusion over social neighborhoods, either explicitly or implicitly, under fixed structural assumptions (e.g., hop limits or diffusion depths). In practice, however, only a small and context-dependent subset of social relations is relevant to a given recommendation, causing indiscriminate aggregation to introduce substantial noise. Second, by collapsing heterogeneous and multi-relational social evidence into dense embeddings, existing methods offer limited transparency into which specific social signals influence a recommendation. This lack of selectivity and traceability poses challenges for debugging, monitoring, and trust in production systems, motivating recent work on explainable and self-explainable social recommendations (Guo et al., 2025b).
+Third, most social recommenders treat semantic information, such as creator attributes or content descriptions, as static features that are diffused through the network, rather than as context-dependent signals that can actively steer which relations to follow and which evidence to trust for a specific user and recommendation context.
+These limitations highlight a fundamental gap in current social recommendation paradigms: the absence of a mechanism for selectively reasoning over social structure in a decision-driven manner.
+
+To address these limitations, we model the platform as a heterogeneous social–item interaction graph that connects users, friends, groups, creator pages, and items. Users are linked to their friends, group memberships, followed pages, and consumed items, while items connect to engaged users, their creator pages, and related content. This representation makes social context explicit and provides a structured substrate for modeling how preferences and influence propagate through the platform. Building on this graph, we propose ConnectionMind, a production framework at Meta that integrates social graph modeling with a learned reasoning policy for personalized recommendation. ConnectionMind casts recommendation as a path-based graph exploration problem: given a user node, the policy explores a compact neighborhood on the graph to identify high-value paths that lead to candidate items, naturally supporting socially grounded personalization and interpretable evidence traces.
+
+Designing such a system introduces several practical challenges. The reasoning policy must make structured decisions over a heterogeneous graph, i.e., generating relation-consistent actions and coherent paths rather than free-form text. Moreover, production constraints require the policy to operate with compact, task-relevant context, since the full social–content graph is prohibitively large to be included as the model’s input. To address these challenges, ConnectionMind employs a task-aware subgraph sampling strategy to construct compact neighborhoods, and adopts a two-stage training pipeline: (i) supervised fine-tuning (SFT) on large-scale interaction trajectories to warm-start the policy to produce valid, preference-aligned reasoning paths, followed by (ii) end-to-end reinforcement learning (RL) that further improves exploration and recommendation decisions by optimizing task rewards. Our key contributions are summarized as follows:
+
+• 
+
+We introduce ConnectionMind, a production-ready framework that reformulates social recommendation as query-conditioned path exploration over a heterogeneous social–item interaction graph.
+
+• 
+
+We design an LLM-guided reasoning policy, trained with SFT followed by end-to-end RL, to selectively discover informative social and semantic paths for recommendation.
+
+• 
+
+We demonstrate the effectiveness and practicality of ConnectionMind through public benchmark experiments and online A/B testing in Meta’s production system, showing measurable gains across key engagement metrics.
+
+2. Related Work
+
+In this section, we briefly review the literature on social recommendation and LLM-based recommendation.
+
+2.1. Social Recommendation
+
+Social recommendation extends conventional user–item frameworks by leveraging social relations such as friendship, trust, and user influence. Early methods incorporate social information through regularization or trust-aware constraints, encouraging socially connected users to share similar representations and alleviating sparsity and cold-start issues. Representative approaches include SoRec (Ma et al., 2008), TrustSVD (Guo et al., 2015), and TrustWalker (Jamali and Ester, 2009). These methods are simple and scalable, but typically capture social influence only indirectly.
+For platforms with multiple entity and relation types, heterogeneous information networks (HINs) provide a natural abstraction. Meta-path-based methods, such as metapath2vec (Dong et al., 2017) and HERec (Shi et al., 2018), leverage typed paths to encode heterogeneous semantics. With the development of graph neural networks (GNNs), social recommendation increasingly models coupled user–user and user–item graphs through message passing. GraphRec (Fan et al., 2019) jointly aggregates social and interaction signals, while MHCN (Yu et al., 2021b) introduces multi-channel hypergraph convolution with self-supervision to capture high-order social relations. SEPT (Yu et al., 2021a) further improves robustness through socially-aware self-supervised learning. Although effective, these methods generally compress social context into dense embeddings through neighborhood aggregation.
+
+Another line of work models social influence as a diffusion process. DiffNet (Wu et al., 2019) recursively propagates preferences along social links, and DiffNet++ (Wu et al., 2020) extends this framework by jointly modeling influence and interest diffusion. Recent methods further address noisy social graphs: RecDiff (Li et al., 2024b) applies diffusion-based denoising in representation space, while SGIL (Yang et al., 2025) formulates social recommendation as invariant learning across noisy environments. Overall, prior social recommenders demonstrate the value of peer and community context, but most follow an aggregation or diffusion paradigm that offers limited selectivity and interpretability over which social evidence supports a recommendation.
+
+2.2. LLM-based Recommendation
+
+Large language models (LLMs) introduce a new paradigm that frames recommendation as language understanding and generation. Early work reformulates recommendation tasks into text-to-text objectives, enabling a single model to support rating prediction, ranking, explanation, and sequential recommendation. P5 (Geng et al., 2022) and its extensions (Xu et al., 2023; Zhang et al., 2025) exemplify this direction, while several studies use LLMs as ranking or re-ranking components. LLaMARec (Yue et al., 2023) and RecRanker (Luo et al., 2025) re-rank candidate sets generated by conventional recommenders, balancing semantic reasoning with efficiency. Other methods explore generative recommendation, where LLMs directly generate item identifiers or item-representative tokens. TIGER (Rajput et al., 2023) and BIGRec (Bao et al., 2023) adopt grounding strategies to bridge language generation and discrete item spaces.
+
+Our work lies at the intersection of social recommendation and LLM-based recommendation.
+Unlike prior LLM-based recommendation methods, ConnectionMind learns a structured exploration policy over a heterogeneous social–item interaction graph. This design enables selective and interpretable use of social evidence while remaining compatible with large-scale recommendation pipelines.
+
+3. Social Graph and Path Formulation
+
+We study large-scale personalized video recommendation in a social platform setting, where the goal is to surface engaging videos for a target user based on both individual preferences and social context. Unlike traditional recommendation scenarios that rely primarily on user–item interaction histories, social platforms such as Meta expose users to content through a rich ecosystem of social relations, including friendships, followed pages (creators), group memberships, and content sharing behaviors. These social signals encode trust, influence, and shared interests, and play a central role in shaping user engagement.
+
+Through extensive analysis of production-scale interaction logs, we observe three consistent patterns in social video consumption at Meta. Due to privacy and platform policy constraints we report these findings qualitatively, and validate their impact via offline and online evaluations (Sections 6).
+First, social signals are essential for recommendation: a substantial fraction of user engagements involve content that is connected to the user’s social context, such as items consumed by friends, posted by followed pages or creators, or shared within groups.
+Second, social relevance is highly selective: for a given user, engagement overlap is concentrated among a small subset of social entities, specific friends, followed pages, or groups, rather than being uniformly distributed across all connections.
+Third, this selectivity is temporally stable: users tend to repeatedly exhibit similar engagement overlap with the same or similar social entities over time, indicating persistent social influence rather than transient co-consumption effects. These observations motivate a model that can explicitly represent heterogeneous social structure and selectively identify compact, user-specific social evidence for recommendation.
+
+3.1. Heterogeneous Social–item Interaction Graph Construction
+
+To support selective reasoning over social context, we construct a heterogeneous social–item interaction graph that explicitly encodes users, content, creators, and their diverse relations, as shown in Figure 1. The graph serves as the structured search space for our recommendation policy: each typed edge represents a possible transition between social, creator, or item entities, and a sequence of such transitions can later be interpreted as evidence connecting a user to a candidate item. The graph is designed to (i) capture the multiple ways in which social signals influence video consumption, (ii) expose fine-grained relational structure for downstream path reasoning, and (iii) remain scalable under production constraints through task-driven sparsification.
+
+Figure 1. An illustration of the heterogeneous social-item interaction graph
+
+Graph schema.
+
+We define a typed, temporal heterogeneous graph
+
+ | 
+ | G_{T}=(V,E,\mathcal{R}),\quad V=\mathcal{U}\cup\mathcal{P}\cup\mathcal{I},
+ | 
+
+where \mathcal{U} denotes users, \mathcal{P} indicates pages or creators, and \mathcal{I} represents items (e.g., posts, videos, reels). Each edge e\in E is associated with a relation type r\in\mathcal{R}, a timestamp t_{e}, where T_{min}\leq t_{e}\leq T_{max}, and a non-negative weight w_{e} capturing interaction strength or semantic similarity.
+
+Relation types.
+
+We instantiate multiple relation types to reflect distinct social and semantic mechanisms. All edges are time-stamped and directed unless otherwise specified.
+
+• 
+
+User–User (Friend): reciprocal edges represent explicit friendships, with weights encoding tie strength based on historical interactions.
+
+• 
+
+User–User (Similar): behaviorally similar users are connected based on engagement histories, excluding direct friends to distinguish homophily from explicit social ties.
+
+• 
+
+User–Page (Follow): edges indicate that a user follows a page or creator, with weights reflecting recency or engagement strength.
+
+• 
+
+User–Group (Group): edges connect users to groups they join or interact with.
+
+• 
+
+Group–Item (Share): edges connect groups to items shared or discussed within them.
+
+• 
+
+Page–Item (Post): each item is linked to the page or creator that published it.
+
+• 
+
+Item–Item (Co-watch): edges connect items frequently co-consumed by users within a temporal window, capturing behavioral co-engagement patterns.
+
+• 
+
+Item–Item (Semantic Similarity): edges connect items with high semantic similarity.
+
+These relations jointly capture social influence, creator affinity, group context, collaborative filtering signals, and semantic relatedness. They also define different types of evidence routes for recommendation: a user may reach an item through a friend who engaged with it, a followed creator who posted it, a group where it was shared, or a previously consumed item that is behaviorally or semantically related to it. Thus, the graph provides both connectivity under sparsity and explicit relational structure for the path formulation introduced next.
+
+Item representations (multimodal to text).
+
+To enable semantic reasoning over heterogeneous content, each item is converted into a compact textual representation. As our task focuses on video recommendation, for each video we extract on-screen text via OCR, apply ASR to audio tracks, and generate dense visual descriptions using a video large language model (VidLLM) (Tang et al., 2025). All available signals are then concatenated and summarized by an LLM into a compact textual representation.
+
+User and page representations.
+
+For users and pages, we derive node features by aggregating the textual summaries of their engaged or published items, respectively, together with available profile information. These aggregated signals are compressed via LLM-based summarization to produce compact semantic profiles that guide context-aware exploration.
+
+3.2. Recommendation as Path Discovery
+
+Given the heterogeneous social–item graph G_{T}, we formulate recommendation as discovering typed paths from a target user to candidate items. This formulation turns the graph constructed above into an actionable search space: instead of aggregating all neighboring information into a single representation, the model can selectively follow social, creator, group, and item relations that are relevant to the target user.
+
+For a target user u\in\mathcal{U}, the goal is to identify items i\in\mathcal{I} that the user is likely to engage with in the future. We define a reasoning path as
+
+ | 
+ | \pi=(v_{0}{=}u,r_{1},v_{1},\ldots,r_{L},v_{L}),
+ | 
+
+where each hop (v_{l-1},r_{l},v_{l}) corresponds to a valid typed edge in G_{T}, and the terminal node v_{L}\in\mathcal{I} represents a candidate item. Each path provides an explicit chain of social or semantic evidence linking the user to the item.
+
+Directly reasoning over the full graph is infeasible because each user may connect to many interacted items, friends, similar users, followed pages, and groups, and multi-hop expansion can quickly produce a large and noisy neighborhood. To address this challenge, we sample multiple compact, high-signal subgraphs for each target user. Each subgraph is centered at the user and preserves informative social and semantic context while remaining tractable. Specifically, for each relation type, we sample up to M neighbors per node based on edge weights, such as interaction strength or recency, and semantic similarity derived from node representations. Repeating this process yields a set of k-hop local subgraphs, each capturing a complementary view of the user’s social environment. These subgraphs provide compact inputs for downstream path reasoning while maintaining scalability under production constraints.
+
+4. Method
+
+In this section, we present ConnectionMind, a framework that performs recommendation by reasoning over the heterogeneous social–item graph introduced in Section 3. Rather than aggregating all neighboring information into a single representation, ConnectionMind treats recommendation as a structured graph exploration problem: starting from a target user, an LLM policy selectively follows typed relations and surfaces candidate items together with explicit evidence paths. The key challenge is to discover high-signal paths in a large and noisy graph without enumerating the combinatorial space of all possible paths.
+
+Figure 2. An overview of the proposed framework ConnectionMind. We construct a heterogeneous social–item graph from production data and use an LLM policy to perform multi-step graph exploration that surfaces recommended items with evidence paths. The policy is trained in two stages: (1) supervised fine-tuning with step-wise supervision, followed by (2) end-to-end reinforcement learning with rule-based rewards.
+
+4.1. LLM-guided Graph Exploration
+
+Given a target user u\in\mathcal{U} and a sampled local subgraph S(u), ConnectionMind incrementally expands partial reasoning paths and surfaces item nodes as recommendations. The LLM policy observes the current path context, the available typed edges, and the semantic descriptions of involved nodes, and then outputs structured exploration actions.
+
+Exploration state.
+
+We initialize the path set with a length-0 path at the target user:
+
+ | 
+ | \mathcal{P}_{0}=\{p_{0}\},\quad p_{0}=[u].
+ | 
+
+At step d, the model maintains a set of current paths
+
+ | 
+ | \mathcal{P}_{d}=\{p_{1}^{d},\ldots,p_{n_{d}}^{d}\},
+ | 
+
+where each path ends at a frontier node. The frontier set is
+
+ | 
+ | \mathcal{F}_{d}=\{\mathrm{tail}(p)\mid p\in\mathcal{P}_{d}\}.
+ | 
+
+The model observes the outgoing typed neighborhood of these frontier nodes,
+
+ | 
+ | \mathcal{N}(\mathcal{F}_{d})=\bigcup_{v\in\mathcal{F}_{d}}\{(v,r,v^{\prime})\in E(S(u))\},
+ | 
+
+together with node and relation semantics. This state is serialized into a structured prompt containing the current paths, candidate next-hop edges, and compact textual node profiles.
+
+Exploration action.
+
+At each step d, the policy predicts a structured action with two components:
+path expansions and surfaced item–path pairs. The expansion set is
+
+ | 
+ | \Delta\mathcal{P}_{d}\subseteq\Big\{p\oplus(v,r,v^{\prime})\mid p\in\mathcal{P}_{d},\ v=\mathrm{tail}(p),\ (v,r,v^{\prime})\in\mathcal{N}(\mathcal{F}_{d})\Big\},
+ | 
+
+where \oplus appends one valid typed hop to the path. The policy may also
+surface item nodes reached by selected paths:
+
+ | 
+ | \mathcal{E}_{d}\subseteq\{(i,p^{\prime})\mid p^{\prime}\in\Delta\mathcal{P}_{d},\ i=\mathrm{tail}(p^{\prime}),\ i\in\mathcal{I}\}.
+ | 
+
+Each pair (i,p^{\prime}) represents a recommended item and its evidence path.
+The next-step path set is updated as
+
+ | 
+ | \mathcal{P}_{d+1}=\Delta\mathcal{P}_{d}.
+ | 
+
+Termination and outputs.
+
+The exploration terminates when \mathcal{P}_{d+1}=\emptyset or when
+the maximum depth D_{\max} is reached. The final evidence set and
+surfaced item set are
+
+ | 
+ | \mathcal{E}=\bigcup_{d=0}^{D_{\max}}\mathcal{E}_{d},\qquad\mathcal{C}=\{i\mid(i,p)\in\mathcal{E}\}.
+ | 
+
+The output \mathcal{C} is used for recommendation evaluation, while \mathcal{E} provides explicit paths that explain how the model connects the target user to each surfaced item.
+
+We use an LLM as the exploration policy because the action requires both structured graph reasoning and semantic understanding of heterogeneous node descriptions. However, an off-the-shelf LLM is not directly optimized for relation-consistent graph traversal or recommendation utility. We therefore train the policy in two stages: supervised fine-tuning (SFT) to warm-start valid path generation, followed by reinforcement learning (RL) to optimize full-rollout recommendation quality.
+
+4.2. Stage I: Supervised Fine-Tuning (SFT)
+
+The goal of Stage I is to warm-start the exploration policy so that it can (i) generate relation-consistent expansions on the heterogeneous graph, and (ii) imitate user engagement behaviors by reaching engaged items through coherent reasoning chains. We construct supervised training trajectories from historical user–item engagements and fine-tune the LLM to imitate these trajectories.
+
+Trajectory construction.
+
+For each positive engagement (u,i^{+}), we enumerate valid shortest paths from u to i^{+} in the sampled subgraph S(u) and treat them as reference reasoning paths. These paths induce step-level state–action pairs
+
+ | 
+ | \mathcal{D}_{\mathrm{SFT}}=\{(s_{d},a_{d}^{*})\}.
+ | 
+
+At step d, the state s_{d} contains the current path set \mathcal{P}_{d}, frontier set \mathcal{F}_{d}, and local neighborhood \mathcal{N}(\mathcal{F}_{d}). The gold action a_{d}^{*} is set-valued: it includes all expansions that follow at least one reference shortest path and all item–path pairs that reach a target item at this step. The action is serialized using the same structured output format used during inference.
+
+SFT objective.
+
+We fine-tune the LLM policy p_{\theta} by minimizing the token-level negative log-likelihood of the serialized gold actions:
+
+ | 
+ | \mathcal{L}_{\mathrm{SFT}}=\sum_{(s_{d},a_{d}^{*})\in\mathcal{D}_{\mathrm{SFT}}}-\log p_{\theta}(a_{d}^{*}\mid s_{d}).
+ | 
+
+This stage equips the policy with basic graph-navigation ability, relation consistency, and preference-aligned path generation, providing a strong initialization for RL.
+
+4.3. Stage II: End-to-End Reinforcement Learning
+
+Although SFT provides step-wise supervision, recommendation quality depends on the entire rollout: a sequence of locally plausible expansions may still surface suboptimal items. We therefore further optimize the policy with reinforcement learning using deterministic, rule-based rewards.
+
+Rollout.
+
+For each training instance (a target user u together with one sampled local subgraph S(u)), the current policy \pi_{\theta} performs step-by-step exploration as described in Section 4.1, producing a sequence of actions \{a_{d}\}_{d=0}^{D_{\max}}, where a_{d}=(\mathcal{C}_{d},\mathcal{P}_{d+1}). The rollout yields final outputs (\mathcal{C},\mathcal{E}), where \mathcal{C}=\bigcup_{d}\mathcal{C}_{d} is the set of surfaced items and \mathcal{E} contains the corresponding item–path evidence traces.
+
+Reward design.
+
+To enable flexible and interpretable optimization, we adopt a rule-based RL framework. Specifically, we design three complementary reward components:
+
+(1) Format reward.
+The policy must output actions in an executable schema, e.g.,
+
+ | 
+ | \texttt{\lx@text@lbrace"surfaced\_items":[...], "expansion\_paths":[...]\lx@text@rbrace}.
+ | 
+
+We set \mathcal{R}_{\mathrm{fmt}}=1 if all steps are schema-compliant and correspond to valid typed edges in the sampled graph, and \mathcal{R}_{\mathrm{fmt}}=-1 otherwise.
+
+(2) Final recommendation reward.
+Since each rollout is performed on a sampled subgraph, we evaluate recommendations against the reachable positives within that subgraph. Let \mathcal{I}^{+}(u) be the set of items that user u engaged with and define
+
+ | 
+ | Y_{S(u)}=\mathcal{I}^{+}(u)\cap\mathcal{I}(S(u)),
+ | 
+
+where \mathcal{I}(S(u)) denotes the item nodes in S(u). Given the final surfaced item set \mathcal{C}, we use the F_{1} score as the rollout-level recommendation reward:
+
+ | 
+ | \mathcal{R}_{\mathrm{rec}}=F_{1}(\mathcal{C},Y_{S(u)}).
+ | 
+
+This reward balances precision and recall over the items that are reachable from the sampled graph.
+
+(3) Step-wise shaping reward.
+To guide intermediate exploration, we reward expansions that move toward reachable positive items. At step d, let Z_{d} denote the set of frontier-neighbor nodes that lie on at least one shortest path from the current frontier to an item in Y_{S(u)}, and let \hat{Z}_{d} denote the newly reached nodes induced by the predicted expansions. We define
+
+ | 
+ | \mathcal{R}_{\mathrm{step}}(\hat{Z}_{d},Z_{d})=\begin{cases}-1.0,&|\hat{Z}_{d}|=0,\\
+-0.9,&|Z_{d}|=0,\ |\hat{Z}_{d}|>0,\\
+-\eta(|\hat{Z}_{d}|),&|\hat{Z}_{d}\cap Z_{d}|=0,\ |Z_{d}|>0,\\
+F_{1}(\hat{Z}_{d},Z_{d}),&|\hat{Z}_{d}\cap Z_{d}|>0.\end{cases}
+ | 
+
+The first case penalizes empty expansions, the second penalizes unnecessary expansion when no reachable positive path exists, and the third penalizes expansions that miss all high-signal nodes. We set \eta(1)=0.3 and \eta(|\hat{Z}_{d}|\geq 2)=0.5, assigning
+a mild penalty to a single incorrect expansion and a larger penalty to excessive incorrect branching.
+
+Overall reward.
+
+The final rollout reward is a weighted combination of the three components:
+
+ | 
+ | \mathcal{R}=\alpha_{\mathrm{fmt}}\mathcal{R}_{\mathrm{fmt}}+\alpha_{\mathrm{rec}}\mathcal{R}_{\mathrm{rec}}+\alpha_{\mathrm{step}}\frac{1}{D_{\max}+1}\sum_{d=0}^{D_{\max}}\mathcal{R}_{\mathrm{step}}(\hat{Z}_{d},Z_{d}).
+ | 
+
+We set \alpha_{\mathrm{rec}}=0.5, \alpha_{\mathrm{step}}=0.3, and \alpha_{\mathrm{fmt}}=0.2, prioritizing final recommendation quality while still enforcing valid and selective exploration.
+We optimize the policy using Group Relative Policy Optimization (GRPO) (Guo et al., 2025a).
+
+5. Experiments on Public Datasets
+
+Table 1. The performance comparison on Delicious and Foursquare datasets. The best and second-best are in bold and underline.
+
+ | Category
+ | Method
+ | Delicious
+ | Foursquare
+
+ | Recall@5
+ | Precision@5
+ | Recall@20
+ | Precision@20
+ | Recall@10
+ | Precision@10
+ | Recall@50
+ | Precision@50
+
+ | MF-based
+ | TrustMF
+ | 0.0063
+ | 0.0061
+ | 0.0154
+ | 0.0053
+ | 0.0266
+ | 0.0380
+ | 0.0703
+ | 0.0206
+
+ | GNN-based
+ | GraphRec
+ | 0.0028
+ | 0.0060
+ | 0.0195
+ | 0.0122
+ | 0.0119
+ | 0.0176
+ | 0.0366
+ | 0.0111
+
+ | MHCN
+ | 0.0230
+ | 0.0412
+ | 0.0753
+ | 0.0374
+ | 0.0346
+ | 0.0500
+ | 0.0863
+ | 0.0258
+
+ | SEPT
+ | 0.0218
+ | 0.0421
+ | 0.0739
+ | 0.0376
+ | 0.0287
+ | 0.0410
+ | 0.0734
+ | 0.0214
+
+ | Influence Propagation
+ | DiffNet
+ | 0.0053
+ | 0.0041
+ | 0.0107
+ | 0.0024
+ | 0.0218
+ | 0.0317
+ | 0.0629
+ | 0.0186
+
+ | DiffNet++
+ | 0.0094
+ | 0.0206
+ | 0.0312
+ | 0.0182
+ | 0.0157
+ | 0.0227
+ | 0.0478
+ | 0.0141
+
+ | Noise-robust
+ | RecDIFF
+ | 0.0181
+ | 0.0380
+ | 0.0659
+ | 0.0354
+ | 0.0185
+ | 0.0276
+ | 0.0484
+ | 0.0147
+
+ | SGIL
+ | 0.0193
+ | 0.0354
+ | 0.0645
+ | 0.0304
+ | 0.0140
+ | 0.0199
+ | 0.0560
+ | 0.0163
+
+ | LLM-based
+ | BIGRec (3B)
+ | 0.0039
+ | 0.0058
+ | 0.0112
+ | 0.0046
+ | 0.0352
+ | 0.0487
+ | 0.1039
+ | 0.0303
+
+ | ConnectionMind (3B)
+ | 0.0343
+ | 0.0787
+ | 0.0872
+ | 0.0661
+ | 0.0818
+ | 0.1108
+ | 0.2040
+ | 0.0586
+
+ | ConnectionMind (8B)
+ | 0.0631
+ | 0.0930
+ | 0.1374
+ | 0.0841
+ | 0.0966
+ | 0.1300
+ | 0.2084
+ | 0.0679
+
+5.1. Experimental Settings
+
+Datasets and Evaluation Metrics. We evaluate on two representative public datasets, Delicious (Cantador et al., 2011) and Foursquare (Yang et al., 2019; Yang et al., 2020), both of which provide user–item interactions, social relationships, and item-side textual information.
+We split each dataset into 60%/20%/20% for training, validation, and testing, respectively. We adopt Recall@K and Precision@K as evaluation metrics since ConnectionMind outputs an unordered set of items.
+
+Baselines. We compare ConnectionMind with representative social recommendation methods from several categories: (i) MF-based social regularization (TrustMF (Yang et al., 2016)); (ii) GNN-based social recommenders (GraphRec (Fan et al., 2019), MHCN (Yu et al., 2021b), SEPT (Yu et al., 2021a)); (iii) influence propagation models (DiffNet (Wu et al., 2019), DiffNet++ (Wu et al., 2020)); and (iv) robustness-oriented methods for noisy social graphs (RecDIFF (Li et al., 2024b), SGIL (Yang et al., 2025)). We also include an LLM-based recommender without social information (BIGRec (Bao et al., 2023)). For BIGRec, we use Llama 3.2-3B-Instruct as the backbone LLM; for ConnectionMind, we evaluate both Llama 3.2-3B-Instruct and Llama 3.1-8B-Instruct (Dubey et al., 2024) as backbone policies.
+
+5.2. Overall Performance Comparison
+
+The overall performance on the Delicious and Foursquare datasets is reported in Table 1. We make the following observations:
+
+• 
+
+ConnectionMind consistently achieves the best performance across all evaluation metrics on both datasets, outperforming all baselines by a clear margin.
+
+• 
+
+GNN-based social recommenders such as MHCN and SEPT generally outperform other baselines, highlighting the importance of explicitly modeling graph structure in social recommendation.
+
+• 
+
+Compared with the LLM-based recommender BIGRec, which does not incorporate social information, ConnectionMind yields substantially better results. Notably, BIGRec even underperforms several traditional social recommendation methods on Delicious, underscoring that semantic modeling alone is insufficient without social relational context.
+
+• 
+
+Comparing different backbone sizes, ConnectionMind with the 8B LLM consistently outperforms its 3B counterpart, indicating that stronger reasoning capacity in larger LLMs further benefits path-based graph exploration and recommendation.
+
+5.3. Ablation Study
+
+We conduct ablation studies to verify the effectiveness of the proposed two-stage training strategy. Specifically, we compare three variants: (i) the original Llama 3.2-3B-Instruct without any task-specific adaptation, (ii) ConnectionMind with only supervised fine-tuning (ConnectionMind SFT-only), and (iii) the full ConnectionMind. Specifically, we report Recall@5 on the Delicious dataset and Recall@10 on the Foursquare dataset.
+
+Figure 3. Performance comparison of different variants.
+
+Overall, Figure 3 shows that task-specific post-training is essential. The original Llama 3.2-3B-Instruct achieves near-zero recall on both datasets, indicating that a pretrained LLM without adaptation cannot perform recommendation or graph exploration. This is because the model must learn both (i) how to follow the structured exploration interface and (ii) user-specific engagement patterns. In contrast, ConnectionMind SFT-only substantially improves performance by learning graph exploration and preference signals from logged supervision, and the full ConnectionMind further boosts recall with end-to-end RL, validating the benefit of optimizing rollout-level exploration and item surfacing.
+
+6. System Deployment and Evaluation
+
+Deploying ConnectionMind at the scale of Meta’s short-form video platform, serving billions of users, requires a rigorous balance between the high computational cost of generative reasoning and the strict latency constraints of real-time recommendation. In this section, we detail the production infrastructure, our hybrid inference strategy, and the empirical results from both offline evaluation and large-scale online A/B test.
+
+6.1. Hybrid Inference Infrastructure
+
+To address the latency bottleneck of autoregressive generation, we devised a Teacher-Student Hybrid Inference strategy that segments traffic based on user activity profiles (Figure 4):
+
+• 
+
+Direct LLM Reasoning (Heavy Users): The top 5-10% of most active users exhibit complex social graphs and high engagement velocity. For this cohort, requests are routed to the full ConnectionMind LLM. The high computational cost is justified by the significant value and retention leverage of this user group.
+
+• 
+
+Path-Guided Distillation (Standard Users): For the remaining majority of traffic, we employ an offline distillation pipeline. The LLM processes historical contexts to discover effective meta-paths. These paths are extracted to train a lightweight Graph Neural Network (Student GNN). The student model learns to emulate the teacher’s path-finding logic but executes with millisecond-level latency, scaling the benefits of reasoning-aware recommendation to the entire population.
+
+Figure 4. The Hybrid Inference Architecture. The system routes heavy users to the ConnectionMind for explicit reasoning path generation (\pi_{\theta}), while standard traffic is served by a lightweight Student GNN. The Student is trained via offline distillation to mimic the teacher’s reasoning traces (\pi) without the inference overhead
+
+6.2. Experimental Results
+
+We evaluate the system using both offline historical logs and live production traffic.
+
+Offline Evaluation
+
+We compare ConnectionMind with Llama 3.1-8B-Instruct backbone against a production GNN Baseline and a standard Llama 3.3-70B-Instruct (ranking without graph reasoning). Using Recall@10 as the primary metric, our approach achieves an 88% relative lift over the production baseline (Table 2). Notably, the graph-reasoning integration outperforms the vanilla LLM by a wide margin, confirming that semantic knowledge alone is insufficient without structural reasoning.
+
+Table 2. Offline performance (Recall@10) and online A/B test results (relative lift over the production system).
+
+ | Model
+ | Offline
+ | Online Metrics (A/B Test)
+
+ | Recall@10
+ | Exposure
+ | Watch Time
+ | Video Sessions
+
+ | Production GNN
+ | Ref. (100%)
+ | –
+ | –
+ | –
+
+ | Llama 3.3-70B-Instruct
+ | +39%
+ | –
+ | –
+ | –
+
+ | ConnectionMind
+ | +88%
+ | +0.33% ± 0.08%
+ | +0.43% ± 0.14%
+ | +0.22% ± 0.13%
+
+Online A/B Test
+
+We conducted an A/B test on a massive user population (tens of millions of users) over a continuous multi-week period, ensuring robustness. The results (Table 2) highlight three key business impacts:
+
+(1) 
+
+Catalog Diversity (+0.33% Exposure): The semantic graph densification successfully surfaced long-tail content to cold-start users, proving that reasoning capabilities can break popularity feedback loops.
+
+(2) 
+
+Engagement Depth (+0.43% Watch-time): By providing socially grounded recommendations (e.g., explaining why a video is relevant via social connections), the model increased user trust and consumption depth.
+
+(3) 
+
+Retention (+0.22% Video-sessions): The lift in daily Video-sessions suggests that socially relevant recommendations foster a stronger sense of community, increasing the frequency of app opens.
+
+Summary.
+
+Overall, our production deployment demonstrates that ConnectionMind can be integrated into a latency-critical recommendation stack via a teacher–student hybrid inference design. Offline, ConnectionMind achieves a substantial Recall@10 improvement over both the production GNN baseline and a vanilla LLM ranker, and online A/B test shows consistent, statistically significant lifts across Exposure, Watch Time, and Video Sessions. While percentage gains in a mature, billion-user optimization environment are typically incremental, these improvements translate to substantial increases in total platform time spent at scale.
+
+7. Conclusion
+
+In this paper, we present ConnectionMind, a reasoning-driven framework for social recommendation deployed at Meta, which formulates recommendation as multi-step path exploration over a heterogeneous social–item interaction graph. Rather than compressing social context into dense embeddings as in prior social recommenders, ConnectionMind explicitly exposes evidence paths connecting users to recommended items, enabling selective utilization of social signals and improved interpretability. To equip large language models with structured exploration capabilities and user-specific preference modeling, we adopt a two-stage post-training pipeline consisting of supervised fine-tuning followed by end-to-end reinforcement learning with rule-based rewards. Extensive experiments on public benchmarks, together with results from a large-scale production deployment, demonstrate consistent performance gains, validating the effectiveness of reasoning-based graph exploration for social recommendation under real-world constraints.
+
+GenAI Usage Disclosure
+
+The authors used generative AI tools only for language polishing, grammar checking, and editing of author-written text. The authors reviewed and revised all edited text and take full responsibility for the final content. No generative AI tool was used to generate experimental results, datasets, or evaluation claims.
+
+References
+
+Bao et al. (2023)
+K. Bao, J. Zhang, W. Wang, Y. Zhang, Z. Yang, Y. Luo, C. Chen, F. Feng, and Q. Tian
+
+A bi-step grounding paradigm for large language models in recommendation systems.
+
+arXiv preprint arXiv:2308.08434.
+
+External Links: Link
+
+Cited by: §2.2,
+§5.1.
+
+Cantador et al. (2011)
+I. Cantador, P. Brusilovsky, and T. Kuflik
+
+2nd workshop on information heterogeneity and fusion in recommender systems (hetrec 2011).
+
+In Proceedings of the 5th ACM conference on Recommender systems,
+
+RecSys 2011, New York, NY, USA.
+
+Cited by: §5.1.
+
+Cheng et al. (2016)
+H. Cheng, L. Koc, J. Harmsen, T. Shaked, T. Chandra, H. Aradhye, G. Anderson, G. Corrado, W. Chai, M. Ispir, et al.
+
+Wide & deep learning for recommender systems.
+
+In Proceedings of the 1st workshop on deep learning for recommender systems,
+
+pp. 7–10.
+
+Cited by: §1.
+
+Dong et al. (2017)
+Y. Dong, N. V. Chawla, and A. Swami
+
+Metapath2vec: scalable representation learning for heterogeneous networks.
+
+In Proceedings of the 23rd ACM SIGKDD international conference on knowledge discovery and data mining,
+
+pp. 135–144.
+
+Cited by: §2.1.
+
+Dubey et al. (2024)
+A. Dubey, A. Jauhri, A. Pandey, A. Kadian, A. Al-Dahle, A. Letman, A. Mathur, A. Schelten, A. Yang, A. Fan, et al.
+
+The llama 3 herd of models.
+
+arXiv e-prints, pp. arXiv–2407.
+
+Cited by: §5.1.
+
+Fan et al. (2019)
+W. Fan, Y. Ma, Q. Li, Y. He, E. Zhao, J. Tang, and D. Yin
+
+Graph neural networks for social recommendation.
+
+In The world wide web conference,
+
+pp. 417–426.
+
+Cited by: §1,
+§1,
+§2.1,
+§5.1.
+
+Geng et al. (2022)
+S. Geng, S. Liu, Z. Fu, Y. Ge, and Y. Zhang
+
+Recommendation as language processing (rlp): a unified pretrain, personalized prompt & predict paradigm (p5).
+
+In Proceedings of the 16th ACM conference on recommender systems,
+
+pp. 299–315.
+
+Cited by: §2.2.
+
+Guo et al. (2025a)
+D. Guo, D. Yang, H. Zhang, J. Song, R. Zhang, R. Xu, Q. Zhu, S. Ma, P. Wang, X. Bi, et al.
+
+Deepseek-r1: incentivizing reasoning capability in llms via reinforcement learning.
+
+arXiv preprint arXiv:2501.12948.
+
+Cited by: §4.3.
+
+Guo et al. (2015)
+G. Guo, J. Zhang, and N. Yorke-Smith
+
+Trustsvd: collaborative filtering with both the explicit and implicit influence of user trust and of item ratings.
+
+In Proceedings of the AAAI conference on artificial intelligence,
+
+Vol. 29.
+
+Cited by: §1,
+§2.1.
+
+Guo et al. (2025b)
+H. Guo, Y. Ma, and X. Zhou
+
+Sorex: towards self-explainable social recommendation with relevant ego-path extraction.
+
+ACM Transactions on Information Systems 44 (2), pp. 1–27.
+
+Cited by: §1.
+
+Han et al. (2020)
+H. Han, M. Zhang, M. Hou, F. Zhang, Z. Wang, E. Chen, H. Wang, J. Ma, and Q. Liu
+
+STGCN: a spatial-temporal aware graph learning method for poi recommendation.
+
+In 2020 IEEE International Conference on Data Mining (ICDM),
+
+pp. 1052–1057.
+
+Cited by: §1.
+
+He et al. (2017)
+X. He, L. Liao, H. Zhang, L. Nie, X. Hu, and T. Chua
+
+Neural collaborative filtering.
+
+In Proceedings of the 26th international conference on world wide web,
+
+pp. 173–182.
+
+Cited by: §1.
+
+Jamali and Ester (2009)
+M. Jamali and M. Ester
+
+Trustwalker: a random walk model for combining trust-based and item-based recommendation.
+
+In Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and data mining,
+
+pp. 397–406.
+
+Cited by: §2.1.
+
+Ko et al. (2022)
+H. Ko, S. Lee, Y. Park, and A. Choi
+
+A survey of recommendation systems: recommendation models, techniques, and application fields.
+
+Electronics 11 (1), pp. 141.
+
+Cited by: §1.
+
+Koren et al. (2009)
+Y. Koren, R. Bell, and C. Volinsky
+
+Matrix factorization techniques for recommender systems.
+
+Computer 42 (8), pp. 30–37.
+
+Cited by: §1.
+
+Li et al. (2023)
+X. Li, L. Sun, M. Ling, and Y. Peng
+
+A survey of graph neural network based recommendation in social networks.
+
+Neurocomputing 549, pp. 126441.
+
+Cited by: §1.
+
+Li et al. (2024a)
+Y. Li, K. Liu, R. Satapathy, S. Wang, and E. Cambria
+
+Recent developments in recommender systems: a survey.
+
+IEEE Computational Intelligence Magazine 19 (2), pp. 78–95.
+
+Cited by: §1.
+
+Li et al. (2024b)
+Z. Li, L. Xia, and C. Huang
+
+Recdiff: diffusion model for social recommendation.
+
+In Proceedings of the 33rd ACM international conference on information and knowledge management,
+
+pp. 1346–1355.
+
+Cited by: §1,
+§2.1,
+§5.1.
+
+Liu et al. (2024a)
+Y. Liu, K. Zhang, Y. Li, Z. Yan, C. Gao, R. Chen, Z. Yuan, Y. Huang, H. Sun, J. Gao, et al.
+
+Sora: a review on background, technology, limitations, and opportunities of large vision models.
+
+arXiv preprint arXiv:2402.17177.
+
+Cited by: §1.
+
+Liu et al. (2024b)
+Y. Liu, Y. Wang, L. Sun, and P. S. Yu
+
+Rec-gpt4v: multimodal recommendation with large vision-language models.
+
+arXiv preprint arXiv:2402.08670.
+
+Cited by: §1.
+
+Luo et al. (2025)
+S. Luo, B. He, H. Zhao, W. Shao, Y. Qi, Y. Huang, A. Zhou, Y. Yao, Z. Li, Y. Xiao, et al.
+
+Recranker: instruction tuning large language model as ranker for top-k recommendation.
+
+ACM Transactions on Information Systems 43 (5), pp. 1–31.
+
+Cited by: §2.2.
+
+Ma et al. (2008)
+H. Ma, H. Yang, M. R. Lyu, and I. King
+
+Sorec: social recommendation using probabilistic matrix factorization.
+
+In Proceedings of the 17th ACM conference on Information and knowledge management,
+
+pp. 931–940.
+
+Cited by: §1,
+§2.1.
+
+Rajput et al. (2023)
+S. Rajput, N. Mehta, A. Singh, R. Hulikal Keshavan, T. Vu, L. Heldt, L. Hong, Y. Tay, V. Tran, J. Samost, et al.
+
+Recommender systems with generative retrieval.
+
+Advances in Neural Information Processing Systems 36, pp. 10299–10315.
+
+Cited by: §2.2.
+
+Shi et al. (2018)
+C. Shi, B. Hu, W. X. Zhao, and P. S. Yu
+
+Heterogeneous information network embedding for recommendation.
+
+IEEE transactions on knowledge and data engineering 31 (2), pp. 357–370.
+
+Cited by: §2.1.
+
+Tang et al. (2013)
+J. Tang, X. Hu, and H. Liu
+
+Social recommendation: a review.
+
+Social network analysis and mining 3 (4), pp. 1113–1133.
+
+Cited by: §1.
+
+Tang et al. (2016)
+J. Tang, S. Wang, X. Hu, D. Yin, Y. Bi, Y. Chang, and H. Liu
+
+Recommendation with social dimensions.
+
+In Proceedings of the AAAI conference on artificial intelligence,
+
+Vol. 30.
+
+Cited by: §1.
+
+Tang et al. (2025)
+Y. Tang, J. Bi, S. Xu, L. Song, S. Liang, T. Wang, D. Zhang, J. An, J. Lin, R. Zhu, et al.
+
+Video understanding with large language models: a survey.
+
+IEEE Transactions on Circuits and Systems for Video Technology.
+
+Cited by: §3.1.
+
+Touvron et al. (2023)
+H. Touvron, T. Lavril, G. Izacard, X. Martinet, M. Lachaux, T. Lacroix, B. Rozière, N. Goyal, E. Hambro, F. Azhar, et al.
+
+Llama: open and efficient foundation language models.
+
+arXiv preprint arXiv:2302.13971.
+
+Cited by: §1.
+
+Wu et al. (2020)
+L. Wu, J. Li, P. Sun, R. Hong, Y. Ge, and M. Wang
+
+Diffnet++: a neural influence and interest diffusion network for social recommendation.
+
+IEEE Transactions on Knowledge and Data Engineering 34 (10), pp. 4753–4766.
+
+Cited by: §1,
+§2.1,
+§5.1.
+
+Wu et al. (2019)
+L. Wu, P. Sun, Y. Fu, R. Hong, X. Wang, and M. Wang
+
+A neural influence diffusion model for social recommendation.
+
+In Proceedings of the 42nd international ACM SIGIR conference on research and development in information retrieval,
+
+pp. 235–244.
+
+Cited by: §1,
+§2.1,
+§5.1.
+
+Wu et al. (2024)
+L. Wu, Z. Zheng, Z. Qiu, H. Wang, H. Gu, T. Shen, C. Qin, C. Zhu, H. Zhu, Q. Liu, et al.
+
+A survey on large language models for recommendation.
+
+World Wide Web 27 (5), pp. 60.
+
+Cited by: §1.
+
+Xu et al. (2023)
+S. Xu, W. Hua, and Y. Zhang
+
+Openp5: benchmarking foundation models for recommendation.
+
+arXiv preprint arXiv:2306.11134.
+
+Cited by: §2.2.
+
+Yang et al. (2016)
+B. Yang, Y. Lei, J. Liu, and W. Li
+
+Social collaborative filtering by trust.
+
+IEEE transactions on pattern analysis and machine intelligence 39 (8), pp. 1633–1647.
+
+Cited by: §5.1.
+
+Yang et al. (2019)
+D. Yang, B. Qu, J. Yang, and P. Cudre-Mauroux
+
+Revisiting user mobility and social relationships in lbsns: a hypergraph embedding approach.
+
+In The world wide web conference,
+
+pp. 2147–2157.
+
+Cited by: §5.1.
+
+Yang et al. (2020)
+D. Yang, B. Qu, J. Yang, and P. Cudré-Mauroux
+
+Lbsn2vec++: heterogeneous hypergraph embedding for location-based social networks.
+
+IEEE Transactions on Knowledge and Data Engineering 34 (4), pp. 1843–1855.
+
+Cited by: §5.1.
+
+Yang et al. (2025)
+Y. Yang, L. Wu, Y. Liao, Z. He, P. Shao, R. Hong, and M. Wang
+
+Invariance matters: empowering social recommendation via graph invariant learning.
+
+In Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information Retrieval,
+
+pp. 2038–2047.
+
+Cited by: §2.1,
+§5.1.
+
+Yu et al. (2021a)
+J. Yu, H. Yin, M. Gao, X. Xia, X. Zhang, and N. Q. Viet Hung
+
+Socially-aware self-supervised tri-training for recommendation.
+
+In Proceedings of the 27th ACM SIGKDD conference on knowledge discovery & data mining,
+
+pp. 2084–2092.
+
+Cited by: §2.1,
+§5.1.
+
+Yu et al. (2021b)
+J. Yu, H. Yin, J. Li, Q. Wang, N. Q. V. Hung, and X. Zhang
+
+Self-supervised multi-channel hypergraph convolutional network for social recommendation.
+
+In Proceedings of the web conference 2021,
+
+pp. 413–424.
+
+Cited by: §2.1,
+§5.1.
+
+Yue et al. (2023)
+Z. Yue, S. Rabhi, G. d. S. P. Moreira, D. Wang, and E. Oldridge
+
+Llamarec: two-stage recommendation using large language models for ranking.
+
+arXiv preprint arXiv:2311.02089.
+
+Cited by: §2.2.
+
+Zhang et al. (2024)
+J. Zhang, J. Huang, S. Jin, and S. Lu
+
+Vision-language models for vision tasks: a survey.
+
+IEEE transactions on pattern analysis and machine intelligence 46 (8), pp. 5625–5644.
+
+Cited by: §1.
+
+Zhang et al. (2025)
+J. Zhang, R. Xie, Y. Hou, X. Zhao, L. Lin, and J. Wen
+
+Recommendation as instruction following: a large language model empowered recommendation approach.
+
+ACM Transactions on Information Systems 43 (5), pp. 1–37.
+
+Cited by: §2.2.
+
+Zhao et al. (2023)
+W. X. Zhao, K. Zhou, J. Li, T. Tang, X. Wang, Y. Hou, Y. Min, B. Zhang, J. Zhang, Z. Dong, et al.
+
+A survey of large language models.
+
+arXiv preprint arXiv:2303.18223 1 (2).
+
+Cited by: §1.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

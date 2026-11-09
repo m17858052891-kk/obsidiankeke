@@ -1,0 +1,1229 @@
+Generalized Position-Based Model: Rethinking Position Weights
+              in Ranking Off-Policy Evaluation
+       Norman Knyazev∗                           Vito Bellini                Huseyin Yurtseven                      Ben London
+       Radboud University                       Amazon Music                     Amazon Music                      Amazon Music
+      Nijmegen, Netherlands                     Berlin, Germany                 Berlin, Germany                     Seattle, USA
+      norman.knyazev@ru.nl                     vitob@amazon.de                 hyurts@amazon.de                blondon@amazon.com
+
+Abstract                                                                                     target                            target
+
+Off-policy evaluation (OPE) estimates the performance of new rec-                  1     2     3      4   5            1   2     3      4   5
+ommendation policies using logged data, thus enabling fast, safe
+and inexpensive iteration prior to costly A/B tests. To evaluate
+                                                                                   1     2     3      4   5            1   2     3      4   5
+ranking policies, existing OPE estimators all make structural as-
+sumptions about user behavior, leading to a spectrum of trade-offs                        logging                           logging
+                                                                                                                                                1
+between bias and variance. The recently proposed INTERPOL es-                            (a) IPM                           (b) PBM
+timator navigates these trade-offs through a window system that
+defines how clicks at different positions are combined. However,                             target                            target
+this approach has two key limitations: the window configuration                    1     2     3      4   5            1   2     3      4   5
+must be specified a priori, which can impede practical use, and all
+positions within a window are weighted uniformly, regardless of
+their relative utility, potentially limiting accuracy. To address these            1     2     3      4   5            1   2     3      4   5
+gaps, we introduce Generalized PBM (GPBM), an estimator that                              logging                           logging
+learns position-specific weights by minimizing an approximate up-
+                                                                                       (c) INTERPOL                        (d) GPBM
+per bound on the estimation error. GPBM retains the unbiasedness
+guarantees of INTERPOL while significantly simplifying its hy-
+                                                                            Figure 1: Comparison of ranking estimators. Connection
+perparameter selection. Our experiments demonstrate that GPBM
+                                                                            opacity represents the strength of the contribution of clicks
+provides more accurate and robust estimates across a wide range of
+                                                                            across positions in the logged data towards predicting the
+position bias misestimation levels, logging policies, and data sizes.
+                                                                            clicks across each position under the target policy.
+CCS Concepts                                                                how a new target policy would perform using only historical in-
+• Information systems → Learning to rank.                                   teractions collected under an existing logging policy [7, 46]. This
+                                                                            enables rapid iteration and selection of candidate policies before
+Keywords                                                                    committing resources to online experiments [44]. Like all estima-
+Off-policy evaluation, Ranking, Bias, Variance                              tion, OPE must navigate a trade-off between bias—how accurately
+ACM Reference Format:                                                       the estimate captures the statistic of interest—and variance (the
+Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London. 2026.      estimator’s variability caused by randomness). For ranking applica-
+Generalized Position-Based Model: Rethinking Position Weights in Ranking    tions, the bias is influenced by positional effects: items at higher
+Off-Policy Evaluation. In 20th ACM Conference on Recommender Systems        positions generally receive more interactions than those at lower
+(RecSys ’26), September 27-October 02, 2026, Minneapolis, MN, USA. ACM,     positions, irrespective of their relevance to the user [22].
+New York, NY, USA, 17 pages. https://doi.org/10.1145/3773078.3831731           Many OPE estimators counteract bias using inverse propensity
+                                                                            scoring (IPS), an importance weighting technique which corrects
+1    Introduction                                                           the distribution of interactions based on their relative observation
+A key requirement for industrial recommender systems is the ability         probability under the logging and target policies [7]. Yet applying
+to evaluate new policies prior to A/B testing, yet online evaluation        IPS to ranking applications is challenging: as ranking length in-
+is costly and carries the risk of exposing users to suboptimal experi-      creases, these probabilities become vanishingly small, leading to
+ences [27]. Off-policy evaluation (OPE) addresses this by estimating        high-variance estimates that are sensitive to noise [25]. To reduce
+                                                                            variance, ranking OPE estimators typically assume that user be-
+∗ Work done while interning at Amazon Music.
+                                                                            havior follows a particular click model [11]. The two most widely
+                                                                            adopted are the item-position model (IPM) [28], which assumes
+                                                                            clicks at different positions are mutually independent, and the
+This work is licensed under a Creative Commons Attribution-NonCommercial-   position-based model (PBM) [37], which further assumes that click
+NoDerivatives 4.0 International License.                                    probabilities decompose into item-specific relevance and position-
+RecSys ’26, Minneapolis, MN, USA                                            specific examination components. These additional assumptions
+© 2026 Copyright held by the owner/author(s).
+ACM ISBN 979-8-4007-2284-4/2026/09                                          allow PBM to achieve lower-variance estimates, but may intro-
+https://doi.org/10.1145/3773078.3831731                                     duce significant bias when misspecified; conversely, IPM’s weaker
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                         Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+assumptions result in lower bias at the cost of higher variance.          clipped IPS). PAS-IF [49] is another estimator selection procedure
+The recently proposed INTERPOL estimator [8] seeks a middle               that sub-samples data to estimate MSE, avoiding any monotonicity
+ground by applying PBM only within windows around each posi-              assumptions. Ensembling methods combine multiple base estima-
+tion, achieving lower mean squared error (MSE) than either IPM or         tors to form a single estimate with better bias-variance properties.
+PBM with appropriately defined windows. The flexibility of INTER-         BLUE [21] learns an optimal linear combination of estimators—
+POL’s window formalism actually generalizes the IPM and PBM,              which, under an unbiasedness assumption and with sufficient data,
+with these click models sitting at opposite extremes of a spectrum        is guaranteed to perform at least as well as the best individual esti-
+of bias-variance trade-offs.                                              mator. Similarly, OPERA [33] learns an optimal linear combination
+   In spite of its flexibility, the window formalism has one key lim-     of estimators using bootstrapping to estimate base estimator MSE.
+itation: it treats all positions within a window as being equally         All of these variance reduction and estimator selection techniques
+important. We argue that this uniform weighting can lead to sub-          are complementary to our work and may be combined with it to
+optimal performance when the true positional dependencies are             further improve performance.
+dataset-specific or do not match the chosen window system. We                The variance problem is especially acute in ranking settings,
+address these limitations by proposing Generalized PBM (GPBM),            where the probability of an entire ranking (i.e., an ordered selection
+a new ranking OPE estimator that learns position-specific weights         of multiple items) can be extremely small, leading to arbitrarily
+from data, rather than assuming fixed patterns. GPBM subsumes             large importance weights [25]. The above mitigations are usually
+IPM, PBM, and INTERPOL as special cases while enabling more flex-         insufficient, so they are typically combined with structural assump-
+ible modeling of positional dependencies. Our data-driven weight          tions about user behavior—so-called click models [11]. A relatively
+learning method relies on highly interpretable and robust hyper-          mild assumption is that clicks at different positions within the same
+parameters, and our experiments demonstrate consistent improve-           ranking are mutually independent—known as the IPM [28]—which
+ments over existing methods without significant computational             yields an estimator with slight variance reduction (compared to
+overhead.                                                                 “naive” IPS), but still relatively high variance. PBM [37] builds on
+   We release all experimental details, along with the implemen-          IPM by further assuming that click probabilities factor into a prod-
+tation source code and supplemental appendices, to ensure the             uct of item-specific relevance and position-specific examination
+reproducibility of our findings.1                                         probability (a.k.a. position bias). This further reduces variance but
+                                                                          may introduce bias when the decomposition assumption is violated
+2    Related Work                                                         or the position bias curve is misspecified. Position bias estimation is
+OPE is a general framework to estimate the performance of a new           a known challenge, as intervention-based methods may excessively
+policy using logged data from users interacting with a different          harm the user experience [1, 14, 23], while offline methods often
+policy [7, 44, 46]. Central to most OPE estimators is a form of           fail to provide sufficiently accurate estimates [2, 4, 10, 20, 42].
+importance weighting known as IPS [19, 23], which re-weights                 IPM and PBM can be viewed as opposite ends of a spectrum
+logged rewards by a ratio of observation probabilities induced by         of bias-variance trade-offs. The INTERPOL estimator [8] seeks to
+the target and logging policies. This enables unbiased estimation of      find a middle ground between these extremes by combining IPM
+the target policy’s expected utility (a.k.a. reward) without actually     and PBM weighting. When appropriately configured, INTERPOL
+deploying it. Since it is relatively fast and inexpensive, and does not   can achieve lower MSE than either click model, even when the
+expose users to potentially suboptimal experiences, OPE is often          position bias curve is misspecified. However, INTERPOL has two
+used as a precursor to the more costly A/B testing [13, 16, 50].          key limitations: it introduces hyperparameters that strongly dictate
+   The challenge with IPS is that it often suffers from high variance,    how the click models are combined, and it combines them using a
+particularly when the logging policy assigns low probabilities to         uniform weighting that ignores inter-positional dependencies. (We
+actions favored by the target policy, or when logged data is lim-         discuss this in greater detail in Section 3.) Our estimator, GPBM, ad-
+ited [3, 12, 37, 48]. There are several common methods to reduce          dresses these limitations by learning position-specific weights from
+variance. Clipping (a.k.a. truncation) [3, 29] bounds IPS weights to      data, only relying on a single hyperparameter vector that, as we
+a fixed range, thus reducing the effect of excessively high weights,      later demonstrate, does not require careful tuning. Like INTERPOL,
+at the cost of introducing bias. Self-normalized IPS (SNIPS) [30, 48]     GPBM generalizes the IPM and PBM, and also recovers INTERPOL
+leverages multiplicative control variates to reduce variance, which       using binary weights.
+introduces finite-sample bias, but is asymptotically unbiased. Simi-
+larly, doubly robust (DR) methods [12, 25, 36] use additive control
+                                                                          3    Background: Off-Policy Evaluation
+variates from a learned reward model, which reduces variance when
+the model is accurate, but potentially exacerbates it otherwise.          Let 𝜋 denote a policy that (given some contextual information)
+   As there are many variance reduction techniques, each with             induces a ranking (i.e., ordering), 𝑦, on a given set of items 𝑑 ∈
+their own bias-variance trade-off, recent work has focused on es-         D. When 𝑦 is shown to a user, it receives feedback, commonly
+timator selection and ensembling. SLOPE [47] is a procedure for           referred to as reward. Without too much loss of generality, we
+selecting the lowest-variance estimator that is plausibly unbiased,       will assume that reward is measured by clicks, denoted by the
+relying on an assumption that base estimators can be ordered by           binary variable 𝑐 (𝑦, 𝑘) ∈ {0, 1} indicating whether the user clicked
+monotonically decreasing variance and increasing bias (such as            on the item ranked at position 𝑘 ∈ {1, . . . , 𝐾 }. The central goal
+                                                                          of OPE
+                                                                              Í𝐾 is to estimate   the expected per-ranking reward, Δ(𝜋) =
+                                                                                𝑘=1 𝑐 (𝑦, 𝑘) , using rankings and rewards that were logged
+1 https://github.com/amazon-science/gpbm
+                                                                                            
+                                                                          E𝜋
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation          RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+under a previously deployed policy, 𝜋 0 , commonly referred to as                       This yields importance weights:
+the logging policy.                                                                                                                      logged position 𝑘
+                                                                                                                 target positions 𝑗
+   Importantly, the logged rewards (clicks) depend on the choice                                                                        within window of 𝑗?
+and order of items shown to the user by the logging policy. Further-
+                                                                                                                z }| {             z }| {
+                                                                                                                 𝐾
+                                                                                                                                   1[𝑘 ∈ 𝑊 ( 𝑗)] · 𝑝ˆ 𝑗
+more, due to position bias, items shown in certain (usually, higher)                                                                                                      (3)
+                                                                                                                ∑︁
+                                                                                                 𝑤 INT (𝑑, 𝑘) =     𝜋 (𝑑, 𝑗) · Í
+                                                                                                                                                             ˆ𝑘 ′
+                                                                                                                                                                  .
+positions are likely to receive more clicks, irrespective of their                                              𝑗=1             𝑘 ′ ∈𝑊 ( 𝑗 ) 𝜋 0 (𝑑, 𝑘 ′ ) · 𝑝
+
+relevance. To correct these effects, IPS-based estimators re-weight                     Buchholz et al. focused on a banded window system, 𝑊𝑠 ( 𝑗) =
+rewards so as to simulate the distribution of rankings under the                        { 𝑗 − 𝑠, . . . , 𝑗 + 𝑠}, parameterized by window size 𝑠. They empir-
+target policy, 𝜋, and any position biases that apply to where 𝜋 ranks                   ically demonstrated that INTERPOL with an optimal choice of 𝑠
+items. The generic form of an IPS-based estimator is given by:                          yielded lower MSE compared to both IPM and PBM (which can
+                                                                                        also be recovered by setting 𝑠 = 0 and 𝑠 = 𝐾 − 1, respectively).
+                         1 ∑︁ ∑︁
+                              𝑁   𝐾
+              Δ̂(𝜋) =            𝑐 (𝑦 (𝑖 ) , 𝑘) · 𝑤 (𝑦𝑘(𝑖 ) , 𝑘) ,           (1)        Figure 1(a-c) illustrates how IPM, PBM and INTERPOL with 𝑠 = 1
+                                                                                        combine clicks across positions. Furthermore, the authors show that
+                         𝑁 𝑖=1   | {z } | {z }
+                                  𝑘=1
+                                         click?        weight                           if the true position bias curve 𝑝 is known, then INTERPOL provides
+                                                                                        an unbiased estimate of Δ(𝜋) for any window size. However, the
+where 𝑦 (𝑖 ) denotes the 𝑖’th logged ranking, 𝑦𝑘(𝑖 ) denotes the item                   unbiasedness guarantee relies on knowing the true position bias
+ranked at position 𝑘, and 𝑐 (𝑦 (𝑖 ) , 𝑘) indicates whether the item at                  curve, and MSE only improves for the right choice of windows—
+position 𝑘 was clicked. The choice of weights, 𝑤, reflects our as-                      conditions that are difficult to satisfy in practice. Buchholz et al.
+sumptions about user behavior—i.e., the click model. Two common                         [8] suggest that SLOPE could potentially be used to tune INTER-
+click models are IPM and PBM [28, 37], whose respective estimators                      POL’s hyperparameters, e.g. by picking 𝑠 for the banded window
+are defined by the following importance weights:                                        system. Yet they also note that INTERPOL invalidates SLOPE’s key
+                                              Í𝐾
+                                                       𝜋 (𝑑, 𝑘 ′ ) · 𝑝ˆ𝑘 ′              monotonicity assumption, which may in turn invalidate SLOPE’s
+                 𝜋 (𝑑, 𝑘)
+                                                                           , (2)        applicability. Furthermore, INTERPOL’s structural assumptions are
+                                                   ′
+  𝑤 IPM (𝑑, 𝑘) =            , 𝑤 PBM (𝑑, 𝑘) = Í𝐾𝑘 =1
+                 𝜋 0 (𝑑, 𝑘)                                     ′
+                                                𝑘 ′ =1 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                                                                       ˆ ′              at odds with how it combines clicks: for many window systems,
+                                                                                        such as the banded one, there is an implicit assumption that (rel-
+where we have substituted 𝑑 = 𝑦𝑘(𝑖 ) to denote the ranked item.
+                                                                                        ative) errors in position bias estimation are smaller when closer
+   IPM assumes that the probability a user clicks on an item at a
+                                                                                        to the target position; yet all within-window positions are treated
+certain position is independent of all other items and positions in
+                                                                                        equally, regardless of distance. Consequently, estimates for target
+the ranking [28]. Accordingly, Δ̂IPM uses clicks on item 𝑑, which 𝜋0                    position 𝑗 can be significantly biased if 𝑝ˆ𝑘 is misestimated for any
+ranked at position 𝑘, to predict the CTR for the same item and posi-                    within-window position 𝑘.
+tion under 𝜋. Since clicks are independent, the importance weight
+𝑤 IPM (𝑑, 𝑘) (Equation 2, left) is a ratio of marginal probabilities (a.k.a.            4    Generalized Position-Based Model
+propensities), denoted 𝜋 (𝑑, 𝑘) and 𝜋 0 (𝑑, 𝑘), that each policy ranks
+𝑑 at position 𝑘. As the IPM makes relatively mild assumptions, its                      Motivated by the above discussion, we aim to develop an estima-
+estimator tends to have low bias. However, significant differences                      tor that functions comparably to INTERPOL, but without rigid
+between 𝜋0 and 𝜋—particularly when 𝜋 (𝑑, 𝑘) ≫ 𝜋 0 (𝑑, 𝑘) for some                       structural constraints that must be determined a priori. Ideally, the
+𝑑 and 𝑘, e.g. when 𝜋0 is highly deterministic—may result in high-                       estimator should automatically decide how to combine clicks from
+magnitude weights. This can in turn lead to high estimator variance                     different positions, adapting these decisions to the available data.
+and thus unreliable estimates [43], especially when data is limited.                       We begin by observing that INTERPOL’s window membership
+   PBM, on the other hand, additionally assumes that the click prob-                    indicator, 1[𝑘 ∈ 𝑊 ( 𝑗)], can be viewed as a binary-valued weight de-
+ability can be factorized into a product of relevance to the user, de-                  termining how interactions across logged positions 𝑘 are combined
+noted 𝜃𝑑 ∈ [0, 1], and the probability of the user examining position                   to estimate the reward for target position 𝑗. Crucially, we note that
+𝑘 (independent of content), which is captured by the (true) position                    one could replace the indicator with a continuous-valued weight.
+bias curve 𝑝 = (𝑝 1, . . . , 𝑝 𝐾 ) [37]. The PBM estimator aggregates                   We therefore replace it with a weighting function, 𝐹 : Z+ × Z+ →
+clicks for an item 𝑑 across all positions proportional to the mar-                      R ≥0 , where 𝐹 ( 𝑗, 𝑘) regulates the influence of logging position 𝑘 on
+ginal placement probabilities 𝜋 (𝑑, 𝑘 ′ ) and the position bias 𝑝𝑘 ′ , for              the reward estimate for target position 𝑗. Observe that this formula-
+each position 𝑘 ′ = 1, . . . , 𝐾. Its corresponding importance weight,                  tion recovers INTERPOL when the weights are restricted to {0, 1},
+𝑤 PBM (𝑑, 𝑘) (defined in Equation 2, right), has lower magnitude than                   so the resulting estimator is a strict generalization of INTERPOL,
+𝑤 IPM (𝑑, 𝑘). While this allows PBM to further reduce estimator vari-                   and therefore also IPM and PBM. The importance weights for this
+ance, in practice we only have access to an estimated position bias                     estimator, which we term GPBM, have the following form:
+curve 𝑝ˆ = (𝑝ˆ1, . . . , 𝑝ˆ𝐾 ), which may differ from 𝑝 [1, 2, 4]. As a con-                                           𝐾
+                                                                                                                                  𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗
+                                                                                                                                                                          (4)
+                                                                                                                      ∑︁
+sequence, PBM may be systematically over- or under-estimating                                     𝑤 GPBM (𝑑, 𝑘) =                                                     .
+                                                                                                                                             ′             ′    ˆ ′
+                                                                                                                            Í𝐾
+Δ(𝜋), introducing more bias in its reward estimates.                                                                  𝑗=1     𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+
+   To provide a more favorable bias-variance trade-off in terms of                      The weighting function 𝐹 can also be seen as a 𝐾 × 𝐾 matrix, whose
+MSE, the recently proposed INTERPOL estimator [8] applies PBM                           entries 𝐹 𝑗,𝑘 determine the specific ranking estimator (Figure 1d).
+only among the logged positions 𝑘 contained in a window 𝑊 ( 𝑗)                             Analogous to Buchholz et al.’s proof for INTERPOL, we can show
+defined for each target rank 𝑗; outside this window, the IPM is used.                   that, under similar assumptions of (i) correct position bias and (ii)
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                                  Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+common support under 𝐹 , where for every (𝑑, 𝑗) with 𝜋 (𝑑, 𝑗) > 0,               of Δ̂(𝜋; ˆ
+                                                                                         𝑝, 𝐷 𝑁 ) =: Δ̂( ˆ
+                                                                                                        𝑝), which uses the estimated curve ˆ    𝑝. Since
+there exists a position 𝑘 s.t. 𝜋0 (𝑑, 𝑘) > 0 and 𝐹 ( 𝑗, 𝑘) · 𝑝ˆ𝑘 > 0, GPBM       the estimator is unbiased when using 𝑝 (see Appendix A), we have:
+yields an unbiased estimate of Δ(𝜋) (see Appendix A for details).
+                                                                                     0 = Bias Δ̂(𝑝) ≈ Bias Δ̂( ˆ𝑝) + ∇𝑝ˆ Bias Δ̂( ˆ
+                                                                                                                                  𝑝) (𝑝 − ˆ          (10)
+                                                                                                                                   ⊤
+Consequently, 𝐹 ( 𝑗, 𝑘) can be determined (almost) arbitrarily for
+                                                                                                                                              𝑝),
+every ( 𝑗, 𝑘) combination, leaving us free to choose the values that                                𝑝) is the gradient of the bias w.r.t ˆ
+                                                                                 where ∇𝑝ˆ Bias Δ̂( ˆ                                    𝑝. Rearranging
+                                                                                                      
+lead to low estimation error on our data.                                        the terms and combining them with Equation 6 yields:
+                                                                                     Bias Δ̂( ˆ
+                                                                                             𝑝) ≈ ∇𝑝ˆ Bias Δ̂( ˆ 𝑝) (𝑝ˆ − 𝑝)                         (11)
+                                                                                                                  ⊤
+4.1     Determining 𝐹
+We now describe our approach to optimizing the entries of 𝐹 in a                                     = ∇𝑝ˆ E[ Δ̂( ˆ
+                                                                                                                 𝑝)] ⊤ (𝑝ˆ − 𝑝) − ∇𝑝ˆ Δ(𝜋) ⊤ (𝑝ˆ − 𝑝)         (12)
+data-driven manner. Our aim is to minimize the MSE of the resulting                                  = ∇𝑝ˆ E[ Δ̂( ˆ
+                                                                                                                 𝑝)] (𝑝ˆ − 𝑝) .
+                                                                                                                      ⊤
+                                                                                                                                                              (13)
+estimate, given the dataset, position bias estimate and choice of
+target policy. However, since the true MSE value is not directly                 The last identity follows from the fact that the true policy value,
+available (as it depends on the unknown expected reward), we                     Δ(𝜋), does not depend on ˆ  𝑝; hence, the gradient, ∇𝑝ˆ , is zero. We
+instead propose to select 𝐹 by minimizing an approximate upper                   can then upper-bound Equation 13 using the triangle inequality,
+bound on the MSE.                                                                and approximate the resulting bound via bootstrapping:
+   Let the shorthand Δ̂(𝜋) := Δ̂(𝜋; ˆ𝑝, 𝐷 𝑁 ) denote the GPBM es-                                 (13) ≤ ∇𝑝ˆ E[ Δ̂( ˆ
+                                                                                                                   𝑝)] 𝑝ˆ − 𝑝
+                                                                                                                          ⊤
+                                                                                                                                                              (14)
+timate of the expected reward for policy 𝜋, using an estimate 𝑝ˆ
+of the true position bias 𝑝, and logged dataset 𝐷 𝑁 of 𝑁 rankings,                                                      ∇ ˆ Δ̂(𝜋; ˆ   (𝑏 ) ⊤
+                                                                                                                                                              (15)
+                                                                                                              ∑︁𝐵
+                                                                                                           −1
+                                                                                                       ≈ 𝐵                       𝑝, 𝐷 𝑀   ) 𝜖
+                                                                                                                  𝑏=1 𝑝
+their associated rewards and logging propensities. Using standard
+                                                                                                       = Bias
+                                                                                                         d Δ̂(𝜋) .                                            (16)
+                                                                                                                      
+bias-variance decomposition [15], we have that
+                                                       2                        In the second line, 𝜖 = (|𝑝ˆ1 − 𝑝 1 |, . . . , |𝑝ˆ𝐾 − 𝑝 𝐾 |) denotes an upper
+                 MSE Δ̂(𝜋) = Var Δ̂(𝜋) + Bias Δ̂(𝜋) ,            (5)
+                                        
+                                                                                 bound on the position bias curve misestimation at each position, and
+          where Bias Δ̂(𝜋) = E[ Δ̂(𝜋)] − Δ(𝜋),                   (6)             functions as GPBM’s sole hyperparameter. When 𝜖𝑘 is large, it indi-
+                            
+                                                                                 cates potentially high estimation error—so assigning high weight,
+letting us approximate the bias and variance components separately.              𝐹 ( 𝑗, 𝑘), to such positions risks introducing bias, even if the actual
+   To approximate the variance of GPBM, we follow the bootstrap-                 difference between 𝑝ˆ𝑘 and 𝑝𝑘 is small. We assume that an estimate
+based approach of OPERA [33]. The key idea is to estimate the                    of 𝜖 is available, even if potentially imprecise, e.g. based on prior
+variance of our full-sample estimate by measuring its deviation                  knowledge or position bias estimation uncertainty [41, 42]. (In Sec-
+from many, much smaller bootstrap sub-samples, with rescaling to                 tion 6.3 we investigate the estimator’s sensitivity to 𝜖.) Equation 15
+account for the differences in sample size. We produce 𝐵 bootstrap
+                                                                                 also involves computing the gradient of the estimator, Δ̂(𝜋; ˆ             (𝑏 )
+                                                                                                                                                                 ),
+estimates, Δ̂(𝜋; ˆ𝑝, 𝐷 𝑀 ), each using 𝑀 ≪ 𝑁 sampled records, then
+                                                                                                                                                       𝑝, 𝐷 𝑀
+                                                                                 with respect to ˆ  𝑝, for each bootstrap fold 𝑏. This is easily derived
+calculate the bootstrap variance around the full-sample estimate,
+                                                                                 manually (Appendix C) or using automatic differentiation [6, 38].
+Δ̂(𝜋; ˆ
+      𝑝, 𝐷 𝑁 ). We then approximate the variance of the full-sample
+                                                                                 For computational efficiency, we also estimate this gradient using
+estimate around its (potentially biased) population mean, E[ Δ̂(𝜋)],
+                                                                                 𝑀 ≤ 𝑁 rankings per bootstrap fold.
+rescaling the 𝑀-sample variance by 𝑀/𝑁 as:
+                                                                                     Substituting our approximation of bias, Bias,    d and variance, Var,   c
+                                                      2
+  Var Δ̂(𝜋) = E𝐷 𝑁 Δ̂(𝜋; ˆ      𝑝, 𝐷 𝑁 ) − E[ Δ̂(𝜋)]                       (7)   into Equation 5 yields our fully differentiable approximate upper
+                     
+                                                                        2       bound on the MSE:
+                                        Δ̂(𝜋; ˆ        ) − Δ̂(𝜋; ˆ
+                               ∑︁𝐵 
+               ≈ 𝑀𝑁 −1 𝐵 −1                       (𝑏 )
+                                                                𝑝, 𝐷 𝑁 ) (8)                                                        d Δ̂(𝜋) 2 .
+                                                                                                 MSE Δ̂(𝜋) ⪅ c  Var Δ̂(𝜋) + Bias                            (17)
+                                             𝑝, 𝐷 𝑀                                                                                           
+                                   𝑏=1
+
+                 Var Δ̂(𝜋)                                                 (9)
+                             
+               = c
+                                                                                 Intuitively, Var
+                                                                                              c is low when the entries of 𝐹 are more uniform, but
+From Equation 8, it is clear that the variance estimate decreases with           that might come at a cost of increased bias. On the other hand,
+the data size 𝑁 , or when the bootstrapped estimates Δ̂(𝜋; 𝑝,  ˆ 𝐷𝑀(𝑏 )
+                                                                        )        adapting 𝐹 to the data, to account for position bias estimation error
+do not significantly deviate from the full-data estimate Δ̂(𝐷 𝑁 ).               (𝜖), should reduce bias, while potentially increasing variance. Thus,
+Such deviations are likely when the target policy departs signifi-               we find the inevitable trade-off between bias and variance.
+cantly from the logging policy, causing high-magnitude importance                    We use Equation 17 as an objective to optimize the entries of 𝐹 ,
+weights. Importantly, using very small bootstrap samples of size                 which we solve using standard stochastic gradient methods [24]. At
+𝑀 ≪ 𝑁 has been shown to reduce the impact of such outliers on                    every optimization step we: i) independently generate 𝐵 bootstrap
+estimation accuracy [5, 18]. While OPERA uses this bootstrapping                 samples 𝐷 𝑀(1)            (𝐵)
+                                                                                                , . . . , 𝐷𝑀   with propensities and clicks for 𝑀 rankings;
+procedure to approximate the MSE of its base estimators, it may be               ii) estimate the target policy value for each bootstrap sample, 𝐷 𝑀      (𝑏 )
+                                                                                                                                                               ,
+unable to account for bias introduced by position bias misspecifi-               as well as the full data sample, 𝐷 𝑁 ; iii) calculate the gradient of
+cation, which does not vanish asymptotically. We account for this                bootstrapped estimates w.r.t. ˆ     𝑝; iv) use this gradient to estimate the
+by incorporating an explicit bias component into our optimization                approximate bias bound (Equation 15); v) calculate the spread of
+objective.                                                                       bootstrapped estimates around the full data estimate, rescaling it
+   Following MacKinnon and Smith [32], we approximate the bias                   by 𝑀/𝑁 (Equation 8); vi) compute the gradient of the combined
+of the estimate Δ̂(𝜋; 𝑝, 𝐷 𝑁 ) =: Δ̂(𝑝), which uses the true position            expression (Equation 17) w.r.t. GPBM weights 𝐹 ; and finally, vii)
+bias curve 𝑝, by a first-order Taylor approximation around the bias              take a step with the optimizer. The resulting approach is highly
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation           RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+efficient, and as we will see, able to adapt the learned estimator to                   sampled rankings, via 20 epochs of Adam [24], with both learning
+the available data and our knowledge of the position bias.                              rate and 𝐿2 regularization set to 0.01.
+                                                                                           Plackett-Luce policies generate rankings by repeatedly sampling
+5     Experimental Setup                                                                items from a softmax distribution without replacement. The softmax
+We structure our evaluation around four research questions. We                          is parameterized by an inverse temperature, 𝜏 −1 , which controls
+first evaluate whether GPBM yields more accurate off-policy esti-                       how uniform (low 𝜏 −1 ) or peaked (high 𝜏 −1 ) the distribution is. In
+mates across settings that, as discussed in Section 2, critically affect                our experiments, we take 𝜏 −1 ∈ [0.2, 0.4, 1]. We clip the propensities
+ranking OPE: dataset size, logging policy stochasticity and position                    of the (Plackett-Luce) logging policy [26] to 10−7 so as to avoid
+bias misestimation:                                                                     extremely high importance weights when inverted.
+RQ1 Does GPBM provide consistently lower MSE than baselines
+    across different ranking settings?                                                  5.3      Baselines and Evaluation
+Furthermore, as user behavior may not follow the PBM in practice:                       We compare GPBM to the following baselines: IPM, PBM, INTER-
+                                                                                        POL with window size selected via SLOPE, and their respective
+RQ2 Does GPBM also perform better when user behavior follows                            self-normalized versions SN-IPM, SN-PBM and SN-INT. Addition-
+    the IPM?                                                                            ally, we examine the performance of ensemble methods BLUE and
+Moreover, GPBM’s performance depends on 𝜖, the assumed upper                            OPERA combining (self-normalized) IPM and PBM.2 To establish
+bound on per-position deviation between the true and estimated                          an upper bound on INTERPOL’s performance, we also include an
+bias curves:                                                                            oracle version, INT∗ (and its self-normalized version, SN-INT∗ ),
+RQ3 How does under- or over-estimating 𝜖 affect GPBM’s MSE?                             whose window size is chosen retroactively to minimize MSE.
+                                                                                            Except for IPM, all of the above estimators rely on an estimate
+Finally, to understand the mechanism behind GPBM’s performance:
+                                                                                        of the position bias curve, which in practice may be incorrect. To
+RQ4 How does GPBM’s 𝐹 matrix combine weights from different                             explore the effect of an incorrectly estimated curve, we simulate it
+    positions across settings?                                                          following the approach of Buchholz et al. [8], defining the estimated
+                                                                                        position bias curve 𝑝ˆ as an exponential transformation of the true
+5.1     Data                                                                            curve 𝑝, s.t. 𝑝ˆ = 𝑝 𝛼 , where 𝛼 ∈ [0.6, 0.8, 1, 1.2, 1.4], as well as
+Our experiments use two public datasets: Yahoo! Webscope [9] and                        𝑝ˆ = max(𝑝 − 0.1, 0). We also evaluate the robustness of all models
+MSLR-WEB30k datasets [40]. Both datasets consist of user queries,                       under a more complex zigzag setting 𝑝ˆ = 𝑝 ± 𝑧, where the position
+their corresponding retrieved items, and expert relevance labels.                       bias curve is over-estimated at odd positions and under-estimated
+Yahoo contains 29, 921 queries with an average of 24 items per                          at even positions (see Appendix B for more details).
+query, while MSLR contains 30, 000 queries with an average of 125                           We optimize GPBM’s 𝐹 matrix via the procedure outlined in Sec-
+items per query. Each query-item pair (𝑞, 𝑑) is represented by a set                    tion 4.1, using Adam with learning
+                                                                                                                     √          rate 0.01, and sampling 𝐵 = 50
+of query-item features, with a 5-level relevance label, 𝑟𝑑 ∈ [0, 4].                    bootstrap folds of size 𝑀 = 𝑁 . Since the upper bound on position
+Following common practice [34] we rescale 𝑟𝑑 to the range [0, 1]                        bias misestimation, 𝜖𝑘 , may be over- or under-estimated, we evalu-
+and denote this by 𝜃𝑑 .                                                                 ate a range of values, 𝜖𝑘 = 𝛽𝑘 · |𝑝ˆ𝑘 − 𝑝𝑘 |. In our experiments, 𝛽𝑘 = 𝛽
+   To simulate user feedback, we extend the methodology of Buch-                        is either the same for all positions s.t. 𝛽 ∈ [0, 0.25, 0.5, 1, 1.5, 2, 3],
+holz et al. [8]. Specifically, we use the logging policy to re-rank                     reflecting a consistently optimistic or pessimistic bound on the po-
+(up to) the first 50 items of each query. For each query, we inde-                      sition bias estimation error, or scales linearly across ranks between
+pendently sample 𝑛 ∈ {1, 5, 25} rankings from the logging policy                        0.5 and 1.5 via 𝛽𝑘 = 0.5+ (𝑘 −1)/(𝐾 −1) or 𝛽𝑘 = 1.5− (𝑘 −1)/(𝐾 −1),
+(described in Section 5.2), yielding 𝑁 total logged rankings across                     where the error bound is underestimated for some positions and
+all queries. We then generate rewards for each ranking using the                        overestimated for others. For most experiments, we fix 𝛽𝑘 = 𝛽 = 1.5,
+relevance labels and a given click model. In most of our experiments,                   reflecting a pessimistic upper-bound of the error.
+we use the PBM, in which users examine each position 𝑘 ≤ 10 based                           We measure estimator performance using the MSE between the
+on a decreasing position bias curve, 𝑝𝑘 = 1/log2 (𝑘 + 1), and click                     estimated policy value and its true (on-policy) average reward—
+an inspected item 𝑑 proportional to its relevance 𝜃𝑑 .                                  which we compute as a product of relevance 𝜃𝑑 , position bias 𝑝𝑘
+                                                                                        (or 𝑝𝑞,𝑘,𝑑 for IPM user behavior in Subsection 6.2) and the target
+5.2     Policies                                                                        propensity 𝜋 (𝑑, 𝑘). Unless otherwise noted, we report the average
+Both logging and target are Plackett-Luce ranking policies [31, 39]                     MSE over 5 folds, with 50 independent repeats of the data generating
+trained on the respective training sets of each fold. To simulate                       process for each fold. Error bars indicate the lowest and highest fold
+policy improvement, the stronger target policy has access to all                        MSE. Due to space constraints, we report a selection of the above
+features, while the weaker logging policy is trained without the                        results, with full results available in Appendix D. Agent-assisted
+top third most relevance-correlated features [26]. Each policy ranks                    coding using Claude Opus 4.5 was used to produce experimental
+items based on item scores produced by a neural network with two                        code, which we then extensively reviewed, adapted and validated.
+hidden layers of size 32, sigmoid activations, and a final layer 𝑓 (𝑥) =
+10 · tanh(𝑥) constraining the model’s logits to the range [−10, 10] to
+avoid the prevalence of effectively deterministic rankings. Both poli-                  2We observed that using only these base estimators led to consistently higher perfor-
+cies are trained to minimize PL-Rank-3 NDCG loss [35], with 100                         mance compared to using all estimators.
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                                    Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+                                                   MSLR                                                                Yahoo
+
+      10−2
+
+      10−3
+MSE
+      10−4
+
+      10−5
+                       p̂ = p0.8    p̂ = p1.0     p̂ = p1.2 p̂ = p−0.1 p̂ = p±z           p̂ = p0.8    p̂ = p1.0      p̂ = p1.2 p̂ = p−0.1 p̂ = p±z
+                       GPBM         IPM         PBM/INT          SN-IPM         SN-PBM/SN-INT         BLUE         OPERA          INT∗         SN-INT∗
+
+Figure 2: Impact of position bias misestimation, with fixed inverse temperature 𝜏 = 0.6 and 𝑛 = 5 sampled rankings per query.
+                                            𝑛 =1                                      𝑛 =5                                       𝑛 = 25
+                      10−2
+
+
+
+        MSE (MSLR)
+                      10−3
+                      10−4
+                      10−5
+                      10−6
+                      10−2
+
+
+        MSE (Yahoo)
+                      10−3
+                      10−4
+                      10−5
+                      10−6
+                             τ −1 = 1.0 τ −1 = 0.6 τ −1 = 0.2          τ −1 = 1.0 τ −1 = 0.6 τ −1 = 0.2         τ −1 = 1.0 τ −1 = 0.6 τ −1 = 0.2
+
+Figure 3: Impact of logging policy stochasticity (via inverse temperature 𝜏 −1 ) and dataset size (via number of sampled rankings
+per query 𝑛). Misestimated position bias fixed at 𝑝ˆ = 𝑝 1.2 . Models as in Figure 2.
+
+
+                                                                                      plots the average MSE of all estimator across 5 folds, reflecting
+                                                                                      their bias-variance trade-off, for different misestimated position
+        0.52
+                                                                                      bias curves ˆ 𝑝, with the logging policy’s temperature and dataset
+Δ̂(𝜋)                                                                                 size set to a “medium” value of 𝜏 −1 = 0.6 and 𝑛 = 5 respectively.
+        0.50                                                                             We find that the performance of the baselines varies across both
+                                                                                      position bias misestimation and datasets. Unsurprisingly, the ef-
+                       𝑝ˆ = 𝑝 0.8    𝑝ˆ = 𝑝 0.8     𝑝ˆ = 𝑝 1.0     𝑝ˆ = 𝑝 1.0         fect of position bias misestimation is particularly strong for PBM,
+                       𝑛 =5          𝑛 = 25         𝑛 =5           𝑛 = 25             which achieves the lowest MSE on both datasets under the cor-
+                                                                                      rectly estimated curve 𝑝ˆ = 𝑝, yet progressively deteriorates under
+Figure 4: Impact of position bias misestimation (𝑝)        ˆ and                      severe misestimation 𝑝ˆ = 𝑝 𝛼 , 𝛼 ≠ 0, or when all positions are
+dataset size (number of sampled rankings per query 𝑛) on                              underestimated equally (𝑝ˆ = 𝑝 − 0.1). Similarly, other estimators,
+estimator predictions on MSLR. Logging policy stochasticity                           such as BLUE and OPERA, perform well on some bias-dataset com-
+fixed at 𝜏 −1 = 0.6. Dotted red line denotes the true value of the                    binations but not others. Interestingly, oracle INTERPOL and its
+target policy Δ(𝜋). Error bars denote two standard deviations                         self-normalized version, which preemptively know the optimal
+from the mean over 50 repeats. Models as in Figure 2.                                 window size, collectively obtain the lowest MSE across all settings.
+                                                                                      However, in practice, this optimal value is not known, and SLOPE
+                                                                                      appears to always select the largest window size, making (SN-)INT
+6 Results
+                                                                                      equivalent to (SN-)PBM. As such, how to choose the best ranking
+6.1 Overall Performance (RQ1)                                                         estimator and its parameters remains unclear.
+We first investigate how GPBM compares to the baselines across                           Meanwhile, GPBM consistently demonstrates strong performance
+several dimensions that affect bias and variance: position bias mis-                  across most (mis-)estimated curves on both datasets. In most cases,
+estimation, logging policy randomness and dataset size. Figure 2
+ Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation        RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+                                           𝑛 =5                                                                            𝑛 = 25
+
+      10−3
+
+      10−4
+MSE
+      10−5
+
+      10−6
+              p̂ = p0.8      p̂ = p1.0       p̂ = p1.2 p̂ = p−0.1 p̂ = p±z                     p̂ = p0.8   p̂ = p1.0      p̂ = p1.2 p̂ = p−0.1 p̂ = p±z
+                      GPBM          IPM       PBM/INT           SN-IPM        SN-PBM/SN-INT           BLUE        OPERA         INT∗       SN-INT∗
+
+               Figure 5: Impact of 𝑝ˆ misestimation and data size (via 𝑛) on MSE under complex user behavior on MSLR.
+
+GPBM achieves substantially lower MSE than even the oracle IN-                              Overall, we see that GPBM proves robust to position bias mises-
+TERPOL (INT∗ ), with over 6-fold improvement using overestimated                         timation, logging policy stochasticity, and dataset size, consistently
+curve 𝑝ˆ = 𝑝 0.8 on Yahoo. Regardless of whether the position bias is                    outperforming all ranking OPE baselines across most settings (RQ1).
+correctly specified (𝑝ˆ = 𝑝 1.0 ) or highly irregular (𝑝ˆ = 𝑝 ±𝑧), GPBM’s
+performance remains comparable with the strongest baselines.                             6.2      Complex User Behavior (RQ2)
+   To understand estimator sensitivity to variance-inducing factors,
+                                                                                         In practice, user click behavior may follow more complex patterns
+Figure 3 plots MSE with respect to logging policy stochasticity (con-
+                                                                                         than the PBM, prompting our second research question: what if the
+trolled via inverse temperature 𝜏 −1 ) and dataset size (controlled via
+                                                                                         PBM assumptions do not hold? To answer this, we construct a click
+the number of sampled rankings per query). Throughout, position
+                                                                                         model that adheres to the IPM (i.e., clicks do not depend on other
+bias misestimation is fixed to 𝑝ˆ = 𝑝 1.2 .
+                                                                                         positions’ content) but not the PBM. Each query-item pair, (𝑞, 𝑑),
+   As with bias, here we also observe varied performance amongst
+                                                                                         is given its own position bias curve, 𝑝𝑞,𝑑,𝑘 = 𝑝𝑘 + (𝑝𝑘 − 𝑝 1.4 ) · (2 ·
+the baselines. For instance, IPM is among the weakest baselines
+                                                                                         𝑓 (𝑞, 𝑑) − 1), where 𝑓 (𝑞, 𝑑) maps (𝑞, 𝑑) to a quantile between 0 and 1.
+under the most deterministic logging policy (𝜏 −1 = 1), yet is con-
+                                                                                         To ensure non-uniform spread of curves across items, 𝑓 sorts items
+sistently close to the optimal INTERPOL performance under more
+                                                                                         based on the scores assigned to them by a separate policy trained
+exploratory logging policies (lower 𝜏 −1 ) and with more sampled
+                                                                                         only on items’ title features, representing their visual salience in a
+rankings. Other estimators, such as PBM, SN-IPM and the ensemble
+                                                                                         ranking. As a consequence, the average position bias curve over all
+methods, show only minor MSE improvements with larger data
+                                                                                         items is still 𝑝, yet 𝑝 can no longer be used to accurately model clicks
+sizes, suggesting they may be affected more by bias than variance.
+                                                                                         for any item, and the PBM assumptions thus no longer hold. Figure 5
+   In contrast, we again find that GPBM consistently performs well
+                                                                                         shows estimator performance on MSLR using varying amounts of
+across all settings, benefiting from both more stochastic logging
+                                                                                         data generated from the above process, as well as varying levels of
+policies and more data. In particular, it achieves the lowest MSE
+                                                                                         misestimation of the item-average curve.
+for 𝑛 ≥ 5, under all logging policies. Notably, GPBM’s performance
+                                                                                            Here, the baseline models generally perform comparably to our
+is weakest in the most variance-inducing setting, 𝑛 = 1 with 𝜏 = 1.
+                                                                                         earlier results for the PBM setting. However, for many of them—
+We hypothesize that this is due to the difficulty in optimizing 𝐹
+                                                                                         especially PBM/INT and INT∗ —performance varies across different
+under low effective sample size [45]. Nevertheless, when there is
+                                                                                         estimates’ curves. In particular, in contrast with the PBM setting,
+sufficient data and randomization, GPBM achieves consistent large
+                                                                                         𝑝ˆ = 𝑝 0.8 generally yields the best performance, while other curves
+improvements over all baselines.
+                                                                                         lead to substantial performance losses. This strong baseline per-
+   Finally, Figure 4 shows the policy estimates of all models for the
+                                                                                         formance using the over-estimated item-average curve 𝑝ˆ = 𝑝 0.8
+50 repeats across a subset of settings on the first fold of MSLR. We
+                                                                                         is not surprising, as item title features that govern item-specific
+can see that GPBM improves over the baselines in terms of both
+                                                                                         curves 𝑝𝑞,𝑑,𝑘 are also correlated with relevance. It follows that items
+bias and variance when 𝑝ˆ = 𝑝 0.8 (Figure 4, left). Furthermore, un-
+                                                                                         placed higher by the logging policy are also more likely to have
+like most estimators, increasing the amount of data (via 𝑛, Figure 4,
+                                                                                         slower-decaying curves, which may be most similar to 𝑝ˆ = 𝑝 0.8 .
+center-left), appears not only to bring its individual predictions
+                                                                                            In contrast, GPBM’s performance in the IPM setting does not
+closer to Δ(𝜋), but also improve its mean estimate, suggesting
+                                                                                         differ strongly from its earlier performance in the PBM setting.
+GPBM’s ability to focus on bias reduction as the variance is natu-
+                                                                                         Unlike the baselines, it maintains strong performance across all
+rally reduced with more data. Interestingly, when the true position
+                                                                                         curve estimates, demonstrating that GPBM is also robust when user
+bias curve is provided (Figure 4, center-right), GPBM actually ex-
+                                                                                         behavior deviates from the PBM assumption (RQ2).
+hibits higher bias. We hypothesize that this is caused by overfitting
+the Var,
+     c as 𝜖 and thus the bias component of MSE     d in this setting are
+set to 0. Consistent with this explanation, increasing the dataset                       6.3      Sensitivity to Misestimation Estimate (RQ3)
+size reduces the observed bias (Figure 4, right), which may come                         In order to determine the weight matrix 𝐹 , GPBM relies on an
+from reduced overfitting when optimizing c       Var.                                    estimate of 𝜖𝑘 , the upper bound on the difference between the
+                                                                                         true position bias 𝑝𝑘 and its estimated value 𝑝ˆ𝑘 at position 𝑘. Our
+                                                                                         third research question examines the effect of misestimating this
+  RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                                                                                                     Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+                                                                                  PBM                                                                                                               IPM
+                             p̂    p̂ = p0.8       p̂ = p1.0       p̂ = p1.2      p̂ = p−0.1       p̂ = p±z                                       p̂ = p0.8           p̂ = p1.0                 p̂ = p1.2             p̂ = p−0.1             p̂ = p±z
+                             n     5      25       5      25       5      25        5     25       5      25                                   5            25        5            25           5           25         5        25           5           25
+                              τ 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6                             1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6 1.0 0.6
+                                0
+
+
+
+
+   𝛽 (misestimation)
+                        0.25
+                                                                                                                                                                                                                                                                       1.0
+                            0.5
+                                1                                                                                                                                                                                                                                      0.5
+
+                            1.5                                                                                                                                                                                                                                        0.0
+                                2                                                                                                                                                                                                                                      −0.5
+                                3                                                                                                                                                                                                                                      −1.0
+         0.5→1.5                                                                                                                                                                                                                                                       −1.5
+         1.5→0.5
+
+
+  Figure 6: Log-ratio (base 2) of the MSE of the best baseline and GPBM for different estimates of position bias misestimation
+  bound 𝜖, controlled by 𝛽, under PBM and IPM user behavior across a selection of ranking settings on MSLR.
+
+                                    𝑝 − 0.1, 𝛽 = 1.5,                            𝑝 − 0.1, 𝛽 = 1.5,                         𝑝 − 0.1, 𝛽 = 1.5,                                   𝑝 ± 𝑧, 𝛽 = 1.5,                                  𝑝 ± 𝑧, 𝛽 = 0.25,
+                                    𝜏 −1 = 0.6, 𝑛 = 1                             𝜏 −1 = 1, 𝑛 = 1                          𝜏 −1 = 1, 𝑛 = 25                                   𝜏 −1 = 1, 𝑛 = 25                                  𝜏 −1 = 1, 𝑛 = 25
+                        1
+                        2                                                                                                                                                                                                                                                    0.9
+
+
+
+
+target position
+                        3                                                                                                                                                                                                                                                    0.8
+
+                        4                                                                                                                                                                                                                                                    0.7
+
+                        5                                                                                                                                                                                                                                                    0.6
+
+                        6                                                                                                                                                                                                                                                    0.5
+
+                        7                                                                                                                                                                                                                                                    0.4
+
+                        8                                                                                                                                                                                                                                                    0.3
+
+                        9                                                                                                                                                                                                                                                    0.2
+                       10                                                                                                                                                                                                                                                    0.1
+                            1       2   3   4   5   6   7   8   9   10   1   2    3   4   5   6   7   8   9   10   1   2    3   4   5   6     7     8   9    10   1       2    3   4    5   6       7   8    9   10     1   2    3   4   5       6   7    8   9   10
+
+                                                                                                                       logging position
+
+  Figure 7: Average learned 𝐹 -matrices on MSLR for different misestimated position bias curves, error estimates, logging policies
+  and amounts of data. Each row reflects the contributions of individual logging positions (columns) towards predicting a target
+  position. Each row normalized by its highest weight and matrices then averaged over 50 repeats for a single fold.
+
+
+  upper bound. We quantify the effect using the log-ratio (base 2) of                                                                           We find that with smaller amounts of data, for a consistently
+  the MSE values of the best non-oracle baseline and GPBM, where                                                                             under-estimated curve and with medium-exploration logging policy
+  positive values indicate a relative improvement of GPBM over the                                                                           (Figure 7, left), GPBM relies on clicks in early positions—and par-
+  baselines. Figure 6 shows the MSE log-ratio for earlier experiments                                                                        ticularly the first position—to predict the click-through rate (CTR)
+  using different values of 𝜖𝑘 = 𝛽𝑘 · |𝑝ˆ𝑘 − 𝑝𝑘 |, where 𝛽𝑘 is either                                                                        across all positions of the target policy. Surprisingly, clicks at low
+  constant across the whole ranking or interpolates between two                                                                              positions are thus predicted on the basis of the top positions than
+  values. GPBM’s performance is generally robust to the choice of 𝜖                                                                          the position itself. This effect is further amplified for a stronger
+  (via 𝛽), irrespective of whether the position bias estimation error is                                                                     logging policy (Figure 7, center-left) that more consistently places
+  either overestimated (∀𝛽𝑘 > 1), underestimated (∀𝛽𝑘 < 1) or both                                                                           relevant items close to the top, and even more so when the dataset
+  (∃𝑘 ≠ 𝑘 ′ : 𝛽𝑘 > 1 ∧ 𝛽𝑘 ′ < 1). The fact that only significant over- or                                                                    size is further increased (Figure 7, center). As here position bias mis-
+  underestimation of the curve difference (∀𝛽𝑘 far from 1) degrades                                                                          estimation estimate, 𝜖𝑘 , is also the same across all positions, based
+  results suggests that GPBM benefits from reasonably accurate—but                                                                           on the above results, we hypothesize that GPBM prefers to rely on
+  not exact—confidence estimates (RQ3).                                                                                                      clicks in positions where it believes the effect of the position bias is
+                                                                                                                                             weaker and clicks may thus be a less noisy indicator of relevance.
+                                                                                                                                                This also matches our zigzag position bias observations (Figure 7,
+  6.4                        Learned Adaptive Mechanism (RQ4)                                                                                center-right), where GPBM places more emphasis on odd positions,
+                                                                                                                                             which it believes have the highest values of 𝑝. However, when it
+  Finally, to better understand the mechanism behind GPBM’s con-
+                                                                                                                                             trusts the position bias estimate (Figure 7, right), position utilization
+  sistent strong performance, we investigate the learned 𝐹 matrix,
+                                                                                                                                             becomes more equal, reflecting a different bias-variance trade-off.
+  which governs how GPBM combines the IPM and PBM click models.
+                                                                                                                                             To answer RQ4, GPBM appears to leverage positions where position
+  Figure 7 visualizes the learned 𝐹 -matrices for select combinations of
+                                                                                                                                             bias is weaker, with this effect shaped by the logging policy, dataset
+  position bias misestimation, estimates of this error (via 𝛽), logging
+                                                                                                                                             size, and uncertainty in the position bias estimate.
+  policy stochasticity (via 𝜏 −1 ) and the available data amount (via 𝑛).
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation            RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+7    Discussion and Future Work                                                          [13] Alex Egg. 2025. Off-policy Evaluation for Payments at Adyen. arXiv preprint
+                                                                                              arXiv:2501.10470 (2025).
+In this work, we introduced GPBM—a novel ranking OPE estima-                             [14] Zhichong Fang, Aman Agarwal, and Thorsten Joachims. 2019. Intervention
+tor that generalizes existing IPM, PBM and INTERPOL estimators.                               Harvesting for Context-Dependent Examination-Bias Estimation. In Proceedings
+Rather than relying on fixed structural assumptions about user be-                            of the 42nd International ACM SIGIR Conference on Research and Development in
+                                                                                              Information Retrieval. 825–834.
+havior, GPBM effectively learns these patterns using the available                       [15] Stuart Geman, Elie Bienenstock, and René Doursat. 1992. Neural networks and
+data and position bias estimate. Empirically, we demonstrated that                            the bias/variance dilemma. Neural computation 4, 1 (1992), 1–58.
+                                                                                         [16] Ritam Guha and Nilavra Pathak. 2025. Off-Policy Evaluation and Counterfactual
+GPBM achieves consistent improvements in MSE across a variety                                 Methods in Dynamic Auction Environments. arXiv preprint arXiv:2501.05278
+of settings. Broadly speaking, this suggests that positional depen-                           (2025).
+dencies in ranking are a structure that can be actively leveraged for                    [17] Shashank Gupta, Olivier Jeunen, Harrie Oosterhuis, and Maarten de Rijke. 2024.
+                                                                                              Optimal Baseline Corrections for Off-Policy Contextual Bandits. Proceedings of
+more accurate policy evaluation.                                                              the 18th ACM Conference on Recommender Systems (2024).
+   As GPBM optimizes a pessimistic upper bound on the MSE, fu-                           [18] Peter Hall. 1990. Using the bootstrap to estimate mean squared error and select
+                                                                                              smoothing parameter in nonparametric problems. Journal of Multivariate Analysis
+ture work can extend GPBM by tightening this bound, e.g., by                                  32, 2 (1990), 177–203. doi:10.1016/0047-259X(90)90080-2
+exploiting the correlations in the position bias estimation errors.                      [19] Daniel G Horvitz and Donovan J Thompson. 1952. A generalization of sampling
+A further extension could make the 𝐹 matrix contextual, so as to                              without replacement from a finite universe. Journal of the American statistical
+                                                                                              Association 47, 260 (1952), 663–685.
+better accommodate different types of user behavior. Yet another                         [20] Shion Ishikawa, Yun Ching Liu, Young-Joo Chung, and Yu Hirate. 2024. Posi-
+improvement would be to combine GPBM with additive control                                    tion Bias Estimation with Item Embedding for Sparse Dataset. In Companion
+variates, e.g., doubly-robust estimation [12, 25, 36] or optimal base-                        Proceedings of the ACM Web Conference 2024. 895–898.
+                                                                                         [21] Olivier Jeunen. 2025. Meta Off-Policy Estimation. In Proceedings of the Nineteenth
+line corrections [17] for variance reduction. As our evaluation relies                        ACM Conference on Recommender Systems, RecSys 2025, Prague, Czech Republic,
+on simulated click data, which may not capture the nuances of real                            September 22-26, 2025. ACM, 1228–1233. doi:10.1145/3705328.3759308
+                                                                                         [22] Thorsten Joachims, Laura Granka, Bing Pan, Helene Hembrooke, and Geri Gay.
+user behavior, an important next step will be to validate GPBM on                             2017. Accurately Interpreting Clickthrough Data as Implicit Feedback. In ACM
+real user interactions from an industrial system.                                             SIGIR Forum, Vol. 51. ACM, 4–11.
+                                                                                         [23] Thorsten Joachims, Adith Swaminathan, and Tobias Schnabel. 2017. Unbiased
+                                                                                              Learning-to-Rank with Biased Feedback. In Proceedings of the Tenth ACM Inter-
+Acknowledgments                                                                               national Conference on Web Search and Data Mining. 781–789.
+                                                                                         [24] Diederik P. Kingma and Jimmy Ba. 2014. Adam: A Method for Stochastic Opti-
+We would like to thank Thomas Martynec, Sergei Bykov and Mazen                                mization. arXiv preprint arXiv:1412.6980 (2014).
+Melouk for engaging discussions and their invaluable feedback.                           [25] Haruka Kiyohara, Yuta Saito, Tatsuya Matsuhiro, Yusuke Narita, Nobuyuki
+                                                                                              Shimizu, and Yasuo Yamamoto. 2022. Doubly Robust Off-Policy Evaluation
+                                                                                              for Ranking Policies Under the Cascade Behavior Model. In Proceedings of the
+                                                                                              Fifteenth ACM International Conference on Web Search and Data Mining. 487–497.
+References                                                                               [26] Norman Knyazev and Harrie Oosterhuis. 2026. Sample-Free Almost-Exact Es-
+ [1] Aman Agarwal, Ivan Zaitsev, Xuanhui Wang, Cheng Li, Marc Najork, and                     timation of Plackett-Luce Propensities for Off-Policy Ranking. In Advances in
+     Thorsten Joachims. 2019. Estimating position bias without intrusive interven-            Information Retrieval. Springer Nature Switzerland, 163–177.
+     tions. In Proceedings of the twelfth ACM international conference on web search     [27] Ron Kohavi, Roger Longbotham, Dan Sommerfield, and Randal M Henne. 2009.
+     and data mining. 474–482.                                                                Controlled experiments on the web: survey and practical guide. Data mining and
+ [2] Qingyao Ai, Keping Bi, Cheng Luo, Jiafeng Guo, and W Bruce Croft. 2018. Un-              knowledge discovery 18, 1 (2009), 140–181.
+     biased Learning to Rank with Unbiased Propensity Estimation. In Proceedings         [28] Shuai Li, Yasin Abbasi-Yadkori, Branislav Kveton, S Muthukrishnan, Vishwa
+     of the 41st International ACM SIGIR Conference on Research and Development in            Vinay, and Zheng Wen. 2018. Offline Evaluation of Ranking Policies with Click
+     Information Retrieval. ACM, 385–394.                                                     Models. In Proceedings of the 24th ACM SIGKDD International Conference on
+ [3] Imad Aouali, Victor-Emmanuel Brunel, David Rohde, and Anna Korba. 2023.                  Knowledge Discovery & Data Mining. ACM, 1685–1694.
+     Exponential Smoothing for Off-Policy Learning. In Proceedings of the 40th Inter-    [29] Jan Malte Lichtenberg, Alexander Buchholz, Giuseppe Di Benedetto, Matteo
+     national Conference on Machine Learning. PMLR, 984–1017.                                 Ruffini, and Ben London. 2023. Double clipping: Less-biased variance reduction in
+ [4] Grigor Aslanyan and Utkarsh Porwal. 2019. Position bias estimation for unbiased          off-policy evaluation. (2023). https://www.amazon.science/publications/double-
+     learning-to-rank in ecommerce search. In International Symposium on String               clipping-less-biased-variance-reduction-in-off-policy-evaluation
+     Processing and Information Retrieval. Springer, 47–64.                              [30] Ben London, Alexander Buchholz, Giuseppe Di Benedetto, Jan Malte Lichtenberg,
+ [5] Krishna B Athreya. 1987. Bootstrap of the mean in the infinite variance case. The        Yannik Stein, and Thorsten Joachims. 2023. Self-normalized off-policy estimators
+     annals of statistics 15, 2 (1987), 724–731. doi:10.1214/aos/1176350371                   for ranking. (2023). https://www.amazon.science/publications/self-normalized-
+ [6] James Bradbury, Roy Frostig, Peter Hawkins, Matthew James Johnson, Chris                 off-policy-estimators-for-ranking
+     Leary, Dougal Maclaurin, George Necula, Adam Paszke, Jake VanderPlas, Skye          [31] R Duncan Luce. 2012. Individual Choice Behavior: A Theoretical Analysis. Courier
+     Wanderman-Milne, and Qiao Zhang. 2018. JAX: Composable Transformations of                Corporation.
+     Python+NumPy Programs.                                                              [32] James G. MacKinnon and Anthony A. Smith. 1998. Approximate bias correction
+ [7] Alexander Buchholz, Ben London, Giuseppe di Benedetto, and Thorsten Joachims.            in econometrics. Journal of Econometrics 85, 2 (1998), 205–230. doi:10.1016/S0304-
+     2022. Off-Policy Evaluation for Learning-to-Rank via Interpolating the Item-             4076(97)00099-7
+     Position Model and the Position-Based Model. arXiv preprint arXiv:2210.09512        [33] Allen Nie, Yash Chandak, Christina J Yuan, Anirudhan Badrinath, Yannis Flet-
+     (2022).                                                                                  Berliac, and Emma Brunskill. 2024. Opera: Automatic Offline Policy Evaluation
+ [8] Alexander Buchholz, Ben London, Giuseppe Di Benedetto, Jan Malte Lichtenberg,            with Re-weighted Aggregates of Multiple Estimators. Advances in Neural Infor-
+     Yannik Stein, and Thorsten Joachims. 2024. Counterfactual Ranking Evaluation             mation Processing Systems 37 (2024), 103652–103680.
+     with Flexible Click Models. In Proceedings of the 47th International ACM SIGIR      [34] Harrie Oosterhuis. 2021. Computationally Efficient Optimization of Plackett-
+     Conference on Research and Development in Information Retrieval. ACM, 1200–              Luce Ranking Models for Relevance and Fairness. In Proceedings of the 44th
+     1210.                                                                                    International ACM SIGIR Conference on Research and Development in Information
+ [9] Olivier Chapelle and Yi Chang. 2011. Yahoo! Learning to Rank Challenge                   Retrieval (Virtual Event, Canada) (SIGIR ’21). ACM, 1023â€“1032.
+     Overview. Journal of Machine Learning Research 14 (2011), 1–24.                     [35] Harrie Oosterhuis. 2022. Learning-to-Rank at the Speed of Sampling: Plackett-
+[10] Mouxiang Chen, Chenghao Liu, Zemin Liu, Zhuo Li, and Jianling Sun. 2024.                 Luce Gradient Estimation with Minimal Computational Complexity. In Proceed-
+     Identifiability matters: revealing the hidden recoverable condition in unbiased          ings of the 45th International ACM SIGIR Conference on Research and Development
+     learning to rank. In Proceedings of the 41st International Conference on Machine         in Information Retrieval. ACM, 2266–2271.
+     Learning (Vienna, Austria) (ICML’24). JMLR.org.                                     [36] Harrie Oosterhuis. 2023. Doubly Robust Estimation for Correcting Position
+[11] Aleksandr Chuklin, Ilya Markov, and Maarten de Rijke. 2015. Click Models for             Bias in Click Feedback for Unbiased Learning to Rank. ACM Transactions on
+     Web Search. Morgan & Claypool Publishers.                                                Information Systems 41, 3 (2023).
+[12] Miroslav Dudík, Dumitru Erhan, John Langford, and Lihong Li. 2014. Doubly           [37] Harrie Oosterhuis and Maarten de Rijke. 2020. Policy-Aware Unbiased Learning
+     Robust Policy Evaluation and Optimization. Statist. Sci. 29, 4 (2014), 485–511.          to Rank for Top-k Rankings. Proceedings of the 43rd International ACM SIGIR
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                              Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+     Conference on Research and Development in Information Retrieval (2020), 489–498.
+[38] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory
+     Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban Des-
+     maison, Andreas Kopf, Edward Yang, Zachary DeVito, Martin Raison, Alykhan
+     Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Junjie Bai, and Soumith
+     Chintala. 2019. Pytorch: An Imperative Style, High-Performance Deep Learning
+     Library. In Advances in neural information processing systems. 8026–8037.
+[39] Robin L Plackett. 1975. The Analysis of Permutations. Journal of the Royal
+     Statistical Society: Series C (Applied Statistics) 24, 2 (1975), 193–202.
+[40] Tao Qin and Tie-Yan Liu. 2013. Introducing LETOR 4.0 Datasets. arXiv preprint
+     arXiv:1306.2597 (2013).
+[41] Oscar Rolando Ramirez Milian and Harrie Oosterhuis. 2026. An Epistemic
+     Position-Based Click Model: From Interactions to Epistemic Distributions of
+     Relevance and Bias. In Proceedings of the 49th International ACM SIGIR Conference
+     on Research and Development in Information Retrieval. 1531–1542.
+[42] Matteo Ruffini, Vito Bellini, Alexander Buchholz, Giuseppe Di Benedetto, and
+     Yannik Stein. 2022. Modeling Position Bias Ranking for Streaming Media Services.
+     In Companion of The Web Conference 2022, Virtual Event / Lyon, France, April 25 -
+     29, 2022. ACM, 72–76.
+[43] Yuta Saito and Thorsten Joachims. 2022. Off-Policy Evaluation for Large Action
+     Spaces via Embeddings. In International Conference on Machine Learning. PMLR,
+     19089–19122.
+[44] Yuta Saito, Aihara Shunsuke, Matsutani Megumi, and Narita Yusuke. 2020. Open
+     Bandit Dataset and Pipeline: Towards Realistic and Reproducible Off-Policy
+     Evaluation. arXiv preprint arXiv:2008.07146 (2020).
+[45] Matthew Schlegel, Wesley Chung, Daniel Graves, Jian Qian, and Martha White.
+     2019. Importance resampling for off-policy prediction. Advances in Neural
+     Information Processing Systems 32 (2019).
+[46] Tobias Schnabel, Adith Swaminathan, Ashudeep Singh, Navin Chandak, and
+     Thorsten Joachims. 2016. Recommendations As Treatments: Debiasing Learning
+     and Evaluation. In Proceedings of the 33rd International Conference on International
+     Conference on Machine Learning. 1670–1679.
+[47] Yi Su, Pavithra Srinath, and Akshay Krishnamurthy. 2020. Adaptive Estimator
+     Selection for Off-Policy Evaluation. In Proceedings of the 37th International Confer-
+     ence on Machine Learning, ICML 2020, 13-18 July 2020, Virtual Event (Proceedings
+     of Machine Learning Research, Vol. 119). PMLR, 9196–9205.
+[48] Adith Swaminathan and Thorsten Joachims. 2015. The Self-Normalized Estimator
+     for Counterfactual Learning. In Advances in Neural Information Processing Systems,
+     Vol. 28. 3231–3239.
+[49] Takuma Udagawa, Haruka Kiyohara, Yusuke Narita, Yuta Saito, and Kei Tateno.
+     2023. Policy-Adaptive Estimator Selection for Off-Policy Evaluation. Proceedings
+     of the AAAI Conference on Artificial Intelligence 37, 8 (2023), 10025–10033.
+[50] Chelsea Weaver, Arvind Balasubramanian, Juan Borgnino, and Ben London.
+     2025. Efficient Off-Policy Evaluation of Content Blending in Station-Based Music
+     Experiences. In Proceedings of the Nineteenth ACM Conference on Recommender
+     Systems.
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation                  RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+A      Unbiasedness of GPBM                                                                   above settings, all positions 𝑝ˆ𝑘 are misestimated in the same direc-
+Buchholz et al. [8] showed that, when the correct position bias                               tion (all positions either over- or underestimated), and the devi-
+curve is known, and the chosen window system satisfies a condition                            ation between the two curves changes monotonically (grows for
+known as common window support 3 , the INTERPOL estimator is                                  𝑝ˆ ∈ {𝑝 0.6, 𝑝 0.8, 𝑝 1.2, 𝑝 1.4 } or is fixed for 𝑝ˆ ∈ {𝑝 1.0, max(𝑝 − 0.1, 0)}.
+unbiased. We now prove a similar claim for GPBM using similar                                 We thus evaluate the models under a more complex misestimation
+assumptions. Since GPBM uses weights (𝐹 ) instead of windows,                                 pattern we term the zigzag setting 𝑝ˆ = 𝑝 ± 𝑧. In this setting, the
+we require an analog of common window support, adapted for the                                estimated curve 𝑝ˆ at position 𝑘 ∈ {1, . . . , 𝐾 } is defined as:
+weight matrix, 𝐹 .                                                                                                                                 𝜋 ·𝑘
+                                                                                                            𝑝ˆ𝑘 = min(1, 𝑝 + (−1) (𝑘+1) · 0.1 · sin(    )),      (24)
+    Definition A.1. For a given target policy, 𝜋, and weight matrix,                                                                              𝐾 +1
+𝐹 , we say that a logging policy, 𝜋0 , has common support with 𝜋                              where 𝜋 ≈ 3.14 and sin is the sine function. Using this formulation,
+under 𝐹 if, for every item 𝑑 ∈ D and target position 𝑗 ∈ {1, . . . , 𝐾 }                      𝑝ˆ is overestimated relative to 𝑝 at odd positions, and underestimated
+where 𝜋 (𝑑, 𝑗) > 0, exists a logging position 𝑘 ∈ {1, . . . , 𝐾 } such                        at even positions. Furthermore, the magnitude of the deviation
+that (𝐹 ( 𝑗, 𝑘) · 𝑝ˆ𝑘 > 0) ∧ (𝜋 0 (𝑑, 𝑘) > 0).                                                between the two curves progressively increases from the first rank
+                                                                                              until the center of the ranking, followed by a symmetric decay for
+   Definition A.1 can be interpreted as saying that, if 𝜋 ranks an item                       the second part of the ranking.
+𝑑 at position 𝑗, then 𝜋0 must have nonzero probability of placing 𝑑
+in at least one position 𝑘 where the product 𝐹 ( 𝑗, 𝑘) · 𝑝ˆ𝑘 > 0. Note                        C     Gradient of Δ̂GPBM w.r.t. the Estimated
+that, when the entries of 𝐹 are binary (and we recover INTERPOL),
+this condition is equivalent to common window support.
+                                                                                                    Position Bias Curve
+   We are now ready to state our main result.                                                 The gradient of the GPBM estimator Δ̂GPBM (𝜋; ˆ             (𝑏 )
+                                                                                                                                                     𝑝, 𝐷 𝑀    ) using the
+                                                                                              estimated position bias curve 𝑝ˆ for a single bootstrap sample of
+   Proposition A.2. Fix an i.i.d. dataset, 𝐷 𝑁 , consisting of rankings                       ranking data 𝐷 𝑀  (𝑏 )
+                                                                                                                     w.r.t. 𝑝ˆ is:
+generated by a logging policy 𝜋0 , and rewards generated under the
+PBM with positive position bias 𝑝 > 0. Fix a position bias estimate,                                                               1 ∑︁ ∑︁ (𝑏,𝑖 )
+                                                                                                                                 "    𝑀 𝐾
+                                                                                                                                                                    #
+
+𝑝, and assume that 𝑝ˆ = 𝑝. Then, for any target policy 𝜋, and weight
+ ˆ                                                                                              ∇𝑝ˆ Δ̂GPBM (𝜋; ˆ     (𝑏 )
+                                                                                                              𝑝, 𝐷 𝑀 ) = ∇𝑝ˆ              𝑐 (𝑦    , 𝑘)𝑤 (𝑦𝑘 , 𝑘) (25)
+                                                                                                                                                           (𝑏,𝑖 )
+                                                                                                                                   𝑀 𝑖=1
+matrix 𝐹 , such that 𝜋0 has common support with 𝜋 under 𝐹 (Defini-                                                                            𝑘=1
+
+                                                                                                                                1 ∑︁ ∑︁
+                                                                                                                                  𝑀 𝐾
+tion A.1), we have that GPBM is an unbiased estimate of the expected
+reward of 𝜋.                                                                                                                =                 𝑐 (𝑦 (𝑏,𝑖 ) , 𝑘)∇𝑝ˆ 𝑤 (𝑦𝑘(𝑏,𝑖 ) , 𝑘), (26)
+                                                                                                                                𝑀 𝑖=1
+                                                                                                                                        𝑘=1
+   Proof. Similar to Buchholz et al.’s proof, it suffices to analyze
+                                                                                              where 𝑦 (𝑏,𝑖 ) the 𝑖’th sampled ranking in the bootstrap sample 𝐷 𝑀        (𝑏 )
+                                                                                                                                                                              ,
+the expectation of a single record in the dataset, due to indepen-
+dence and linearity of expectation.                                                           𝑦𝑘 is the item at the 𝑘’th position of that ranking and ∇𝑝ˆ 𝑤 (𝑦𝑘 , 𝑘)
+                                                                                                (𝑏,𝑖 )                                                              (𝑏,𝑖 )
+                                                                                                                                          (𝑏,𝑖 )            (𝑏,𝐾 )
+                                                                                                                                     𝜕𝑤 (𝑦𝑘 ,𝑘 )       𝜕𝑤 (𝑦𝑘      ,𝑘 )
+                         𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗                                          is the vector of partial derivatives [                                    ] of
+   "                                                                       #
+     ∑︁ 𝐾  ∑︁ 𝐾                                                                                                                          𝜕𝑝ˆ1
+                                                                                                                                                 ,...,     𝜕𝑝ˆ𝐾
+                                                          1[𝑦𝑘 = 𝑑]𝑐 (𝑦, 𝑘) (18)
+              ∑︁
+ E                 Í𝐾              ′             ′    ˆ ′                                     individual weights w.r.t. each value in the estimated position bias
+                    𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+     𝑑 ∈ D 𝑘=1 𝑗=1
+                                                                                              curve ˆ𝑝. For a given weight 𝑤 (𝑑, 𝑘), this partial derivative w.r.t. 𝑝ˆ𝑚 ,
+      ∑︁ 𝐾
+        ∑︁ 𝐾                  𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗                                     the estimated position bias value at position 𝑚, is then equal to:
+                                                                  𝜋0 (𝑑, 𝑘)E[𝑐 (𝑦, 𝑘)] (19)
+           ∑︁
+  =
+                                         ′             ′    ˆ ′                                                                     𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗
+                       Í𝐾
+                          𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                                                                                                                   " 𝐾                                                   #
+    𝑑 ∈ D 𝑘=1 𝑗=1                                                                               𝜕𝑤 (𝑑, 𝑘)
+                                                                                                                                                                                   (27)
+                                                                                                               𝜕 ∑︁
+                                                                                                          =
+          𝐾 ∑︁
+             𝐾
+                               𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗                                        𝜕𝑝ˆ𝑚       𝜕𝑝ˆ𝑚 𝑗=1 𝑘𝐾′ =1 𝐹 ( 𝑗, 𝑘 ′ ) · 𝜋 0 (𝑑, 𝑘 ′ ) · 𝑝ˆ𝑘 ′
+                                                                                                                            Í
+                                                                                      (20)
+      ∑︁ ∑︁
+  =                                                                𝜋0 (𝑑, 𝑘)𝜃𝑑 𝑝𝑘
+                                          ′             ′    ˆ ′                                                                   𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗
+                        Í𝐾
+                           𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                                                                                                              𝐾
+                                                                                                                         "                                              #
+      𝑑 ∈ D 𝑘=1 𝑗=1
+                                                                                                                                                                                   (28)
+                                                                                                             ∑︁ 𝜕
+                                                                                                          =
+                  𝐾                                                                                               𝜕𝑝ˆ𝑚                          ′             ′     ˆ ′
+                                   Í𝐾                                                                                      Í𝐾
+                                           𝐹 ( 𝑗, 𝑘) · 𝜋0 (𝑑, 𝑘) · 𝑝𝑘                                                         𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                     𝜋 (𝑑, 𝑗)𝑝ˆ 𝑗 Í𝐾 𝑘=1                                              (21)
+      ∑︁         ∑︁
+                                                                                                             𝑗=1
+  =         𝜃𝑑
+                                                  ′             ′    ˆ ′
+                                   𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘                                      ∑︁ 𝜕𝑝𝜕ˆ𝑚 𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗
+                                                                                                                           h                                i
+      𝑑∈D        𝑗=1                                                                                          𝐾
+                  𝐾                                                                                       =                                                     − 𝐹 ( 𝑗, 𝑘)        (29)
+                       𝜋 (𝑑, 𝑗)𝑝ˆ 𝑗                                                   (22)
+                                                                                                                                     ′               ′     ˆ ′
+      ∑︁         ∑︁                                                                                               Í𝐾
+  =         𝜃𝑑                                                                                               𝑗=1    𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+
+                                                                                                            𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗 · 𝜕𝑝𝜕ˆ𝑚                                          ˆ ′
+      𝑑∈D        𝑗=1
+                                                                                                                                      hÍ                                         i
+                                                                                                                                           𝐾              ′              ′
+  = Δ(𝜋).                                                                             (23)                                                 𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                                                                                                          ·                                                           2           (30)
+The assumptions of common support ensure that the denominator,                                                                               ′ ) · 𝜋 (𝑑, 𝑘 ′ ) · 𝑝ˆ ′
+                                                                                                                       Í
+                                                                                                                            𝐾
+                                                                                                                            𝑘 ′ =1 𝐹  ( 𝑗, 𝑘        0              𝑘
+                                   ˆ ′
+ 𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘 , is never zero.
+                ′             ′
+Í𝐾
+                                                            □
+                                                                                                                        𝐹 (𝑚, 𝑘) · 𝜋 (𝑑, 𝑚)
+                                                                                                             = Í𝐾                                                                 (31)
+B      Additional Experimental Details                                                                                          ′             ′    ˆ ′
+                                                                                                                  𝑘 ′ =1 𝐹 (𝑚, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+
+Following Buchholz et al. [8], we evaluate all models across a wide                                              𝐾
+                                                                                                                    𝐹 ( 𝑗, 𝑘) · 𝜋 (𝑑, 𝑗) · 𝑝ˆ 𝑗 · 𝐹 ( 𝑗, 𝑚) · 𝜋 0 (𝑑, 𝑚)
+                                                                                                                                                                                  (32)
+                                                                                                                ∑︁
+range of position bias misestimation patterns ˆ 𝑝. However, in the                                          −                                                      2
+                                                                                                                                                               ˆ ′
+                                                                                                                         Í
+                                                                                                                             𝐾              ′             ′
+                                                                                                                             𝑘 ′ =1 𝐹 ( 𝑗, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                                                                                                                𝑗=1
+3 In their paper, Buchholz et al. call this “full” window support; but given the dependence
+on the target policy, we feel it is more appropriate to call this “common” window                                       𝐹 (𝑚, 𝑘) · 𝜋 (𝑑, 𝑚)
+support.                                                                                                     = Í𝐾                                                                 (33)
+                                                                                                                                ′             ′    ˆ ′
+                                                                                                                  𝑘 ′ =1 𝐹 (𝑚, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                     Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+                           𝐹 (𝑚, 𝑚) · 𝜋 0 (𝑑, 𝑚) · 𝑝ˆ𝑚
+                                                                !
+             · 1 − Í𝐾                                                        (34)
+                                       ′             ′    ˆ ′
+                         𝑘 ′ =1 𝐹 (𝑚, 𝑘 ) · 𝜋 0 (𝑑, 𝑘 ) · 𝑝𝑘
+                 ∑︁ 𝐹 ( 𝑗, 𝑘) · 𝐹 ( 𝑗, 𝑚) · 𝜋 (𝑑, 𝑗) · 𝜋0 (𝑑, 𝑚) · 𝑝ˆ 𝑗
+             −                                                        2 .   (35)
+                                             ′ ) · 𝜋 (𝑑, 𝑘 ′ ) · 𝑝ˆ ′
+                         Í
+                             𝐾
+                 𝑗≠𝑚
+                             𝑘 ′ =1 𝐹 ( 𝑗, 𝑘        0              𝑘
+
+The full gradient ∇𝑝ˆ Δ̂GPBM (𝜋; ˆ   (𝑏 )
+                                𝑝, 𝐷 𝑀    ) is then obtained by collect-
+                                            (𝑏,𝑖 )
+                                    𝜕𝑤 (𝑦            ,𝑘 )
+ing the partial derivatives       𝑘
+                                 𝜕𝑝ˆ𝑚
+                                         for all position bias curve
+positions 𝑚 across all clicks in the bootstrap sample.
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation          RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+D Full Results
+D.1 PBM User Behavior (RQ1)
+
+
+            MSE, MSLR,
+                               10−3
+
+
+
+          𝜏 −1 = 0.2, 𝑛 = 1
+                               10−4
+
+
+                                        𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2    𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+                               10−3
+            MSE, MSLR,
+                               10−4
+          𝜏 −1 = 0.2, 𝑛 = 5
+                               10−5
+
+                                        𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2    𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+
+
+             MSE, MSLR,
+                               10−3
+
+                               10−4
+
+          𝜏 −1 = 0.2, 𝑛 = 25
+                               10−5
+
+                               10−6
+                                        𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2    𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+
+
+            MSE, MSLR,
+                               10−3
+
+
+          𝜏 −1 = 0.6, 𝑛 = 1    10−4
+
+
+                                        𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2    𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+                               10−3
+            MSE, MSLR,
+                               10−4
+          𝜏 −1 = 0.6, 𝑛 = 5
+                               10−5
+
+                                        𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2    𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+
+
+             MSE, MSLR,
+                               10−4
+
+
+          𝜏 −1 = 0.6, 𝑛 = 25
+                               10−5
+
+
+
+                                        𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2    𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+              GPBM                IPM       PBM      INT          SN-IPM       SN-PBM       SN-INT       BLUE         OPERA         INT∗        SN-INT∗
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                                     Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+
+
+         MSE, MSLR,          10−3
+
+        𝜏 −1 = 1, 𝑛 = 1
+                             10−4
+                                      𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+                             10−3
+
+         MSE, MSLR,
+
+        𝜏 −1 = 1, 𝑛 = 5
+                             10−4
+
+
+
+                                      𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+
+
+          MSE, MSLR,
+                             10−3
+
+                             10−4
+        𝜏 −1 = 1, 𝑛 = 25
+                             10−5
+
+                                      𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+                             10−2
+          MSE, Yahoo,
+                             10−3
+
+        𝜏 −1 = 0.2, 𝑛 = 1    10−4
+
+                                      𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+                             10−2
+          MSE, Yahoo,        10−3
+
+        𝜏 −1 = 0.2, 𝑛 = 5
+                             10−4
+
+                             10−5
+                                      𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+
+
+
+           MSE, Yahoo,       10−3
+
+
+        𝜏 −1 = 0.2, 𝑛 = 25   10−5
+
+
+                                      𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1      𝑝ˆ = 𝑝 ±𝑧
+            GPBM                IPM       PBM      INT          SN-IPM       SN-PBM       SN-INT      BLUE        OPERA          INT∗        SN-INT∗
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation         RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+
+                           10−2
+
+        MSE, Yahoo,
+                           10−3
+
+      𝜏 −1 = 0.6, 𝑛 = 1
+                           10−4
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0    𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+                           10−2
+        MSE, Yahoo,
+                           10−3
+
+      𝜏 −1 = 0.6, 𝑛 = 5    10−4
+
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0    𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+                           10−2
+
+         MSE, Yahoo,       10−3
+
+
+      𝜏 −1 = 0.6, 𝑛 = 25
+                           10−4
+
+                           10−5
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0    𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+                           10−1
+
+
+       MSE, Yahoo,         10−2
+
+
+      𝜏 −1 = 1, 𝑛 = 1      10−3
+
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0    𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+
+                           10−2
+       MSE, Yahoo,
+                           10−3
+      𝜏 −1 = 1, 𝑛 = 5
+                           10−4
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0    𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+                           10−2
+
+        MSE, Yahoo,        10−3
+
+      𝜏 −1 = 1, 𝑛 = 25     10−4
+
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0    𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+          GPBM                IPM       PBM      INT          SN-IPM       SN-PBM          SN-INT        BLUE         OPERA          INT∗        SN-INT∗
+RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA                                  Norman Knyazev, Vito Bellini, Huseyin Yurtseven, and Ben London
+
+
+D.2       IPM User Behavior (RQ2)
+
+
+
+        MSE, MSLR,
+                           10−3
+
+
+      𝜏 −1 = 0.2, 𝑛 = 1    10−4
+
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+
+
+        MSE, MSLR,
+                           10−3
+
+                           10−4
+      𝜏 −1 = 0.2, 𝑛 = 5
+                           10−5
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+
+
+         MSE, MSLR,
+                           10−3
+
+                           10−4
+
+      𝜏 −1 = 0.2, 𝑛 = 25   10−5
+
+                           10−6
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+
+
+        MSE, MSLR,
+                           10−3
+
+
+      𝜏 −1 = 0.6, 𝑛 = 1    10−4
+
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+                           10−3
+        MSE, MSLR,
+                           10−4
+      𝜏 −1 = 0.6, 𝑛 = 5
+                           10−5
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+
+
+         MSE, MSLR,        10−4
+
+
+      𝜏 −1 = 0.6, 𝑛 = 25
+                           10−5
+
+
+                                    𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0   𝑝ˆ = 𝑝 1.2   𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+          GPBM                IPM       PBM      INT          SN-IPM       SN-PBM       SN-INT      BLUE         OPERA          INT∗        SN-INT∗
+Generalized Position-Based Model: Rethinking Position Weights in Ranking Off-Policy Evaluation         RecSys ’26, September 27-October 02, 2026, Minneapolis, MN, USA
+
+
+
+
+       MSE, MSLR,        10−3
+
+      𝜏 −1 = 1, 𝑛 = 1
+                         10−4
+                                  𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0      𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+                         10−3
+
+       MSE, MSLR,
+
+      𝜏 −1 = 1, 𝑛 = 5
+                         10−4
+
+
+                                  𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0      𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+
+
+
+        MSE, MSLR,
+                         10−3
+
+
+      𝜏 −1 = 1, 𝑛 = 25
+                         10−4
+
+                         10−5
+                                  𝑝ˆ = 𝑝 0.6   𝑝ˆ = 𝑝 0.8       𝑝ˆ = 𝑝 1.0      𝑝ˆ = 𝑝 1.2       𝑝ˆ = 𝑝 1.4   𝑝ˆ = 𝑝 −0.1       𝑝ˆ = 𝑝 ±𝑧
+          GPBM              IPM       PBM      INT          SN-IPM       SN-PBM            SN-INT        BLUE         OPERA          INT∗        SN-INT∗
+

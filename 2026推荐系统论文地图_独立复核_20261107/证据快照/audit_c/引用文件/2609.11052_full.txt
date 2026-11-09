@@ -1,0 +1,1076 @@
+
+
+UniRec: Cross-Stage Multi-Task Fusion with Preference Optimization for Cascaded Recommender Systems
+
+Skip to main content
+
+ Report GitHub Issue
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+ Contents
+
+ Reading mode
+
+ Colour theme
+
+Abstract.
+
+1 Introduction
+
+2 Related Work
+
+2.1 Multi-task fusion and end-to-end ranking
+
+2.2 Pre-ranking optimization and cross-stage coordination
+
+3 Problem Formulation
+
+4 Method
+
+4.1 Coupled Dual-Agent Architecture
+
+4.1.1 Partially shared embedding space.
+
+4.1.2 Stage-specific fusion towers.
+
+4.1.3 Adapter network.
+
+4.2 Two-Stage Joint Optimization
+
+4.2.1 Stage-Local Preference Optimization
+
+4.2.2 Cross-Stage Preference Optimization
+
+4.3 Attribute Group-Relative Regularization
+
+4.4 Overall Joint Objective
+
+4.5 Computational Complexity Optimization
+
+4.5.1 Compact Pairwise Preference Aggregation
+
+4.5.2 Confidence-Aware Pair Pruning
+
+5 Experiments
+
+5.1 Experimental Setup
+
+5.1.1 RecFlow: Public Cascaded Benchmark
+
+5.1.2 Industrial Production Dataset
+
+5.1.3 Baselines
+
+5.1.4 Implementation Details
+
+5.2 Offline Evaluation (RQ1)
+
+5.3 Ablation Study (RQ2)
+
+5.4 Parameter Sensitivity (RQ3)
+
+5.5 Online A/B Test Experiment (RQ4)
+
+6 Conclusion
+
+References
+
+A Hyper-parameter Sensitivity
+
+B Computational Complexity Optimization
+
+C AGRR Online Duration Distribution
+
+ License: CC BY 4.0
+
+arXiv:2609.11052v4 [cs.IR] 26 Oct 2026
+
+UniRec: Cross-Stage Multi-Task Fusion with Preference Optimization for Cascaded Recommender Systems
+
+CCS: Information systems Recommender systems
+
+Lingyuan Kong
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: konglingyuan03@kuaishou.com
+
+, 
+Jiaqi Cui
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: 202521412456@uibe.edu.cn
+
+, 
+Fanjiao Zeng
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: zengfanjiao03@kuaishou.com
+
+, 
+Congqi Wang
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: wangcongqi@kuaishou.com
+
+, 
+Yu Li
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: liyu25@kuaishou.com
+
+, 
+Yuan Cheng
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: chengyuan03@kuaishou.com
+
+, 
+Jingxin Liu
+
+Note: Corresponding author.
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: liujingxin05@kuaishou.com
+
+, 
+Xiaoshuang Chen
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: chenxiaoshuang@kuaishou.com
+
+ and 
+Kaiqiao Zhan
+
+Affiliation: Kuaishou Technology, Beijing, China
+
+email: zhankaiqiao@kuaishou.com
+
+© acmlicensed
+
+Abstract.
+
+Industrial recommender systems use cascaded stages with different candidate spaces, data distributions, and latency constraints. Each stage include multi-objective prediction and multi-task fusion (MTF) modules. Existing MTF methods typically design and optimize the fusion module independently for each stage, which can lead to inconsistent preferences across stages. Although cross-stage coordination methods have been proposed, they mainly transfer supervision to upstream scoring models rather than jointly optimizing the fusion modules.
+
+We propose UniRec, a Unified Cross-stage Recommendation Fusion framework that jointly optimizes pre-ranking and ranking fusion agents. UniRec employs a coupled dual-agent architecture with partially shared embeddings and stage-specific fusion functions. It further introduces Dual-Axis Preference Optimization to combine stage-local preferences with downstream-to-upstream preference transfer. To enable stable and efficient cross-stage training, we address two practical challenges: reward-induced distribution drift and the computational cost of pairwise preference learning.
+
+Extensive offline and online experiments on a production short-video system demonstrate consistent gains over single-stage fusion and cross-stage coordination baselines. In a nine-week online A/B test, UniRec improves total watch time by $0.675\%$ and app usage time by $0.616\%$ , and active users by $0.189\%$ , and has been fully deployed in production.
+
+Keywords: Cascaded Recommender Systems, Cross-Stage Optimization, Multi-Task Fusion, Preference Optimization, Ranking Consistency
+
+Figure 1. Overview of the cascaded recommendation architecture and UniRec.
+
+1. Introduction
+
+Industrial recommender systems are commonly deployed as cascaded pipelines consisting of matching, pre-ranking, ranking, and re-ranking, balancing recommendation quality with strict online latency constraints (Wang et al., 2020). The pre-ranking stage filters thousands of candidates under a tight budget, while downstream ranking performs more computationally intensive multi-objective optimization. As illustrated in Figure 1, each stage contains two components: a multi-task prediction model estimates user feedback signals such as click, watch time, and like; and a multi-task fusion (MTF) module aggregates these predictions into a unified score determining which candidates survive the stage. Thus, the MTF module, rather than the prediction model, makes the final stage-wise selection decision.
+
+Most existing methods independently optimize the MTF modules of different stages, which can create cross-stage preference inconsistency. The key question is whether the ordering induced by pre-ranking remains consistent with the downstream ranking preferences. We quantify this consistency by measuring the rank correlation between pre-ranking and ranking fusion scores, using Kendall’s $\tau$ over candidates that reach the ranking stage. Interestingly, directly aligning the fusion rules across stages does not necessarily yield the most consistent ranking. Using pXTR predictions collected from production traffic, we construct an illustrative ranking fusion rule $1.5*\mathrm{pCTR}+2.0*\mathrm{pLTR}+3.0*\mathrm{pLVR}$ , where the three terms denote the predicted click-through, like, and long-view rates. Fixing the pre-ranking pCTR coefficient at 1.5, we sweep its pLTR and pLVR coefficients over $[0,5]$ with a step size of 0.1, and measure Kendall’s $\tau$ between the resulting pre-ranking scores and the ranking scores over 10,000 randomly sampled requests. As shown in Figure 2, the coefficient combination achieving the highest consistency is not $(1.5,2.0,3.0)$ , although $(1.5,2.0,3.0)$ is exactly the ranking formula. This counterintuitive result indicates that simply copying the downstream fusion rule cannot guarantee optimal cross-stage consistency. The two stages differ in candidate distributions and pXTR prediction quality, causing the same fusion function to induce different orderings across stages.
+
+Therefore, cross-stage MTF alignment is not a trivial problem: the pre-ranking fusion function must be adapted to its own stage while preserving preferences favored by downstream ranking. Existing remedies mainly coordinate stages by transferring downstream supervision to upstream scoring models (Zhao et al., 2023; Zhang et al., 2023; Zhao et al., 2025), but leave the MTF modules that make the actual selection decisions outside cross-stage optimization. Conversely, MTF research, ranging from hand-designed formulas and heuristic search (Rubinstein, 1999; Močkus, 1974) to reinforcement learning (Zhang et al., 2022; Zhang et al., 2024; Cao et al., 2025b) and end-to-end learning (He et al., 2025; Xu et al., 2025), mainly focuses on optimizing fusion within a single stage. These two lines of research therefore remain largely separate: cross-stage coordination improves upstream prediction or scoring models, while fusion optimization remains stage-local.
+
+Figure 2. Kendall’s $\tau$ under different fusion weights.
+
+This motivates us to develop a jointly optimized, unified MTF framework for multi-stage recommendation systems. However, jointly optimizing the two MTF modules introduces three challenges. 1. Heterogeneous cross-stage inputs. The two stages operate on different candidate spaces and data distributions, with different prediction qualities and latency budgets. A unified framework must therefore couple the stages while preserving their stage-specific representations and fusion capacity. 2. Reward-induced distribution drift. Joint optimization also amplifies the model’s reward sensitivity. When reward signals correlate with superficial item attributes, joint training incentivizes both stages to exploit such correlations, systematically biasing the recommendation distribution toward high–reward–but–not–preferred items rather than improving genuine preference alignment.
+3. Computational complexity of joint optimization. Cross-stage joint optimization requires evaluating preference signals over the full pre-ranking candidate set, introducing non-trivial computational overhead that can be prohibitive for large-scale systems. Efficient joint optimization thus demands careful design to keep the added cost manageable.
+
+To address these challenges, we propose UniRec, a Unified Cross-stage
+Recommendation Fusion framework that jointly optimizes the pre-ranking
+and ranking MTF modules. UniRec builds on a coupled dual-agent architecture with
+partially shared embeddings and stage-specific fusion functions, so that both
+stages are trained toward a single, consistent preference space. To further
+enforce preference consistency, we introduce Dual-Axis Preference
+Optimization, which combines stage-local preference learning with explicit
+downstream-to-upstream preference transfer.
+
+Moreover, cross-stage optimization exposes two practical obstacles beyond
+preference consistency. To control the reward-induced distribution drift, we
+propose Attribute Group-Relative Regularization (AGRR), which constrains
+both stages from uniformly exploiting reward-correlated attributes. To keep the
+added cost manageable, we further propose Compact Pairwise Preference
+Aggregation (CPPA) with Confidence-Aware Pair Pruning (CAPP), which
+reduces the number of evaluated candidate pairs. In a nine-week online A/B test
+on a production short-video system, UniRec improves total watch time by
+ $0.675\%$ and active users by $0.189\%$ . UniRec is fully deployed in production.
+
+Our contributions are as follows:
+
+• 
+
+We formulate cross-stage multi-task fusion as a joint preference optimization problem and develop a coupled dual-agent architecture for jointly optimizing pre-ranking and ranking fusion modules.
+
+• 
+
+We introduce Dual-Axis Preference Optimization, AGRR, and CPPA/CAPP to address cross-stage preference transfer, reward-induced distribution drift, and computational complexity.
+
+• 
+
+We conduct extensive offline and online A/B experiments on a production short-video system, demonstrating consistent gains over cross-stage coordination and single-stage fusion baselines. UniRec is fully deployed in production.
+
+2. Related Work
+
+2.1. Multi-task fusion and end-to-end ranking
+
+Industrial recommenders commonly formulate pre-ranking and ranking as multi-task problems, predicting multiple engagement objectives such as click-through rate, watch time, and like, and aggregating them into a unified score. Early systems relied on hand-designed ensemble formulas with coefficients tuned by heuristic methods such as the Cross-Entropy Method (Rubinstein, 1999) and Bayesian Optimization (Močkus, 1974). Subsequent work learns fusion through reinforcement learning, including BatchRL-MTF (Zhang et al., 2022), RLUR (Cai et al., 2023), and xMTF (Cao et al., 2025b). UNEX-RL (Zhang et al., 2024) further exploits the unidirectional dependency of cascaded systems through a multi-agent information chain, but its agents predict weights for fixed fusion formulas and do not exchange cross-stage gradients.
+
+More recent work directly learns the fusion model through end-to-end optimization. EMER (He et al., 2025) adopts a transformer-based fusion architecture, while UMRE (Xu et al., 2025), Pantheon (Cao et al., 2025a), and HarmonRank (Xia et al., 2026) explore monotonic fusion, Pareto-based optimization (Sener and Koltun, 2018; Lin et al., 2019), and attention-based multi-objective alignment, respectively. Despite these advances, existing methods mainly optimize multi-task fusion within a single stage. Joint optimization of fusion modules across stages in industrial cascaded recommenders remains unexplored.
+
+2.2. Pre-ranking optimization and cross-stage coordination
+
+Recent studies improve pre-ranking through stronger models or coordination with downstream ranking. COLD (Wang et al., 2020) enables deeper pre-ranking models under latency constraints. COPR (Zhao et al., 2023) aligns pre-ranking with ranking through chunk-based sampling and $\Delta$ NDCG-weighted loss, Rethink (Zhang et al., 2023) optimizes pre-ranking sets with the All-Scenario hit-rate and ASMOL, and HCCP (Zhao et al., 2025) transfers downstream feedback through hybrid sampling and margin-based InfoNCE (Oord et al., 2018). These methods demonstrate the benefit of upstream supervision from downstream preferences.
+
+However, existing coordination is primarily one-way: the ranking model acts as a teacher, while the two stages remain separately optimized. Moreover, they focus on the pre-ranking scoring model rather than jointly optimizing the multi-task fusion module that determines candidate selection. As illustrated in Figure 1, even when upstream scores are better aligned with ranking, the fusion function itself may still produce decisions inconsistent with downstream preferences. UniRec addresses this gap by jointly optimizing the pre-ranking and ranking fusion module.
+
+3. Problem Formulation
+
+We consider multi-stage fusion optimization in cascaded recommender systems. For a user request, the cascade has $S$ stages. Stage $s$ scores each candidate in $\mathcal{I}^{(s-1)}$ with $s_{i}^{(s)}$ and retains $\mathcal{I}^{(s)}$ :
+
+ | (1)
+ | 
+ | $s_{i}^{(s)}=f_{s}(\mathbf{x}_{i}^{(s)};\theta_{s}),\quad\mathcal{I}^{(s)}=\operatorname*{TopK}_{i\in\mathcal{I}^{(s-1)}}(s_{i}^{(s)},K_{s}),\quad s=1,\ldots,S$ 
+ | 
+
+Here $\mathcal{I}^{(0)}$ is the set retrieved by the matching module, with $\mathcal{I}^{(0)}\supseteq\mathcal{I}^{(1)}\supseteq\cdots\supseteq\mathcal{I}^{(S)}$ . Stages may differ in candidate scale, input space, data distribution, and latency budget.We instantiate the cascade with pre-ranking ( $p$ ) and ranking ( $r$ ), its two critical stages. Their candidate sets are $\mathcal{I}^{c}=\mathcal{I}^{(0)}$ from matching, $\mathcal{I}^{p}=\mathcal{I}^{(1)}$ from pre-ranking, and $\mathcal{I}^{r}=\mathcal{I}^{(2)}$ from ranking.
+
+Both stages are built upon multi-task learning models (Ma et al., 2018; Tang et al., 2020), where the backbone jointly predicts multiple task-specific pXTRs for each candidate $i$ , denoted as $\mathbf{p}_{i}=[p_{i}^{(1)},\cdots,p_{i}^{(M)}]$ , with $M$ being the number of prediction tasks. At each stage, a fusion module $f_{t}(\cdot;\theta_{t})$ , $t\in\{p,r\}$ , produces a unified score from input $\mathbf{x}_{i}^{t}$ , which combines context, user, and item features with the corresponding pXTRs. The stage scores are
+
+ | (2)
+ | 
+ | $s_{i}^{p}=f_{p}(\mathbf{x}_{i}^{p};\theta_{p}),\qquad s_{i}^{r}=f_{r}(\mathbf{x}_{i}^{r};\theta_{r})$ 
+ | 
+
+and each stage retains its top-scored candidates:
+
+ | (3)
+ | 
+ | $\mathcal{I}^{p}=\operatorname*{TopK}_{i\in\mathcal{I}^{c}}(s_{i}^{p},K_{p}),\qquad\mathcal{I}^{r}=\operatorname*{TopK}_{i\in\mathcal{I}^{p}}(s_{i}^{r},K_{r})$ 
+ | 
+
+Existing recommendation systems optimize the two fusion modules separately, each with its own stage-local objective:
+
+ | (4)
+ | 
+ | $\min_{\theta_{p}}\ \mathcal{L}_{p}(\theta_{p}),\qquad\min_{\theta_{r}}\ \mathcal{L}_{r}(\theta_{r})$ 
+ | 
+
+Following single-stage fusion methods such as EMER (He et al., 2025), each stage-local objective can combine pairwise losses from prior pXTR signals, which provide task-specific candidate orderings, and posterior user feedback, which provides preferences over exposed items. Although EMER focuses on ranking, this prior-posterior supervision can be applied to either stage, so we leave $\mathcal{L}_{p}$ and $\mathcal{L}_{r}$ abstract here.
+
+However, the two objectives cannot be optimized independently without considering their interaction. The pre-ranking and ranking stages operate on different candidate spaces and data distributions under different computational budgets, and their pXTRs can have different prediction quality. Even when the underlying objectives are the same, their optimal fusion functions may differ. We therefore formulate cross-stage fusion as the joint optimization problem:
+
+ | (5)
+ | 
+ | $\min_{\theta_{p},\ \theta_{r}}\ \mathcal{L}(\theta_{p},\theta_{r})$ 
+ | 
+
+Joint preference optimization in Eq. (5) faces three challenges: coupling stages with different candidate distributions, prediction qualities, and latency budgets while preserving their stage-specific representations and fusion capacity; mitigating reward-induced distribution drift without sacrificing within-group preference ordering; and controlling the quadratic pairwise cost, especially over the larger pre-ranking candidate set $\mathcal{I}^{c}$ .
+
+Figure 3. The overall framework of UniRec. 
+
+4. Method
+
+Figure 3 illustrates the overall architecture of UniRec. UniRec places a fusion agent at each stage and connects them through a single differentiable graph, enabling joint optimization rather than independent stage-wise training. The fusion agents operate solely on the outputs of existing stage-specific prediction models and remain decoupled from them. Sec. 4.1 and 4.2 unify the heterogeneous inputs of different stages for joint optimization. Sec. 4.3 introduces attribute group-relative regularization (AGRR) to mitigate reward-induced distribution drift, while Sec. 4.5 reduces the computational complexity of multi-stage pairwise preference optimization through compact pairwise preference aggregation (CPPA) and confidence-aware pair pruning (CAPP).
+
+4.1. Coupled Dual-Agent Architecture
+
+UniRec places a fusion agent at each stage and couples the two into a single optimization problem, rather than optimizing them independently. The architecture reconciles their heterogeneous candidate spaces, data distributions, and prediction qualities while preserving stage-specific fusion capacity.
+
+4.1.1. Partially shared embedding space.
+
+Both agents share a common embedding layer encoding features available to both stages, including user, item, and context features, as well as the pre-ranking task predictions $\mathbf{p}_{i}^{p}$ . Ranking-specific predictions $\mathbf{p}_{i}^{r}$ are unavailable to pre-ranking and are therefore included only in the ranking-specific embedding. Let $\mathbf{e}^{\mathrm{sh}}_{i}$ denote the shared embedding and $\mathbf{e}^{r}_{i}$ the ranking-specific embedding. The two agents receive
+ $\mathbf{x}_{i}^{p}=\mathbf{e}^{\mathrm{sh}}_{i}$ and
+ $\mathbf{x}_{i}^{r}=[\mathbf{e}^{\mathrm{sh}}_{i},\mathbf{e}^{r}_{i}]$ .
+
+The shared embedding makes the two stages part of a single computation graph: $\mathcal{L}_{\mathrm{pre}}$ and $\mathcal{L}_{\mathrm{rank}}$ update the same parameters $\theta_{\mathrm{sh}}$ , allowing gradients from either stage to reach the shared representation. Thus, cross-stage coupling is symmetric despite the asymmetric input spaces, unlike approaches where a frozen downstream model only supervises the upstream stage.
+
+4.1.2. Stage-specific fusion towers.
+
+Each fusion agent has an independent tower, $f_{p}$ and $f_{r}$ , whose architecture can be customized to its computational budget. Both towers use Deep Cross Network (DCN) (Wang et al., 2017) for explicit feature crosses, followed by a stage-specific block. The pre-ranking agent uses a lightweight MLP-Mixer (Tolstikhin et al., 2021), whose cost scales linearly with the number of candidates. The ranking agent uses AutoInt-Lite, a reduced AutoInt (Song et al., 2019) block with shared key/value projections, a single interaction layer, a small number of heads, and a linear shortcut. This asymmetry follows the stage-wise computational constraints: pre-ranking handles an order of magnitude more candidates under a tighter latency budget, while ranking operates on a smaller candidate set and can afford lightweight attention to model candidate dependencies.
+
+4.1.3. Adapter network.
+
+To incorporate the upstream decision into ranking, an adapter $g(\cdot)$ projects the pre-ranking representation $\mathbf{h}_{i}^{p}$ to the ranking tower’s dimensionality. Its output is concatenated with the AutoInt-Lite representation $\mathbf{z}_{i}^{r}$ before obtaining $s_{i}^{r}$ :
+
+ | (6)
+ | 
+ | $s_{i}^{r}=\operatorname{MLP}\big(\big[\mathbf{z}_{i}^{r},\ g\big(\operatorname{sg}[\mathbf{h}_{i}^{p}]\big)\big]\big)$ 
+ | 
+
+where $\operatorname{sg}[\cdot]$ denotes stop-gradient. Detaching $\mathbf{h}_{i}^{p}$ prevents the ranking objective from reshaping the pre-ranking representation toward downstream scoring. Thus, cross-stage gradient coupling is restricted to the shared embedding space, while the adapter provides the ranking agent with the upstream decision as a feature.
+
+4.2. Two-Stage Joint Optimization
+
+A fusion agent is supervised by preferences rather than absolute targets, with scores trained to preserve desired candidate orderings. We organize joint optimization along two complementary axes, termed Dual-Axis Preference Optimization. Stage-locally, each agent receives prior pXTR preferences and posterior user feedback. Cross-stage, downstream preferences are transferred from ranking to pre-ranking, coordinating the two stages while preserving their stage-specific fusion functions. We define the score margins as
+
+ | (7)
+ | 
+ | $\delta_{ij}^{p}\triangleq s_{i}^{p}-s_{j}^{p},\qquad\delta_{ij}^{r}\triangleq s_{i}^{r}-s_{j}^{r}$ 
+ | 
+
+4.2.1. Stage-Local Preference Optimization
+
+For prior supervision, each pXTR induces pairwise preferences over candidates. Let $M_{p}$ and $M_{r}$ denote the numbers of pXTR objectives in the pre-ranking and ranking stages. For objective $m$ , the preference label is:
+
+ | (8)
+ | 
+ | $y_{ij}^{(m)}=\operatorname{sign}\left(p_{i}^{(m)}-p_{j}^{(m)}\right)$ 
+ | 
+
+with tied pairs excluded. The pre-ranking agent receives two sources of prior supervision: its own pXTRs over the full candidate set $\mathcal{I}^{c}$ and ranking pXTRs over the subset $\mathcal{I}^{p}$ that reaches ranking. The prior loss of the pre-ranking agent is defined as:
+
+ | (9)
+ | 
+ | $\displaystyle\mathcal{L}_{prior}^{pre}=$ 
+ | $\displaystyle\sum_{m=1}^{M_{p}}w_{m}\sum_{i,j\in\mathcal{I}^{c}}\operatorname{Softplus}\big(-y_{ij}^{p,m}\delta_{ij}^{p}\big)$ 
+ | 
+
+ | 
+ | 
+ | $\displaystyle+\sum_{m=1}^{M_{r}}w_{m}\sum_{i,j\in\mathcal{I}^{p}}\operatorname{Softplus}\big(-y_{ij}^{r,m}\delta_{ij}^{p}\big)$ 
+ | 
+
+where $y_{ij}^{p,m}$ and $y_{ij}^{r,m}$ are the pairwise labels induced by the pre-ranking and ranking pXTRs. Thus, ranking pXTRs provide additional training-time supervision to pre-ranking on $\mathcal{I}^{p}$ without being used as its inputs. The ranking agent is supervised only by ranking pXTR preferences over $\mathcal{I}^{p}$ :
+
+ | (10)
+ | 
+ | $\mathcal{L}_{prior}^{rank}=\sum_{m=1}^{M_{r}}w_{m}\sum_{i,j\in\mathcal{I}^{p}}\operatorname{Softplus}\big(-y_{ij}^{r,m}\delta_{ij}^{r}\big)$ 
+ | 
+
+Exposed items additionally provide posterior user feedback. For the exposure item set $\mathcal{I}^{e}$ , let
+ $y_{ij}^{e}=\operatorname{sign}(r_{i}^{e}-r_{j}^{e})$ ,
+where $r_{i}^{e}$ denotes the observed feedback or reward. The posterior preference loss for either stage is
+
+ | (11)
+ | 
+ | $\mathcal{L}_{feedback}=\sum_{i,j\in\mathcal{I}^{e}}\operatorname{Softplus}\big(-y_{ij}^{e}(s_{i}-s_{j})\big)$ 
+ | 
+
+Since only a small fraction of candidates are exposed, this posterior signal serves as auxiliary supervision.
+
+4.2.2. Cross-Stage Preference Optimization
+
+Stage-local optimization does not directly account for downstream ordering among candidates that survive pre-ranking. We therefore transfer the ranking preference
+ $y_{ij}^{r}=\operatorname{sign}(\delta_{ij}^{r})$ 
+to the pre-ranking score:
+
+ | (12)
+ | 
+ | $\mathcal{L}_{align}=\sum_{i,j\in\mathcal{I}^{p}}\operatorname{Softplus}\left(-\operatorname{sg}[y_{ij}^{r}]\delta_{ij}^{p}\right)$ 
+ | 
+
+where $\operatorname{sg}[\cdot]$ denotes stop-gradient. Pairs are drawn from $\mathcal{I}^{p}$ because filtered candidates have no downstream score. Rather than matching the ranking score or fusion function, this objective transfers only downstream ordering preferences, allowing the two stages to retain different fusion functions while encouraging pre-ranking to preserve downstream-preferred items.
+
+4.3. Attribute Group-Relative Regularization
+
+Joint optimization makes the cascade more sensitive to reward design. This sensitivity is particularly problematic in recommendation systems, where rewards often exhibit inherent attribute biases and can therefore be exploited through reward hacking. In short-video recommendation, for example, longer videos may receive higher watch-time rewards simply because of their duration, rather than because users prefer them. An agent can then reduce the pairwise loss by promoting long videos as a group, without improving the ordering of videos within that group. Joint optimization may propagate and amplify this bias across stages. To mitigate it, we introduce a group-relative regularizer that compares items within similar attribute ranges, following the principle of GRPO (Shao et al., 2024).
+
+Reward from preference signals.
+Rather than introducing a separate reward model, we derive the item-level reward directly from the pXTR preferences used by each fusion agent. The ranking agent uses only the ranking pXTR preferences over $\mathcal{I}^{p}$ , while the pre-ranking agent combines its own pre-ranking pXTR preferences and, for candidates in $\mathcal{I}^{p}$ , the additional ranking pXTR preferences. The reward of item $i$ is then defined as
+
+ | (13)
+ | 
+ | $r_{i}=\frac{\sum_{j}\big(E_{ij}^{+}-E_{ij}^{-}\big)}{\sum_{j}\big(E_{ij}^{+}+E_{ij}^{-}+\epsilon\big)}\in[-1,1]$ 
+ | 
+
+where $\epsilon>0$ prevents division by zero, $E_{ij}^{+}$ and $E_{ij}^{-}$ for each item pair $(i,j)$ are detailed in Sec. 4.5.1. Using the same objectives and weights as the main supervision keeps the reward aligned with the original preference signals.
+
+Group-relative advantage.
+Candidates are partitioned into $B$ quantile buckets ${\mathcal{G}}_{1},\ldots,\mathcal{G}_{B}$ by the attribute $a_{i}$ (e.g., video duration). For $i\in\mathcal{G}_{g}$ , its advantage is normalized within its own group:
+
+ | (14)
+ | 
+ | $A_{i}=\operatorname{clip}\left(\frac{r_{i}-\mu_{g}}{\max(\sigma_{g},\sigma_{\min})},-A_{\max},A_{\max}\right),\quad i\in\mathcal{G}_{g}$ 
+ | 
+
+where $\mu_{g}$ and $\sigma_{g}$ are the mean and standard deviation of rewards in $\mathcal{G}_{g}$ ; buckets with fewer than $n_{\min}$ candidates are skipped. The AGRR objective is invariant to a uniform score shift within an attribute group and therefore does not reinforce such group-level shifts.
+
+Within-group policy regularization.
+The advantages define a target distribution $q(i\mid g)\propto\exp(A_{i}/\tau)$ , while the model induces $\pi_{\theta}(i\mid g)\propto\exp(s_{i})$ , with both normalized over $\mathcal{G}_{g}$ . We optimize their KL divergence:
+
+ | (15)
+ | 
+ | $\mathcal{L}_{\mathrm{AGRR}}=\frac{1}{|\mathcal{B}|}\sum_{g\in\mathcal{B}}\operatorname{KL}\big(q(\cdot\mid g)\|\pi_{\theta}(\cdot\mid g)\big)$ 
+ | 
+
+where $\mathcal{B}$ contains buckets passing the count threshold. We use KL instead of the advantage-weighted likelihood $-\sum_{i}A_{i}\log\pi_{\theta}$ , which can become unbounded under score scaling. In contrast, the KL gradient with respect to the group logits is $\pi_{\theta}(i\mid g)-q(i\mid g)$ and vanishes as the policy approaches the target.
+
+4.4. Overall Joint Objective
+
+Combining the two axes, the fusion agents are jointly optimized with stage-local preferences, cross-stage alignment, and AGRR:
+
+ | (16)
+ | 
+ | $\displaystyle\mathcal{L}_{pre}$ 
+ | $\displaystyle=\mathcal{L}_{prior}^{p}+\lambda_{\mathrm{fb}}^{pre}\mathcal{L}_{feedback}^{pre}+\lambda_{\mathrm{align}}\mathcal{L}_{align}+\lambda_{\mathrm{AGRR}}^{pre}\mathcal{L}_{AGRR}^{pre}$ 
+ | 
+
+ | 
+ | $\displaystyle\mathcal{L}_{rank}$ 
+ | $\displaystyle=\mathcal{L}_{prior}^{r}+\lambda_{\mathrm{fb}}\mathcal{L}_{feedback}^{rank}+\lambda_{\mathrm{AGRR}}\mathcal{L}_{AGRR}^{rank}$ 
+ | 
+
+ | 
+ | $\displaystyle\mathcal{L}_{\mathrm{UniRec}}$ 
+ | $\displaystyle=\mathcal{L}_{pre}+\mathcal{L}_{rank}$ 
+ | 
+
+The alignment term appears only for pre-ranking because it transfers downstream preferences upstream, while the shared representation allows both objectives to update the common parameters.
+
+As shown in Fig. 1, the two fusion agents serve as the multi-task fusion modules for pre-ranking and ranking, following a centralized-training, decentralized-execution paradigm (Lowe et al., 2017). During training, they are jointly optimized and coupled through the shared representation. At deployment, they are exported as separate graphs with the shared embedding table, so cross-stage coupling exists only during training. Each agent then operates as a stage-local fusion model without additional online latency.
+
+4.5. Computational Complexity Optimization
+
+The prior preference losses in Eq. (9)–Eq. (10) generate pairwise supervision for multiple pXTR objectives at both stages. In two-stage joint optimization, this cost is amplified by the large candidate set of pre-ranking and the additional preference signals transferred from ranking pXTRs. For $M$ applicable pXTR objectives and $N$ candidates, directly evaluating the pairwise losses requires $\mathcal{O}(MN^{2})$ Softplus terms. We therefore optimize the pairwise supervision through CPPA and CAPP strategies.
+
+4.5.1. Compact Pairwise Preference Aggregation
+
+For a fixed candidate pair $(i,j)$ , all objective-specific losses share the same score margin $\delta_{ij}$ and differ only in preference direction. We therefore aggregate objectives with the same direction before applying the nonlinear loss. Define
+
+ | (17)
+ | 
+ | $E_{ij}^{+}=\sum_{m=1}^{M}w_{m}\mathbb{I}\big(y_{ij}^{(m)}=+1\big),\qquad E_{ij}^{-}=\sum_{m=1}^{M}w_{m}\mathbb{I}\big(y_{ij}^{(m)}=-1\big)$ 
+ | 
+
+where $E_{ij}^{+}$ and $E_{ij}^{-}$ denote the weighted support for ranking $i$ ahead of $j$ and vice versa. Both directions are retained, thereby preserving disagreement among objectives. CPPA then rewrites the pairwise objective as
+
+ | (18)
+ | 
+ | $\displaystyle\mathcal{L}_{agg}^{+}$ 
+ | $\displaystyle=\sum_{i,j}E_{ij}^{+}\operatorname{Softplus}\big(-\delta_{ij}\big),\;\mathcal{L}_{agg}^{-}=\sum_{i,j}E_{ij}^{-}\operatorname{Softplus}\big(\delta_{ij}\big)$ 
+ | 
+
+Then the final CPPA loss is defined as $\mathcal{L}_{CPPA}=\mathcal{L}_{agg}^{+}+\mathcal{L}_{agg}^{-}$ .
+
+CPPA is algebraically equivalent to the original objective, as the $M$ objective-specific terms for each pair are grouped by preference direction before applying Softplus. It thus preserves all pairwise preference information while reducing Softplus evaluations from $\mathcal{O}(MN^{2})$ to $\mathcal{O}(N^{2})$ . The same reorganization applies to both stages, including the ranking-pXTR supervision transferred to pre-ranking.
+
+4.5.2. Confidence-Aware Pair Pruning
+
+Although CPPA removes the objective-dependent factor $M$ , evaluating all $\mathcal{O}(N^{2})$ pairs can remain expensive for large candidate sets. We therefore further prune pairs according to the consistency of their aggregated preference evidence. For each pair $(i,j)$ , we define its confidence as the absolute difference between the two directional supports: $c_{ij}=\left|E_{ij}^{+}-E_{ij}^{-}\right|$ . A larger $c_{ij}$ indicates stronger preference evidence in one direction and hence a more informative pair. For each candidate $i$ , we sort the other candidates by $c_{ij}$ and retain the top- $K$ pairs:
+
+ | (19)
+ | 
+ | $\mathcal{P}_{K}=\left\{(i,j)\mid j\in\operatorname{TopK}_{j}(c_{ij})\right\}$ 
+ | 
+
+The resulting pair set contains at most $\mathcal{O}(KN)$ pairs, and only these pairs are used for pairwise loss evaluation. Thus, CAPP reduces the number of differentiable pairwise loss evaluations from $O(N^{2})$ to $O(KN)$ . Together with CPPA, which removes the objective-dependent factor $M$ from loss evaluation, CAPP substantially reduces the computational cost of pairwise preference optimization.
+
+5. Experiments
+
+We evaluate UniRec through four research questions:
+
+• 
+
+RQ1: Does UniRec outperform baseline methods in ranking quality and cross-stage consistency?
+
+• 
+
+RQ2: How much does each major component of UniRec contribute to its performance and efficiency?
+
+• 
+
+RQ3: How sensitive is UniRec to the loss weights?
+
+• 
+
+RQ4: Does UniRec improve user engagement in a large-scale online recommendation system?
+
+Table 1. Comparison of ranking performance and cross-stage consistency.
+
+ | Method
+ | rank_GAUC
+ | Ranking NDCG
+ | Pre-ranking NDCG
+ | Cross-stage Consistency
+
+ | 
+ | 
+ | @1
+ | @3
+ | @5
+ | @1
+ | @3
+ | @5
+ | ASH
+ | Kendall’s $\tau$ 
+ | Spearman’s $\rho$ 
+
+ | Weighted-Sum
+ | 0.6111
+ | 0.3921
+ | 0.4999
+ | 0.5992
+ | 0.3891
+ | 0.4966
+ | 0.5966
+ | 0.9809
+ | 0.4844
+ | 0.6450
+
+ | EMER
+ | 0.6158
+ | 0.3837
+ | 0.4941
+ | 0.5977
+ | 0.3885
+ | 0.4967
+ | 0.5965
+ | 0.8566
+ | -0.0444
+ | -0.0542
+
+ | UMRE
+ | 0.6096
+ | 0.3934
+ | 0.5008
+ | 0.6001
+ | 0.3885
+ | 0.4967
+ | 0.5965
+ | 0.9728
+ | 0.4545
+ | 0.6086
+
+ | COPR
+ | 0.6089
+ | 0.3916
+ | 0.4996
+ | 0.5990
+ | 0.3952
+ | 0.5011
+ | 0.5999
+ | 0.9913
+ | 0.5150
+ | 0.6802
+
+ | UniRec (Ours)
+ | 0.6330
+ | 0.3975
+ | 0.5099
+ | 0.6090
+ | 0.3970
+ | 0.5075
+ | 0.6066
+ | 0.9928
+ | 0.6017
+ | 0.7644
+
+5.1. Experimental Setup
+
+5.1.1. RecFlow: Public Cascaded Benchmark
+
+RecFlow11
+ 1
+
+ https://github.com/RecFlow-ICLR/RecFlow is collected from Kuaishou’s multi-stage short-video recommendation system and contains 37 days of logs from January 13 to February 18, 2024. It covers about 42K users, 9.3M requests, 38M exposure samples, and 1.9B stage-level records. The system has six stages, with candidate sizes decreasing from $8000\to 3000\to 500\to 100\to 10\to 6$ . RecFlow records the candidates removed at each stage, allowing us to reconstruct the nested candidate sets $\mathcal{I}^{c}\supset\mathcal{I}^{p}\supset\mathcal{I}^{r}$ in Eq. 3 and the shared candidate set $\mathcal{I}^{p}$ required by $\mathcal{L}_{align}$ in Eq. 12.
+
+We use eight days of exposure logs from February 1 to February 8. Each sample contains cross-stage candidate information and a 50-step behavior sequence. Each item has six binary labels and a playing_time label. Following (Covington et al., 2016), we process playing_time with weighted logistic regression, yielding $M{=}7$ prediction inputs for the fusion model, with positive rates ranging from 0.2% to 38.2%.
+
+5.1.2. Industrial Production Dataset
+
+We also evaluate UniRec on data from Kuaishou’s online recommendation system, which serves more than 100M daily active users. For each request, the pre-ranking stage selects candidates from about 500 items, which are further reduced to about 10 exposed items by subsequent stages. We sample about 100K users for offline evaluation, obtaining more than 1M request-level samples. The fusion model handles dozens of prediction objectives, making the $\mathcal{O}(MN^{2})$ complexity of the per-objective formulation in Eq. 9 expensive and providing a suitable setting for evaluating CPPA. The logs are split chronologically.
+
+5.1.3. Baselines
+
+We compare UniRec with four representative fusion methods, covering weighted fusion, single-stage learnable fusion, and cross-stage coordination. Only Weighted-Sum and UniRec use trainable fusion modules at both stages; EMER and UMRE operate at ranking, while COPR operates at pre-ranking, with the other stage using a fixed-weight sum of pXTRs.
+
+• 
+
+WeightedSum (Rubinstein, 1999; Močkus, 1974)
+combines multiple prediction scores using learned weights and is trained at both stages with the same posterior feedback loss as UniRec. It uses neither item representations nor list context.
+
+• 
+
+EMER (He et al., 2025) uses a Transformer-based list encoder trained with an order-preserving loss and posterior feedback at the ranking stage.
+
+• 
+
+UMRE (Xu et al., 2025) applies a monotonic transformation to prediction scores at the ranking stage, with intent-aware weights for each item.
+
+• 
+
+COPR (Zhao et al., 2023) adjusts pre-ranking scores to match the downstream ordering through a pairwise loss weighted by $\Delta$ NDCG, updating only the upstream model.
+
+5.1.4. Implementation Details
+
+RecFlow does not provide the pXTRs of its pre-ranking and ranking models, so we train two $M{=}7$ -head backbones to generate $\mathbf{p}_{i}^{p}$ and $\mathbf{p}_{i}^{r}$ , using DSSM and DIN, respectively, to match the different capacity requirements of the two stages. The backbones are trained on February 1–4 and then frozen; the fusion models are trained on February 5–7 and evaluated on February 8. All methods use the same data splits, cached pXTRs, candidate sets, and posterior feedback to isolate the effect of the fusion module.
+
+We implement all methods in PyTorch and optimize them with Adam using a learning rate of $10^{-3}$ , a batch size of 256, and a shared hidden dimension of 64. Baseline-specific hyperparameters follow their original papers or official implementations. All methods are tuned under the same validation protocol and search budget. The loss weights of UniRec are reported in Sec. 5.4.
+
+Figure 4. Ablation study on the industrial production stream.
+
+5.2. Offline Evaluation (RQ1)
+
+Following RecFlow (Liu et al., 2024), we evaluate candidates on a per-request basis. NDCG@ $K$ is computed for both $s^{r}_{i}$ and $s^{p}_{i}$ over the exposed set $\mathcal{I}^{e}$ of each request, with $K\in\left\{1,3,5\right\}$ and $g_{i}$ denoting the ground-truth label. Restricting the cutoffs to exposed items keeps the metric focused on candidates for which feedback is observed. We report rank_GAUC, which computes AUC within each request using $\mathbb{I}[g_{i}>0]$ as the binary label and then averages across requests, avoiding domination by cross-request score calibration. For cross-stage consistency, we report ASH (Zhang et al., 2023), the fraction of ranking-stage Top- $K_{r}$ items retained by pre-ranking with $K_{r}{=}10$ and $K_{p}{=}50$ , together with Kendall’s $\tau$ and Spearman’s $\rho$ , which measure rank correlation between $s^{p}_{i}$ and $s^{r}_{i}$ within each request.
+
+Ranking quality. 
+Table 1 reports the results on RecFlow. UniRec achieves the best rank_GAUC and NDCG at all six cutoffs, improving rank_GAUC from 0.6158 to 0.6330 over the strongest baseline. The gain is consistent across both stages: UniRec achieves a pre-ranking NDCG@3 of 0.5075, exceeding both the fixed-weight reference (0.4967) and COPR (0.5011), which explicitly optimizes the upstream score toward the downstream ordering. Joint optimization of both fusion modules therefore improves the upstream decision beyond one-way downstream supervision.
+
+Cross-stage consistency. 
+EMER and UMRE have identical pre-ranking NDCG because neither trains an upstream fusion module; both use the fixed-weight sum of pXTRs. For these single-stage methods, the consistency metrics therefore measure how far the trained stage deviates from this common reference. EMER scores items using candidate context and preserves pXTR preferences only through a soft loss rather than by construction. Without explicit cross-stage alignment, it achieves competitive ranking quality but the lowest consistency. Training both stages alone is also insufficient: Weighted-Sum, the only other method trained at both stages, achieves $\tau=0.4844$ , below COPR, which trains only the pre-ranking stage but explicitly aligns it with the downstream ordering. UniRec combines joint optimization with explicit alignment and achieves the highest values on all three consistency metrics, with $\tau=0.6017$ and $\rho=0.7644$ , compared with 0.5150 and 0.6802 for COPR. ASH differentiates the methods less clearly because both UniRec (0.9928) and COPR (0.9913) are near saturation at $K_{p}{=}50$ . In contrast, the rank correlations consider the full orderings and show that UniRec produces closer agreement between the two stages than one-way downstream-to-upstream alignment.
+
+5.3. Ablation Study (RQ2)
+
+Figure 5. Long-tail amplification with and without AGRR.
+
+We answer RQ2 on the industrial production dataset. Each variant removes one component from the full model, with all other settings unchanged. The components affect different metrics.
+
+As shown in Fig. 4, the full model is optimal on both the ranking-quality and cross-stage consistency metrics. w/o Share causes the largest ranking degradation, with rank_GAUC dropping from 0.7851 to 0.7801 and rank_NDCG@1 from 0.5346 to 0.5263, indicating that sharing the bottom embedding between the pre-ranking and ranking models is the primary driver of ranking quality. w/o AGRR reduces rank_GAUC by 0.0040 and ASH by 0.0251, showing that AGRR contributes to both ranking performance and cross-stage consistency. w/o CAPP yields a marginal ranking drop ( $-$ 0.0009 rank_GAUC) but reduces ASH by 0.0232, suggesting that confidence-aware pair pruning primarily benefits cross-stage consistency rather than ranking accuracy.
+
+Alignment improves only the upstream stage. w/o Align leaves ranking metrics largely unchanged (rank_GAUC: $0.7851\to 0.7836$ ), consistent with the design of $\mathcal{L}_{\mathrm{align}}$ : the ranking score serves as a detached teacher signal and sends no gradient to ranking-specific parameters. Its effect is confined to the upstream stage and cross-stage consistency, where removing it reduces ASH by 0.0583 and Kendall’s $\tau$ by 0.0247. This supports the design in Sec. 4.2.2, which transfers downstream preferences upstream without compromising ranking quality.
+
+As shown in Section 1, joint optimization amplifies reward sensitivity. In short-video recommendation system, longer videos naturally accumulate more positive watch-time evidence, driving both stages to promote high-duration items as a group rather than improving within-group ordering. Fig. 5 confirms that without AGRR, the system over-promotes long videos in the final ranking output ( $\geq$ 300s: +25.0% relative to base, vs. +3.2% for full UniRec), while AGRR suppresses this drift and aligns the two stages.The full distribution comparison can be found in Appendix Figure 13.
+
+Table 2. Training efficiency comparison between UniRec (CPPA) and UniRec-NoCPPA.
+
+ | Component
+ | UniRec (CPPA)
+ | UniRec-NoCPPA
+
+ | loss_fn (rank)
+ | $47.17\pm 15.92$ ms
+ | $241.62\pm 43.02$ ms
+
+ | loss_fn (pre)
+ | $52.16\pm 25.15$ ms
+ | $241.39\pm 44.93$ ms
+
+ | compute_loss
+ | $187.35\pm 41.15$ ms
+ | $538.72\pm 56.08$ ms
+
+ | train_step
+ | $323.64\pm 70.29$ ms
+ | $793.19\pm 113.08$ ms
+
+ | Throughput (req/s)
+ | 49
+ | 20
+
+Finally, since CPPA is mathematically equivalent to the per-objective formulation and affects only training efficiency, we omit w/o CPPA from the ablation. Table 2 shows that compared with naive pairwise loss, CPPA reduces loss computation by 5 $\times$ and improves throughput by 2.5 $\times$ (49 vs. 20 req/s), and Appendix Fig. 11 shows that CPPA consistently reduces computation time across different numbers of objectives. Moreover, the computational cost results of CAPP strategy can be found in Appendix Fig. 12.
+
+Figure 6. Ranking GAUC under pair retention sizes $K$ .
+
+5.4. Parameter Sensitivity (RQ3)
+
+We sweep CAPP’s pair retention size $K$ (top pairs by confidence $c_{ij}$ , Fig. 6), finding $K{=}400$ optimal. We sweep $\lambda_{\mathrm{align}}$ and the two ranking-stage weights $\lambda_{\mathrm{fb}}$ and $\lambda_{\mathrm{AGRR}}$ in Appendix Figs. 8–10; the pre-ranking weights $\lambda_{\mathrm{fb}}^{pre}$ and $\lambda_{\mathrm{AGRR}}^{pre}$ show similar trends and are omitted. The curves are stable around the selected values, which we set to $\lambda_{\mathrm{align}}{=}1$ , $\lambda_{\mathrm{fb}}{=}1$ , and $\lambda_{\mathrm{AGRR}}{=}0.3$ . Excessive weights degrade performance; e.g., rank_GAUC drops to 0.7692 as $\lambda_{\mathrm{align}}$ increases from 1 to 5, as overly strong alignment forces the upstream score toward the downstream ordering at the expense of its own objective.
+
+5.5. Online A/B Test Experiment (RQ4)
+
+We answer RQ4 through an online A/B test in Kuaishou’s recommendation system, where the treatment group replaced the fusion modules at both stages while keeping all other components unchanged. The experiment ran on 5% of randomly selected live traffic and has been monitored for nine weeks since launch. App usage time increased and then remained stable rather than decaying over the observation period (Fig. 7); we report the metrics from the final week. Compared with the production fusion baseline (Table 3), UniRec improves total watch time by +0.675%, video watch time by +0.755%, app usage time by +0.616%, and active users by +0.189%, with no reported metric declining. These results indicate that the gains do not come from trading one objective against another. UniRec has now been fully deployed in Kuaishou’s recommendation system.
+
+Figure 7. Online A/B test: app usage time.
+
+Table 3. Online A/B results.
+
+ | Metric
+ | Rel. impr.      
+ | Metric
+ | Rel. impr.
+
+ | LT7
+ | +0.142%      
+ | Realshow
+ | +0.427%
+
+ | ActiveUsers
+ | +0.189%      
+ | LongView
+ | +1.028%
+
+ | AppUsageTime
+ | +0.616%      
+ | Like
+ | +2.367%
+
+ | TotalWatchTime
+ | +0.675%      
+ | Follow
+ | +1.573%
+
+ | VideoWatchTime
+ | +0.755%      
+ | Collect
+ | +1.890%
+
+6. Conclusion
+
+We identify cross-stage preference inconsistency in multi-task fusion as an important challenge in cascaded recommender systems and propose UniRec, a unified framework that jointly optimizes pre-ranking and ranking fusion agents. UniRec couples the two stages through partially shared embeddings and cross-stage preference optimization while preserving stage-specific fusion functions. It further introduces AGRR to control reward-induced distribution drift and CPPA with CAPP to reduce the computational complexity of multi-stage pairwise optimization. Extensive offline and large-scale online experiments on a production short-video system demonstrate consistent gains over cross-stage coordination and single-stage fusion baselines. In a nine-week online A/B test, UniRec improves total watch time by +0.675%, app usage time by +0.616%, and active users by +0.189%, which has been fully deployed in Kuaishou’s recommendation system.
+
+References
+
+Cai et al. (2023)
+Q. Cai, S. Liu, X. Wang, T. Zuo, W. Xie, B. Yang, D. Zheng, P. Jiang, and K. Gai
+
+Reinforcing user retention in a billion scale short video recommender system.
+
+In Companion Proceedings of the ACM Web Conference 2023,
+
+pp. 421–426.
+
+Cited by: §2.1.
+
+Cao et al. (2025a)
+J. Cao, P. Xu, Y. Cheng, K. Guo, J. Tang, S. Wang, D. Leng, S. Yang, Z. Liu, Y. Niu, et al.
+
+Pantheon: personalized multi-objective ensemble sort via iterative pareto policy optimization.
+
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management,
+
+pp. 5575–5582.
+
+Cited by: §2.1.
+
+Cao et al. (2025b)
+Y. Cao, C. Zhang, X. Chen, K. Zhan, and B. Wang
+
+XMTF: a formula-free model for reinforcement-learning-based multi-task fusion in recommender systems.
+
+In Proceedings of the ACM on Web Conference 2025,
+
+pp. 3840–3849.
+
+Cited by: §1,
+§2.1.
+
+Covington et al. (2016)
+P. Covington, J. Adams, and E. Sargin
+
+Deep neural networks for youtube recommendations.
+
+In Proceedings of the 10th ACM Conference on Recommender Systems,
+
+pp. 191–198.
+
+Cited by: §5.1.1.
+
+He et al. (2025)
+T. He, M. Xie, R. Li, X. Xu, J. Yu, Z. Wang, L. Hu, H. Li, and K. Gai
+
+An end-to-end multi-objective ensemble ranking framework for video recommendation.
+
+arXiv preprint arXiv:2508.05093.
+
+Cited by: §1,
+§2.1,
+§3,
+2nd item.
+
+Lin et al. (2019)
+X. Lin, H. Chen, C. Pei, F. Sun, X. Xiao, H. Sun, Y. Zhang, W. Ou, and P. Jiang
+
+A pareto-efficient algorithm for multiple objective optimization in e-commerce recommendation.
+
+In Proceedings of the 13th ACM Conference on recommender systems,
+
+pp. 20–28.
+
+Cited by: §2.1.
+
+Liu et al. (2024)
+Q. Liu, K. Zhao, R. Xie, et al.
+
+RecFlow: an industrial full flow recommendation dataset.
+
+arXiv preprint arXiv:2410.20868.
+
+Cited by: §5.2.
+
+Lowe et al. (2017)
+R. Lowe, Y. I. Wu, A. Tamar, J. Harb, O. Pieter Abbeel, and I. Mordatch
+
+Multi-agent actor-critic for mixed cooperative-competitive environments.
+
+Advances in neural information processing systems 30.
+
+Cited by: §4.4.
+
+Ma et al. (2018)
+J. Ma, Z. Zhao, X. Yi, J. Chen, L. Hong, and E. H. Chi
+
+Modeling task relationships in multi-task learning with multi-gate mixture-of-experts.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1930–1939.
+
+Cited by: §3.
+
+Močkus (1974)
+J. Močkus
+
+On bayesian methods for seeking the extremum.
+
+In IFIP Technical Conference on Optimization Techniques,
+
+pp. 400–404.
+
+Cited by: §1,
+§2.1,
+1st item.
+
+Oord et al. (2018)
+A. v. d. Oord, Y. Li, and O. Vinyals
+
+Representation learning with contrastive predictive coding.
+
+arXiv preprint arXiv:1807.03748.
+
+Cited by: §2.2.
+
+Rubinstein (1999)
+R. Rubinstein
+
+The cross-entropy method for combinatorial and continuous optimization.
+
+Methodology and computing in applied probability 1 (2), pp. 127–190.
+
+Cited by: §1,
+§2.1,
+1st item.
+
+Sener and Koltun (2018)
+O. Sener and V. Koltun
+
+Multi-task learning as multi-objective optimization.
+
+Advances in neural information processing systems 31.
+
+Cited by: §2.1.
+
+Shao et al. (2024)
+Z. Shao, P. Wang, Q. Zhu, R. Xu, J. Song, X. Bi, H. Zhang, M. Zhang, Y. Li, Y. Wu, et al.
+
+Deepseekmath: pushing the limits of mathematical reasoning in open language models.
+
+arXiv preprint arXiv:2402.03300.
+
+Cited by: §4.3.
+
+Song et al. (2019)
+W. Song, C. Shi, Z. Xiao, Z. Duan, Y. Xu, M. Zhang, and J. Tang
+
+Autoint: automatic feature interaction learning via self-attentive neural networks.
+
+In Proceedings of the 28th ACM international conference on information and knowledge management,
+
+pp. 1161–1170.
+
+Cited by: §4.1.2.
+
+Tang et al. (2020)
+H. Tang, J. Liu, M. Zhao, and X. Gong
+
+Progressive layered extraction (ple): a novel multi-task learning (mtl) model for personalized recommendations.
+
+In Proceedings of the 14th ACM conference on recommender systems,
+
+pp. 269–278.
+
+Cited by: §3.
+
+Tolstikhin et al. (2021)
+I. O. Tolstikhin, N. Houlsby, A. Kolesnikov, L. Beyer, X. Zhai, T. Unterthiner, J. Yung, A. Steiner, D. Keysers, J. Uszkoreit, et al.
+
+Mlp-mixer: an all-mlp architecture for vision.
+
+Advances in neural information processing systems 34, pp. 24261–24272.
+
+Cited by: §4.1.2.
+
+Wang et al. (2017)
+R. Wang, B. Fu, G. Fu, and M. Wang
+
+Deep & cross network for ad click predictions.
+
+In Proceedings of the ADKDD’17,
+
+pp. 1–7.
+
+Cited by: §4.1.2.
+
+Wang et al. (2020)
+Z. Wang, L. Zhao, B. Jiang, G. Zhou, X. Zhu, and K. Gai
+
+Cold: towards the next generation of pre-ranking system.
+
+arXiv preprint arXiv:2007.16122.
+
+Cited by: §1,
+§2.2.
+
+Xia et al. (2026)
+B. Xia, Z. Yu, Z. Zhu, H. Sun, B. Han, J. Wang, R. Liu, and W. Ou
+
+HarmonRank: ranking-aligned multi-objective ensemble for live-streaming e-commerce recommendation.
+
+arXiv preprint arXiv:2601.02955.
+
+Cited by: §2.1.
+
+Xu et al. (2025)
+Z. Xu, Z. Yang, Z. Guo, S. Liu, L. Lin, X. Liu, Y. Liu, and H. Li
+
+UMRE: a unified monotonic transformation for ranking ensemble in recommender systems.
+
+arXiv preprint arXiv:2508.07613.
+
+Cited by: §1,
+§2.1,
+3rd item.
+
+Zhang et al. (2024)
+G. Zhang, Y. Wang, X. Chen, H. Qian, K. Zhan, and B. Wang
+
+UNEX-rl: reinforcing long-term rewards in multi-stage recommender systems with unidirectional execution.
+
+In Proceedings of the AAAI Conference on Artificial Intelligence,
+
+Vol. 38, pp. 9305–9313.
+
+Cited by: §1,
+§2.1.
+
+Zhang et al. (2022)
+Q. Zhang, J. Liu, Y. Dai, Y. Qi, Y. Yuan, K. Zheng, F. Huang, and X. Tan
+
+Multi-task fusion via reinforcement learning for long-term user satisfaction in recommender systems.
+
+In Proceedings of the 28th ACM SIGKDD conference on knowledge discovery and data mining,
+
+pp. 4510–4520.
+
+Cited by: §1,
+§2.1.
+
+Zhang et al. (2023)
+Z. Zhang, Y. Huang, D. Ou, S. Li, L. Li, Q. Liu, and X. Zeng
+
+Rethinking the role of pre-ranking in large-scale e-commerce searching system.
+
+arXiv preprint arXiv:2305.13647.
+
+Cited by: §1,
+§2.2,
+§5.2.
+
+Zhao et al. (2025)
+B. Zhao, H. Qi, G. Xu, M. Ma, X. Zhao, F. Mei, S. Xu, and J. Hu
+
+A hybrid cross-stage coordination pre-ranking model for online recommendation systems.
+
+In Companion Proceedings of the ACM on Web Conference 2025,
+
+pp. 621–630.
+
+Cited by: §1,
+§2.2.
+
+Zhao et al. (2023)
+Z. Zhao, J. Gao, Y. Zhang, S. Han, S. Lou, X. Sheng, Z. Wang, H. Zhu, Y. Jiang, J. Xu, et al.
+
+COPR: consistency-oriented pre-ranking for online advertising.
+
+In Proceedings of the 32nd ACM International Conference on Information and Knowledge Management,
+
+pp. 4974–4980.
+
+Cited by: §1,
+§2.2,
+4th item.
+
+Appendix A Hyper-parameter Sensitivity
+
+In each sweep only the target coefficient varies; all remaining coefficients, the backbone, the data slice and the random seed are held fixed. The red star marks the setting adopted throughout the paper.
+
+Figure 8. Ranking GAUC under alignment loss weights $\lambda_{\text{align}}$ .
+
+Figure 9. Ranking GAUC under feedback loss weights $\lambda_{\text{fb}}$ .
+
+Figure 10. Ranking GAUC under AGRR strengths $\lambda_{\text{AGRR}}$ .
+
+Appendix B Computational Complexity Optimization
+
+We compare UniRec (CPPA) against UniRec-NoCPPA, which replaces CPPA with naive pairwise loss. Table 2 reports four profiling granularities : loss_fn (rank/pre) measures the isolated pairwise loss computation on pre-computed embeddings for each stage; compute_loss adds the full encoder forward pass (both stages) plus all auxiliary loss terms (posterior feedback, alignment, AGRR); train_step covers the complete optimization step (compute_loss $+$ zero_grad $+$ backward $+$ optimizer). Throughput reports the number of training samples processed per second. Figure 11 shows how training time scales with the number of labels.
+Figure 12 reports the isolated softplus loss time under the pair
+pruning: at $K{=}50$ , the $\mathcal{O}(KN)$ 
+evaluation is $3.6\times$ faster than full pairwise ( $\mathcal{O}(N^{2})$ ); as
+ $K\to N$ the cost converges to the full UniRec baseline.
+
+Figure 11. Pairwise loss cost scaling with label count $M$ .
+
+Figure 12. Pairwise loss cost under pair retention size $K$ .
+
+Appendix C AGRR Online Duration Distribution
+
+We compare the online duration distribution of ranking-stage output items across the production base, UniRec, and UniRec w/o AGRR. Figure 13 reports the average item count per duration
+bucket.
+
+Figure 13. Online duration distribution comparison between UniRec and UniRec w/o AGRR.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About ·
+ Help ·
+ Contact ·
+ Subscribe ·
+ Copyright ·
+ Privacy ·
+ Accessibility ·
+ Operational Status (opens in new tab)
+

@@ -1,0 +1,1464 @@
+=== PAGE 1 ===
+The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient
+                                            Dynamics Analysis and Solution
+
+
+
+
+                                 Erjian Zhang 1   Yatong Hao 1   Liejun Wang 1 2   Zhiqing Guo 1 2
+
+                             Abstract
+
+
+      While multi-task learning based automatic radiol-
+      ogy report generation (RRG) is widely adopted to
+      ensure clinical consistency, most focus on archi-
+      tectural designs yet remain limited to coarse linear
+      scalarization strategies.  These strategies cannot
+      effectively balance the hard constraints of discrim-
+      inative clinical supervision with the smoothness
+      requirements of report generation.   To address
+      these problems,  we analyze the failure mecha-
+      nism of linear scalarization from the perspective
+      of gradient dynamics, utilizing the stochastic dif-
+      ferential equation (SDE) framework to character-
+      ize it as a “Double Dilemma” of drift term de-
+      viation and diffusion term decay. Based on this,                       Figure 1.The “Double Dilemma” in RRG multi-task optimization
+      we propose a backbone-agnostic optimizer named                         and its resolution via CAME-Grad.(a)In multi-task RRG, there
+      Conflict-AverseMagnitude-EnhancedGradient                              is an intrinsic conflict between report generation and clinical con-
+                                                                             straints.(b)Under linear scalarization, this conflict simultaneously
+      Descent (CAME-Grad). Through conflict-averse                           induces drift term deviation and diffusion term decay.(c)CAME-
+      direction rectification and magnitude-enhanced                         Grad employs direction rectification to ensure geometric validity
+      energy injection, the algorithm not only ensures                       and energy injection to escape sharp minima.
+      geometric  validity,  but  also  avoids  local  opti-
+      mal solutions.   Then,  the adaptive gradient fu-
+      sion mechanism is used to establish a dynamic                          1. Introduction
+      balance  between  the  theoretical  optimal  direc-                    Automated radiology report generation (RRG) aims to re-
+      tion  and  the  task-specific  inductive  bias.    Ex-                 duce the heavy workload of radiologists and improve diag-
+      periments  show  that  as  a  universal  plug-and-                     nostic efficiency. Early methods (Vinyals et al.,2015;Chen
+      play optimizer, CAME-Grad brings substantial                           et al.,2020) predominantly adopted a single-task learning
+      and  consistent  improvements  across  eight  di-                      paradigm, relying solely on a single text likelihood super-
+      verse  RRG  methods,  elevating  overall  clinical                     vision to optimize generation quality. However, this single
+      efficacy performance by an average of 2.3% on                          supervision signal often fails to guarantee clinical diagnos-
+      MIMIC-CXR  and  1.9%  on  IU  X-Ray.    Our                            tic accuracy.  To address this, existing works have widely
+      code is available at https://github.com/                               shifted to multi-task learning (MTL) paradigms to enhance
+      vpsg-research/CAME-Grad.                                               feature representation and clinical consistency.
+
+                                                                             The technical evolution of this paradigm introduces diverse
+                                                                             clinical constraint tasks, encompassing disease classification
+   1School of Computer Science and Technology, Xinjiang Uni-                 strategies aiming to explicitly enhance diagnostic accuracy
+versity,  Urumqi,  China   2Xinjiang  Multimodal  Intelligent  Pro-          (Li et al.,2025), image-text alignment mechanisms designed
+cessing and Information Security Engineering Technology Re-                  to bridge cross-modal disparities (Wang et al.,2024), and
+search Center, Urumqi, China. Correspondence to: Liejun Wang                 retrieval enhancement modules assisting generation by in-
+<wljxju@xju.edu.cn>, Zhiqing Guo <guozhiqing@xju.edu.cn>.                    corporating external medical knowledge (Song et al.,2025).
+
+Preprint. May 25, 2026.                                                      Although these sophisticated architectural designs improve
+
+                                                                          1
+
+=== PAGE 2 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+performance, existing works largely overlook the underly-                     biases, effectively preventing the catastrophic forgetting of
+ing gradient dynamics of multi-task optimization, defaulting                  semantic features. The main contributions of this paper are
+to simple linear scalarization strategies.  This coarse opti-                 summarized as follows:
+mization strategy fails to effectively reconcile the intrinsic
+conflict between two types of tasks in RRG. In particular,                        •  We investigate the failure mechanism of linear scalar-
+strengthening the hard constraints of discriminative clinical                       ization from the perspective of gradient dynamics, uti-
+supervision often leads to the degradation of generated re-                         lizing the SDE framework to characterize it as a “Dou-
+port quality (Jin et al.,2024), while prioritizing the smooth-                      ble Dilemma” of drift term deviation and diffusion
+ness of language models makes it difficult to capture rare                          term decay, thereby revealing the geometric roots of
+and critical pathological details (Li et al.,2025).  Conse-                         suboptimality in RRG multi-task optimization.
+quently, this dilemma limits the full realization of model
+potential.                                                                        •  We propose CAME-Grad, a gradient optimization al-
+To bridge this gap, it is imperative to deeply analyze the ge-                      gorithm designed for multi-task RRG. Formulated as a
+ometric roots underlying the suboptimality of existing RRG                          backbone-agnostic optimizer, it enables plug-and-play
+multi-task optimization. From the perspective of gradient                           integration into diverse model architectures.
+dynamics, the optimization dynamics in RRG inherently                             •  We conduct extensive evaluations of CAME-Grad on
+involve the interplay between the drift term driven by the                          the MIMIC-CXR and IU X-Ray datasets across eight
+first-order moment and the diffusion term arising from the                          representative RRG methods, demonstrating average
+second-order covariance. Motivated by this, we leverage the                         clinical efficacy improvements of 2.3% and 1.9%, re-
+stochastic differential equation (SDE) framework (Mandt                             spectively.
+et al.,2017) to characterize the failure mechanism of lin-
+ear scalarization in handling these dynamics as a “Double
+Dilemma” (Figure1). Specifically, under traditional linear                    2. Related Work
+scalarization strategies, the intrinsic conflict between the
+RRG primary report generation task and auxiliary clinical                     2.1. Radiology Report Generation
+constraint tasks causes the resultant force direction to de-                  Radiology report generation (RRG) aims to automatically
+viate from the Pareto optimal trajectory, thereby inducing                    generate  accurate  and  coherent  diagnostic  reports  from
+drift term deviation. This fundamentally constitutes direc-                   medical  images.   Unlike  general  natural  image  caption-
+tional instability in optimization dynamics, manifesting as                   ing tasks (Vinyals et al.,2015), RRG requires processing
+severe directional oscillation that hinders optimization ef-                  longer text sequences and capturing subtle pathological de-
+ficiency. Simultaneously, this conflict leads to a structural                 tails. Early research (Jing et al.,2018;Li et al.,2019;Chen
+collapse in gradient magnitude, thereby triggering diffusion                  et al.,2020;2021) primarily adopted single-task learning
+term decay.  This fundamentally constitutes a deficiency                      paradigms, utilizing mechanisms such as co-attention, prior
+in exploration kinetic energy, manifesting as severe energy                   knowledge injection, or shared memory to bridge the visual-
+depletion, which renders the model unable to escape local                     semantic gap.   However,  relying solely on a single gen-
+optimal solutions.                                                            eration supervision signal, models struggle to align these
+Based  on  this  theoretical  insight,  we  proposeConflict-                  complex cross-modal representations and are prone to gen-
+AverseMagnitude-EnhancedGradient Descent (CAME-                               erating hallucinations for long-tail disease descriptions.
+Grad).   As a backbone-agnostic optimizer,  CAME-Grad                         To overcome single-task bottlenecks, multi-task learning
+directly replaces traditional linear scalarization strategies                 (MTL)  has  become  the  mainstream  research  paradigm.
+without modifying the core network architecture, aiming                       Specifically, disease classification tasks (Jin et al.,2024;
+to resolve this “Double Dilemma” by reshaping the opti-                       Li et al.,2025) are introduced to inject clinical priors, while
+mization dynamics via three cascaded stages.   First,  we                     image-text alignment methods (Wang et al.,2022;2024;Yan
+employ Conflict-Averse Direction Rectification to suppress                    et al.,2021;Li et al.,2023) strive to maintain anatomical
+destructive interference, thereby mitigating the drift term                   consistency and learn discriminative features. Additionally,
+deviation and establishing geometric validity in the tangent                  retrieval-based enhancement methods (Zhou et al.,2025;
+space.  Second, we introduce a Magnitude-Enhanced En-                         Song et al.,2025) leverage external knowledge bases or
+ergy Injection mechanism to actively restore and enhance                      patient historical data to supplement diagnostic information.
+the gradient magnitude. This step compensates for the dif-                    Despite the increasingly sophisticated architectures, existing
+fusion term decay by injecting escape kinetic energy to                       works still predominantly adopt static linear scalarization in
+drive the model from sharp minima toward flat minima. Fi-                     their optimization strategies.  This overlooks the complex
+nally, we implement Adaptive Gradient Fusion to balance                       gradient dynamics among multiple tasks, thereby limiting
+the theoretical optimal direction with task-specific inductive                the release of the potential inherent in RRG models.
+
+                                                                          2
+
+=== PAGE 3 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 2.Architecture of the proposed CAME-Grad optimizer. (Top) The multi-task backbone integrates disease classification, image-text
+alignment, and retrieval enhancement as clinical constraints.  (Bottom) The CAME-Grad optimizer operates via three stages.  (S1)
+Direction rectification resolves drift deviation via geometric projection. (S2) Energy injection reverses diffusion decay by restoring and
+enhancing gradient magnitude. (S3) Adaptive fusion balances the theoretically optimal direction with task-specific inductive biases.
+
+
+2.2. Gradient Dynamics and Optimization Dilemmas                                3. Method
+To mitigate gradient conflicts by rectifying update directions,                 In this section,  we first provide a theoretical analysis of
+algorithms evolved from classic projection (Sener & Koltun,                     gradient dynamics in multi-task RRG. Addressing the “Dou-
+2018;Yu et al.,2020), Pareto optimization (Liu et al.,2021),                    ble Dilemma” characterized by the SDE formulation, we
+and game-theoretic perspectives (Navon et al.,2022) to re-                      propose the CAME-Grad gradient optimization algorithm.
+cent fast adaptive approaches (Liu et al.,2023), task priority                  The overall architecture is illustrated in Figure2.
+quantification (Jeong & Yoon,2024), and bi-level consis-
+tency (Qin et al.,2025). Meanwhile, magnitude regulation                        3.1. Multi-Task RRG
+strategies advanced from normalization (Chen et al.,2018)                       Let D={(I          n, Yn)}  Nn=1    denote  a  dataset  with N  sam-
+and uncertainty weighting (Kendall et al.,2018) to selec-                       ples,  where In  represents  a  medical  image,  and Yn  =
+tive grouping (Wei & Hu,2024;Jeong & Yoon,2025) and                             {y  1, . . . , yT}denotes the corresponding report sequence.
+prioritized multipliers (Cheng et al.,2025), enhancing the
+implicit regularization of stochastic gradient descent (SGD).                   We utilize a visual encoder Eϕ and a text decoder Dψ  to
+Nevertheless, directly applying these paradigms to RRG                          construct the primary report generation task.  Let Θrg  =
+encounters dynamical conflicts where direction rectification                    {ϕ, ψ}      denote the parameters for this task.  The encoder
+sacrifices diffusion kinetic energy, while strategies solely                    maps In to latent features Zn =E   ϕ(I  n), and the decoder
+boosting magnitude struggle to ensure geometric validity in                     models the conditional probability PΘrg(Y  n  | I n).   The
+direction. To address this dilemma, CAME-Grad leverages                         primary objective is to minimize the negative log-likelihood:
+the SDE framework to reshape the dynamics of the drift
+term and the diffusion term.  By establishing a novel evo-                                                          NX
+lution mechanism, it enhances the diffusion kinetic energy                                 Lrg(Θrg) =−    1N            logP      Θrg(Y  n |I n).        (1)
+within the geometrically valid tangent space of the manifold,                                                      n=1
+thereby fully releasing the potential in RRG models.                            We introduce K auxiliary clinical constraint tasks.  These
+
+
+                                                                             3
+
+=== PAGE 4 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+tasks map the pooled visual features ¯zn = Pool(Z     n) to dis-
+crete clinical labels ln ∈ {0,1}        C via task-specific projection
+headsf          θk. The optimization objective for these constraints
+is formulated as:
+
+                             NX    CX  h
+    Lk(ϕ, θ  k) =−     1N               ln,c logσ(f         θk(¯zn)c)
+                            n=1   c=1                            i      (2)
+                     + (1−l       n,c) log(1−σ(f           θk(¯zn)c)).
+
+To establish a unified optimization framework, we denote                         Figure 3.The substantial negative ratio of 53.8% quantitatively
+the total parameter set as Θ = Θrg ∪ {θ  1, . . . , θK}.  We                     confirms the intrinsic conflict between the report generation and
+index the primary task as 0 (i.e., L0 ≜L   rg), and auxiliary                    clinical constraint tasks.
+tasks as 1, . . . , K  .   The overall multi-task objective is a
+linear weighted combination of all task losses:                                  3.2.2. CHARACTERIZING THEDOUBLEDILEMMA VIA
+
+                                       KX                                                 SDE
+                    Ljoint(Θ) =            ωiLi(Θ),                    (3)
+                                      i=0                                        To reveal the dynamical consequences of this intrinsic con-
+whereω          i represents predefined static task weights.                     flict, we model the optimization dynamics of SGD using
+                                                                                 SDE. The discrete SGD update rule Θt+1  = Θt −η   ˆg(Θ  t)
+3.2. Theoretical Analysis of Gradient Dynamics                                   approximates the following continuous-time SDE process:
+
+Let gi =∇   ΘLi(Θ)∈R         d be the gradient vector for the i-th                          dΘ  t =−g       joint(Θt)dt|{z}+p|  ηΣ(Θ  t)dW    t{z},        (6)
+task regarding shared parameters Θ. In standard SGD using                                                  drift term           diffusion term
+the linear scalarization strategy (Sener & Koltun,2018), the                     where gjoint is the expected joint gradient, Σ is the covari-
+joint update direction gjoint comes from the linear superpo-                     ance matrix of gradient noise, and Wt represents Brown-
+sition of task gradients:                                                        ian motion.  In this framework, the drift term controls the
+                                       KX                                        convergence direction, while the diffusion term provides
+                         gjoint =          ωigi,                          (4)    exploration noise to escape local minima.
+
+                                      i=0                                        Under  the  linear  combination gjoint  = PKi=0  ωigi,  the
+where ωi are static scalar weights. In this section, we ana-                     energy of the joint gradient is bound by the interaction term
+lyze the theoretical flaws of this static linear scalarization                   from Section3.2.1:
+strategy in handling the intrinsic conflict of RRG multi-task                                                         KX                     KX
+learning, from both geometric and dynamical dimensions.                              ∥g  joint∥2 ≈ω    20∥g  0∥2 +        ω2k∥g  k∥2 + 2         Ik,   (7)
+                                                                                                                     k=1                    k=1
+3.2.1. GEOMETRICQUANTIFICATION OFCONFLICT                                        where inter-auxiliary interference is neglected as secondary.
+We define the gradient conflict between the primary task                         Since linear weights are strictly positive, linear scalarization
+(indexed as 0) and an auxiliary task k∈ {1, . . . , K}          as the           fails to mathematically decouple destructive gradient inter-
+occurrence of a negative cosine similarity between their re-                     ference. This limitation characterizes a “Double Dilemma”
+spective gradients g0 and gk. To analyze the energy interac-                     within our SDE-based mechanistic hypothesis. Severe gra-
+tion, we expand the squared norm of the linear combination:                      dient conflicts cause the resultant force gjoint to diverge
+                                                                                 from the Pareto optimal direction, inducing drift deviation.
+         ∥ω  0g0 +ω   kgk∥2                                                      Simultaneously,  the magnitude collapse caused by nega-
+          =ω    20∥g  0∥2 +ω    2k∥g  k∥2 + 2ω  0ωk(g ⊤0 gk)    .        (5)     tive interactions directly results in diffusion decay, stifling
+                                               |      {z      }                  exploration noise.
+                                               interaction termI      k
+The RRG primary report generation task requires a smooth                         3.3. CAME-Grad Gradient Optimization Algorithm
+semantic manifold,  whereas auxiliary clinical constraint                        As a backbone-agnostic optimizer, CAME-Grad serves as a
+tasks induce rigid, discretized feature structures. This intrin-                 direct substitute for traditional linear scalarization strategies,
+sic conflict causes persistent destructive interference, mani-                   effectively resolving this “Double Dilemma” by reshaping
+fested as a significantly negative interaction term Ik ≪0    ,                   the optimization dynamics via three integrated stages, as
+as illustrated in Figure3and generalized in AppendixA.                           summarized in Algorithm1.
+
+                                                                             4
+
+=== PAGE 5 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+Algorithm 1CAME-Grad Optimization Process                                        directionu            ∗rect via its closed-form solution:
+   Input:DatasetD, ParametersΘ, Learning rateη                                                                            √ξ
+   Hyperparams:Task weights             ω, Radius ρ, Gain factor κ,                                    u∗rect =µ+       ∥g  α∗∥gα∗.                   (10)
+   Fusion coefficientν
+   whilenot convergeddo                                                          This direction rectification process is intended to reshape
+      Sample batch B ∼ D; Compute task gradients gi ←                            the drift coefficient −g   joint  in the SDE, aiming to keep
+      ∇ΘLi(Θ)                                                                    the update trajectory within the geometrically valid tangent
+      Compute  joint  gradient gjoint  ←  PKPK            i=0  ωigi  and         space of the manifold, thereby mitigating the drift deviation
+      mean gradientµ←                      1K+1i=0  gi                           caused by task conflicts.
+      // Stage 1: Conflict-Averse Direction Rectification
+      Solve dual problem for α∗ and compute rectified di-                        Stage 2: Magnitude-Enhanced Energy InjectionWhile
+      rectionu          ∗rect (closed-form)                                      u∗rect mitigates directional conflicts, the constrained opti-
+      // Stage 2: Magnitude-Enhanced Energy Injection                            mization significantly compresses its magnitude. To coun-
+      Calculate target magnitude:τ                   mag ←κ∥g         joint∥     teract this magnitude collapse, we introduce a magnitude
+      Compute enhanced gradient: uen ←u   ∗rect ·     τmag∥u  ∗rect∥+ϵ           enhancement mechanism to define a target magnitude τmag
+      // Stage 3: Adaptive Gradient Fusion                                       through a dual-level process. First, we restore the magnitude
+      Compute  final  direction:  gfinal  ←(1−ν)u               en +             to the baseline level of the original joint gradient ∥g  joint∥ to
+      ν(κg      joint)                                                           retrieve the lost fundamental diffusion kinetic energy. Sec-
+      Update parameters:Θ←Θ−ηg                                    final          ond, upon this basis, we introduce a gain factor κ≥1      for
+   end while                                                                     further enhancement to inject additional exploration noise.
+                                                                                 The target magnitude is calculated as:
+
+Stage 1: Conflict-Averse Direction RectificationFirst,                                                   τmag =κ· ∥g        joint∥.                       (11)
+to ensure geometric validity across all tasks, we search for a                   Subsequently, we restore and enhance the magnitude of the
+vectoruthat maximizes the worst-case local improvement.                          rectified direction u∗rect to the target level τmag, yielding
+Inspired by the optimization principles of CAGrad (Liu et al.,                   the enhanced gradientu              en, formulated as:
+2021), this search happens within a trust region centered atPK
+the mean gradient µ=        1K+1        i=0  gi. We define the primal                                uen =u   ∗rect ·      τmag∥u  ∗rect∥+ϵ     ,                 (12)
+problem as:
+                                                                                 where ϵ is a small constant for numerical stability. By strictly
+       max                                                                       enforcing the target magnitude τmag, CAME-Grad is de-
+       u∈R     d     mini∈{0,...,K}           g⊤i u s.t.∥u−µ∥ ≤ρ∥µ∥,    (8)
+                                                                                 signed to compensate for the diffusion intensity governed
+where ρ∈[0,1)          is a hyperparameter controlling the radius.               by Σ(Θt) in the SDE. This step seeks to counteract the dif-
+To guarantee global convergence stability, our rectification                     fusion decay induced by energy depletion, facilitating the
+step strictly adheres to the trust region assumption, ensur-                     exploration needed to escape sharp minima toward flatter
+ing that the corrected gradient u resides within a bounded                       loss basins.
+proximity of the mean gradient µ. This constraint ensures                        Stage 3:  Adaptive Gradient FusionPure mathemati-
+optimization stability by limiting the deviation from the                        cal rectification might overly orthogonalize the gradients.
+mean gradient.  Instead of resolving the intractable high-                       This  causes  the  loss  of  weak  but  important  feature  sig-
+dimensional conflicts directly in the parameter space, we                        nals, such as gradients for long-tail tokens. To keep these
+introduce dual variables α∈∆      K+1    and a weighted gra-                     task-specific inductive biases,  we design an adaptive fu-
+dient gα  = PKi=0  αigi to transform this primal problem                         sion mechanism. We use a fusion coefficient ν∈[0,1]          to
+into a solvable convex optimization problem over the unit                        linearly interpolate between the theoretical optimal gradi-
+simplex, where the dual objective is formulated as:                              ent uen and the magnitude-enhanced original joint gradient
+
+                 min                               ξ∥g   α∥,            (9)      g′joint =κg      joint:
+              α∈∆     K+1  F(α) :=g          ⊤αµ+  p
+                                                                                                  gfinal = (1−ν)u           en +νg    ′joint.             (13)
+where ξ=ρ     2∥µ∥     2. Furthermore, by solving this tensorized                The final parameter update rule with learning rateηis:
+dual problem directly on the GPU, CAME-Grad inherently
+avoids the host-device communication bottlenecks typical                                               Θt+1  = Θt −η·g       final.                    (14)
+of O(d)        gradient manipulations, ensuring a negligible com-
+putational overhead during training to obtain the optimal                        This mechanism strikes a balance between the theoretically
+weights α∗. Subsequently, we recover the optimal rectified                       optimal direction and task-specific inductive biases. A small
+
+                                                                             5
+
+=== PAGE 6 ===
+                           The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+                 Table 1.Performance comparison on the MIMIC-CXR test set. Best results for each baseline pair are highlighted in bold and   ↑ indicates
+                 higher is better. All models are reproduced following the unified experimental setup described in Section4.3. CE Average denotes the
+                 arithmetic mean of Precision, Recall, and F1-score.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                 ν (e.g., 0.2) effectively avoids conflicts and ensures suffi-                              lexical overlap and linguistic fluency at the n-gram level.
+                 cient magnitude while preserving fine-grained semantic in-                                 Regarding CE metrics, following the recommendations of
+                 formation, thereby fully releasing the potential inherent in                               Nicolson et al.(2023), we assess diagnostic accuracy using
+                 RRG models.                                                                                CheXbert (Smit et al.,2020). This BERT-based labeler ex-
+                 Comprehensive theoretical validations and a terminology                                    tracts 14 distinct observation categories from both generated
+                 glossary are provided in AppendicesBandC.                                                  and reference reports to calculate Precision (Prec.), Recall
+                                                                                                            (Rec.), and F1-score (F1).
+                 4. Experiments                                                                             4.3. Implementation Details
+                 4.1. Datasets                                                                             We implement CAME-Grad in PyTorch (Paszke et al.,2019)
+                 MIMIC-CXR (Johnson et al.,2019) serves as the largest                                      using a single NVIDIA A40 GPU. To ensure a fair and
+                 public dataset consisting of chest X-ray images and paired                                 consistent comparison, we strictly adhere to the official im-
+                 radiology reports. To ensure a fair comparison with baseline                               plementations and default configurations reported in the
+                 works, we strictly follow the official split and preprocessing                             original papers for all baseline models, while introducing
+                 pipeline proposed byChen et al.(2020). Consequently, the                                   two necessary standardizations to align the evaluation proto-
+                 processed dataset contains 270,790 samples for training,                                   col. First, regarding model selection, we unify the criterion
+                 2,130 for validation, and 3,858 for testing. The IU X-Ray                                  for saving the best model by utilizing the clinical F1-score
+                 dataset (Demner-Fushman et al.,2016), provided by Indiana                                  on the validation set to prioritize clinical diagnostic accu-
+                 University, comprises 7,470 frontal and lateral chest X-ray                                racy. Second, we standardize the calculation of clinical effi-
+                 images associated with 3,955 diagnostic reports.                                           cacy metrics across all baselines to the protocol described
+                                                                                                            in Section4.2, specifically calculating the instance-level
+                 4.2. Evaluation Metrics                                                                    F1-score over 14 diseases using CheXbert. Regarding the
+                                                                                                            IU X-Ray dataset, we adopt an adaptive strategy to align
+                 To comprehensively evaluate the performance of our model,                                  with  baseline  protocols  by  applying  zero-shot  inference
+                 we employ both Natural Language Generation (NLG) and                                       for  cross-domain  methods  (Jin  et  al., 2024;Song  et  al.,
+                 Clinical Efficacy (CE) metrics.  For NLG metrics, we re-                                   2025;Zhou et al.,2025) and conducting standard super-
+                 port standard natural language processing scores includ-                                   vised training on official splits for the remaining baselines
+                 ing  BLEU-1  to  BLEU-4  (B-1  to  B-4)  (Papineni  et  al.,                               (Yan et al.,2021;Wang et al.,2022;Li et al.,2023;Wang
+MODEL                  PUBLICATION                         CE METRICS                                               NLG METRICS                                              CE AVG.↑2002), METEOR (MTR) (Denkowski & Lavie,2011), andet al.,2024;Li et al.,2025). We initialize CAME-Grad with
+                 ROUGE-L (R-L) (Lin,2004), which primarily measure thePREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑ρ= 0.5, κ= 1.5, ν= 0.2                     and tailor these hyperparameters
+WCL                        EMNLP’21           0.382        0.298      0.312      0.329      0.203      0.136      0.098       0.135       0.277          0.331
++ CAME-GRAD                                  0.424        0.324      0.344      0.349      0.219      0.150      0.108       0.142       0.284          0.364
+XPRONET              ECCV’22              0.382        0.304      0.314      0.325      0.202      0.137    0.099     0.134       0.260          0.3336
++ CAME-GRAD                                  0.391        0.309      0.322      0.329      0.204      0.138      0.099       0.135       0.261          0.341
+DCL                         CVPR’23              0.265        0.246      0.236      0.234      0.136      0.087      0.061       0.108       0.211          0.249
++ CAME-GRAD                                  0.319        0.298      0.286      0.280      0.162      0.104      0.074       0.122       0.220          0.301
+PROMPTMRG         AAAI’24              0.505        0.518      0.482    0.396      0.236    0.152    0.105     0.155       0.265          0.502
++ CAME-GRAD                                  0.514        0.530      0.491      0.396      0.236      0.153      0.105       0.157       0.266          0.512
+CAMANET           JBHI’24                0.405        0.303      0.321    0.327    0.202      0.136      0.097       0.134       0.274          0.343
++ CAME-GRAD                                  0.410        0.313      0.330      0.327      0.203      0.137      0.099       0.135       0.275          0.351
+DDATR                    TMI’25                 0.408        0.444      0.418      0.393      0.235      0.152      0.106       0.158       0.267          0.423
++ CAME-GRAD                                  0.432        0.463      0.438      0.405      0.245      0.161      0.113       0.161       0.273          0.444
+TGRG                      MEDIA’25            0.457        0.435      0.417      0.423      0.258      0.164      0.109       0.162       0.284          0.436
++ CAME-GRAD                                  0.493        0.466      0.450      0.438      0.268      0.173      0.117       0.169       0.285          0.470
+REVTAF                 ICCV’25               0.615        0.617      0.589      0.465      0.319      0.236      0.184       0.199     0.336        0.607
++ CAME-GRAD                                  0.633        0.637      0.607      0.466      0.320      0.237      0.185       0.200       0.336          0.626
+
+=== PAGE 7 ===
+                           The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+                Table 2.Performance comparison on the IU X-Ray test set. Best results for each baseline pair are highlighted in bold and   ↑ indicates
+                higher is better. All models are reproduced following the unified experimental setup in Section4.3where             ∗ and † represent zero-shot
+                inference and supervised training respectively. CE Average denotes the arithmetic mean of Precision, Recall, and F1-score.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                for each backbone, with detailed configurations provided in                              domain baselines such as PromptMRG and REVTAF under
+                AppendicesDandE.                                                                         zero-shot settings. Furthermore, CAME-Grad delivers more
+                                                                                                         substantial improvements for in-domain fine-tuning models
+                4.4. Results                                                                             like WCL and DCL by effectively resolving the “Double
+                4.4.1. COMPARISON WITHRRG BASELINES                                                      Dilemma” to release model potential during target-domain
+                                                                                                         training.  Finally, to rigorously confirm that CAME-Grad
+                To verify the effectiveness of CAME-Grad,  we conduct                                    preserves the underlying clinical supervisory signals without
+                experiments on two widely used datasets, namely MIMIC-                                   degrading the diagnostic anchors, we present the detailed
+                CXR and IU X-Ray.  We compare our method with eight                                      performance evaluation of the auxiliary classification task
+                state-of-the-art baselines, including WCL (Yan et al.,2021),                             in AppendixF.
+                XProNet  (Wang  et  al., 2022),  DCL  (Li  et  al., 2023),
+                PromptMRG (Jin et al.,2024),  CAMANet (Wang et al.,                                      4.4.2. COMPARISON WITHMTL OPTIMIZERS
+                2024), DDaTR (Song et al.,2025), TGRG (Li et al.,2025),                                  To further validate the superiority of our optimization strat-
+                and REVTAF (Zhou et al.,2025).  For the MIMIC-CXR                                        egy, we compare CAME-Grad with seven multi-task opti-
+                dataset, as shown in Table1, CAME-Grad achieves sub-                                     mizers, including UW (Kendall et al.,2018), GradNorm
+                stantial and consistent performance improvements across                                  (Chen et al.,2018), CAGrad (Liu et al.,2021), RotoGrad
+                all baseline models.  Specifically, it achieves an average                               (Javaloy & Valera,2022), FAMO (Liu et al.,2023), MM-
+                absolute improvement of 2.3% in CE metrics, while the                                    Pareto (Wei & Hu,2024), and STGU (Jeong & Yoon,2025).
+                NLG metrics remain stable. As emphasized bySong et al.                                   All methods are implemented on the strongest REVTAF
+                (2025), since NLG scores are sensitive to stylistic variations,                          baseline  and  evaluated  on  the  MIMIC-CXR  dataset  us-
+                excelling in CE metrics that directly reflect diagnostic accu-                           ing  their  default  hyperparameters.    As  Table3shows,
+                racy is more indicative of a model’s clinical utility. Notably,                          while traditional methods demonstrate incremental improve-
+                on the strongest baseline REVTAF, we increase the F1-score                               ments, their gains are constrained by specific failure modes.
+                from 0.589 to 0.607, reaching state-of-the-art performance.                              Magnitude-weighting methods like UW, GradNorm, and
+                Table2illustrates the performance on the IU X-Ray dataset                                FAMO merely scale loss weights, rendering them power-
+                where CAME-Grad achieves a 1.9% average CE improve-                                      less against destructive directional conflicts exceeding 90◦.
+                ment while exhibiting robustness against data scarcity and                               Meanwhile, globally-applied strict Pareto-based approaches
+                gradient noise. Although domain shift and stylistic variances                            like MMPareto suffer a performance collapse with average
+MODEL                  PUBLICATION                         CE METRICS                                               NLG METRICS                                              CE AVG.↑lead to more modest gains compared to MIMIC-CXR, ourclinical efficacy plunging to 0.076. Minimizing the global
+                approach still improves the primary clinical efficacy of cross-PREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑gradient norm across non-shared parameters severely penal-
+WCL†                      EMNLP’21           0.490        0.498      0.491      0.325      0.195      0.137      0.101       0.137       0.318          0.493
++ CAME-GRAD                                  0.522        0.514      0.516      0.362      0.226      0.163      0.124       0.156       0.332          0.517
+XPRONET      †              ECCV’22              0.598        0.588      0.590      0.440      0.271      0.183      0.132     0.182       0.336        0.5927
++ CAME-GRAD                                  0.619        0.603      0.606      0.463      0.292      0.204      0.151     0.181       0.333        0.609
+DCL†                       CVPR’23              0.527        0.525      0.525      0.393      0.255      0.186      0.144       0.185       0.298          0.526
++ CAME-GRAD                                  0.575        0.569      0.571      0.399      0.262      0.193      0.151       0.191       0.312          0.572
+PROMPTMRG    ∗       AAAI’24              0.200        0.210      0.197    0.419      0.248    0.158      0.106     0.161       0.314        0.202
++ CAME-GRAD                                  0.207        0.217      0.203      0.419      0.248      0.159      0.107     0.158       0.308        0.209
+CAMANET   †           JBHI’24                0.503        0.490      0.494      0.398      0.256      0.185      0.142       0.166       0.339          0.496
++ CAME-GRAD                                  0.520        0.514      0.516      0.409      0.261      0.190      0.145       0.170       0.349          0.517
+DDATR     ∗                  TMI’25               0.308      0.282      0.257      0.428      0.253      0.160      0.107       0.161     0.314        0.282
++ CAME-GRAD                                  0.281      0.308      0.259      0.433      0.257      0.164      0.110       0.163     0.313        0.283
+TGRG†                    MEDIA’25            0.508        0.497      0.500      0.471      0.302      0.204    0.146     0.189     0.392        0.502
++ CAME-GRAD                                  0.527        0.530      0.525      0.498      0.308      0.207    0.145     0.194     0.382        0.527
+REVTAF∗               ICCV’25               0.292        0.291      0.283      0.420      0.249    0.159      0.106       0.178       0.311        0.289
++ CAME-GRAD                                  0.304        0.302      0.294      0.424      0.251      0.159    0.105       0.177       0.310        0.300
+
+=== PAGE 8 ===
+                         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+               Figure 4.Qualitative comparison on the MIMIC-CXR test set. The Ground Truth report is shown at the top. The generated results of
+               REVTAF and CAME-Grad are shown on the left and right, respectively. Green text indicates accurate clinical observations consistent
+               with the Ground Truth, while red text indicates factual errors or missed diagnoses. Various colored highlights and arrows (e.g., green,
+               cyan, purple) illustrate the correspondence between visual attention regions and specific descriptions in the generated text.
+
+               Table 3.Performance comparison with multi-task optimizers on the MIMIC-CXR test set. All methods are evaluated using REVTAF as
+               the strong baseline. The best and second-best results in each metric are highlighted in bold and underlined, respectively, and↑indicates
+               higher is better. CE Average denotes the arithmetic mean of Precision, Recall, and F1-score.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+               izes the primary generative task, causing language modeling                        necessity of resolving direction conflicts. Enhancing mag-
+               failure.  Furthermore, while direction-projection methods                          nitude without the direction guidance of S1 causes the F1-
+               like CAGrad successfully mitigate conflicts to achieve 0.636                       score to drop from the baseline of 0.482 to 0.476. This sug-
+               precision, their rigid geometric projections restrict stochas-                     gests that blind energy injection harms model performance
+               tic exploration. This triggers diffusion decay, trapping the                       without proper geometric direction guidance. Second, the
+               model in sharp minima and degrading recall to 0.613, while                         results on DDaTR verify the importance of restoring and
+               gradient homogenization (e.g., RotoGrad) overly favors lan-                        enhancing magnitude. Removing S2 leads to a significant
+               guage fluency at the cost of diluting sharp diagnostic fea-                        decrease in F1-score from 0.438 of the full CAME-Grad to
+               tures. Ultimately, through its three cascaded stages, CAME-                        0.425, indicating that compensating for projection-induced
+               Grad simultaneously rectifies directional conflicts and com-                       decay is essential to help the model escape local minima. Fi-
+               pensates for kinetic energy loss to achieve the highest overall                    nally, removing the adaptive gradient fusion mechanism S3
+               average clinical efficacy of 0.626 while maintaining stable                        results in a decrease in precision, while some NLG metrics
+               report generation quality.                                                         degrade (e.g., BLEU-1) compared to the full CAME-Grad.
+                                                                                                  This implies that S3 acts as a regularizer by introducing
+               4.5. Analysis of CAME-Grad                                                         the inductive bias of the original gradient.  It effectively
+               4.5.1. ABLATIONSTUDY                                                               balances aggressive exploration momentum with language
+                                                                                                  smoothness, thereby improving overall diagnostic precision.
+               We conduct ablation studies on the MIMIC-CXR dataset                               4.5.2. QUALITATIVERESULTS
+               using PromptMRG and DDaTR as representative models,
+               as presented in Table4(full results in AppendicesDandE).                           To intuitively evaluate the clinical accuracy and coherence
+               These results verify the contribution of the three stages of                       of generated reports, Figure4compares the qualitative re-
+               CAME-Grad. First, the results on PromptMRG confirm the
+
+REVTAF                  PUBLICATION                    CE METRICS                                NLG METRICS                               CE AVG.↑8
+                                                 PREC.↑   REC.↑     F1↑     B-1↑    B-4↑    MTR↑   R-L↑
+LINEAR                   ICCV’25               0.615        0.617      0.589      0.465      0.184       0.199       0.336                     0.607
++ UW                        CVPR’18              0.619        0.622      0.593      0.457      0.178       0.196       0.333          0.611
++ GRADNORM       ICML’18               0.615        0.612      0.586      0.466      0.185       0.199       0.336                             0.604
++ CAGRAD            NEURIPS’21       0.636      0.613      0.596      0.467                           0.186        0.198       0.335          0.615
++ ROTOGRAD        ICLR’22               0.620        0.614      0.589    0.468      0.187     0.199     0.337        0.608
++ FAMO                   NEURIPS’23         0.619        0.631      0.597      0.465      0.186                    0.201     0.336             0.616
++ MMPARETO       ICML’24               0.071        0.085      0.073      0.010      0.000       0.004       0.016          0.076
++ STGU                    ICLR’25               0.622        0.633            0.600       0.459      0.181       0.198       0.334          0.618
++ CAME-GRAD   -                             0.633                0.637      0.607    0.466      0.185       0.200               0.336          0.626
+
+=== PAGE 9 ===
+                         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+               Table 4.Ablation study on the MIMIC-CXR dataset using PromptMRG and DDaTR as representative backbones.  Best results are
+               highlighted in bold and ↑ indicates higher is better.  We compare the baseline linear scalarization with ablated variants to verify the
+               contribution of each stage where S1, S2, and S3 represent Conflict-Averse Direction Rectification, Magnitude-Enhanced Energy Injection,
+               and Adaptive Gradient Fusion, respectively.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+               sults of REVTAF and the CAME-Grad equipped REVTAF                                   extending this SDE-based gradient dynamics optimization
+               on the MIMIC-CXR test set.  As shown in the figure, the                             algorithm to a broader range of multi-task medical imaging
+               ground truth clearly indicates diffuse right lung opacity and                       report generation tasks, providing theoretically deeper so-
+               increased right mid lung atelectasis.  However, REVTAF                              lutions to break the optimization bottlenecks in multi-task
+               exhibits clinical limitations where it correctly identifies sup-                    learning.
+               port devices by relying on high-frequency features in the
+               upper mediastinum but fails to attend to the lung bases and                         Acknowledgements
+               misses the right-sided pathology. In contrast, the report gen-
+               erated by CAME-Grad aligns highly with the ground truth.                            This work was supported in part by the National Natural
+               It not only accurately localizes the endotracheal tube but also                     Science Foundation of China under Grant 62472368, Grant
+               captures the global context to diagnose bilateral parenchy-                         62302427, and Grant 62462060, in part by the National Key
+               mal opacities. The attention map confirms that the model                            Research and Development Program of China under Grant
+               successfully attends to the right lung base highlighted in                          2025YFF0515600.
+               cyan which is a critical region missed by the baseline model.
+               This demonstrates that CAME-Grad successfully guides the                            Impact Statement
+               model to focus on rare yet critical pathological features in
+               the image by rectifying gradient direction and enhancing ex-                        This paper advances Machine Learning in automated radiol-
+               ploration momentum. Consequently, it significantly reduces                          ogy report generation (RRG). While the proposed CAME-
+               the risk of clinical missed diagnoses and greatly improves                          Grad optimizer demonstrates potential in improving diag-
+               the diagnostic credibility of the reports.  More results are                        nostic efficiency and alleviating radiologist workload, de-
+               provided in AppendixG.                                                              ploying such models without rigorous clinical oversight
+                                                                                                   carries risks of misdiagnosis and automation bias.
+               5. Conclusion                                                                       We explicitly acknowledge several limitations. First, clinical
+               This study establishes the critical role of gradient dynamics                       efficacy is evaluated via automatic labelers (e.g., CheXbert)
+               in optimizing multi-task RRG. Our analysis reveals that                             and lexical metrics rather than direct clinician judgment.
+               the failure of traditional linear scalarization is rooted in                        Consequently, real-world deployment requires stronger clin-
+               its inability to decouple destructive gradient interference,                        ical safety validations. Second, our method introduces mul-
+               thereby inducing the “Double Dilemma” of drift term devi-                           tiple hyperparameters, adding a tuning burden. Specifically,
+               ation and diffusion term decay. CAME-Grad successfully                              under extreme data scarcity and gradient noise (e.g., the IU
+               overcomes this by constructing a coupling mechanism to                              X-Ray dataset), CAME-Grad guarantees a mathematically
+               reshape the optimization dynamics, thereby effectively rec-                         safe lower bound but requires careful tuning to reach the
+               onciling the intrinsic conflict between report generation and                       performance upper bound. Finally, our theoretical interpreta-
+               clinical constraints. Experiments on the MIMIC-CXR and                              tion of the SDE dynamics currently exceeds direct empirical
+               IU X-Ray datasets across eight baseline models demonstrate                          validation. Bridging this gap in real-world clinical trials re-
+               that CAME-Grad improves clinical efficacy by an average                             mains a critical direction for future work to safely translate
+               of 2.3% and 1.9%, respectively. Future work will focus on                           these theoretical gains into tangible clinical benefits.
+
+
+
+BASEMODEL              COMPONENTS                CE METRICS                                               NLG METRICS                                                   CE AVG.↑S1      S2      S3      PREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑9
+
+                    ×     ×     ×     0.505        0.518      0.482    0.396      0.236    0.152    0.105     0.155       0.265          0.502
+                    ×  ✓    ✓     0.500        0.511      0.476      0.393      0.235      0.152    0.105     0.156     0.266        0.496
+PROMPTMRG           ✓  ×  ✓     0.513        0.520      0.487      0.393      0.235      0.152    0.105     0.156       0.265          0.507
+                    ✓    ✓  ×     0.508      0.531    0.489      0.395    0.236      0.153      0.105     0.156     0.266        0.509
+                    ✓    ✓    ✓     0.514      0.530    0.491      0.396      0.236      0.153      0.105       0.157       0.266          0.512
+                    ×     ×     ×     0.408        0.444      0.418      0.393      0.235      0.152      0.106       0.158       0.267          0.423
+                    ×  ✓    ✓     0.439      0.452      0.436      0.396      0.240      0.158      0.111       0.160       0.271          0.442
+DDATR               ✓  ×  ✓     0.434        0.446      0.425      0.403      0.244      0.160      0.111       0.157       0.270          0.435
+                    ✓    ✓  ×     0.425      0.467    0.435      0.402      0.244      0.160    0.113       0.162     0.272          0.442
+                    ✓    ✓    ✓     0.432        0.463    0.438      0.405      0.245      0.161      0.113     0.161     0.273          0.444
+
+=== PAGE 10 ===
+        The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+References                                                                  Jing, B., Xie, P., and Xing, E. P. On the automatic generation
+Chen, Z., Badrinarayanan, V., Lee, C.-Y., and Rabinovich,                      of medical imaging reports.  InProceedings of the 56th
+  A. Gradnorm: Gradient normalization for adaptive loss                        Annual Meeting of the Association for Computational
+   balancing in deep multitask networks.  InProceedings                        Linguistics (ACL), pp. 2577–2586, July 2018.
+   of the International Conference on Machine Learning                      Johnson, A. E. W., Pollard, T. J., Berkowitz, S. J., Green-
+  (ICML), pp. 794–803, 2018.                                                   baum, N. R., Lungren, M. P., Deng, C.-y., Mark, R. G.,
+Chen, Z., Song, Y., Chang, T.-H., and Wan, X. Generating                       and Horng,  S.   MIMIC-CXR, a de-identified publicly
+   radiology reports via memory-driven transformer. InPro-                     available  database  of  chest  radiographs  with  free-text
+   ceedings of the 2020 Conference on Empirical Methods in                     reports.Scientific Data, 6(1):317, 2019.
+  Natural Language Processing (EMNLP), pp. 1439–1449,                       Kendall, A., Gal, Y., and Cipolla, R.  Multi-task learning
+   November 2020.                                                              using uncertainty to weigh losses for scene geometry and
+Chen, Z., Shen, Y., Song, Y., and Wan, X.  Cross-modal                         semantics. InProceedings of the IEEE/CVF Conference
+   memory networks for radiology report generation.   In                       on Computer Vision and Pattern Recognition (CVPR), pp.
+  Proceedings of the Annual Meeting of the Association                         7482–7491, 2018.
+   for  Computational  Linguistics  and  the  International
+  Joint Conference on Natural Language Processing (ACL-                     Li, C. Y., Liang, X., Hu, Z., and Xing, E. P.  Knowledge-
+  IJCNLP), pp. 5904–5914, August 2021.                                         driven encode, retrieve, paraphrase for medical image
+Cheng,  Z.,  Huang,  Y.,  Zhang,  Z.,  Ou,  D.,  and  Liu,  Q.                 report generation. InProceedings of the AAAI Conference
+   No more tuning: Prioritized multi-task learning with la-                    on  Artificial  Intelligence,  volume  33,  pp.  6666–6673,
+   grangian differential multiplier methods. InProceedings                     2019.
+   of the AAAI Conference on Artificial Intelligence, vol-                  Li, G., Huang, C., Zhou, X., Ji, D., and Zhang, H.  Report
+   ume 39, pp. 11536–11543, 2025.                                              is a mixture of topics:  Topic-guided radiology report
+Demner-Fushman,  D.,  Kohli,  M.  D.,  Rosenman,  M.  B.,                      generation.Medical Image Analysis, 103:103586, 2025.
+   Shooshan, S. E., Rodriguez, L., Antani, S. K., Thoma,                    Li, M., Lin, B., Chen, Z., Lin, H., Liang, X., and Chang, X.
+   G. R., and McDonald, C. J. Preparing a collection of radi-                  Dynamic graph enhanced contrastive learning for chest
+   ology examinations for distribution and retrieval.Journal                   X-ray report generation. InProceedings of the IEEE/CVF
+   of the American Medical Informatics Association, 23(2):                     Conference on Computer Vision and Pattern Recognition
+   304–310, 2016.                                                              (CVPR), pp. 3334–3343, 2023.
+Denkowski, M. J. and Lavie, A.  Meteor 1.3:  Automatic                      Lin, C.-Y.  ROUGE: A package for automatic evaluation
+   metric for reliable optimization and evaluation of machine                  of summaries.  InProceedings of the Workshop on Text
+   translation systems. InProceedings of the Sixth Workshop
+   on Statistical Machine Translation (WMT), pp. 85–91,                        Summarization Branches Out, pp. 74–81, 2004.
+  July 2011.                                                                Liu, B., Liu, X., Jin, X., Stone, P., and Liu, Q.  Conflict-
+Javaloy, A. and Valera, I.   RotoGrad:  Gradient homoge-                       averse  gradient  descent  for  multi-task  learning.     In
+   nization in multitask learning.   InProceedings of the                      Advances  in  Neural  Information  Processing  Systems
+  International Conference on Learning Representations                         (NeurIPS), volume 34, pp. 18878–18890, 2021.
+  (ICLR), 2022.
+Jeong, W. and Yoon, K.-J.   Quantifying task priority for                   Liu,  B.,  Feng,  Y.,  Stone,  P.,  and  Liu,  Q.   FAMO:  Fast
+   multi-task optimization. InProceedings of the IEEE/CVF                      adaptive multitask optimization. InAdvances in Neural
+  Conference on Computer Vision and Pattern Recognition                        Information Processing Systems (NeurIPS), volume 36,
+  (CVPR), pp. 363–372, 2024.                                                   pp. 57226–57243, 2023.
+
+Jeong, W. and Yoon, K.-J. Selective task group updates for                  Mandt, S., Hoffman, M. D., and Blei, D. M. Stochastic gra-
+   multi-task optimization.  InProceedings of the Interna-                     dient descent as approximate Bayesian inference.Journal
+   tional Conference on Learning Representations (ICLR),                       of Machine Learning Research, 18:134:1–134:35, 2017.
+   2025.                                                                    Navon,   A.,   Shamsian,   A.,   Achituve,   I.,   Maron,   H.,
+Jin,  H.,  Che,  H.,  Lin,  Y.,  and  Chen,  H.    PromptMRG:                  Kawaguchi, K., Chechik, G., and Fetaya, E. Multi-task
+   Diagnosis-driven prompts for medical report generation.                     learning as a bargaining game.   InProceedings of the
+   InProceedings of the AAAI Conference on Artificial In-                      International Conference on Machine Learning (ICML),
+   telligence, volume 38, pp. 2607–2615, 2024.                                 pp. 16428–16446, 2022.
+
+                                                                        10
+
+=== PAGE 11 ===
+        The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+Nicolson, A., Dowling, J., and Koopman, B.  Improving                       Wei, Y. and Hu, D. MMPareto: Boosting multimodal learn-
+   chest X-ray report generation by leveraging warm starting.                  ing with innocent unimodal assistance.  InProceedings
+  Artificial Intelligence in Medicine, 144:102633, 2023.                       of the International Conference on Machine Learning
+                                                                               (ICML), pp. 52559–52572, 2024.
+Papineni, K., Roukos, S., Ward, T., and Zhu, W.-J. BLEU:
+  A method for automatic evaluation of machine translation.                 Yan, A., He, Z., Lu, X., Du, J., Chang, E. Y., Gentili, A.,
+   InProceedings of the 40th Annual Meeting of the Associ-                     McAuley, J. J., and Hsu, C.-N. Weakly supervised con-
+   ation for Computational Linguistics (ACL), pp. 311–318,                     trastive learning for chest X-Ray report generation.  In
+  July 2002.                                                                   Findings of the Association for Computational Linguis-
+                                                                               tics: EMNLP, pp. 4009–4015, November 2021.
+Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J.,                  Yu,  T.,  Kumar,  S.,  Gupta,  A.,  Levine,  S.,  Hausman,  K.,
+   Chanan, G., Killeen, T., Lin, Z., Gimelshein, N., Antiga,                   and Finn, C.  Gradient surgery for multi-task learning.
+   L., Desmaison, A., K¨opf, A., Yang, E. Z., DeVito, Z., Rai-                 InAdvances in Neural Information Processing Systems
+   son, M., Tejani, A., Chilamkurthy, S., Steiner, B., Fang,                   (NeurIPS), volume 33, pp. 5824–5836, 2020.
+   L., Bai, J., and Chintala, S. PyTorch: An imperative style,
+   high-performance deep learning library. InAdvances in                    Zhou, Q., Liang, G., Li, X., Chen, J., Wang, Z., Yao, C., and
+  Neural Information Processing Systems (NeurIPS), vol-                        Wu, S.  Learnable retrieval enhanced visual-text align-
+   ume 32, pp. 8024–8035, 2019.                                                ment and fusion for radiology report generation. InPro-
+Qin, X., Wang, X., and Yan, J.  Towards consistent multi-                      ceedings of the IEEE/CVF International Conference on
+   task learning:  Unlocking the potential of task-specific                    Computer Vision (ICCV), pp. 22529–22538, 2025.
+   parameters. InProceedings of the IEEE/CVF Conference
+   on Computer Vision and Pattern Recognition (CVPR), pp.
+  10067–10076, 2025.
+
+Sener,  O.  and  Koltun,  V.   Multi-task  learning  as  multi-
+   objective  optimization.   InAdvances  in  Neural  Infor-
+   mation Processing Systems (NeurIPS), volume 31, pp.
+   525–536, 2018.
+
+Smit,  A.,  Jain,  S.,  Rajpurkar,  P.,  Pareek,  A.,  Ng,  A. Y.,
+   and Lungren, M. P.  Combining automatic labelers and
+   expert annotations for accurate radiology report labeling
+   using BERT.   InProceedings of the 2020 Conference
+   on Empirical Methods in Natural Language Processing
+  (EMNLP), pp. 1500–1519, November 2020.
+
+Song, S., Tang, H., Yang, H., and Li, X. DDaTR: Dynamic
+   difference-aware temporal residual network for longitu-
+   dinal radiology report generation.IEEE Transactions on
+  Medical Imaging, 44(12):5345–5357, 2025.
+
+Vinyals, O., Toshev, A., Bengio, S., and Erhan, D. Show and
+   tell: A neural image caption generator.  InProceedings
+   of the IEEE Conference on Computer Vision and Pattern
+  Recognition (CVPR), pp. 3156–3164, 2015.
+
+Wang, J., Bhalerao, A., and He, Y. Cross-modal prototype
+   driven network for radiology report generation.  InPro-
+   ceedings of the European Conference on Computer Vision
+  (ECCV), pp. 563–579. Springer, 2022.
+
+Wang, J., Bhalerao, A., Yin, T., See, S., and He, Y.  CA-
+   MANet: Class activation map guided attention network
+   for radiology report generation.IEEE Journal of Biomed-
+   ical and Health Informatics, 28(4):2199–2210, 2024.
+
+                                                                        11
+
+=== PAGE 12 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+A. Universality Analysis of Internal Conflicts
+In Section3.2.1of the main paper, we visualized the gradient dynamics using the REVTAF backbone to illustrate the
+intrinsic conflict in multi-task RRG. To further demonstrate that this “Double Dilemma” is a universal challenge inherent to
+the task paradigm rather than a model-specific issue, we extend this analysis to another representative baseline, PromptMRG.
+As illustrated in FigureA.1, the gradient dynamics of PromptMRG exhibit a striking resemblance to those of REVTAF
+shown in the main text.  Specifically, PromptMRG exhibits a negative cosine similarity ratio of 49.8%, which is highly
+consistent with the 53.8% conflict ratio observed in REVTAF. This implies that regardless of the architecture, the intrinsic
+conflict between report generation and clinical constraints persists, causing the optimization direction to oscillate frequently.
+Furthermore, similar to the main experiments, the mean cosine similarity here is only 2.7×10       −3   , indicating that the
+effective gradient magnitude is drastically reduced due to cancellations. This empirical evidence verifies that the negative
+interaction term Ik ≪0     is a widespread bottleneck in existing multi-task RRG methods, further justifying the necessity of
+our proposed CAME-Grad optimizer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure A.1.Visualization of Gradient Conflict in PromptMRG. We analyze the distribution of gradient cosine similarities accumulated
+over 10 epochs on the MIMIC-CXR dataset. The x-axis represents the cosine similarity (cosθ      ) between gradients. The red area indicates
+destructive interference (negative similarity), where gradients cancel each other out, while the green area indicates synergy. Quantitatively,
+the Negative Ratio is 49.8%, meaning that nearly half of the gradient updates are conflicting during the training process. The mean cosine
+similarity is near zero (2.7×10        −3   ), suggesting significant optimization instability.
+
+
+B. Extended Analysis on SDE Dynamics
+
+B.1. Geometric Validity of Drift Correction
+To theoretically address the drift bias within our mechanistic hypothesis framework, we construct a minimax optimization in
+the tangent space:
+                                                maxu       mini∈{0,...,K}          ⟨g  i,u⟩  s.t.∥u−µ∥ ≤ρ∥µ∥,                                                   (15)
+
+where gi  denotes the gradient of the i-th task.  By solving this optimization, the rectified direction u∗rect  is explicitly
+optimized to maximize the common descent alignment among all tasks. Within the continuous-time SDE dynamics, the
+expected parameter drift rate is defined as:
+                                                                   E[dΘ      t]
+                                                                      dt     =−u     ∗rect.                                                                           (16)
+                                                                              12
+
+=== PAGE 13 ===
+                         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+               This construction seeks to ensure that for each task, the first-order contribution to the local loss evolution is minimized or
+               kept non-positive:
+                                                                    ⟨∇ΘLi(Θt),  E[dΘ      t]dt   ⟩=−⟨g          i,u ∗rect⟩ ≤0.                                                        (17)
+               This provides a grounded geometric mechanism to suppress directional conflicts within the trust region, thereby mitigating
+               the drift deviation suggested by our hypothesis.
+
+               B.2. Dynamical Compensation and Covariance Measurements
+               As discussed in Section3.3, Stage 2 compensates for the diffusion term decay by restoring and enhancing the gradient
+               magnitude.  In discrete mini-batch SGD, the parameter update along the projected direction involves implicit gradient
+               noise ˆu∗rect ∼ N(u    ∗rect,Σ rect). With amplification κ, the update becomes ∆Θ =−ηκ      ˆu∗rect. The expected drift E[∆Θ] =
+               −ηκu     ∗rect strictly preserves Stage 1’s Pareto validity. Meanwhile, amplifying the update magnitude by κ is dynamically
+               equivalent to applying a larger local effective learning rateη      eff =ηκalong this 1D safe trajectory.
+               As established in classical SGD theory (Mandt et al.,2017), increasing the effective learning rate directly amplifies the
+               stationary covariance of implicit noise. Mathematically, since the noise covariance is proportional to the outer product of
+               gradients:
+                                                                                       Σ(Θ)∝gg           ⊤,                                                                               (18)
+               scaling the gradient by a factor κ results in the covariance trace growing by a factor of κ2. Thus, CAME-Grad avoids adding
+               unconstrained isotropic noise (which, as shown in Setting B below, destroys the clinical manifold). Instead, we use this
+               directional scaling to amplify anisotropic exploration noise, compensating for the momentum decay caused by Stage 1’s
+               restricted projection.
+               To empirically verify this theoretical compensation, we monitor the evolution of the SGD noise covariance trace Tr(Σ)
+               during the training process.  For the baseline (REVTAF with linear scalarization) on the MIMIC-CXR dataset, Tr(Σ)
+               remains at a low level of approximately 0.3215. In contrast, CAME-Grad significantly increases this physical quantity to
+               approximately 4.4886 at convergence. This 14-fold increase in the physical measurement confirms that Stage 2 substantially
+               enlarges the noise scale of the SDE, providing the necessary dynamical compensation to restore exploration kinetic energy.
+
+               B.3. Comparative Analysis of Diffusion Mechanisms
+               To verify the necessity of magnitude enhancement strictly along the optimized direction, we conduct a comparative analysis
+               between CAME-Grad and isotropic noise injection (Setting B: SGLD). As shown in TableB.1, while Setting A (omitting
+               Stage 2) improves over the baseline via drift correction, it remains suboptimal due to energy depletion.
+               Crucially, Setting B’s drop in clinical efficacy performance reveals the inherent difficulty of unconstrained high-dimensional
+               optimization. Although isotropic noise N(0, σ        2I)   supplements the diffusion scale, it is highly likely to be orthogonal to
+               the true gradient manifold. This directionless noise destroys the Stage 1 Pareto projection u∗rect, causing the trajectory to
+               deviate from the clinical semantic manifold. Conversely, CAME-Grad restores the diffusion scale by scaling the magnitude
+               along the rectified direction, maintaining both geometric validity and exploration momentum.
+
+               Table B.1.Comprehensive ablation study of diffusion mechanisms on REVTAF (MIMIC-CXR). Setting B utilizes Stochastic Gradient
+               Langevin Dynamics (SGLD) to inject isotropic noise.
+
+
+
+
+
+
+
+
+               C. Glossary of Multi-Task Optimization Terminology
+
+               To provide a comprehensive background on the multi-task optimization landscape and elaborate on the technical details of
+               CAME-Grad, we outline the core terminologies, mathematical assumptions, and implementation mechanisms discussed in
+
+                                                                                              13
+
+
+Methods                          Ablation                         CE Metrics                                              NLG Metrics                                   CE Avg.↑Prec.↑   Rec.↑    F1↑    B-1↑   B-2↑   B-3↑   B-4↑   MTR↑   R-L↑
+
+REVTAF (Linear)           -                            0.615       0.617      0.589     0.465     0.319     0.236     0.184      0.199      0.336         0.607
+Setting A                         S1+S3                   0.627       0.632      0.6010.466     0.320     0.237     0.186      0.201      0.3370.620
+Setting B                         S1+SGLD+S3      0.610       0.585      0.5690.4660.319     0.236     0.184      0.196      0.332         0.588
+CAME-Grad (Ours)S1+S2+S30.633       0.637      0.607     0.466     0.320     0.2370.185      0.200      0.3360.626
+
+=== PAGE 14 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+this paper.
+Linear Scalarization:The default and most prevalent baseline approach in multi-task learning (MTL). It formulates
+the global optimization objective as a static or dynamically weighted linear combination of individual task losses (i.e.,
+Ljoint = PKi=0  ωiLi).  While computationally efficient, it inherently fails to address directional conflicts between task
+gradients.
+Geometric Validity:A strict condition in gradient-based multi-task optimization requiring that the updated global gradient
+does not conflict with any individual task’s descent direction. Geometrically, it mandates that the inner product between the
+rectified update vector u∗rect and each task gradient gi is non-negative (i.e., ⟨u ∗rect,g i⟩ ≥0   , meaning the angle does not
+exceed90        ◦).
+Diffusion Kinetic Energy:Viewed through the lens of Stochastic Differential Equations (SDEs), this term represents
+the inherent stochastic noise and exploration capability injected by mini-batch SGD during training. In the complex loss
+landscape of radiology report generation, maintaining sufficient diffusion kinetic energy is essential for the model to escape
+sharp, suboptimal local minima.
+Dual Variables (α):In gradient manipulation methods, dual variables   α∈∆      K+1    (the (K+ 1)     -dimensional unit simplex)
+are used to represent the optimal combination weights. They allow the transformation of an intractable high-dimensional
+conflict resolution problem in the parameter space into a solvable convex optimization problem.
+Trust Region Assumption:A foundational mathematical constraint in our optimization framework. It explicitly assumes
+that the corrected update direction u must reside within a bounded neighborhood of the mean gradient µ. This ensures that
+the rectified update preserves the underlying inductive bias and guarantees stable global convergence.
+Tensorized GPU Acceleration:An implementation mechanism designed to overcome the computational bottleneck of
+high-dimensional gradient manipulations. Instead of transferring parameters to the CPU, CAME-Grad solves the tensorized
+dual problem and executes the rectification stages directly on the GPU via parallel operations, ensuring minimal training
+overhead.
+Min-Max Trust-Region Formulation:The core theoretical outcome of the min-max formula Eq.8in Stage 1 is providing a
+mathematical guarantee for strict local Pareto descent. Specifically, the innerminoperator locates the most easily sacrificed
+task, while the outermaxoperator maximizes the descent benefit of this worst task. Incorporating the trust region constraint
+forces the generation of a consensus direction possessing a positive inner product with all task gradients. This mathematically
+establishes a safe lower bound, ensuring the model never destroys the generation manifold while capturing clinical features,
+thus eliminating negative transfer.
+
+D. Comprehensive Analysis on MIMIC-CXR
+In this section, we provide a comprehensive analysis of hyperparameter sensitivity and present the full quantitative results on
+the MIMIC-CXR dataset. All models were implemented following the unified experimental setup described in Section4.3
+of the main paper, ensuring a fair comparison across backbone architectures.
+
+D.1. Hyperparameter Sensitivity
+TableD.1summarizes the optimal hyperparameter configurations for the eight baseline models.  We observe a strong
+correlation between the optimal settings and the rigidity of the auxiliary tasks employed by each baseline, revealing distinct
+optimization behaviors across different constraint types.
+Models employing rigid, discrete auxiliary tasks, specifically PromptMRG, REVTAF, DDaTR, and DCL, consistently
+require a lower adaptive fusion coefficient (ν∈[0.1,0.2]               ) combined with standard energy injection (κ=  1.5     ).  This
+configuration is attributed to the severe gradient direction deviation caused by their respective auxiliary objectives, such as
+multi-label classification or retrieval-based alignment. As demonstrated in our gradient analysis, these hard constraints often
+induce gradients that are nearly orthogonal or opposing to the report generation manifold. Empirically, we observed that
+increasing ν beyond 0.3 for these models leads to a resurgence of conflict issues, manifesting as unstable convergence or
+regression to baseline performance. Consequently, a lower ν effectively down-weights the original joint gradient, forcing the
+optimization to rely more heavily on the rectified directionu            ∗rect computed in Stage 1 to mitigate destructive interference.
+In contrast, models relying on geometric or prototype-based constraints, such as XProNet and CAMANet, benefit from a
+
+                                                                          14
+
+=== PAGE 15 ===
+                                The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+                   Table D.1.Detailed hyperparameter settings of CAME-Grad for different baselines on MIMIC-CXR. The settings correlate with the
+                   rigidity of auxiliary tasks: models with hard constraints (e.g., Classification) generally require lower ν to rely more on rectified gradients,
+                   while soft constraints allow higherν.
+
+                                                                      Model               Auxiliary Task Type              ρ       κ       ν
+                                                                      High Conflict / Rigid Constraints
+                                                                      PromptMRG     Multi-label Classification              0.2     1.5     0.1
+                                                                      REVTAF           Retrieval & Alignment                  0.5     1.5     0.2
+                                                                      DDaTR              Longitudinal Diff.                          0.5     1.5     0.2
+                                                                      DCL                  Graph Node Classif.                      0.5     1.5     0.2
+                                                                      Geometric / Prototype Constraints
+                                                                      XProNet            Prototype Matching                       0.3     1.5     0.4
+                                                                      CAMANet        CAM-guided Attention                  0.4     1.5     0.5
+                                                                      Soft / Weak Constraints
+                                                                      TGRG               Topic Modeling                              0.1     1.7     0.8
+                                                                      WCL                 Weakly-supervised Contrastive     0.2     1.0     0.9
+
+                   Table D.2.Complete performance comparison on the MIMIC-CXR test set with specific hyperparameter configurations. Best results for
+                   each baseline pair are highlighted in bold. The inclusion ofρ, κ, νdemonstrates the specific tuning required for each architecture.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   balanced configuration with a medium fusion coefficient (ν∈[0.4,0.5]               ). While these methods utilize prototypes or attention
+                   maps that impose structural requirements on the feature space, their constraints are softer than hard labels. The moderate ν
+                   value indicates a necessary trade-off where the optimizer must rectify conflicting components while preserving the beneficial
+                   inductive biases, such as cluster structures provided by the prototypes. Notably, CAMANet requires a larger rectification
+                   radius (ρ= 0.4     ), which suggests that its attention-guided gradients exhibit a higher variance in angular distribution.  A
+                   broader trust region is thus necessary to prevent the optimizer from over-correcting potentially useful attention shifts,
+                   balancing stability with flexibility.
+                   Finally, for baselines incorporating loose or global semantic guidance, namely TGRG and WCL, we find that a higher fusion
+                   coefficient (ν∈[0.8,0.9]               ) yields optimal performance.  The auxiliary tasks in these models, such as topic modeling or
+                   weakly-supervised contrastive learning, provide global semantic regularization rather than per-sample penalties. This results
+                   in a high degree of synergy between tasks, allowing the optimizer to trust the original joint gradient direction. For WCL
+                   specifically, the conflict is often merely stochastic noise rather than structural misalignment, justifying the high retention of
+                   the original gradient to maintain training efficiency. Interestingly, TGRG requires the highest energy gain (κ= 1.7     ), likely
+                   because topic distributions induce a flatter optimization landscape, requiring stronger kinetic energy to escape local minima.
+
+
+
+
+MODEL                  PUBLICATION              HYPERPARAMS                CE METRICS                                               NLG METRICS                                                   CE AVG.↑ρ        κ       ν     PREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑
+
+WCL                        EMNLP’21                                           0.382        0.298      0.312      0.329      0.203      0.136      0.098       0.135       0.277          0.331
++ CAME-GRAD                                0.2      1.0      0.9     0.424        0.324      0.344      0.349      0.219      0.150      0.108       0.142       0.284          0.36415
+XPRONET              ECCV’22                                              0.382        0.304      0.314      0.325      0.202      0.137    0.099     0.134       0.260          0.333
++ CAME-GRAD                                0.3      1.5      0.4     0.391        0.309      0.322      0.329      0.204      0.138      0.099       0.135       0.261          0.341
+DCL                         CVPR’23                                               0.265        0.246      0.236      0.234      0.136      0.087      0.061       0.108       0.211          0.249
++ CAME-GRAD                                0.5      1.5      0.2     0.319        0.298      0.286      0.280      0.162      0.104      0.074       0.122       0.220          0.301
+PROMPTMRG         AAAI’24                                               0.505        0.518      0.482    0.396      0.236    0.152    0.105     0.155       0.265          0.502
++ CAME-GRAD                                0.2      1.5      0.1     0.514        0.530      0.491      0.396      0.236      0.153      0.105       0.157       0.266          0.512
+CAMANET           JBHI’24                                                 0.405        0.303      0.321    0.327    0.202      0.136      0.097       0.134       0.274          0.343
++ CAME-GRAD                                0.4      1.5      0.5     0.410        0.313      0.330      0.327      0.203      0.137      0.099       0.135       0.275          0.351
+DDATR                    TMI’25                                                  0.408        0.444      0.418      0.393      0.235      0.152      0.106       0.158       0.267          0.423
++ CAME-GRAD                                0.5      1.5      0.2     0.432        0.463      0.438      0.405      0.245      0.161      0.113       0.161       0.273          0.444
+TGRG                      MEDIA’25                                             0.457        0.435      0.417      0.423      0.258      0.164      0.109       0.162       0.284          0.436
++ CAME-GRAD                                0.1      1.7      0.8     0.493        0.466      0.450      0.438      0.268      0.173      0.117       0.169       0.285          0.470
+REVTAF                 ICCV’25                                               0.615        0.617      0.589      0.465      0.319      0.236      0.184       0.199     0.336        0.607
++ CAME-GRAD                                0.5      1.5      0.2     0.633        0.637      0.607      0.466      0.320      0.237      0.185       0.200       0.336          0.626
+
+=== PAGE 16 ===
+                             The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+                  Table D.3.Comprehensive ablation study of CAME-Grad across eight baseline architectures on MIMIC-CXR, ordered by publication year.
+                  We strictly compare the Baseline (Linear Scalarization) with three ablated variants and the Full model.S1: Conflict-Averse Direction
+                  Rectification;S2: Magnitude-Enhanced Energy Injection;S3: Adaptive Gradient Fusion. The results demonstrate that CAME-Grad (Full)
+                  consistently achieves the best trade-off between clinical consistency and generation quality.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASEMODEL              COMPONENTS                CE METRICS                                               NLG METRICS                                                   CE AVG.↑D.2. Performance EvaluationS1      S2      S3      PREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑
+
+                  TableD.2presents the comprehensive performance comparison on the MIMIC-CXR test set.  By explicitly listing the×     ×     ×     0.382        0.298      0.312      0.329      0.203      0.136      0.098       0.135       0.277          0.331
+                  hyperparameter configuration (ρ, κ, ν) alongside Clinical Efficacy (CE) and Natural Language Generation (NLG) metrics,×  ✓    ✓     0.412        0.304      0.322      0.341      0.213      0.144      0.105       0.139       0.280          0.346
+WCL               we demonstrate how specific tuning adapts to different backbone architectures to achieve consistent improvements.✓  ×  ✓     0.412      0.331    0.341    0.352      0.220      0.150      0.108       0.142     0.282          0.361
+                        ✓    ✓  ×     0.379        0.275      0.293      0.332      0.204      0.137      0.099       0.136       0.274          0.316
+                        ✓    ✓    ✓     0.424      0.324    0.344    0.349      0.219    0.150      0.108       0.142       0.284          0.364
+                  D.3. Ablation Study for Component×     ×     ×     0.382        0.304      0.314      0.325      0.202      0.137      0.099       0.134       0.260          0.333
+                  In this subsection, we provide a detailed component analysis of CAME-Grad across eight baseline architectures.  To×  ✓    ✓     0.362        0.279      0.294    0.329      0.205      0.139      0.101     0.134     0.262        0.312
+XPRONET                 ✓  ×  ✓     0.392      0.307      0.321      0.323      0.200      0.135      0.098       0.134       0.259          0.340
+                  rigorously evaluate the contribution of each algorithmic stage, we strictly compare the Full CAME-Grad model against✓    ✓  ×     0.389        0.303      0.317      0.323      0.199      0.134      0.096       0.132       0.257          0.336
+                  the baseline (Linear Scalarization) and three variants, each removing one key stage: Stage 1 (Conflict-Averse Direction✓    ✓    ✓     0.391      0.309      0.322      0.329    0.204      0.138      0.099     0.135     0.261        0.341
+                  Rectification), Stage 2 (Magnitude-Enhanced Energy Injection), and Stage 3 (Adaptive Gradient Fusion).×     ×     ×     0.265        0.246      0.236      0.234      0.136      0.087      0.061       0.108       0.211          0.249
+                        ×  ✓    ✓     0.288        0.262      0.255      0.281      0.162      0.105      0.074       0.122       0.222          0.268
+DCL                     ✓  ×  ✓     0.290        0.276      0.262      0.279      0.161      0.104      0.074       0.121       0.222          0.276
+                        ✓    ✓  ×     0.313        0.291      0.281    0.294      0.170      0.110      0.077       0.125       0.223        0.29516
+                        ✓    ✓    ✓     0.319        0.298      0.286    0.280      0.162      0.104      0.074       0.122       0.220        0.301
+                        ×     ×     ×     0.505        0.518      0.482    0.396      0.236    0.152    0.105     0.155       0.265          0.502
+                        ×  ✓    ✓     0.500        0.511      0.476      0.393      0.235      0.152    0.105     0.156     0.266        0.496
+PROMPTMRG               ✓  ×  ✓     0.513        0.520      0.487      0.393      0.235      0.152    0.105     0.156       0.265          0.507
+                        ✓    ✓  ×     0.508      0.531    0.489      0.395    0.236      0.153      0.105     0.156     0.266        0.509
+                        ✓    ✓    ✓     0.514      0.530    0.491      0.396      0.236      0.153      0.105       0.157       0.266          0.512
+                        ×     ×     ×     0.405        0.303      0.321      0.327      0.202      0.136      0.097       0.134       0.274          0.343
+                        ×  ✓    ✓     0.387        0.292      0.312    0.336      0.209      0.141      0.102       0.137       0.276        0.330
+CAMANET                 ✓  ×  ✓     0.395        0.314      0.326      0.328      0.203      0.137      0.099       0.135       0.273          0.345
+                        ✓    ✓  ×     0.404      0.322      0.337    0.327      0.204      0.139      0.100       0.134     0.276          0.354
+                        ✓    ✓    ✓     0.410      0.313      0.330      0.327      0.203      0.137      0.099       0.135       0.275          0.351
+                        ×     ×     ×     0.408        0.444      0.418      0.393      0.235      0.152      0.106       0.158       0.267          0.423
+                        ×  ✓    ✓     0.439      0.452      0.436      0.396      0.240      0.158      0.111       0.160       0.271          0.442
+DDATR                   ✓  ×  ✓     0.434        0.446      0.425      0.403      0.244      0.160      0.111       0.157       0.270          0.435
+                        ✓    ✓  ×     0.425      0.467    0.435      0.402      0.244      0.160    0.113       0.162     0.272          0.442
+                        ✓    ✓    ✓     0.432        0.463    0.438      0.405      0.245      0.161      0.113     0.161     0.273          0.444
+                        ×     ×     ×     0.457        0.435      0.417      0.423      0.258      0.164      0.109       0.162       0.284          0.436
+                        ×  ✓    ✓     0.483      0.487      0.455      0.440    0.268      0.175      0.119     0.169     0.287        0.475
+TGRG                    ✓  ×  ✓     0.483        0.467      0.445      0.436    0.269      0.176      0.121       0.169       0.290        0.465
+                        ✓    ✓  ×     0.484        0.448      0.436      0.429      0.260      0.169      0.114       0.166       0.285          0.456
+                        ✓    ✓    ✓     0.493      0.466      0.450      0.438      0.268      0.173      0.117     0.169     0.285          0.470
+                        ×     ×     ×     0.615        0.617      0.589      0.465      0.319      0.236      0.184       0.199       0.336          0.607
+                        ×  ✓    ✓     0.624        0.630      0.599    0.468      0.322      0.239      0.187     0.201     0.338        0.618
+REVTAF                  ✓  ×  ✓     0.627        0.632      0.601      0.466      0.320      0.237      0.186       0.201       0.337          0.620
+                        ✓    ✓  ×     0.628        0.630      0.601      0.467      0.321    0.239      0.187       0.202     0.337          0.620
+                        ✓    ✓    ✓     0.633        0.637      0.607    0.466      0.320      0.237      0.185       0.200       0.336        0.626
+
+=== PAGE 17 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+Stage 1:  Conflict-Averse Direction Rectification.The contribution of conflict rectification in Stage 1 is most pro-
+nounced in models employing rigid auxiliary constraints, such as PromptMRG and REVTAF. These models introduce hard
+constraints—multi-label classification or retrieval alignment—that often generate gradients orthogonal or even opposing
+to the primary generation objective.  For PromptMRG, removing Stage 1 results in a significant drop in F1-score from
+0.491 to 0.476, alongside a notable decrease in Precision.  This validates our hypothesis that without manifold-guided
+rectification, the sharp gradient conflicts stemming from hard labels destructively interfere with the language modeling
+manifold. Similarly, for REVTAF, the removal of Stage 1 leads to a regression in clinical efficacy metrics, suggesting that
+projecting auxiliary gradients onto a tangent space is essential for transforming conflicting signals into beneficial guidance.
+
+Stage 2:  Magnitude-Enhanced Energy Injection.Stage 2 acts as a universal stabilizer by restoring and enhancing
+the gradient magnitude after rectification. While Stage 1 ensures the update direction is correct, the rectification process
+(projection) often reduces the vector norm, potentially causing a loss of kinetic energy during optimization. Our results on
+XProNet and DDaTR confirm this theoretical concern. For XProNet, removing Stage 2 leads to a consistent, albeit subtle,
+decline in both clinical efficacy (CE Average drops from 0.341 to 0.340) and NLG metrics compared to the full model. This
+suggests that without energy injection, the optimizer may suffer from “gradient vanishing” in the projected space, causing it
+to stall in saddle points or converge slower. Restoring and enhancing the magnitude ensures that the rectified update retains
+sufficient momentum to escape local minima.
+
+Stage 3: Adaptive Gradient Fusion.Stage 3, governed by the adaptive fusion coefficient            ν, proves critical for models
+with complex or weak constraints, such as WCL and DCL. This stage dynamically balances the trust between the original
+joint gradient and the rectified update based on the current conflict level. WCL exhibits the highest sensitivity to this stage.
+Removing adaptive fusion causes a catastrophic performance drop, with the F1-score plummeting from 0.344 to 0.293. This
+confirms that for weakly-supervised tasks, a fixed weighting scheme fails to capture the time-varying synergy between
+contrastive learning and language modeling. Stage 3 allows the optimizer to dynamically “trust” the original gradient when
+synergy is high, which is essential for preserving the training efficiency of synergistic tasks. For DCL, while removing Stage
+3 marginally improves NLG scores, it degrades clinical efficacy, indicating that adaptive fusion is key to steering the model
+towards clinically accurate terminology rather than just fluent text.
+
+Precision-Recall Trade-off.   It is also worth noting the trade-off behavior observed in models like TGRG and CAMANet.
+In some cases, specific ablated variants (e.g., without S1 or S3) achieve higher Recall, F1-scores, or lexical metrics than
+the full model. However, the full CAME-Grad configuration generally maintains highly competitive or superior Precision
+across most baselines.  The full tri-stage mechanism effectively suppresses the generation of non-existent pathologies
+driven by noisy auxiliary signals. Therefore, while individual stages might occasionally be omitted to maximize specific
+recall-oriented metrics, the complete CAME-Grad framework provides the most robust and clinically reliable generation
+strategy across diverse constraint types.
+
+E. Generalizability and Robustness Analysis on IU X-Ray
+In this section, we extend our evaluation to the IU X-Ray dataset to verify the generalizability of CAME-Grad across
+different data scales and domain distributions. We provide a detailed analysis of hyperparameter adaptation strategies in
+TableE.1, followed by a comprehensive performance comparison in TableE.2.
+
+E.1. Hyperparameter Sensitivity and Zero-Shot Settings
+Consistent with our observations on MIMIC-CXR, the optimal hyperparameter settings on IU X-Ray exhibit a strong
+correlation with task rigidity.  However, the distinct data scarcity of the IU X-Ray dataset and our experimental setup
+involving cross-domain evaluation introduce specific adaptation patterns.  A key distinction in our experiments is the
+use of zero-shot inference for PromptMRG, REVTAF, and DDaTR. As these models utilize checkpoints pre-trained on
+MIMIC-CXR and are evaluated directly on IU X-Ray without fine-tuning, their hyperparameter configurations (ρ, κ, ν) are
+strictly inherited from the MIMIC-CXR training phase. The consistent improvements in overall clinical efficacy observed in
+TableE.2, such as PromptMRG achieving a 0.209 CE Average compared to the 0.202 baseline, demonstrate the intrinsic
+transferability of the optimization trajectory found by CAME-Grad.  This suggests that the rectified gradient directions
+computed on the source domain successfully capture generalized geometric properties of the report generation manifold,
+which remains valid even when transferred to a target domain with different distribution characteristics.
+
+
+                                                                        17
+
+=== PAGE 18 ===
+                               The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+                   Table E.1.Detailed hyperparameter settings of CAME-Grad for different baselines on IU X-Ray.  For zero-shot models, parameters
+                   are inherited from MIMIC-CXR (marked as -). For supervised models, we observe a general trend towards higher ν values (e.g., DCL,
+                   XProNet) for regularization, with the notable exception of WCL, which requires a lower ν to suppress increased label noise in low-resource
+                   contrastive learning.
+
+                                                                     Model               Auxiliary Task Type              ρ       κ       ν
+                                                                     Zero-Shot Inference (Inherited Configs)
+                                                                     PromptMRG     Multi-label Classification                -         -         -
+                                                                     REVTAF           Retrieval & Alignment                    -         -         -
+                                                                     DDaTR              Longitudinal Diff.                            -         -         -
+                                                                     Supervised Training (High Regularization)
+                                                                     DCL                  Graph Node Classif.                      0.5     1.5     0.8
+                                                                     XProNet            Prototype Matching                       0.1     1.0     0.8
+                                                                     CAMANet        CAM-guided Attention                  0.5     2.0     0.9
+                                                                     TGRG               Topic Modeling                              0.1     1.0     0.9
+                                                                     Supervised Training (Others)
+                                                                     WCL                 Weakly-supervised Contrastive     0.1     1.1     0.4
+
+                   Table E.2.Complete performance comparison on the IU X-Ray test set.      ∗ indicates zero-shot inference, where models are evaluated
+                   directly using MIMIC-CXR checkpoints; thus, their hyperparameters are inherited rather than tuned on IU X-Ray. † denotes standard
+                   supervised training. Best results are in bold.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   In contrast, for models trained from scratch on IU X-Ray, such as DCL, XProNet, CAMANet, and TGRG, we observe a
+                   significant shift towards higher fusion coefficients compared to their MIMIC-CXR counterparts. For instance, DCL requires
+                   ν= 0.2      on MIMIC-CXR but favors ν= 0.8      on IU X-Ray, and similarly, XProNet shifts from ν= 0.4      to ν= 0.8     . This
+                   phenomenon is attributed to the necessity of regularization in low-resource scenarios. Since the IU X-Ray dataset contains
+                   significantly fewer samples, the generator is highly prone to overfitting the training data. In this context, auxiliary tasks such
+                   as graph node classification or prototype matching provide essential structural priors. A higher ν instructs the optimizer to
+                   retain more of the original gradient information derived from these tasks, effectively acting as a regularizer that prevents
+                   the model from collapsing into memorization. Interestingly, WCL is the only exception where the optimal ν decreases to
+                   0.4 on IU X-Ray. This is attributed to the fact that weakly-supervised contrastive signals become significantly noisier in
+                   low-resource settings; thus, a lower ν is required to allow CAME-Grad to more aggressively rectify stochastic interference
+                   and maintain optimization stability.
+
+                   E.2. Quantitative Performance Comparison
+                   TableE.2presents the comprehensive performance comparison. CAME-Grad consistently improves overall clinical efficacy,
+MODEL                  PUBLICATION              HYPERPARAMS                CE METRICS                                               NLG METRICS                                                   CE AVG.↑as evidenced by the gains in CE Average across all baselines, despite minor trade-offs in specific NLG metrics for someρ        κ       ν     PREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑
+
+WCL†                      EMNLP’21                                           0.490        0.498      0.491      0.325      0.195      0.137      0.101       0.137       0.318          0.493
++ CAME-GRAD                                0.1      1.1      0.4     0.522        0.514      0.516      0.362      0.226      0.163      0.124       0.156       0.332          0.51718
+XPRONET      †              ECCV’22                                              0.598        0.588      0.590      0.440      0.271      0.183      0.132     0.182       0.336        0.592
++ CAME-GRAD                                0.1      1.0      0.8     0.619        0.603      0.606      0.463      0.292      0.204      0.151     0.181       0.333        0.609
+DCL†                       CVPR’23                                               0.527        0.525      0.525      0.393      0.255      0.186      0.144       0.185       0.298          0.526
++ CAME-GRAD                                0.5      1.5      0.8     0.575        0.569      0.571      0.399      0.262      0.193      0.151       0.191       0.312          0.572
+PROMPTMRG    ∗       AAAI’24                                               0.200        0.210      0.197    0.419      0.248    0.158      0.106     0.161       0.314        0.202
++ CAME-GRAD                                  -          -          -        0.207        0.217      0.203      0.419      0.248      0.159      0.107     0.158       0.308        0.209
+CAMANET   †           JBHI’24                                                 0.503        0.490      0.494      0.398      0.256      0.185      0.142       0.166       0.339          0.496
++ CAME-GRAD                                0.5      2.0      0.9     0.520        0.514      0.516      0.409      0.261      0.190      0.145       0.170       0.349          0.517
+DDATR     ∗                  TMI’25                                                0.308      0.282      0.257      0.428      0.253      0.160      0.107       0.161     0.314        0.282
++ CAME-GRAD                                  -          -          -         0.281      0.308      0.259      0.433      0.257      0.164      0.110       0.163     0.313        0.283
+TGRG†                    MEDIA’25                                             0.508        0.497      0.500      0.471      0.302      0.204    0.146     0.189     0.392        0.502
++ CAME-GRAD                                0.1      1.0      0.9     0.527        0.530      0.525      0.498      0.308      0.207    0.145     0.194     0.382        0.527
+REVTAF∗               ICCV’25                                               0.292        0.291      0.283      0.420      0.249    0.159      0.106       0.178       0.311        0.289
++ CAME-GRAD                                  -          -          -        0.304        0.302      0.294      0.424      0.251      0.159    0.105       0.177       0.310        0.300
+
+=== PAGE 19 ===
+                             The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+                  models. Notably, even for the supervised models that require strong regularization (high ν), our method achieves substantial
+                  improvements (e.g., DCL improves by 4.6% in CE Average), validating that CAME-Grad effectively balances the trade-off
+                  between conflict resolution and structural regularization.
+
+                  E.3. Ablation Study for Component
+                  In this subsection, we present a comprehensive component analysis of CAME-Grad on the IU X-Ray dataset. As detailed
+                  in TableE.3, we rigorously compare the full CAME-Grad optimizer against the baseline (Linear Scalarization) and three
+                  ablated variants. Unlike the MIMIC-CXR experiments, the IU X-Ray benchmark involves a complex mix of supervised
+                  training on small-scale data and zero-shot inference using cross-domain checkpoints.  This unique experimental setup
+                  reveals distinct behavioral patterns in how the three stages of CAME-Grad contribute to generalization and robustness across
+                  domains.
+
+                  Table E.3.Comprehensive ablation study of CAME-Grad across eight baseline architectures on IU X-Ray, ordered by publication year.
+                  ∗ and † denote zero-shot inference and supervised training, respectively. We strictly compare the Baseline (Linear Scalarization) with
+                  three ablated variants and the Full model.S1: Conflict-Averse Direction Rectification;S2: Magnitude-Enhanced Energy Injection;S3:
+                  Adaptive Gradient Fusion.  CE Avg.  denotes the average of Precision, Recall, and F1-score.  The best results for each backbone are
+                  highlighted in bold.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASEMODEL                COMPONENTS                CE METRICS                                               NLG METRICS                                                   CE AVG.↑S1      S2      S3      PREC.↑   REC.↑     F1↑     B-1↑    B-2↑    B-3↑    B-4↑    MTR↑   R-L↑
+
+                         ×     ×     ×     0.490        0.498      0.491      0.325      0.195      0.137      0.101       0.137       0.318          0.493
+                         ×  ✓    ✓     0.515        0.506      0.508      0.330      0.194      0.134      0.098       0.140       0.316          0.510
+WCL†                     ✓  ×  ✓     0.505        0.499      0.501      0.297      0.177      0.124      0.092       0.134       0.311          0.502
+                         ✓    ✓  ×     0.512        0.505      0.506      0.298      0.182      0.129      0.097       0.136       0.317          0.508
+                         ✓    ✓    ✓     0.522        0.514      0.516      0.362      0.226      0.163      0.124       0.156       0.332          0.517
+                         ×     ×     ×     0.598        0.588      0.590      0.440      0.271      0.183      0.132       0.182       0.336          0.592
+                         ×  ✓    ✓     0.610        0.592      0.597    0.491      0.315      0.219      0.162       0.200       0.348        0.600
+XPRONET      †           ✓  ×  ✓     0.589        0.572      0.577      0.457      0.282      0.198      0.148       0.180       0.327          0.579
+                         ✓    ✓  ×     0.564        0.555      0.558      0.442      0.269      0.190      0.144       0.181       0.327          0.559
+                         ✓    ✓    ✓     0.619        0.603      0.606    0.463      0.292      0.204      0.151       0.181       0.333        0.609
+                         ×     ×     ×     0.527        0.525      0.525      0.393      0.255      0.186      0.144       0.185       0.298          0.526
+                         ×  ✓    ✓     0.558        0.551      0.553      0.396      0.260      0.192      0.150     0.192     0.310          0.554
+DCL†                     ✓  ×  ✓     0.575        0.571      0.572    0.384      0.245      0.176      0.134       0.179       0.296        0.573
+                         ✓    ✓  ×     0.537        0.531      0.532      0.386      0.250      0.182      0.140       0.188       0.301          0.53319
+                         ✓    ✓    ✓     0.575      0.569      0.571    0.399      0.262      0.193      0.151     0.191     0.312        0.572
+                         ×     ×     ×     0.200        0.210      0.197    0.419      0.248    0.158      0.106     0.161       0.314        0.202
+                         ×  ✓    ✓     0.194        0.203      0.191      0.417      0.244      0.153      0.101       0.157       0.304          0.196
+PROMPTMRG    ∗           ✓  ×  ✓     0.205        0.211      0.199      0.413      0.243      0.155      0.104       0.158       0.309          0.205
+                         ✓    ✓  ×     0.203      0.221    0.202      0.411      0.243      0.155      0.104       0.158       0.306        0.209
+                         ✓    ✓    ✓     0.207      0.217    0.203      0.419      0.248      0.159      0.107     0.158       0.308        0.209
+                         ×     ×     ×     0.503        0.490      0.494      0.398      0.256      0.185      0.142       0.166       0.339          0.496
+                         ×  ✓    ✓     0.510        0.508      0.509      0.243      0.148      0.106      0.081       0.120       0.312          0.509
+CAMANET   †              ✓  ×  ✓     0.522        0.515      0.517    0.268      0.164      0.118      0.090       0.126       0.316        0.518
+                         ✓    ✓  ×     0.519        0.506      0.510      0.350      0.218      0.155      0.116       0.152       0.323          0.512
+                         ✓    ✓    ✓     0.520        0.514      0.516    0.409      0.261      0.190      0.145       0.170       0.349        0.517
+                         ×     ×     ×     0.308      0.282      0.257      0.428      0.253      0.160      0.107       0.161       0.314          0.282
+                         ×  ✓    ✓     0.305        0.277      0.251      0.425      0.249      0.157      0.105       0.161       0.309          0.278
+DDATR     ∗              ✓  ×  ✓     0.305        0.293      0.249      0.432    0.258      0.165      0.111       0.164       0.321        0.282
+                         ✓    ✓  ×     0.301        0.304    0.265    0.430      0.253      0.159      0.106       0.163       0.312        0.290
+                         ✓    ✓    ✓     0.281      0.308    0.259    0.433    0.257      0.164      0.110       0.163       0.313          0.283
+                         ×     ×     ×     0.508        0.497      0.500      0.471      0.302      0.204      0.146       0.189     0.392        0.502
+                         ×  ✓    ✓     0.518        0.511      0.513      0.499      0.311      0.204      0.136     0.213     0.382          0.514
+TGRG†                    ✓  ×  ✓     0.507        0.504      0.503    0.509    0.323      0.218      0.151       0.205       0.390          0.505
+                         ✓    ✓  ×     0.523        0.509      0.513      0.505    0.324      0.225      0.165     0.202       0.383          0.515
+                         ✓    ✓    ✓     0.527        0.530      0.525    0.498      0.308      0.207      0.145       0.194       0.382        0.527
+                         ×     ×     ×     0.292        0.291      0.283      0.420      0.249      0.159      0.106     0.178     0.311          0.289
+                         ×  ✓    ✓     0.304      0.303      0.295    0.429      0.254      0.162      0.108       0.176       0.310        0.301
+REVTAF∗                  ✓  ×  ✓     0.299        0.298      0.289      0.422      0.250      0.160      0.106       0.176       0.310          0.295
+                         ✓    ✓  ×     0.305      0.301      0.294    0.436      0.260      0.168      0.114     0.177     0.314        0.300
+                         ✓    ✓    ✓     0.304        0.302      0.294      0.424      0.251      0.159      0.105       0.177       0.310          0.300
+
+=== PAGE 20 ===
+         The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+Stage 1: Conflict-Averse Direction Rectification.The contribution of conflict rectification is particularly pivotal for the
+zero-shot models, namely PromptMRG, REVTAF, and DDaTR. Since these models inherit parameters trained on MIMIC-
+CXR, the auxiliary gradients they generate—derived from multi-label classification or retrieval tasks—are intrinsically
+biased towards the source domain distribution. When applied directly to IU X-Ray images, these raw gradients often deviate
+significantly from the optimal generation direction of the target domain. For instance, in PromptMRG, removing Stage 1
+leads to a notable regression in the F1-score from 0.203 to 0.191. This empirical evidence suggests that the manifold-guided
+rectification in Stage 1 acts as a dynamic domain adapter. By projecting the conflicting auxiliary gradients onto the tangent
+space of the primary objective, Stage 1 effectively filters out source-domain noise while preserving the generalized semantic
+features. Conversely, for REVTAF, removing Stage 1 marginally outperforms the full model (CE Avg 0.301 vs. 0.300),
+indicating that forced geometric alignment is counterproductive when cross-domain retrieval gradients degenerate into
+pure noise. Similarly, its higher NLG scores without Stage 3 confirm that completely discarding these corrupted original
+gradients prevents flawed retrieval priors from disrupting language fluency.
+
+Stage 2: Magnitude-Enhanced Energy Injection.Stage 2 serves as a critical stabilizer, consistent across both zero-shot
+and supervised settings. In low-resource scenarios like IU X-Ray, the gradient landscape is often sparse and irregular. The
+projection operation in Stage 1, while correcting the angular direction, inevitably reduces the gradient norm. Without energy
+compensation, this reduction can lead to vanishing updates and premature convergence, trapping the model in suboptimal
+local minima.   The results on XProNet demonstrate this effect clearly.   Removing Stage 2 leads to a comprehensive
+degradation in performance, with the average clinical efficacy dropping significantly from 0.609 to 0.579. This confirms that
+restoring the kinetic energy of the optimization trajectory is indispensable for traversing the rugged loss landscape of small
+datasets. It ensures that the model retains sufficient momentum to escape saddle points and reach a more robust solution,
+effectively counteracting the side effects of the geometric projection.
+
+Stage 3: Adaptive Gradient Fusion.For the supervised models trained from scratch, such as WCL, DCL, and TGRG,
+Stage 3 plays a critical role that extends beyond simple conflict management; it functions as a vital regularization mechanism.
+Given the severe data scarcity of IU X-Ray, models are highly susceptible to overfitting the training set, often manifesting
+as high lexical overlap but poor clinical reasoning on unseen data.  Stage 3 governs how much the optimizer relies on
+the structural priors provided by auxiliary tasks versus the data-driven language modeling loss.  In the case of WCL,
+removing Stage 3 causes the F1-score to decline from 0.516 to 0.506. This indicates that a fixed fusion strategy fails to
+dynamically leverage the global semantic regularization provided by contrastive learning. By adaptively up-weighting the
+auxiliary gradients when the synergy is high—consistent with the higher fusion coefficients observed in our hyperparameter
+analysis—Stage 3 prevents the generator from collapsing into memorization. It forces the model to respect the auxiliary
+structural constraints, ensuring that the learned representations remain robust and generalizable to the test set.
+
+Trade-off Analysis.Finally, we observe an interesting trade-off regarding Natural Language Generation metrics in specific
+baselines.  For models like XProNet, the variant without Stage 1 occasionally yields higher BLEU scores than the full
+model. However, this increase in surface-level fluency comes at the cost of clinical accuracy, as evidenced by the lower
+Precision and Recall scores. This phenomenon suggests that without the constraint of conflict rectification, the model may
+overfit to frequent linguistic patterns in the training captions, generating fluent but factually incorrect reports. CAME-Grad
+prioritizes clinical correctness by suppressing these ungrounded language priors, ensuring that the generated reports are not
+only readable but, more importantly, diagnostically accurate.
+
+F. Performance of Auxiliary Classification Task
+Assessing the auxiliary classification task is fundamental to ensuring that gradient rectification does not compromise the
+underlying clinical supervisory signals. In the multi-task radiology report generation (RRG) framework, the classification
+branch provides critical diagnostic anchors that ground the primary generative manifold.
+To comprehensively evaluate this multi-label classification performance, we report the Area Under the Curve (AUC),
+Precision, Recall, and F1-score. Given the inherent long-tailed disease distribution in the MIMIC-CXR dataset, we calculate
+both Macro-averaged metrics (which treat each of the 14 observation classes equally) and Micro-averaged metrics (which
+aggregate contributions globally to account for class imbalance). This dual perspective ensures a rigorous and unbiased
+assessment of the auxiliary branch’s diagnostic capacity.
+As summarized in TableF.1, CAME-Grad demonstrates robust performance preservation and enhancement on the auxiliary
+
+                                                                         20
+
+=== PAGE 21 ===
+                        The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution
+
+               branch across different backbones. On the PromptMRG baseline, the Macro F1-score improves from 0.404 to 0.415, while
+               the Micro F1-score increases from 0.585 to 0.593. For the REVTAF backbone, CAME-Grad yields a notable gain in the
+               Macro F1-score from 0.595 to 0.610. Although the Macro Precision of REVTAF exhibits a minor reduction from 0.654 to
+               0.651, the overall diagnostic efficacy reflected by the AUC and F1-score consistently improves. These findings confirm that
+               CAME-Grad effectively resolves mutual interference and achieves synergistic optimization across both tasks, allowing the
+               model to reach a superior equilibrium between diagnostic accuracy and report quality.
+
+              Table F.1.Classification performance comparison on the MIMIC-CXR dataset. The best results for each baseline pair are highlighted in
+               bold. AUC and F1-score provide a comprehensive evaluation of the auxiliary diagnostic branch.
+
+
+
+
+
+
+
+
+
+
+               G. Extended Qualitative Analysis
+               In this section, we provide an extended qualitative evaluation to intuitively demonstrate the clinical accuracy and coherence
+               of the reports generated by CAME-Grad. FigureG.1compares the qualitative results of the baseline PromptMRG and the
+               CAME-Grad equipped PromptMRG on the MIMIC-CXR test set.
+              As illustrated in the case, the Ground Truth (GT) clearly indicates “areas of moderate retrocardiac atelectasis” along with
+               the presence of multiple support devices. However, the baseline PromptMRG exhibits serious clinical limitations driven by
+              visual tunnel vision. It allocates excessive attention to the support devices in the upper mediastinum, generating redundant
+               descriptions of catheter positions (e.g., “projects 4 cm above the carina”). Consequently, it completely fails to attend to the
+               retrocardiac region—indicated by the cold blue regions in its attention map—and misses the critical finding of atelectasis.
+               In contrast, the report generated by the model optimized by CAME-Grad aligns highly with the gold standard. It not only
+               accurately verifies the support devices but also successfully penetrates the anatomical occlusion to diagnose “subsequent
+               areas of atelectasis”. The attention map further confirms that the model successfully attended to the retrocardiac region
+               highlighted in cyan/yellow, a critical pathological area missed by the baseline model. This demonstrates that CAME-Grad
+               successfully guides the model to explore distinct discriminative features beyond salient objects (like tubes) by rectifying
+               gradient direction and enhancing exploration momentum. Consequently, it significantly reduces the risk of clinical missed
+               diagnoses and greatly improves the diagnostic credibility of the reports.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              Figure G.1.Qualitative comparison and attention visualization on the MIMIC-CXR test set. The Ground Truth report is shown at the top.
+              The PromptMRG baseline (left) is distracted by the support devices in the upper mediastinum and misses the “moderate retrocardiac
+               atelectasis” (marked in red). In contrast, CAME-Grad (right) successfully allocates attention to the retrocardiac region (highlighted by the
+               cyan arrow and heatmap hotspot) and correctly identifies the atelectasis, demonstrating superior anatomical consistency.
+
+
+
+                                                                                            21
+
+MODEL                  PUBLICATION                              MACROMETRICS                                      MICROMETRICSAUC↑   PREC.↑   REC.↑     F1↑     AUC↑   PREC.↑   REC.↑     F1↑
+
+PROMPTMRG         AAAI’24             0.811        0.439        0.387      0.404      0.874        0.610        0.562      0.585
++ CAME-GRAD                                 0.814        0.460        0.397      0.415      0.877        0.617        0.571      0.593
+REVTAF                 ICCV’25              0.905      0.654      0.562      0.595      0.936        0.741        0.702      0.721
++ CAME-GRAD                                 0.907      0.651      0.588      0.610      0.938        0.742        0.721      0.732

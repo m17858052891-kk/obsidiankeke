@@ -57,3 +57,14 @@ created: "2026-11-04"
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/BoundedSensitivity/精读|BoundedSensitivity]] — 复用唯一正文。
 - [[研究前沿/面向决策的履约建模/01-论文原文与精读/PolicySampleRisk/精读|PolicySampleRisk]] — 复用唯一正文。
 - [[研究前沿/动态等待与匹配决策/01-论文原文与精读/DoseAllocation/精读|DoseAllocation]] — 复用唯一正文。
+
+## 2026-11-09 新增与关联
+
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/MultiLTMLE/精读|Doubly-robust causal inference for multi-valued treatment regimes with recurrent neural networks]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/JointPOBounds/精读|Identification and Bounding of Joint Expectation over Potential Outcomes]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/ValidatedDigitalTwins/精读|Experimentally Validated Digital Twins: Evaluating Workforce Training Programs in the Age of Big Data]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/AdaptiveFalsification/精读|Adaptive Experimentation Can Hide Model Error:Detection Limits and Falsification Budget]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/CaseOnlySCCS/精读|Causal Inference from Self-controlled Case Series]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/ClusterAdjustedSMD/精读|Bayesian Cluster-Adjusted Standardised Mean Differences: A Simulation Study]]
+- 跨方向 · [[研究前沿/面向决策的履约建模/01-论文原文与精读/IVBench/精读|模拟器知道干预做了什么吗？用同构盲模型评估试验组差]]
+- 跨方向 · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/DFQI/精读|DFQI · 把相邻市场样本纳入每一次动作价值更新]]

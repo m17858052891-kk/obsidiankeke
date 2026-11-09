@@ -1,0 +1,1522 @@
+
+
+UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale
+
+ Report GitHub Issue
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract.
+
+1 Introduction
+
+Why full-stack unification is hard.
+
+Why existing methods fall short.
+
+Our approach.
+
+Results.
+
+2 Related Work
+
+Transformer-based recommendation architectures.
+
+End-to-end generative methods.
+
+3 Methodology
+
+3.0.1 Background:
+
+Section roadmap.
+
+3.1 Reformulating PinRec for ranking
+
+3.1.1 Masked Action Modeling
+
+3.2 Data infrastructure
+
+3.2.1 Feedview-centric dataset construction
+
+3.2.2 Ray in-trainer join
+
+3.3 Serving infrastructure
+
+3.3.1 Background:
+
+3.3.2 Overall serving design
+
+3.3.3 KV-cache sharing across stages
+
+3.3.4 FP8 quantization
+
+4 Results
+
+4.1 Train a Unified Retrieval and Ranking (RQ1)
+
+Baselines and training strategies.
+
+Results.
+
+4.2 Co-serve a Retrieval and Ranking Model (RQ2)
+
+4.3 Ablations
+
+4.3.1 Effect of Masking Ratio in MAM
+
+Results.
+
+4.3.2 Effect of Model Scaling
+
+Results.
+
+5 Online A/B Experiments (RQ3)
+
+5.1 Experimental Setup
+
+Deployment configurations.
+
+5.2 Board More Ideas
+
+Results.
+
+5.3 Notifications
+
+Results.
+
+6 Conclusion
+
+Acknowledgements
+
+References
+
+ License: CC BY 4.0
+
+arXiv:2606.00422v1 [cs.IR] 29 May 2026
+
+UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale
+
+CCS: Information systems Recommender systems
+
+Hanyu Li
+
+email: hanyuharryli@pinterest.com
+
+Note: Corresponding authors.
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Yi-Ping Hsu
+
+email: yhsu@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Aditya Mantha
+
+email: amantha@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Prabhat Agarwal
+
+email: pagarwal@pinterest.com
+
+Note: Work done at Pinterest.
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Laksh Bhasin
+
+email: lbhasin@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Jialu Wang
+
+email: jialuwang@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Hongtao Lin
+
+email: hongtaolin@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Bella Huang
+
+email: shuang@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Yaxin Li
+
+email: yaxinli@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Xinyi Li
+
+email: xinyi@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Chuxi Wang
+
+email: chuxiwang@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Kousik Rajesh
+
+email: krajesh@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Hooshmand S. Razaghi
+
+email: hshokrirazaghi@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Shunyao Li
+
+email: sli@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Zongyue Qin
+
+email: zqin@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Jaewon Yang
+
+email: jaewonyang@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+James Li
+
+email: jamesli@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Dhruvil Deven Badani
+
+email: dbadani@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+, 
+Jiajing Xu
+
+email: jiajing@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+ and 
+Charles Rosenberg
+
+email: crosenberg@pinterest.com
+
+Affiliation: Pinterest, Palo Alto, CA, USA
+
+2026
+
+Abstract.
+
+Modern recommendation systems predominantly train retrieval and ranking as separate models despite both increasingly relying on large transformers encoding the same user behavior data, duplicating parameters, compute, and serving cost.
+Prior work unifies the model architecture but not the full pipeline: input formats, training procedures, and serving stacks remain fragmented across stages.
+
+We present UniPinRec, which achieves full-stack unification of retrieval and ranking at Pinterest: one input format, one model, one training stage, deployed within existing serving infrastructure.
+A shared transformer encodes the user action sequence into candidate-independent representations that branch into retrieval (ANN dot-product) and ranking (cross-attention) via task-specific heads.
+Three ideas make this work: (1) Masked Action Modeling (MAM) eliminates interleaving, enabling weight sharing without doubling context length; (2) Blended training examples pair action sequences with feedview impression slates to satisfy both objectives jointly; (3) Cross-stage KV cache sharing reuses user-history computation from retrieval for ranking, reducing total FLOPs versus serving two independent models.
+
+Deployed in the Pinterest core surfaces, UniPinRec delivers approximately +1% online engagement lift while cutting end-to-end serving latency by 11.1% and lifting QPS by 63.6%.
+To our knowledge, this is the first full-stack unification of retrieval and ranking, covering inputs, model, training and serving, deployed in a production recommendation system.
+
+Keywords: generative recommendation, unified retrieval and ranking, KV-cache reuse
+
+1. Introduction
+
+Modern industrial recommendation systems (Chen et al., 2025b; Agarwal et al., 2025; Xia et al., 2023) are built as multi-stage funnels: candidate generation retrieves thousands of items from a corpus of millions, ranking scores these candidates with richer features, and blending assembles the final page.
+Each stage is trained in isolation with its own architecture, objective, and training data.
+This separation carries a fundamental cost: retrieval and ranking both learn representations from the same user behavior data, yet cannot share parameters or transfer learned signals across stages.
+
+Figure 1. Prior methods unify the architecture but leave input format, training, and serving fragmented. Our approach unifies all four dimensions.
+
+The emergence of transformer-based sequence models as the dominant backbone at every stage (Zhai et al., 2024; Ye et al., 2025a; Chen et al., 2026; Sun et al., 2026b; Dai et al., 2025) has made this redundancy more acute.
+When both stages are powered by large transformers encoding the same user action history, duplication becomes the primary source of inefficiency: in parameters, training compute, and serving cost.
+This creates a concrete opportunity: unify the two stages into a single model that encodes the user once, serves both stages from a common representation, and enables signal sharing where ranking supervision informs retrieval and retrieval’s broader corpus exposure regularizes ranking (Dai et al., 2025; Sun et al., 2026b).
+
+We call this goal full-stack unification (Figure 1): sharing not just the model architecture, but the entire pipeline, including input format, training, and serving infrastructure.
+In this paper, we achieve full-stack unification and deploy it in production at Pinterest.
+
+Why full-stack unification is hard.
+
+Three challenges have prevented prior work from achieving this.
+(1) Usage divergence: Although the backbone architecture has converged, the computational regimes remain distinct: retrieval must score millions of candidates under millisecond latency (e.g., via ANN dot-product scoring (Agarwal et al., 2025)), while ranking scores hundreds and can afford richer per-candidate computation (e.g., cross-attention (Chen et al., 2025b; Zhai et al., 2024)).
+(2) Training complexity: Retrieval and ranking use different objectives (sampled softmax over the full corpus vs. binary classification over a small impression set), but prior work on next-action prediction (Chen et al., 2025b; Xia et al., 2025) already suggests these tasks could be complementary. Nonetheless, existing unified models resort to multi-stage pipelines (pre-training, fine-tuning, RL alignment) to reconcile them, adding complexity that itself prevents full-stack unification.
+(3) Serving and operational challenges: A unified model must serve at a lower cost than when separately deployed to justify the change; another desirable property is composability with existing candidate generators (e.g., keywords, trending), and preserve the flexibility to determine the level of unification, and A/B test and roll back each stage independently.
+These challenges are largely unexplored; very few systems have deployed a unified retrieval-ranking model in production (Deng et al., 2025; Sun et al., 2026b).
+
+Why existing methods fall short.
+
+Existing approaches fall into two broad directions (Figure 1).
+The first proposes unified architectures across stages.
+HSTU (Zhai et al., 2024) uses a shared transformer paradigm but requires different input formats for retrieval (non-interleaved) and ranking (interleaved), so the stages are trained independently and cannot share computation.
+OnePiece (Dai et al., 2025) adds unified multi-task training but was only deployed as either a retrieval or ranking model, never serving both stages from one unified model.
+In short, these methods share the architecture but remain far from full-stack unification.
+
+The second direction proposes end-to-end generative methods that bypass the funnel entirely.
+OneRec (Deng et al., 2025) and OneRanker (Sun et al., 2026b) produce candidates via autoregressive decoding of semantic IDs, achieving unification by construction.
+However, replacing the production funnel entirely makes it harder to compose with existing candidate sources and loses per-stage operational control.
+
+Our approach.
+
+Our design principle is to compose existing, proven components (ANN indexing, cross-attention ranking, KV caching) rather than introducing new mechanisms, making the unified model a drop-in replacement within existing production infrastructure.
+Unification is not merely an elegance goal: a separate ranker would duplicate the expensive user-history encoding that retrieval already performs. By sharing this computation, UniPinRec adds ranking at marginal cost, making it practical to rank within the same latency budget as retrieval alone.
+
+UniPinRec achieves this with three design choices. First, Masked Action Modeling adds ranking supervision to the same non interleaved user sequence used for retrieval. Second, blended training examples and a joint loss train retrieval and ranking in a single stage. Third, cross-stage KV-cache sharing lets ranking reuse the user-history computation from retrieval, preserving modular serving while avoiding duplicate transformer work.
+
+Together, these choices achieve full-stack unification: same input format for both stages, single-stage joint training, and deployment within existing serving infrastructure.
+
+Results.
+
+The unified model adds ranking capability while maintaining retrieval recall and reducing serving cost, a combination not achievable without model/system co-design.
+Offline, UniPinRec lifts ranking Hit@3 by $+14.8\%$ over the production ranker while matching production retrieval recall.
+
+Because UniPinRec couples retrieval and ranking through a shared backbone, the most natural incremental rollout scheme starts from the L0 side: we ship retrieval together with L1 light-weight ranking as a single service (L0+L1), and extend to L2 fine ranking as a follow-up. This keeps the downstream ranker/blender untouched and gives us clean A/B attribution early.
+
+Although the offline ranking lift is attenuated by the downstream ranker/blender, it still delivered consistent engagement wins, $+0.95\%$ on Board More Ideas saves and $+0.91\%$ on Notifications push opens.
+On serving, optimizations like cross-stage KV-cache reuse yield a $>3\times$ total ranking forward-pass speedup (Table 2) and in production, -11.1% e2e latency reduction and +63.6% QPS lift from naive separate deployment (Table 3).
+
+2. Related Work
+
+Transformer-based recommendation architectures.
+
+HSTU (Zhai et al., 2024) established a new paradigm of generative recommender with transformers as the dominant backbone, with subsequent works scaling capacity (Ye et al., 2025a; Ye et al., 2025b; Chen et al., 2026; Yan et al., 2026; Pardoe et al., 2026), improving multi-task optimization (Yang et al., 2025; Zhang et al., 2026; Yuan et al., 2024; Cao et al., 2025), or further productionize the idea (Han et al., 2025; Hertel et al., 2025).
+OnePiece (Dai et al., 2025) applied unified multi-task training on a shared backbone for cascade ranking at Shopee.
+RelayGR (Wang et al., 2026) enables KV cache reuse across pipeline stages but assume independently trained models.
+Each of these methods achieves partial unification, whether in architecture (HSTU, OnePiece), training (OnePiece), or serving (RelayGR), but none unifies input, model, training and serving end-to-end.
+
+End-to-end generative methods.
+
+OneRec (Deng et al., 2025), OneRanker (Sun et al., 2026b), and GPR (Zhang et al., 2025a) replace the cascaded pipeline with generative models that produce candidates via autoregressive decoding.
+This paradigm has been extended to unified search and recommendation (Gao et al., 2025; Chen et al., 2025a; Yan et al., 2025) and deployed across multiple companies (Han et al., 2025; Sun et al., 2026a; Zou et al., 2026; Su et al., 2026).
+Beyond infrastructure concerns, recent work (Yang et al., 2024; Ding et al., 2026) has shown that generative retrieval with semantic ID is not a clear win over dense retrieval due to lossy compression, inefficiency of the generation objective, and cold-start failures, also token relations are memorized in-parameter rather than delegated to external scalable indices where embedding proximity is naturally preserved.
+
+3. Methodology
+
+3.0.1. Background:
+
+Figure 2. End-to-end flow of UniPinRec: a single shared backbone is trained jointly on retrieval and ranking objectives, then co-served as two Triton processes that share the user-history KV cache across stages.
+
+UniPinRec builds on PinRec (Agarwal et al., 2025), a generative retrieval model. Each item is represented by pre-trained item embeddings Omnisage(Badrinath et al., 2025), and CLIP based multimodal embeddings(Beal et al., 2026), search queries use pre-trained search embeddings(Agarwal et al., 2024). These features are projected through an MLP into an $L_{2}$ -normalised embedding. Given a user’s history of positively interacted items $H(u,t_{\max})$ , PinRec feeds the embedding sequence into a causal decoder-only transformer and trains with a sampled softmax loss over in-batch and random negatives:
+
+ | (1)
+ | 
+ | $L_{s}(\hat{i}_{u,t},i_{u,t+1})=-\log\frac{\exp\bigl(s(\hat{i}_{u,t},i_{u,t+1})\bigr)}{\exp\bigl(s(\hat{i}_{u,t},i_{u,t+1})\bigr)+\sum_{i_{n}\in N}\exp\bigl(s(\hat{i}_{u,t},i_{n})\bigr)},$ 
+ | 
+
+where $s(\hat{i}_{u,t},i_{c})=\lambda\cdot\hat{i}_{u,t}^{\top}i_{c}-\log Q(i_{c})$ is a frequency-corrected similarity, $Q(i_{c})$ is the estimated sampling probability of candidate $i_{c}$ (computed via a count-min sketch), and $N$ is the set of negative samples. The model is optimized to minimize $L_{s}$ averaged over all positions in the history.
+
+Section roadmap.
+
+The remainder of this section addresses each challenge from the introduction in turn: Section 3.1 resolves architectural and training divergence via Masked Action Modeling and a joint loss; Section 3.2 describes the data infrastructure that makes joint training feasible at scale; Section 3.3 resolves serving and operational challenges via cross-request KV-cache sharing.
+
+3.1. Reformulating PinRec for ranking
+
+Extending PinRec to ranking requires three changes:
+
+(1) 
+
+Objective: rather than maximizing next-item likelihood over the full corpus, the model must predict per-candidate action probabilities over a small impression set.
+
+(2) 
+
+Targets: the supervision shifts from a softmax over item embeddings to binary labels for each action type $c\in\{1,\dots,C\}$ (click, save, hide, etc.), trained with per-head binary cross-entropy.
+
+(3) 
+
+Data: training examples must include impression negatives (items shown but not engaged with), not just positive engagements (detailed in Section 3.2).
+
+3.1.1. Masked Action Modeling
+
+The central question is how to formulate action prediction as a sequence learning problem so that the ranking objective can share the retrieval backbone.
+The HSTU (Zhai et al., 2024) approach interleaves action tokens between items to ensure action predictions are candidate-aware, but this doubles context length and breaks input-format compatibility with retrieval.
+
+We propose Masked Action Modeling (MAM): actions are concatenated with each item embedding along the feature dimension and randomly masked during training, preserving causality (the model cannot see an action before predicting it) without inflating the sequence.
+A similar mask-and-predict idea appears in (Huang et al., 2025) for feed impressions. To our knowledge, we are the first to apply action supervision directly to the user-sequence backbone used for retrieval. This achieves ranking within the same forward pass while simultaneously improving retrieval quality through denser per-position gradients.
+
+(1) 
+
+Input representation.
+Rather than interleaving a dedicated action token after every item, we encode the action multi-hot vector $a_{i}$ as a dense embedding via a linear layer and concatenate it with the item representation along the feature axis before the input projector.
+The projector maps the concatenated representation into the transformer hidden dimension.
+
+(2) 
+
+Masking schedule.
+For positions in the user’s observed history (past), each action is independently masked with probability $p_{\text{mask}}$ .
+For candidate (future) positions, actions are always masked ( $m_{j}=0$ for all $j$ ), since at inference time the actions on candidates are unknown.
+
+When a position is masked, its action-type input is replaced with a dedicated [MASK] class (an additional one-hot dimension appended to the action vocabulary), so the model can distinguish “action unknown” from “no action taken.”
+
+This guarantees no information leakage. Input masking ( $m_{i}{=}0$ ) replaces $a_{i}$ with a [MASK] token, and causal attention restricts position $i$ to $\{0,\ldots,i\}$ , so the hidden state satisfies:
+
+ | (2)
+ | 
+ | $z_{i}=f_{\theta}\!\bigl(\,\tilde{\Phi}_{i},\;\{\tilde{\Phi}_{t}\}_{t<i}\bigr),\quad\tilde{\Phi}_{i}\perp\!\!\!\perp a_{i}\;\text{ when }m_{i}=0,$ 
+ | 
+
+ensuring $h_{\psi_{c}}(z_{i})$ depends only on $\Phi_{i}$ and $\{(\Phi_{t},m_{t}\odot a_{t})\}_{t<i}$ .
+
+(3) 
+
+Attention pattern.
+The transformer processes the concatenated sequence $[\tilde{\Phi}_{1},\ldots,\tilde{\Phi}_{n},||\tilde{\Phi}^{\prime}_{1},\ldots,\tilde{\Phi}^{\prime}_{k}]$ with a modified causal mask (Figure 2, upper right) following the M-FALCON pattern in (Zhai et al., 2024): past positions retain standard causal attention; each candidate position $n+j$ attends to all past positions $1,\ldots,n$ but is blocked from attending to other candidates.
+All candidate positions share fixed position IDs, feedview types and timestamps to ensure unbiased scoring.
+Because candidates cannot attend to each other, the mask reduces attention cost from $\mathcal{O}((n{+}k)^{2})$ to $\mathcal{O}(n^{2}+nk)$ ; we materialise this sparsity via flex attention (He et al., 2024), which compiles the block-sparse pattern into fused CUDA kernels.
+This pattern also enables KV-cache sharing across stages (Section 3.3.3): retrieval caches the $\mathcal{O}(n^{2})$ history computation, and ranking reuses it at a marginal cost of $\mathcal{O}(nk)$ .
+
+(4) 
+
+Training objective.
+The past portion of the sequence $\tilde{\Phi}_{1},\ldots,\tilde{\Phi}_{n}$ retains the same length and positional structure as the retrieval model’s input, and is in fact used for retrieval: the same next-item prediction objective is applied over these positions. The $k$ candidate items $\tilde{\Phi}^{\prime}_{1},\ldots,\tilde{\Phi}^{\prime}_{k}$ are appended after the past, and the full sequence is processed in a single forward pass. This enables full parameter sharing with the retrieval model. The model is trained with two jointly optimised losses:
+
+(a) 
+
+Next-item prediction loss (retrieval objective): identical to the sampled-softmax loss in Section 3.0.1, applied at every unmasked past position:
+
+ | (3)
+ | 
+ | $\mathcal{L}_{\text{item}}=\frac{1}{|H|}\sum_{t\in H}L_{s}\!\bigl(\hat{i}_{u,t},\;i_{u,t+1}\bigr).$ 
+ | 
+
+(b) 
+
+Action prediction loss (ranking objective): at every position where the action was masked, the model must predict each action type independently. For each action type $c\in\{1,\dots,C\}$ , a dedicated MLP head $h_{\psi_{c}}$ produces a scalar logit, and a per-head weight $w_{c}$ controls its contribution. Separate terms are applied to past (masked) and future (always masked) positions:
+
+ | (4)
+ | 
+ | $\begin{split}\mathcal{L}_{\text{action}}=\sum_{c=1}^{C}w_{c}\Bigl[\;&\frac{1}{|\mathcal{M}_{\text{past}}|}\!\sum_{i\in\mathcal{M}_{\text{past}}}\ell_{\text{BCE}}\!\bigl(h_{\psi_{c}}(z_{i}),\,a_{i}^{(c)}\bigr)\\
+&+\frac{1}{k}\sum_{j=1}^{k}\ell_{\text{BCE}}\!\bigl(h_{\psi_{c}}(z^{\prime}_{j}),\,a^{\prime(c)}_{j}\bigr)\Bigr],\end{split}$ 
+ | 
+
+where $C$ is the number of action types, $z_{i}$ is the transformer hidden state at position $i$ , $h_{\psi_{c}}$ is the MLP head for action type $c$ , $a_{i}^{(c)}$ is the binary label for action $c$ at position $i$ , $\mathcal{M}_{\text{past}}=\{i:m_{i}=0\}$ is the set of masked past positions, and $w_{c}$ are hyperparameter-tuned scalar weights that balance the contribution of each action type (e.g., save, click, hide) and against next-item prediction loss.
+
+The total loss is:
+
+ | (5)
+ | 
+ | $\mathcal{L}=\mathcal{L}_{\text{item}}+\mathcal{L}_{\text{action}}.$ 
+ | 
+
+Figure 3. Co-serving topology for UniPinRec. Retrieval and ranking are independent Triton ensemble nodes; an ANN lookup against a CPU-hosted Faiss index sits between them. ANN returns both candidate Pin IDs and their reconstructed item embeddings, sparing the ranking stage a separate embedding fetch. The shared KV pool is reused by ranking.
+
+(5) 
+
+Key advantages over interleaving.
+
+(a) 
+
+No context-length inflation: the sequence length stays identical to the retrieval model.
+
+(b) 
+
+Full weight sharing: the ranking model can be initialised directly from a retrieval checkpoint.
+
+(c) 
+
+Denoising regularisation: random masking encourages the model to rely on item content when actions are unavailable, improving generalisation at inference time.
+
+3.2. Data infrastructure
+
+Joint training introduces a data requirement absent from single-task models: each training example must contain both the user’s engagement history (for the retrieval objective) and the full impression slate with negative outcomes (for the action prediction objective).
+Neither existing retrieval nor ranking datasets satisfy both constraints simultaneously.
+Constructing this unified format at scale
+is a prerequisite for full-stack unification.
+We describe how we construct and serve these examples below.
+
+3.2.1. Feedview-centric dataset construction
+
+A key data design choice distinguishes our work from prior sequential recommenders.
+Retrieval models typically train on action-only sequences (chronological engagements) (Zhai et al., 2024; Agarwal et al., 2025; Deng et al., 2025), while ranking models train on impression logs (the full slate shown to a user, with both engaged and no-action outcomes) (Hertel et al., 2025; Dai et al., 2025).
+Prior work on unified models has not discussed how to construct training data that satisfies both objectives; joint training requires both: the retrieval objective needs positive action history to predict the next item, while the ranking objective needs the full impression slate to learn.
+
+We bridge this by constructing each training example with a past action sequence paired with a future feedview (the full impression slate from a subsequent request, with engagement labels).
+Concretely, each position in the sequence is a (Pin, surface, action, timestamp) tuple, where action spans the engagement vocabulary the model predicts (impression-only, click, save, share, hide, etc.).
+
+Because engagement events are naturally sparse relative to impressions, the training pipeline subsamples non-engaged feedviews (retaining $10\%$ ) to amplify rare engagement classes. The evaluation pipeline applies no downsampling and uses a randomized replay dataset, preserving the natural unbiased distribution. This also benefits retrieval by reflecting the real traffic distribution.
+
+3.2.2. Ray in-trainer join
+
+We eliminate the user action history fanout introduced in offline join by performing an in-trainer bucket join using Ray (Moritz et al., 2018) distributed dataloading layer. User action sequences and feedview records are maintained as separate Iceberg tables, each hash-bucketed by user ID, and joined in memory at training time.
+This avoids data duplication entirely and makes context length, sampling ratios, and filtering tweakable parameters at training time instead of data-generation time.
+
+3.3. Serving infrastructure
+
+Figure 3 shows the end-to-end co-serving topology described in this section.
+
+A unified model only delivers efficiency benefits if it can replace two separate models without doubling serving costs.
+Two properties of our model design/training protocol make this tractable.
+First, the non-interleaved architecture and unified co-training (Section 3.1.1) guarantee the same model weights and produce candidate independent user representations that can be cached once and reused across stages.
+Second, both the retrieval and ranking stages share the same item embedding space, so there’s no need to maintain separate candidate representations.
+
+3.3.1. Background:
+
+We build on the production PinRec (Agarwal et al., 2025) serving stack, which uses a Triton ensemble to assemble user history, run autoregressive retrieval, and perform ANN lookup through a CPU-hosted Faiss index.
+
+3.3.2. Overall serving design
+
+UniPinRec retains most of this stack and attaches a new ranking node downstream of Faiss.
+The ranking node consumes the ANN’s candidate set along with a KV-cache slot identifier (detailed in Section 3.3.3 below).
+Rather than reprocessing the full user history, it runs an incremental forward pass: only the candidate tokens are processed, attending back to the KV cache history to produce per-candidate action probabilities.
+
+The ANN index already stores each Pin’s embedded vector (the output of the embedder MLP, computed at index-build time).
+We use Faiss.search_and_reconstruct, which returns both the candidate Pin IDs and their stored embeddings in a single call.
+These pre-embedded vectors serve directly as candidate tokens for the ranking pass.
+This eliminates additional embedder forward pass and feature fetches on the candidate side, and guarantees that the retrieval and ranking stages score against identical representations.
+
+3.3.3. KV-cache sharing across stages
+
+The dominant cost in our transformer is encoding the user’s action history ( $n$ tokens, $\mathcal{O}(n^{2})$ self-attention); scoring $k$ candidates against that history is only $\mathcal{O}(nk)$ .
+We avoid the $\mathcal{O}(n^{2})$ cost entirely during ranking by extending PinRec’s per-request KV cache (Section 3.3.1) across stages and across processes: ranking attends directly to the cached history KV without re-encoding it.
+We further prevent candidates from attending to each other, following the M-FALCON (Hertel et al., 2025) identity-mask design, so each candidate’s score is independent of the batch composition.
+The net ranking cost is $\mathcal{O}(nk)$ .
+
+Retrieval and ranking run as separate OS processes with separate CUDA contexts, as is typical in microservice-based serving stacks.
+Naive serialization of KV tensors across processes incurs GPU-host-GPU roundtrips that dominate latency.
+We instead pre-allocate a GPU memory pool that both processes map into their address spaces, so the ranking process reads the KV state written by retrieval without CPU to GPU data transfer.
+
+Each retrieval replica therefore allocates a pre-sized GPU pool of shape $[L,S,H,n,D]$ (layers, slots, KV heads, past sequence length, head dim), exports CUDA IPC handles for its storage to a per-instance file at boot time, and the ranking process opens those handles and maps the same physical GPU allocation into its own address space.
+
+Slots are reused round-robin,
+each ranking consumer copies each request’s past KV from its slot in the mapped pool into its own decode cache during the forward pass.
+
+3.3.4. FP8 quantization
+
+To further improve serving efficiency, we use mixed-precision FP8 training and inference. We use fused modules that combine layer normalization, linear projection, and activation into single kernels from the Transformer Engine library, avoiding intermediate full-precision materialization. Training uses a hybrid FP8 format with E4M3 during the forward pass and E5M2 for backward computation so that forward activations and backward gradients retain an appropriate balance between precision and dynamic range. Quantization comes at a cost of a 0.5% drop in offline metrics, which we accepted as a reasonable tradeoff for the efficiency gains.
+
+4. Results
+
+We structure our results around three research questions:
+
+• 
+
+RQ1: Can we train a unified model that is capable of both retrieval and ranking tasks?
+
+• 
+
+RQ2: Can we co-serve a retrieval and ranking model to achieve minimal compute redundancy?
+
+• 
+
+RQ3: Can we make this unified model an easy extension to existing production level recommendation system?
+
+4.1. Train a Unified Retrieval and Ranking (RQ1)
+
+We demonstrate the generative recommendation paradigm can be extended to ranking model. This requires (1) architectural compatibility across stages to enable parameter sharing, and (2) joint training with both retrieval and ranking objectives to allow signal sharing between tasks.
+
+Baselines and training strategies.
+
+We compare UniPinRec against multiple baselines and training approaches:
+
+TransAct V2 + DCNv2 (Xia et al., 2025): The production ranking model contemporarily trained, a transformer based model with long user sequence and other feature crossing modules.
+
+HSTU (Zhai et al., 2024): State-of-the-art unified retrieval and ranking model with action and item interleaving (Zhang et al., 2025b).
+We evaluate HSTU on both retrieval and ranking tasks with unified interleaved paradigm with matching effective sequence length.
+
+PinRec (Agarwal et al., 2025): The production retrieval model, a 12-layer transformer trained with next-item prediction (sampled softmax). Serves only retrieval; no ranking capability.
+
+PinRec finetuned: Sequential training approach where we take the snapshot above (PinRec), then finetune for ranking by adding action prediction objectives. Critically, the item embedder must remain frozen during finetuning to maintain compatibility with the pre-trained retrieval model’s Faiss index for deployment.
+
+UniPinRec w/o item loss: A ranking-only variant trained exclusively with action prediction loss, using the same MAM architecture as the unified model. This ablation isolates the effect of joint training by removing the retrieval objective.
+
+UniPinRec (ours): The unified model with Masked Action Modeling, using the same non-interleaved sequence format for both retrieval and ranking. Trained jointly with both next-item prediction (retrieval) and action prediction (ranking) losses. The item embedder is trainable and benefits from both objectives.
+
+Results.
+
+Table 1 shows that UniPinRec achieves competitive performance on both retrieval (Recall@10, interacted targets in the future feedview that are correctly retrieved in the top 10 from any autoregressively generated query embeddings) and ranking ("save" Hit@3, ranked by save head score) compared to specialized baselines. We use "Board More Ideas" feed data to train and evaluate. More online results will be discussed in Section 5.2
+
+Table 1. Unified joint training vs. detached pre-train / fine-tune. Both approaches use the same 12-layer MAM backbone. Two columns are on different evaluation datasets. Hit@3 measures ranking performance and Recall@10 measures retrieval performance. Best result in bold.
+
+ | 
+
+Strategy
+
+ | Hit@3 $\uparrow$ 
+ | Recall@10 $\uparrow$ 
+
+ | 
+
+TransActV2 + DCNv2
+
+ | 0.088008
+ | N/A
+
+ | 
+
+HSTU
+
+ | 0.097326
+ | 0.76161
+
+ | 
+
+PinRec
+
+ | N/A
+ | 0.77486
+
+ | 
+
+PinRec finetuned
+
+ | 0.095869
+ | N/A
+
+ | 
+
+UniPinRec w/o item loss
+
+ | 0.097345
+ | N/A
+
+ | 
+
+UniPinRec (ours)
+
+ | 0.10096
+ | 0.77659
+
+On retrieval, UniPinRec matches PinRec’s Recall@10, with +0.2% marginal improvement, demonstrating that joint training with ranking objectives does not degrade retrieval quality. This is critical for deployment: the unified model can serve as a drop-in replacement for the production retrieval system.
+
+On ranking, UniPinRec surpasses TransActV2+DCNv2, the contemporary production ranking model by 14.7% with dedicated feature crossing modules, despite handling both retrieval and ranking in a single model. UniPinRec also outperforms HSTU at the same context length budget. Importantly, UniPinRec outperforms the ranking-only variant (UniPinRec w/o item loss), showing that the joint retrieval objective further improves ranking quality. The PinRec fine-tuned approach underperforms joint training despite starting from a strong retrieval model. The frozen embedder constraint prevents the model from adapting item representations for ranking, while joint training allows the embedder to learn from both tasks simultaneously. This gap demonstrates that architectural compatibility alone is insufficient, joint optimization is necessary to fully leverage unified training.
+
+4.2. Co-serve a Retrieval and Ranking Model (RQ2)
+
+A unified backbone can only claim efficiency win if it does not serve as two disjoint models.
+The dominant compute in a ranking forward pass is the self-attention over the user’s history; when retrieval and ranking are served separately, this cost is paid twice per request.
+Our unified design encodes the history once during retrieval and reuses the resulting keys and values as the KV cache for the subsequent ranking pass, turning ranking into a decode step that attends from candidates into a frozen history rather than a full prefill.
+
+We measure the impact of this reuse in Table 2, on NVIDIA L40S ( $B{=}8$ , $n{=}992$ , $k{=}656$ , $L{=}12$ ), varying three orthogonal levers in addition to the path: the activation dtype (bf16 vs. fp8 with Transformer Engine fused matmuls), the attention implementation (SDPA vs. auto-tuned flex attention), and the runtime (eager Python dispatch, torch.compile, or CUDA graph capture)
+:
+
+• 
+
+KV-cache reuse (prefill $\to$ decode) roughly $\sim$ $2.4\times$ .
+
+• 
+
+fp8 with Transformer Engine matmuls and CUDA graph capture gives a $\sim$ $1.25\times$ over bf16+compile.
+
+• 
+
+Flex attention contributes to a steady $\sim$ $1.3\times$ on top of any dtype.
+
+The three levers are largely orthogonal, so stacking them yields the maximum end-to-end $\mathbf{3.92\times}$ in the bottom-right cell of Table 2.
+
+Table 2. Eval-time forward latency for a single ranking pass
+Speedups are relative to the bf16 / SDPA / compile prefill row. “Runtime” controls how the forward is dispatched: eager, torch.compile or cuda graph capture. We use graph for fp8 decode because torch.compile fusion regresses Transformer Engine kernels. Best result in bold, *used in online experiments
+
+ | Dtype
+ | Attn
+ | Runtime
+ | Lat. (ms) $\downarrow$ 
+ | Speedup $\uparrow$ 
+
+ | Prefill (history recomputed)
+
+ | bf16
+ | SDPA
+ | compile
+ | 25.72
+ | $1.00\times$ 
+
+ | bf16
+ | flex
+ | compile
+ | 19.70
+ | $1.31\times$ 
+
+ | fp8
+ | SDPA
+ | eager
+ | 18.92
+ | $1.36\times$ 
+
+ | fp8
+ | SDPA
+ | compile
+ | 18.91
+ | $1.36\times$ 
+
+ | Decode (KV-cache reuse, GPU memcpy overhead included)
+
+ | bf16
+ | SDPA
+ | compile
+ | 10.42
+ | $2.47\times$ 
+
+ | bf16
+ | flex
+ | compile*
+ | 08.57
+ | $3.00\times$ 
+
+ | fp8
+ | SDPA
+ | graph
+ | 08.77
+ | $2.93\times$ 
+
+ | fp8
+ | flex
+ | graph
+ | 06.56
+ | $\mathbf{3.92\times}$ 
+
+Table 3. Online serving wins at controlled GPU activity/budget. Baseline uses (bf16, SDPA, torch.compile) for both retrieval and ranking, and all numbers are percentage changes relative to this joint baseline. *used in online experiments in Section 5
+
+ | Variant
+ | E2E latency $\downarrow$ 
+ | QPS lift $\uparrow$ 
+
+ | baseline
+ | —
+ | —
+
+ | + bf16 decode flex compile*
+ | $-11.1\%$ 
+ | $+63.6\%$ 
+
+ | + fp8 decode flex graph
+ | $+6.7\%$ 
+ | $+109.1\%$ 
+
+We further benchmark the best groups of bf16 and fp8 in online conditions Table 3.
+One major trade-off we observed with fp8 kernels is the necessity to wait and accumulate requests to form larger batch size to meet the shape constraints of Transformer Engine where the flattened leading dimension $[B*S,D]$ must be a multiple of 8, this mostly constrains the autoregressive steps of the retrieval forward pass where $S=1$ . Resulting in increased QPS but at larger latency. For the online experiments reported, we used bf16, but plan to proceed with fp8 as next steps.
+
+4.3. Ablations
+
+4.3.1. Effect of Masking Ratio in MAM
+
+A core design choice in Masked Action Modeling (MAM) is the masking probability $p_{\text{mask}}$ , which controls how often historical actions in the user sequence are randomly masked during training. We ablate this choice by training variants with $p_{\text{mask}}\in\{0.0,0.1,0.2,0.3\}$ on identical data and hyperparameters, holding all other architectural decisions constant.
+
+Results.
+
+Table 4 shows that any masking improves over no masking ( $p_{\text{mask}}=0$ ). The zero-masking baseline achieves the lowest Hit@3, confirming that additional action prediction signal and regularization both contribute to better ranking quality.
+with $p_{\text{mask}}=0.2$ yielding the best overall performance. Higher masking ( $p_{\text{mask}}=0.3$ ) shows diminishing returns, likely because overly aggressive masking removes too much signal from the user history.
+
+Table 4. Effect of action masking ratio $p_{\text{mask}}$ in MAM. Best result in bold.
+
+ | $p_{\text{mask}}$ 
+ | Hit@3 $\uparrow$ 
+
+ | 0.0 (no masking)
+ | 0.09923
+
+ | 0.1
+ | 0.10078
+
+ | 0.2
+ | 0.10096
+
+ | 0.3
+ | 0.10075
+
+4.3.2. Effect of Model Scaling
+
+ $0$ $2$ $4$ $6$ $8$ $10$ $12$ $14$ $0.096$ $0.098$ $0.1$ $0.102$ $0.104$ Relative FLOPs ( $1{\times}$ = smallest model)Hit@3Depth (L=2,4,8,12,24; S=1024)Seq length (S=256,512,1K,2K; L=12)
+Figure 4. Hit@3 vs. relative FLOPs for depth and sequence length scaling. FLOPs are normalized to the smallest model ( $L{=}2$ , $S{=}1024$ ). Both series use MAM with $p_{\text{mask}}=0.2$ .
+
+We study how model capacity affects ranking performance across two dimensions: transformer depth and sequence length.
+Understanding these tradeoffs is critical for deployment, as both dimensions impact model quality, training cost, and serving latency.
+
+Results.
+
+We train models with varying depth (2, 4, 8, 12, 24 layers) holding sequence length fixed at 1024 tokens, and varying sequence length (256, 512, 1024, 2048 tokens) with a fixed 12-layer model. Both dimensions use MAM with $p_{\text{mask}}=0.2$ . Figure 4 shows that performance improves consistently across both scaling axes, demonstrating that the unified model has not saturated in capacity. However, the cost implications differ significantly: depth scales linearly with compute, while sequence length incurs quadratic costs for attention. This makes sequence length a more severe bottleneck for latency-sensitive applications despite both dimensions showing continued quality improvements.
+The strong gains from longer sequences suggest that sequence compression techniques are a promising direction for capturing the quality benefits of longer context at reduced cost.
+
+5. Online A/B Experiments (RQ3)
+
+We evaluate UniPinRec in production through controlled A/B experiments, comparing the unified model against PinRec (Agarwal et al., 2025), the production retrieval baseline. This validates whether full-stack unification can deliver engagement improvements in real-world traffic while maintaining practical serving efficiency, and addresses the third RQ, whether we could make this highly modularized extension to existing production recommendation systems.
+
+5.1. Experimental Setup
+
+Deployment configurations.
+
+We compare two setups for candidate generator, both returning K(<3000) candidates to downstream stages:
+
+Baseline (PinRec): The production retrieval model generates K candidates via ANN search, which are passed directly to downstream ranking stages.
+
+UniPinRec: The unified model first overfetches candidates via ANN search (L0), then immediately ranks them using the ranking head (L1) with action prediction, and returns the top K ranked candidates(based on head utility functions) to downstream stages.
+
+It is worth noting that for the online experiments, we replace retrieval stage with a unified L0 + L1 scoring server and still send the refined candidates to a downstream production ranker based on TransAct V2 (Xia et al., 2025) to rigidly validate the metric improvements. This also means the offline lifts will be attenuated and diluted.
+
+We run A/B experiments on two production surfaces: Board More Ideas (L0 overfetch ratio ~2x) and Notification (L0 overfetch ratio ~3x). Both surfaces serve millions of users daily.
+
+5.2. Board More Ideas
+
+Board More Ideas (BMI) recommends Pins anchored to a user’s board.
+To enable this, we extend UniPinRec to support “Board” as a new sequence modality beyond Pins and search queries.
+
+Results.
+
+Table 5 shows that UniPinRec provides strong engagement lifts over the PinRec baseline with +0.95% surface save lift, demonstrating that the unified retrieval and ranking approach significantly improves candidate quality over retrieval alone, also driving +0.08% site-wide lift, confirming that better BMI recommendations positively impact overall platform engagement.
+
+Table 5. Online A/B results on Board More Ideas. Lifts show UniPinRec L0+L1 vs PinRec baseline.
+
+ | 
+
+Metric
+
+ | UniPinRec
+
+ | 
+
+BMI surface saves
+
+ | +0.95%
+
+ | 
+
+Site-wide saves
+
+ | +0.08%
+
+5.3. Notifications
+
+Pinterest uses email and push notifications to deliver relevant content to users. These notifications are an important lever for user reactivation and long-term retention.
+
+Results.
+
+Table 6 shows that replacing the PinRec retrieval-only baseline with the UniPinRec ranker delivers consistent gains across notification engagement metrics, with the largest lift on notification-surface saves. The dormant-user push-open lift of +1.72% is roughly twice the all-user lift, suggesting that more personalized notification recommendations are particularly effective at bringing lapsed users back and noticeably improving WAU by 0.09%.
+
+Table 6. Online A/B results on notifications. Lifts show UniPinRec vs PinRec baseline, measured on a unique-user basis.
+
+ | 
+
+Metric
+
+ | UniPinRec
+
+ | 
+
+Push opens
+
+ | +0.91%
+
+ | 
+
+Push opens (dormant users)
+
+ | +1.72%
+
+ | 
+
+Notification surface saves
+
+ | +3.84%
+
+ | 
+
+Email clicks
+
+ | +0.30%
+
+ | 
+
+Weekly active users
+
+ | +0.09%
+
+6. Conclusion
+
+We presented UniPinRec, the first full-stack unification of retrieval and ranking deployed in a production recommendation system.
+Empirically, the unified model matches production retrieval recall, holds ranking quality exceeding dedicated ranker, and cuts e2e latency while lifting QPS, surfacing candidates the previous funnel missed and translating into a net engagement win online.
+
+UniPinRec currently unifies retrieval with upper-funnel ranking, where backbone redundancy is most severe.
+It does not yet replace the L2 ranker, which has additional infrastructure dependencies in score calibration, training data logging, and operational tooling beyond the immediate scope of this work. We take an incremental rollout approach and plan to extend the unification effort in L2 stage and horizontally to additional surfaces (Search, Ads) as next steps.
+
+Architecturally, UniPinRec mirrors retrieval-augmented generation: the backbone formulates a query, an ANN index serves as non-parametric memory, and the ranker generates action probabilities through the same cached context.
+This parallel suggests borrowing from the RAG literature, such as iterative retrieval and learned retrieval-depth control, as future directions.
+
+Prior unified models have demonstrated that retrieval and ranking can share an architecture.
+UniPinRec shows that the harder problem, unifying input format, training, and serving infrastructure, is also solvable in production today.
+
+Acknowledgements.
+We thank collaborators such as Kyle Soares, Pihui Wei, Anirudhan Badrinath, Edoardo Botta, Devin Kreuzer, Josie Zeng, Chi Zhang, Chen Yang, Po-Wei Wang, David Woo, Lei Wang, Lin Zhu, Kritarth Anand, Bowen Deng, Matt Chun, Zisis Petrou, Dimitra Tsiaousi, Dylan Wang for their helpful support, valuable feedbacks and insightful discussions throughout the development of this work.
+
+References
+
+Agarwal et al. (2025)
+
+Prabhat Agarwal, Anirudhan
+Badrinath, Laksh Bhasin, Jaewon Yang,
+Edoardo Botta, Jiajing Xu, and
+Charles Rosenberg. 2025.
+
+PinRec: Outcome-Conditioned, Multi-Token
+Generative Retrieval for Industry-Scale Recommendation Systems.
+
+arXiv preprint arXiv:2504.10507
+(2025).
+
+Agarwal et al. (2024)
+
+Prabhat Agarwal,
+Minhazul Islam SK, Nikil Pancha,
+Kurchi Subhra Hazra, Jiajing Xu, and
+Chuck Rosenberg. 2024.
+
+OmniSearchSage: Multi-Task Multi-Entity Embeddings
+for Pinterest Search. In Companion Proceedings of
+the ACM Web Conference 2024 (WWW ’24).
+ACM, 121–130.
+
+doi:10.1145/3589335.3648309
+
+Badrinath et al. (2025)
+
+Anirudhan Badrinath, Alex
+Yang, Kousik Rajesh, Prabhat Agarwal,
+Jaewon Yang, Haoyu Chen,
+Jiajing Xu, and Charles Rosenberg.
+2025.
+
+OmniSage: Large Scale, Multi-Entity Heterogeneous
+Graph Representation Learning. In Proceedings of
+the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2
+(Toronto ON, Canada) (KDD ’25).
+Association for Computing Machinery,
+New York, NY, USA, 4261–4272.
+
+doi:10.1145/3711896.3737253
+
+Beal et al. (2026)
+
+Josh Beal, Eric Kim,
+Jinfeng Rao, Rex Wu,
+Dmitry Kislyuk, and Charles Rosenberg.
+2026.
+
+PinCLIP: Large-scale Foundational Multimodal
+Representation at Pinterest.
+
+arXiv:2603.03544 [cs.CV]
+
+https://arxiv.org/abs/2603.03544
+
+Cao et al. (2025)
+
+Yang Cao, Changhao Zhang,
+Xiaoshuang Chen, Kaiqiao Zhan, and
+Ben Wang. 2025.
+
+xMTF: A Formula-Free Model for
+Reinforcement-Learning-Based Multi-Task Fusion in Recommender Systems. In
+Proceedings of the ACM Web Conference 2025 (WWW).
+
+Chen et al. (2025a)
+
+Jiahui Chen, Xiaoze
+Jiang, Zhibo Wang, Quanzhi Zhu,
+Junyao Zhao, Feng Hu,
+Kang Pan, Ao Xie, Maohua
+Pei, Zhiheng Qin, Hongjing Zhang,
+Zhixin Zhai, Xiaobo Guo,
+Runbin Zhou, Kefeng Wang,
+Mingyang Geng, Cheng Chen,
+Jingshan Lv, Yupeng Huang,
+Xiao Liang, and Han Li.
+2025a.
+
+UniSearch: Rethinking Search System with a Unified
+Generative Architecture.
+
+arXiv preprint arXiv:2509.06887
+(2025).
+
+Chen et al. (2025b)
+
+Xiangyi Chen, Kousik
+Rajesh, Matthew Lawhon, Zelun Wang,
+Hanyu Li, Haomiao Li,
+Saurabh Vishwas Joshi, Pong Eksombatchai,
+Jaewon Yang, Yi-Ping Hsu,
+Jiajing Xu, and Charles Rosenberg.
+2025b.
+
+PinFM: Foundation Model for User Activity
+Sequences at a Billion-scale Visual Discovery Platform. In
+Proceedings of the 19th ACM Conference on
+Recommender Systems (RecSys). 381–390.
+
+doi:10.1145/3705328.3748050
+
+Chen et al. (2026)
+
+Zhimin Chen, Chenyu Zhao,
+Ka Chun Mo, Yunjiang Jiang,
+Jane H. Lee, Khushhall Chandra Mahajan,
+Ning Jiang, Kai Ren,
+Jinhui Li, and Wen-Yun Yang.
+2026.
+
+Massive Memorization with Hundreds of Trillions of
+Parameters for Sequential Transducer Generative Recommenders. In
+Proceedings of the International Conference on
+Learning Representations (ICLR).
+
+Dai et al. (2025)
+
+Sunhao Dai, Jiakai Tang,
+Jiahua Wu, Kun Wang,
+Yuxuan Zhu, Bingjun Chen,
+Bangyang Hong, Yu Zhao,
+Cong Fu, Kangle Wu, Yabo
+Ni, Anxiang Zeng, Wenjie Wang,
+Xu Chen, Jun Xu, and
+See-Kiong Ng. 2025.
+
+OnePiece: Bringing Context Engineering and
+Reasoning to Industrial Cascade Ranking System.
+
+arXiv preprint arXiv:2509.18091
+(2025).
+
+Deng et al. (2025)
+
+Jiaxin Deng, Shiyao Wang,
+Kuo Cai, Lejian Ren,
+Qigen Hu, Weifeng Ding,
+Qiang Luo, and Guorui Zhou.
+2025.
+
+OneRec: Unifying Retrieve and Rank with Generative
+Recommender and Iterative Preference Alignment.
+
+arXiv preprint arXiv:2502.18965
+(2025).
+
+Ding et al. (2026)
+
+Yijie Ding, Zitian Guo,
+Jiacheng Li, Letian Peng,
+Shuai Shao, Wei Shao,
+Xiaoqiang Luo, Luke Simon,
+Jingbo Shang, Julian McAuley, and
+Yupeng Hou. 2026.
+
+How Well Does Generative Recommendation Generalize?
+
+arXiv:2603.19809 [cs.IR]
+
+https://arxiv.org/abs/2603.19809
+
+Gao et al. (2025)
+
+Vianne R. Gao, Chen Xue,
+Marc Versage, Xie Zhou,
+Zhongruo Wang, Chao Li,
+Yeon Seonwoo, Nan Chen,
+Zhen Ge, Gourab Kundu,
+Weiqi Zhang, Tian Wang,
+Qingjun Cui, and Trishul Chilimbi.
+2025.
+
+SynerGen: Contextualized Generative Recommender for
+Unified Search and Recommendation.
+
+arXiv preprint arXiv:2509.21777
+(2025).
+
+Han et al. (2025)
+
+Ruidong Han, Bin Yin,
+Shangyu Chen, He Jiang,
+Fei Jiang, Xiang Li, Chi
+Ma, Mincong Huang, Xiaoguang Li,
+Chunzhen Jing, Yueming Han,
+Menglei Zhou, Lei Yu,
+Chuan Liu, and Wei Lin.
+2025.
+
+MTGR: Industrial-Scale Generative Recommendation
+Framework in Meituan. In Proceedings of the 34th
+ACM International Conference on Information and Knowledge Management
+(CIKM). 5731–5738.
+
+doi:10.1145/3746252.3761565
+
+He et al. (2024)
+
+Horace He et al.
+2024.
+
+Flex Attention: A Programming Model for Generating
+Optimized Attention Kernels.
+
+arXiv preprint arXiv:2412.05496
+(2024).
+
+https://arxiv.org/abs/2412.05496
+
+Hertel et al. (2025)
+
+Lars Hertel, Neil
+Daftary, Fedor Borisyuk, Aman Gupta,
+and Rahul Mazumder. 2025.
+
+Efficient User History Modeling with Amortized
+Inference for Deep Learning Recommendation Models. In
+Companion Proceedings of the ACM Web Conference
+2025 (WWW).
+
+Huang et al. (2025)
+
+Yanhua Huang, Yuqi Chen,
+Xiong Cao, Rui Yang,
+Mingliang Qi, Yinghao Zhu,
+Qingchang Han, Yaowei Liu,
+Zhaoyu Liu, Xuefeng Yao,
+Yuting Jia, Leilei Ma,
+Yinqi Zhang, Taoyu Zhu,
+Liujie Zhang, Lei Chen,
+Weihang Chen, Min Zhu,
+Ruiwen Xu, and Lei Zhang.
+2025.
+
+Towards Large-scale Generative Ranking.
+
+CoRR abs/2505.04180
+(2025).
+
+doi:10.48550/ARXIV.2505.04180
+arXiv:2505.04180
+
+Moritz et al. (2018)
+
+Philipp Moritz, Robert
+Nishihara, Stephanie Wang, Alexey
+Tumanov, Richard Liaw, Eric Liang,
+Melih Elibol, Zongheng Yang,
+William Paul, Michael I. Jordan, and
+Ion Stoica. 2018.
+
+Ray: A Distributed Framework for Emerging AI
+Applications. In 13th USENIX Symposium on
+Operating Systems Design and Implementation (OSDI 18).
+561–577.
+
+Pardoe et al. (2026)
+
+David Pardoe, Neil
+Daftary, Miro Furtado, Aditya Aiyer,
+Yu Wang, Liuqing Li, Tao
+Song, Lars Hertel, Young Jin Yun,
+Senthil Radhakrishnan, Zhiwei Wang,
+Tommy Li, Khai Tran,
+Ananth Nagarajan, Ali Naqvi,
+Yue Zhang, Renpeng Fang,
+Avi Romascanu, Arjun Kulothungun,
+Deepak Kumar, Praneeth Boda,
+Fedor Borisyuk, and Ruoyan Wang.
+2026.
+
+CADET: Context-Conditioned Ads CTR Prediction
+With a Decoder-Only Transformer.
+
+arXiv preprint arXiv:2602.11410
+(2026).
+
+Su et al. (2026)
+
+Zhengyang Su, Isay
+Katsman, Yueqi Wang, Ruining He,
+Lukasz Heldt, Raghunandan Keshavan,
+Shao-Chuan Wang, Xinyang Yi,
+Mingyan Gao, Onkar Dalal,
+Lichan Hong, Ed Chi, and
+Ningren Han. 2026.
+
+STATIC: Vectorizing the Trie: Efficient
+Constrained Decoding for LLM-based Generative Retrieval on Accelerators.
+
+arXiv preprint arXiv:2602.22647
+(2026).
+
+Sun et al. (2026b)
+
+Dekai Sun, Yiming Liu,
+Jiafan Zhou, Xun Liu,
+Chenchen Yu, Yi Li, Jun
+Zhang, Huan Yu, and Jie Jiang.
+2026b.
+
+OneRanker: Unified Generation and Ranking with One
+Model in Industrial Advertising Recommendation.
+
+arXiv preprint arXiv:2603.02999
+(2026).
+
+Sun et al. (2026a)
+
+Yijia Sun, Shanshan
+Huang, Zhiyuan Guan, Qiang Luo,
+Ruiming Tang, Kun Gai, and
+Guorui Zhou. 2026a.
+
+GRank: Towards Target-Aware and Streamlined
+Industrial Retrieval with a Generate-Rank Framework. In
+Proceedings of the ACM Web Conference 2026 (WWW).
+
+Wang et al. (2026)
+
+Jiarui Wang, Huichao
+Chai, Yuanhang Zhang, Zongjin Zhou,
+Wei Guo, Xingkun Yang,
+Qiang Tang, Bo Pan,
+Jiawei Zhu, Ke Cheng,
+Yuting Yan, Shulan Wang,
+Yingjie Zhu, Zhengfan Yuan,
+Jiaqi Huang, Yuhan Zhang,
+Xiaosong Sun, Zhinan Zhang,
+Hong Zhu, Yongsheng Zhang,
+Tiantian Dong, Zhong Xiao,
+Deliang Liu, Chengzhou Lu,
+Yuan Sun, Zhiyuan Chen,
+Xinming Han, Zaizhu Liu,
+Yaoyuan Wang, Ziyang Zhang,
+Yong Liu, Jinxin Xu,
+Yajing Sun, Zhoujun Yu,
+Wenting Zhou, Qidong Zhang,
+Zhengyong Zhang, Zhonghai Gu,
+Yibo Jin, Yongxiang Feng, and
+Pengfei Zuo. 2026.
+
+RelayGR: Scaling Long-Sequence Generative
+Recommendation via Cross-Stage Relay-Race Inference.
+
+arXiv preprint arXiv:2601.01712
+(2026).
+
+Xia et al. (2023)
+
+Xue Xia, Pong
+Eksombatchai, Nikil Pancha, Dhruvil Deven
+Badani, Po-Wei Wang, Neng Gu,
+Saurabh Vishwas Joshi, Nazanin Farahpour,
+Zhiyuan Zhang, and Andrew Zhai.
+2023.
+
+TransAct: Transformer-based Realtime User Action
+Model for Recommendation at Pinterest. In
+Proceedings of the 29th ACM SIGKDD Conference
+on Knowledge Discovery and Data Mining, KDD 2023, Long Beach, CA, USA,
+August 6-10, 2023, Ambuj K. Singh,
+Yizhou Sun, Leman Akoglu,
+Dimitrios Gunopulos, Xifeng Yan,
+Ravi Kumar, Fatma Ozcan, and
+Jieping Ye (Eds.). ACM,
+5249–5259.
+
+doi:10.1145/3580305.3599918
+
+Xia et al. (2025)
+
+Xue Xia, Saurabh Joshi,
+Kousik Rajesh, Kangnan Li,
+Yangyi Lu, Nikil Pancha,
+Dhruvil Badani, Jiajing Xu, and
+Pong Eksombatchai. 2025.
+
+TransAct V2: Lifelong User Action Sequence Modeling
+on Pinterest Recommendation. In Proceedings of the
+34th ACM International Conference on Information and Knowledge Management
+(Seoul, Republic of Korea) (CIKM ’25).
+Association for Computing Machinery,
+New York, NY, USA, 6881–6882.
+
+doi:10.1145/3746252.3761433
+
+Yan et al. (2026)
+
+Bencheng Yan, Shilei Liu,
+Zhiyuan Zeng, Zihao Wang,
+Yizhen Zhang, Yujin Yuan,
+Langming Liu, Jiaqi Liu,
+Di Wang, Wenbo Su,
+Pengjie Wang, Jian Xu, and
+Bo Zheng. 2026.
+
+Unlocking Scaling Law in Industrial Recommendation
+Systems with a Three-step Paradigm based Large User Model. In
+Proceedings of the 19th ACM International
+Conference on Web Search and Data Mining (WSDM).
+
+Yan et al. (2025)
+
+Huimin Yan, Longfei Xu,
+Junjie Sun, Ni Ou, Wei
+Luo, Xing Tan, Ran Cheng,
+Kaikui Liu, and Xiangxiang Chu.
+2025.
+
+IntSR: An Integrated Generative Framework for
+Search and Recommendation.
+
+arXiv preprint arXiv:2509.21179
+(2025).
+
+Yang et al. (2024)
+
+Liu Yang, Fabian
+Paischer, Kaveh Hassani, Jiacheng Li,
+Shuai Shao, Zhang Gabriel Li,
+Yun He, Xue Feng, Nima
+Noorshams, Sem Park, Bo Long,
+Robert D. Nowak, Xiaoli Gao, and
+Hamid Eghbalzadeh. 2024.
+
+Unifying Generative and Dense Retrieval for
+Sequential Recommendation.
+
+arXiv preprint arXiv:2411.18814
+(2024).
+
+Yang et al. (2025)
+
+Xiao Yang, Peifeng Yin,
+Abe Engle, Jinfeng Zhuang, and
+Ling Leng. 2025.
+
+MTMD: A Multi-Task Multi-Domain Framework for
+Unified Ad Lightweight Ranking at Pinterest. In
+Proceedings of the AdKDD Workshop at the 31st ACM
+SIGKDD Conference on Knowledge Discovery and Data Mining.
+
+Ye et al. (2025a)
+
+Yufei Ye, Wei Guo,
+Jin Yao Chin, Hao Wang,
+Hong Zhu, Xi Lin, Yuyang
+Ye, Yong Liu, Ruiming Tang,
+Defu Lian, and Enhong Chen.
+2025a.
+
+FuXi- $\alpha$ : Scaling Recommendation Model with
+Feature Interaction Enhanced Transformer. In
+Proceedings of the ACM Web Conference 2025 (WWW).
+
+Ye et al. (2025b)
+
+Yufei Ye, Wei Guo,
+Hao Wang, Hong Zhu,
+Yuyang Ye, Yong Liu,
+Huifeng Guo, Ruiming Tang,
+Defu Lian, and Enhong Chen.
+2025b.
+
+FuXi- $\beta$ : Towards a Lightweight and Fast
+Large-Scale Generative Recommendation Model.
+
+arXiv preprint arXiv:2508.10615
+(2025).
+
+Yuan et al. (2024)
+
+Jun Yuan, Guohao Cai,
+and Zhenhua Dong. 2024.
+
+A Parameter Update Balancing Algorithm for
+Multi-task Ranking Models in Recommendation Systems. In
+Proceedings of the 2024 IEEE International
+Conference on Data Mining (ICDM).
+
+Zhai et al. (2024)
+
+Jiaqi Zhai, Lucy Liao,
+Xing Liu, Yueming Wang,
+Rui Li, Xuan Cao, Leon
+Gao, Zhaojie Gong, Fangda Gu,
+Michael He, Yinghai Lu, and
+Yu Shi. 2024.
+
+Actions Speak Louder than Words: Trillion-Parameter
+Sequential Transducers for Generative Recommendations. In
+Proceedings of the 41st International Conference on
+Machine Learning (ICML).
+
+Zhang et al. (2025a)
+
+Jun Zhang, Yi Li,
+Yue Liu, Changping Wang,
+Yuan Wang, Yuling Xiong,
+Xun Liu, Haiyang Wu,
+Qian Li, Enming Zhang,
+Jiawei Sun, Xin Xu,
+Zishuai Zhang, Ruoran Liu,
+Suyuan Huang, Zhaoxin Zhang,
+Zhengkai Guo, Shuojin Yang,
+Meng-Hao Guo, Huan Yu,
+Jie Jiang, and Shi-Min Hu.
+2025a.
+
+GPR: Towards a Generative Pre-trained One-Model
+Paradigm for Large-Scale Advertising Recommendation.
+
+arXiv preprint arXiv:2511.10138
+(2025).
+
+Zhang et al. (2025b)
+
+Luankang Zhang, Kenan
+Song, Yi Quan Lee, Wei Guo,
+Hao Wang, Yawen Li,
+Huifeng Guo, Yong Liu,
+Defu Lian, and Enhong Chen.
+2025b.
+
+Killing Two Birds with One Stone: Unifying
+Retrieval and Ranking with a Single Generative Recommendation Model. In
+Proceedings of the 48th International ACM SIGIR
+Conference on Research and Development in Information Retrieval (Padua,
+Italy) (SIGIR ’25). Association
+for Computing Machinery, New York, NY, USA,
+2224–2234.
+
+doi:10.1145/3726302.3730017
+
+Zhang et al. (2026)
+
+Yukun Zhang, Si Dong,
+Xu Wang, Bo Chen,
+Qinglin Jia, Shengzhe Wang,
+Jinlong Jiao, Runhan Li,
+Jiaqing Liu, Chaoyi Ma,
+Ruiming Tang, Guorui Zhou,
+Han Li, and Kun Gai.
+2026.
+
+SMES: Towards Scalable Multi-Task Recommendation
+via Expert Sparsity.
+
+arXiv preprint arXiv:2602.09386
+(2026).
+
+Zou et al. (2026)
+
+Yanyan Zou, Junbo Qi,
+Lunsong Huang, Yu Li,
+Kewei Xu, Jiabao Gao,
+Binglei Zhao, Xuanhua Yang,
+Sulong Xu, and Shengjie Li.
+2026.
+
+GenRec: A Preference-Oriented Generative Framework
+for Large-Scale Recommendation. In Proceedings of
+the 49th International ACM SIGIR Conference on Research and Development in
+Information Retrieval (SIGIR).
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

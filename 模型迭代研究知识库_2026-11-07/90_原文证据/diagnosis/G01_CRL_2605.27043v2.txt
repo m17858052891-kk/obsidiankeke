@@ -1,0 +1,1304 @@
+
+=== PDF PAGE 1 ===
+   Causal Representation Learning for Generalisable
+                                      Recommendation
+
+
+
+
+               Yorgos Felekis∗                    Michael O’Riordan∗                   Oriol Corcoll
+           University of Warwick                          Spotify                          Spotify
+
+                                           Ciarán M. Gilligan-Lee
+                                   Spotify & University College London
+
+
+                                                   Abstract
+
+          Predictive models trained on observational data often fail to generalise to the
+          distributions they encounter when deployed, especially when the training data is
+          aproduct ofthe systembeing optimised. Recommendersystemsare acanonical
+          example: theyare trainedoninteraction logsconfoundedby thedeployedpolicy,
+          past user behaviour, and platform filtering. As a result, the training distribution
+          differs substantially from thecandidate distribution scoredat serving time,a gap
+          thatmakesofflinemetricsunreliablepredictorsofonlineperformance. Weaddress
+          the distribution shift problem with a method motivated by causal representation
+          learning (CRL). We propose an information-theoretic disentanglement criterion
+          andprovethatitsoptimumexcludesconfounder-dependentnon-causalinformation
+          from the treatment representation. We then derive a tractable variational lower
+          bound that makes the criterion optimisable from finite observational data alone.
+          The scope of our method is narrower than that of much of the CRL literature, in
+          thatwetargetbettergeneralisationunderdistributionshift,notfullidentificationof
+          alllatent causalfactors. This narrowertarget iswhatmakes themethodpractical,
+          requiring only the existing confounded logs, applying to any standard supervised
+          model, and adding no inference-time cost.  Our headline evaluation is an A/B
+          test with millions of users on the music streaming platform Spotify, applied to a
+          production ranker for personalised playlist generation. A CRL variant matched
+          in capacity to the production baseline performed on par offline but delivered
+          substantial online gains in listener engagement. Complementary evidence on a
+          syntheticdataset withknown causalstructureand asemi-syntheticvariant ofthe
+          public KuaiRand recommendation dataset shows the same pattern:  similar in-
+          distribution performance to the baseline, gains under distribution shift. Across all
+          three settings, adding our causal disentanglement objective yields better out-of-
+          distribution generalisation.
+
+1   Introduction
+
+Predictive models deployed in feedback loops with the systems that produce their training data
+face a basic problem: the distribution they are trained on diverges from the one they are asked
+to score at serving time. In this work we focus on recommender systems, where the (user, item,
+context) tuples appearing in training logs are those a deployed policy already chose to surface, and
+arefurtherfilteredbyuserengagement. Thisphenomenon,broadlyreferredtoasexposurebiasinthe
+recommendation literature Chen et al. [2023], means that at serving time the same model is asked
+to score a much broader and differently distributed candidate set. The gap between training and
+
+  ∗Equal contribution
+
+
+Preprint.
+
+=== PDF PAGE 2 ===
+serving-timedistributionsiswidelyunderstoodtobeaprimaryreasonthatofflinerankingmetricsare
+often unreliable predictors of online performance. Causal representation learning (CRL) Schölkopf
+et al. [2021] offers a principled solution. If a model’s predictions rely only on causal mechanisms
+that generate the outcome, they should remain valid under shifts that leave those mechanisms intact,
+including the policy-induced shift between training and serving distributions. Classical CRL aims
+to recover latent causal factors with identifiability guarantees [Khemakhem et al., 2020].  Such
+identification requires additional assumptions or information [Locatello et al., 2019], which can be
+difficulttojustifyorobtainfromloggedobservationalrecommendationdata. Asecondstrandapplies
+CRL to recommendation directly, including in production. Wang et al. [2022] treat user feature drift
+asaninterventionviaacounterfactualVAEthatinferslatentuserstateandperformspost-intervention
+inference at serving time. Corcoll et al. [2026] block-identify causal treatment representations via
+labelled contrastive pairs thatstratify on confounders andoutcomes. DCCL Zhao et al.[2023] and
+Rec4AdGaoetal.[2023] disentanglespecificbiasmechanisms(popularity,sample-selection)with
+components tied to those mechanisms, and have been deployed online at Kuaishou and Taobao.
+In this work, we assume that the relevant confounders are observed and present in the training data.
+In particular, we assume that confounders are encoded in the user, context, and item features that
+the deployed policy conditions on.  In this case, full identification is more than what is needed
+to address the specific failure mode introduced by exposure bias.  The spurious pathway can be
+suppressed directly by enforcing that the learned representation carries no information about the
+confounder beyond what the supervised target already requires (Figure 1). This narrower goal does
+not recover latent factors or enable counterfactual queries, but it does break the dependence that
+drives the offline-to-online gap, and it does so using only the existing observational training data. We
+instantiate this idea by learning a treatment representation that remains predictive of the outcome
+conditionalon theobservedconfounder,while penalisingmutualinformation betweenthe learned
+representationandtheconfounder. Theresultingcriterionkeepstheoutcome-relevantcausalcontent
+of the treatment and removes the confounder-dependent non-causal leakage that standard rankers
+may otherwise absorb. We make the following contributions:
+• We propose an information-theoretic disentanglement criterion and prove that, at the population
+   level,itfavorsrepresentationsthatretainthecausalcontentofthetreatmentanddiscardconfounder-
+   dependentnon-causal information. Wethenderive atractable variationallowerbound thatmakes
+   the criterion optimisable from finite observational data alone.
+• We introduce a deployment-ready CRL recipe for robustness under distribution shift: a straightfor-
+   wardmodificationofanystandardsupervisedmodel,trainedontheexistingconfoundedlog,with
+   no inference-time cost and no requirement for randomised or interventional data.
+• We validate the method in three settings of increasing realism: a synthetic SCM, a semi-synthetic
+   variantofthe KuaiRanddatasetGao etal. [2022],and aliveA/Btest ona productionpersonalised
+   playlist generation surface with millions of users on the music streaming platform Spotify. Across
+   all three settings,a capacity-matched CRL variantmatches the baseline on in-distributionmetrics
+   and outperforms it when evaluation moves off the training distribution.
+
+2   Method
+
+2.1   Setting
+
+We adopt the Structural Causal Model framework of Pearl [2009]. A causal model is a tupleM=
+(V,U,F,P(U)),                         whereV is the set of endogenous variables, U is the set of exogenous noise
+variables with joint distributionP(U)       , andF={f        V}V∈V     is a collection of structural assignments
+V:=f      V(Pa(V),U       V).  In our setting, V={T,Y,Z}           , where Z is an observed confounder (in
+recommendation, a user representation), T is the treatment to be ranked (an item), and Y  is the
+outcome of interest.  As illustrated in Figure 1, the observed treatment is an entangled mixing
+T=m(T           C,TnC) oflatentcausalcomponentsTC andnon-causalcomponentsTnC. Wemaketwo
+structuralassumptions:(A1)Y⊥T                                   nC |T C,Zmeaningthattheoutcomedependsonthetreatment
+onlythroughitscausallatents,giventheconfounder;(A2)                I(T   nC;Z|T     C)>0    : whichwecallunique
+spuriousleakage: thenon-causallatents retaininformationabout theconfounder thatisnot already
+containedinthe causallatents. Thisis thesettingthatarisesin recommendersystemswheneverthe
+deployed policy has correlated non-causal item-side factors with user-side signal, creating a spurious
+backdoor path T←T      nC ←Z→Y            that a standard predictor learningE[Y|T,Z]           will absorb.
+
+
+                                                           2
+
+=== PDF PAGE 3 ===
+                                                        Figure 1:Hierarchical Causal Entanglement.Bottom (Micro-Latent):Only the red subset                                {t  ic}
+                                                        causally drivesY; the blue subset{t                  jnc}contains spurious factors correlated withZ.Middle (Meso-
+                                                        Latent):Micro-variables abstract into causal(           TC) and non-causal(TnC) clusters.Top(Observed):
+                                                        We observe only the entangled treatmentT=m(T           C,TnC), which creates the spurious backdoor
+                                                        pathT←T              nC ←Z→Ythat standard models will exploit.
+
+
+                                                        Such structuresarise also in many causalrepresentation learningsettings where spuriouscorrelations
+                                                        between treatment and confounders lead to biased models if not explicitly addressed.
+                                                        WhilemaximisingI(T;Y|Z)             ensuresthelearnedrepresentationispredictiveoftheoutcome,itmay
+                                                        still preserve spurious signals as it does not penalise representations for carrying extra non-causal
+                                                        information. To address this, we introduce a more targeted objective that trades predictive utility
+                                                        against confounder dependence.
+
+                                                        2.2   A New Objective for Causal Disentanglement
+
+                                                        We propose to learn a representationg(T)that maximizes the following:
+
+                                                                                                                                                                                    (1)
+
+
+
+                                                        called theDisentanglement Criterion, where                  λ≥0      is a hyperparameter that controls the trade-off
+                                                        betweenpredictive utilityandconfounder invariance. This objectivebalancestwo forces: theutility
+                                                        termrewardsrepresentationsthatarepredictiveoftheoutcomeY beyondZ,therebyencouragingthe
+                                                        preservation ofTC; the penalty termdiscourages information sharedwithZ, thereby suppressingZ-
+                                                        correlatednon-causalfactors. Notethatthepenaltyconstrainsthetreatmentrepresentationg(T)     ,not
+                                                        thepredictor’sdirectuseofZ. Thepredictorstillreceivesbothg(T)      andZ. Theobjectivediscourages
+                                                        redundantconfounderinformationinthetreatmentrepresentationwhilerewardinginformationthat
+                                                        predictsY conditionalonZ. Underourstructuralassumptions,thepenaltytermisexactlythechannel
+        Y                                               through whichTnC leaks into the prediction via the spurious pathTnC ←Z→Y           . An equivalentZSpace
+                                                        bounded reparameterizationis given inAppendix B. Wefirst verify thatthe criterion ranks theidealved
+                                                        causal representation above the naive entangled one.
+                                 T                      Proposition 1(Ideal versus naive). Let      g⋆(T) =T       C and let ˜g(T) =T= (T               C,TnC) be a naiveo-Obser
+                                                        representation that retains both latent components. Under assumptionsMacr   A1andA2, for anyλ>0,
+
+                          m(T    C,TnC)                                                                       J(g    ⋆)>J(˜g).                                                              (2)
+
+             TC                                 TnC                       Clusters
+                                                                                                                       3
+                        J(g) =I(g(T);Y|Z)| {z        } −λ I(g(T);Z)|{z   }
+                                                                    Meso-Latent
+                                          Utility               Penalty
+
+      t1c                                t1nc
+                                                                           Space
+             t2c                                 t2nc
+Y                                Z                                     o-Latent
+                     tkc                                 tdnc       Micr
+
+=== PDF PAGE 4 ===
+Proof sketch. Bythe chainrulefor CMI:I(T   C,TnC;Y|Z) =I(T              C;Y|Z)+I(T              nC;Y|T    C,Z)  .
+The second term is zero byA1, so the two representations have equal utility.  For the penalty,
+I(T   C,TnC;Z) =I(T          C;Z)+I(T          nC;Z|T     C),andthesecondtermisstrictlypositivebyA2. Hence
+the naive representation incurs a strictly larger penalty while achieving the same utility. Therefore
+J(g    ⋆)>J(˜g). Full proof in Appendix A.
+
+Proposition1comparestwo fixedrepresentations. Wenextformalisethemoregeneralmechanism
+throughwhichthedisentanglementcriterionremovesnon-causalinformation. Theobservedtreatment
+T=m(T           C,TnC) may already lose information aboutTC, as does a learned representationg(T)     .
+We thereforedefineϕ(T    C) asthe informationaboutTC recoverablefromg(T)      viaa deterministic
+map r, i.e. r(g(T)) =ϕ(T                 C).  Acausally purified representationis then                  ¯g:=r(g) =ϕ(T                     C).
+Because¯g   isadeterministicfunctionofg,theinformationing decomposesexactlyintotherecovered
+causal contentϕ(T    C) and a residual beyond it. We assume that this residual carries no additional
+predictiveinformationaboutY givenZ,butremainsinformativeabouttheconfounder,whichare
+the representation-level counterparts ofA1andA2:                  I(g(T);Y|ϕ(T                    C),Z) = 0, I(g(T);Z|
+ϕ(T    C))>0.The following proposition shows that stripping the residual strictly improvesJ.
+Proposition 2(Causal purification). Let                     g(T)       be a representation satisfying the recoverability
+assumption, and define its causal purification as¯g(T) :=r(g(T)) =ϕ(T                                 C).Then, for anyλ>0,
+                                                           J(¯g)>J(g).                                                              (3)
+
+Proof sketch.Since¯gis a deterministic function ofg, we haveI(g;Z) =I(¯g;Z)+I(g;Z|¯g).
+By assumption, I(g;Y|Z) =I(ϕ(T                        C);Y|Z) =I(¯g;Y|Z),                           so the utility is preserved. The
+penalty gap isI(g;Z)−I(¯g;Z) =I(g;Z|ϕ(T                                          C))>0,         which yieldsJ(¯g)−J(g) =λI(g;Z|
+ϕ(T    C))>0.Fullproof in Appendix A.
+Remark 1.Proposition 2 shows that the disentanglement criterion preserves the causal content
+availableinthetreatmentrepresentationwhileremovingnon-causalconfounder-dependentinforma-
+tionthatisnotneededforpredictingY. Hence,amaximisingrepresentationispurifiedwithrespect
+to the leakage targeted by the criterion and can be written asg   ⋆(T) =ϕ(T           C).
+However, the form of ϕ remains unspecified.  Should it preserve all information in TC (i.e. be
+invertible), or could a lossy compression be preferable? SinceTC is correlated with bothY (good
+forutility)andZ (costlyfor thepenalty),anylossyϕ reducesthepenalty atthecost ofsomeutility,
+withthetrade-offgovernedbyλ. Toformalisethis,letϕid denotetheidentity(uncompressed)andlet
+ϕ∈H   denoteanynon-invertiblealternativetransformation,whereH istheclassofallnon-invertible
+lossy functions applicable toT   C. For eachϕ∈Hwe define
+       ∆U(ϕ) :=I(T                  C;Y|Z)−I(ϕ(T                    C);Y|Z),      ∆P(ϕ) :=I(T                              C;Z)−I(ϕ(T                C);Z).   (4)
+where∆U(ϕ)           is the utilitylost by compressing the causal component, while∆P(ϕ)          is the reduction
+in confounding penalty gained by that compression. We assume ano-free-lunch conditionaccording
+to which every nontrivial lossy transformationϕ∈H   under consideration incurs a genuine utility
+loss and yields a genuine penalty reduction:
+                                                ∆U(ϕ)>0and∆P(ϕ)>0.                                                  (5)
+We further define thecritical penalty weightas the ratio of the two:
+
+                                                        Λ(ϕ) :=       ∆U(ϕ)∆P(ϕ)        .                                                           (6)
+
+Proposition 3(Lossless regime). Let           λ⋆ := infϕ∈H  Λ(ϕ)      . Under the no-free-lunch condition (5),
+foranyλ∈(0,λ         ⋆),the uncompressedrepresentationTC strictlydominatesevery lossyalternative
+ϕ(T    C)withϕ∈HunderJ; i.e.J(T                                C)>J(ϕ(T         C)),∀ϕ∈H.
+
+Proof.Fix anyϕ∈H. Expanding the definition ofJgives
+
+    I(T   C;Y|Z)−λI(T                  C;Z)>I(ϕ(T             C);Y|Z)−λI(ϕ(T                        C);Z)⇐⇒λ<           ∆U(ϕ)∆P(ϕ)          = Λ(ϕ)
+
+Now supposeλ∈(0,λ         ⋆). Sinceλ < λ⋆ = infϕ∈H  Λ(ϕ)≤Λ(ϕ)                   for everyϕ∈H  , the condition
+λ<Λ(ϕ)          holdsuniformly,soJ(T    C)>J(ϕ(T         C)) foreveryϕ∈H  . Hence,throughouttheregime
+(0,λ   ⋆), the optimal representation preserves the full causal component.
+
+
+                                                                   4
+
+=== PDF PAGE 5 ===
+Proposition 3 shows that after non-causal leakage has been removed, sufficiently small penalty
+weights λ preserve the full causal component, and ϕid is optimal; compression of TC becomes
+preferable only once the penalty reduction outweighs the corresponding utility loss. Finally, we
+provideaconcretesanitycheckfortheprecedingclaimsinAppendixCforalinearGaussianSCM
+where all mutual-information terms can be computed in closed form: the appendix verifies thatJ
+strictly prefers the causal representationTC over the naive entangled representation(T C,TnC), and
+illustrates the lossless regime by varying the amount of stochastic compression applied toT   C.
+
+2.3   A Tractable Objective For Causal Disentanglement
+
+The criterion in (1) cannot be optimised directly since both I(g(T);Y|Z)                   and I(g(T);Z)               are
+unknown and intractable to compute from finite data. We therefore derive a tractable surrogate by
+replacingeachtermwithacomputablebound: alowerboundontheutilityandanupperboundon
+the penalty so that the surrogate is a valid lower bound onJ(g).
+
+Lowerboundontheutility.   Foranyconditionaldistribution q(y|g(T),z)               ,thestandardvariational
+bound on conditional mutual information (CMI) Barber and Agakov [2003] gives
+                      I(g(T);Y|Z)≥E                       p(g(T),y,z)   logq(y|g(T),z)      +H(Y|Z),                     (7)
+whichmotivateslearningq toapproximatethetrueposteriorp(y|g(T),z)               . Weinstantiatethisviaa
+contrastiveInfoNCEestimatorvandenOordetal.[2018]: foreachanchor(g(T),y          +,z)  wedrawK
+negative outcomesy            −1 ,...,y−K fromp(y|z)and define
+                                              "                                                         #
+                      Lutility(θ) :=−E         log                 efθ(g(T),y         +)/τ                .                     (8)
+                                                     efθ(g(T),y         +)/τ  +PKk=1  efθ(g(T),y      −k )/τ
+The InfoNCE loss directly lower-bounds the CMI van den Oord et al. [2018]:
+    I(g(T);Y|Z)≥log(K+1)−L                                     utility(θ) =:−L        utility(θ)+C      Y,   CY := log(K+1).    (9)
+
+Upper bound on the penalty.  For any representation g(T)     , and optimal InfoNCE criticdϕ⋆, the
+NCE-CLUBestimatorLiangetal.[2023]upper-boundsthemutualinformationbetweeng(T)      andZ:
+                 I(g(T);Z)≤E                    p(g(T),z)   dϕ⋆(g(T),z)   −E   p(g(T))p(z)    dϕ⋆(g(T),z)   |{z}.             (10)
+
+                                                           =:I    NCE-CLUB       (g(T);Z;d             ϕ⋆)
+The first term scorespositivepairs                     (g(T),z)∼p(g,z)                    , while the second scoresnegativepairs
+drawn independently fromp(g)p(z)            . The guarantee assumes an optimal critic recovering the log-
+densityratiodϕ⋆(g,z) = logp(z|g)−logp(z)                                . Inpractice,weapproximatethiswithalearnable
+criticdϕ(g(T),z)          , trainedto discriminate jointsamples(g,z)∼p(g,z)              fromindependent samples
+(g,z)∼p(g)p(z). Further details are provided in Appendix D.
+Substituting (9) and (10) into (1), yields a tractable variational lower bound forJ(g).
+Theorem 1.For any encoderg                θ and optimal InfoNCE criticd        ϕ⋆,
+                       J(g    θ)≥ −L utility(θ)−λI        NCE-CLUB       (g θ(T);Z;d           ϕ⋆)+C   Y.                     (11)
+SinceCY = log(K+1)     doesnotdependon(θ,ϕ ⋆),maximisingthisboundisequivalenttominimising
+Lfinal(θ,ϕ ⋆) :=L    utility(θ)+λL         penalty(θ,ϕ ⋆),  L  penalty(θ,ϕ ⋆) :=I    NCE-CLUB       (g θ(T);Z;d           ϕ⋆).
+                                                                                                                            (12)
+
+The resulting objective augments the standard ranking loss with an explicit mutual-information
+penaltythatdiscourages dependencebetweenthelearned representationandtheconfounder,unlike
+IPM-based methods Shalit et al. [2017] which require explicit population matching.
+
+2.4   Practical implementation
+
+The tractable surrogate objective in Theorem 1 uses NCE-CLUB to upper-bound the mutual-
+information penalty. As described in Appendix D, direct optimisation alternates between fitting the
+criticwithInfoNCEandupdatingtheencoderagainsttheresultingNCE-CLUBestimate,together
+
+
+                                                                5
+
+=== PDF PAGE 6 ===
+Figure2: InfoNCElowerbound(dashed)andNCE-CLUBupperbound(solid)onI(g(T);Z)               during
+a productionCRL trainingrun. Gradient reversalacts on theInfoNCE bound. NCE-CLUBis tracked
+onlyasadiagnostic. Bothriseduringthecriticwarm-up,thendecayasgradientreversaldrivesMI
+down. Axisvaluesareomittedforconfidentiality. AsdiscussedinSection2.4,aconservativereading
+of the bounds gives a reduction in MI of at least a factor of5.
+
+
+withthesupervisedutilityloss. Inourexperiments, weinsteadfinditconvenienttoapplygradient
+reversal[Ganin andLempitsky,2015] on theInfoNCE objective [van den Oordet al.,2018]. This
+allows the encoder and critic to be updated through a single backward pass, which was simpler to
+integrateintoourexistingproductiontrainingpipeline. Weemphasisethatthischoiceismotivatedby
+implementation convenience and is not a requirement of the proposed disentanglement criterion.
+Of course, minimising an InfoNCE lower bound does not guarantee a decrease in the mutual
+information. We therefore track both the InfoNCE lower-bound estimate and the NCE-CLUB upper-
+boundestimateduringtraining. Figure2showsaproductionruninwhichbothestimatesriseduring
+criticwarm-upandthendecreaseoncegradientreversalbecomesactive. Inparticular,theNCE-CLUB
+estimate decreases even though it is not directly optimised. To quantify the MI reduction relative
+to the non-CRL baseline model, we compare the final CRL upper bound,UCRL, with the baseline
+lower bound,Lbase. WritingICRL andIbase for their respective actual MI, the validity conditions
+ofthe boundsgiveICRL≤U   CRL andLbase≤I   base. In ourproductionsetup, thisdiagnosticgives
+UCRL ≤L   base/5  , which implies ICRL ≤U   CRL ≤  15Lbase ≤  15Ibase. Therefore, assuming valid
+bounds, we can concludethat the MI has decreased byat least a factor of5relative to the non-CRL
+model. If this NCE-CLUB diagnostic does not support a reduction in MI, we recommend direct
+optimisation of the NCE-CLUB penalty following Appendix D.
+An excessively strong penalty can remove information useful for prediction. Proposition 3 charac-
+terises theideal lossless regime, butits population threshold isnot directly observable. Moreover,the
+scaleofλdependsontheparameterisationoftheutilityandpenaltylosses,thecritic,andtheapplica-
+tion. We therefore treatλ as a standard training hyperparameter and suggest using in-distribution
+validation performance as a safeguard against over-regularisation. We recommend increasingλ from
+zero and selecting the strongest regularisation that keeps the validation metric within an application-
+specifictoleranceoftheλ= 0   baseline. TheMI diagnosticsprovideadditionalguidanceonwhether
+thepenaltyisadequatelyreducingconfounderdependence. Consistentwiththisapproach,ourCRL
+andnon-CRL modelsremainclose onin-distributionmetrics, whiletheCRL modelsimproveunder
+distribution shift.
+
+3   Related work
+
+Treatment-effectestimationwithneuralnetworks.CFRShalitetal.[2017]augmentsTARNet
+withanintegral-probability-metricpenaltythatbalancescovariaterepresentationsacrosstreatment
+groups. CEVAE Louizos et al. [2017] addresses unobserved confounders with a deep generative
+modelusingproxies. SeealsoJeunenetal.[2022],VanGoffrieretal.[2023], Fawkesetal.[2025]
+for alternate methods of dealing with unobserved confounders. Dragonnet Shi et al. [2019] adds a
+propensity-prediction head toencourage representations sufficient fortreatment-effect identification.
+Deep Twin Networks Vlontzos et al. [2023, 2026], Reynaud et al. [2022] adapt neural networks to
+answer counterfactual questions Richens et al. [2020], Pearl [2009] by ensuring their architecture
+matches the twin network Pearl [2009], Graham et al. [2019] of the causal structure in question.
+
+
+                                                         6
+
+=== PDF PAGE 7 ===
+Related work studies structured treatments Kaddour et al. [2021], Harada and Kashima [2021]
+and effects oflinguistic properties Pryzant etal. [2021]. GraphITE penalisesdependence between
+treatmentandindividualrepresentationsusingHSIC.Weinsteaduseaninformation-theoreticcriterion
+withacausal-purificationanalysis. Corcolletal.[2026]learncausaltreatmentrepresentationsusing
+contrastive pairs stratified on confounders and outcomes, whereas our approach does not require
+constructing stratified contrastive pairs.
+
+
+Debiasing causal recommendation.Wang et al. [2022] address shifts in user attributes with a
+causal variational autoencoder that predicts preferences under updated attributes while reducing the
+influenceofoutdatedinteractionhistory. DebiasingapproachesincludeIPSreweightingSchnabel
+et al. [2016], Joachims et al. [2017], pseudo-rating-based asymmetric tri-training Saito [2020],
+instrumental-variable methods such as IViDR Deng et al. [2024], proxy-based latent-confounder
+identification in iDCF Zhang et al. [2023], and causal adjustment Wang et al. [2020], Zhang et al.
+[2021]. CausE Bonner and Vasile [2018] couples embeddings learned from biased and unbiased
+exposure data, while DICE Zheng et al. [2021] and DCCL Zhao et al. [2023] disentangle interest
+andconformity. Rec4AdGaoetal.[2023]augmentsadvertisinglogswithorganicrecommendation
+samples and learns aligned, decorrelated representations. Our method instead regularises treatment-
+confounder dependence within the existing training log.
+
+
+Adversarial MI estimation and invariance.The practical estimator combines gradient rever-
+sal Ganin and Lempitsky [2015] with the InfoNCE lower bound van den Oord et al. [2018]. Alter-
+native MI estimatorsinclude MINEBelghazi et al.[2018] and theCLUB upperbound Cheng etal.
+[2020]; NCE-CLUB Liang et al. [2023] provides the upper-bound machinery used in our diagnostics
+(Appendix D). MI-based representation objectives are also at the core of Deep InfoMax Hjelm
+etal. [2019]. ThedisentanglementcriterionJ(g)      iscomplementary toinvariance-basedapproaches,
+including invariant causal prediction Peters et al. [2016] and invariant risk minimisation Arjovsky
+etal. [2019]. Theseexploitmultiple environments, whereaswe penalisedependenceon anobserved
+confounder without requiring an environment partition.
+
+
+Causalbottlenecksandabstractions.Ourobjectiveisrelatedtocausalinformation-bottleneck
+methods, which retain task-relevant causal information while discarding irrelevant variation. The
+Causal Information Bottleneck Simoes et al. [2025] learns causal variable abstractions by com-
+pressing an input while preserving causal control over a target, and Structural Causal Bottleneck
+ModelsBing etal. [2026]assume thatcausal effectsbetween high-dimensional SCMvariablesare
+mediated by lower-dimensional bottlenecks of their causes. These perspectives connect to causal
+abstractionRubensteinetal.[2017],whichseekscoarservariablesormodelsthatareinterventionally
+consistentwiththeoriginalsystem,togetherwithmethodsthatlearnsuchmapsZennaroetal.[2023],
+Felekis et al. [2024], Keki´c et al. [2024], Xia and Bareinboim [2024], Felekis et al. [2026]. In the
+language of Figure 1, such methods would ask whether the entangledT=m(T           C,TnC) admits a
+coarser description, ideally TC, that preserves interventional consistency. Our setting is adjacent
+but deliberately weaker: withm fixed and unobserved, we learn a mapT7→g(T)             sufficient for the
+recoverable causal contentϕ(T    C), while removing theZ-correlated non-causal leakage carried by
+TnC. WedonotidentifyTC,learnm,orverifymodel-levelconsistency;welearnarepresentation
+that retains the causal information needed for prediction.
+
+
+4   Experiments
+
+We evaluate the proposed method in three settings of increasing realism. The synthetic SCM (§4.1)
+shows that themethod successfully isolatesthe causal componentsof the treatmentrepresentation
+in a simple setup where the full data generation process is known. The semi-synthetic KuaiRand
+experiment (§4.2)usesreal userand videofeatures, witha syntheticnonlinear outcomefunction to
+testrobustnessto acontrolledchangeinnon-causalfeatureassignment. TheonlineA/Btest(§4.3)
+verifiesthatthisrobustnesstranslatesintomeasurableonlinegainsonadeployedproductionmodel
+at Spotify.
+
+
+                                                         7
+
+=== PDF PAGE 8 ===
+Figure3: SyntheticSCM,sweepoveroutcome-noisescaleσY ∈[0,1]       across2,000    seedspernoise
+level.  Lines are per-seed medians; shaded bands are the inter-quartile range across seeds.Left:
+interventionsensitivity|ˆY(T)−        ˆY(T   ′)| ,whereT′ resamplesthenon-causalcoordinatesofT;lower
+is better, with 0 indicating that the model has not absorbed any signal from TnC.Right:paired
+∆MAE=MAE                     CRL−MAE    baseline per seed, centered on the zero line. The CRL penalty does not
+degrade predictive performance, and is in fact slightly better at higher noise levels.
+
+
+4.1   Synthetic SCM
+
+WeinstantiatealinearadditiveSCMwithaconfounderZ∈R     10,atreatmentT∈R     10 decomposable
+intodc = 5causaland5non-causaldimensions,andanoutcomeY thatdependsonTC andZ butnot
+TnC. Fulldata-generating equationsare given inAppendixE. SinceY isinvariant tointerventions
+onTnC,a modelthathascorrectly isolatedthecausalpart ofthetreatment shouldalsobeinvariant
+to those interventions. We measure theintervention sensitivity    |ˆY(T)−        ˆY(T   ′)|  where T′ has its
+non-causalcoordinatesresampled,andthepredictionMAEon           Y. InFigure3wesweeptheoutcome
+noiseσY from0to1,andshowhowthebaselinepredictorissensitivetointerventionsontheTnC
+non-causal signal, whereas theCRL variant’s intervention sensitivitysits essentially at zero across
+the entire range. The MAE is matched between the two methods.
+
+4.2   Semi-Synthetic KuaiRand
+
+Inthissection,weevaluateourmethodinasemi-syntheticsetupusingrealuserandvideofeatures
+fromKuaiRand-Pure[Gaoetal.,2022]. Wegeneratesyntheticclickswithafixednonlinearfunction
+ofuserfeaturesZ,videofeaturesTC,andtheirinteractions. Weintroduceanon-causalfeatureTnC
+andappendittothevideoinput. Inthesourcedistribution,thisfeatureiscorrelatedwithZ,providing
+a shortcut which the model can exploit for prediction. In the target distribution, TnC is assigned
+uniformly at random. The source and target evaluations use the same held-out users, videos, and
+synthetic clicks, with only the shortcut assignment changing.
+We use the DeepFM [Guo et al., 2017] architecture with user and video features and learned ID
+embeddings. DeepFMisastandardbaselineintherecommendationliterature[seeeg.Wangetal.,
+2021], and has been applied to the KuaiRand dataset [Wang et al., 2024, Huang et al., 2024]. Our
+CRL variantadds anInfoNCE criticbetween thetreatment anduser representations,with gradient
+reversal applied to the treatment representation.  The predictor architecture and capacity are the
+same as the baseline. Details of the data-generation, architecture, training setup, and metrics are in
+Appendix F.
+WecompareourCRLapproachwiththebaseline,DCCL[Zhaoetal.,2023],andtwooraclemethods.
+DCCL is similar to our approach in that it adds contrastive losses during training without requiring
+target-domaindata. However,ittargetspopularityandconformitythroughuser-conditionedpositive
+and negative interaction pairs. Our objective does not specify a particular bias mechanism and does
+not use user or outcome-specific positive/negative pair construction. We further note that DCCL’s
+specificbiasmechanismandpairconstructionaretoorestrictiveforourproductionapplication. Oracle
+IPS uses the exact target-to-sourceTnC probability ratio. OracleTnC randomization resamples each
+
+
+                                                         8
+
+=== PDF PAGE 9 ===
+Table 1:  Semi-synthetic KuaiRand results over 100 seeds.  AUC entries report means ± 95%
+confidenceintervals. Rankingmetricsreporttargetmeans. Sourceandtargetusethesameheld-out
+rows,changingonlyTnC assignment. Oraclemethodsreceiveinformationaboutthetrueassignment
+mechanism. OurCRLmodelimprovesalltargetmetricsoverthebaselineandapproachesoracleTnC
+randomization performance.
+
+          Method                                     Source AUC           Target AUC       Recall@5   NDCG@5
+          Baseline                   0.7249±0.0004   0.6914±0.0011      0.5697        0.4501
+          DCCL                          0.7248±0.0004   0.6912±0.0011      0.5699        0.4501
+          Oracle IPS                        0.7079±0.0008   0.7078±0.0008      0.5850        0.4678
+          OracleT          nC randomization0.7243±0.0004   0.7243±0.0004      0.5884        0.4717
+          CRL (ours)                 0.7218±0.0005   0.7212±0.0004      0.5853        0.4676
+
+Table2: OnlineA/Btestresultsonthepersonalisedplaylistgenerationsurface. Percentagechangeof
+the CRL variant relative to the production baseline, with 95% confidence intervals.
+
+                              Metric                   % change              95% CI
+                              Track Streams+0.75%     [+0.54%,+0.96%]
+                              Track Skips  −0.61%     [−0.74%,−0.47%]
+                              Minutes Played+0.50%     [+0.27%,+0.73%]
+
+
+training example’sTnC uniformly.  Both oracle approaches rely on knowledge of the synthetic
+assignment mechanism.
+InTable1, weshowthat thebaselineis sensitive todistributionshiftsin thenon-causal shortcutTnC,
+with AUCdegradingbetween the sourceand target distributions. DCCL performssimilarly to the
+baselineinthissetup. OracleIPSshowslittleornodegradationbetweensourceandtarget,butlarge
+weightsandloweffectivesamplesizereduceoverallperformanceinthissetup. ThebaselineandCRL
+modelsarecloseonthesourcedistribution,butCRLisrobust tothedistributionshift,substantially
+reducing the AUC degradation between source and target. CRL outperforms the baseline across all
+targetmetrics,andapproachestheperformanceoftheoracleshortcutrandomization. Thispattern
+ofsimilarperformanceonthesourcedistributioncombinedwithgainsonthetargetdistributionis
+similar towhat Taoriet al. [2020]calleffective robustness: improvement under shiftnot predicted by
+in-distributionperformance alone. Inthe onlineA/Btest (Section4.3)we showhow thisimproved
+generalisation ability translates to real gains in listener engagement.
+
+4.3   Online A/B test on personalised playlist generation
+
+We evaluate real-world impact through an online A/B test with millions of users on a production
+personalised playlist generation surface at Spotify. The test compares two versions of the production
+session-rankingmodel: thedeployedbaselineandacapacity-matchedCRLvarianttrainedwiththe
+disentanglementobjectiveof§2. TheCRLvariantusesanadversariallosstodecorrelatethemodel’s
+internal representation of the candidate track from its representations of session- and user-level
+context, mirroring the recipe used in the KuaiRand experiment. Both variants perform similarly
+on in-distribution offline metrics, but the CRL variant performs better online. Table 2 reports the
+headlineengagement metrics,measured overtwo weeksduring thetest. TheCRL variantincreases
+trackstreamsby+0.75%       andminutesplayedby+0.50%       whiledecreasingtrackskipsby−0.61%      ,
+with all three changes significant at the95% level. For context, these gains are of the same order
+of magnitude as the improvements that the current production ranker, itself a ground-up rebuild,
+delivered over its mature predecessor.
+
+4.4   Discussion
+
+Across all three settings, in-distribution performance remains unchanged while performance under
+distributionshiftimproves. Thesyntheticandsemi-syntheticexperimentsdemonstraterobustness
+toknownnon-causaltreatmentvariation,andtheproductionA/Btestdemonstratesonlinegainsin
+listener engagement. Our theoretical analysis assumes that the relevant confounding information
+
+
+                                                            9
+
+=== PDF PAGE 10 ===
+is observed in Z.  The penalty cannot remove dependence transmitted only through unobserved
+confounders. In production, the available user and session context almost surely does not include
+all relevant confounding factors. The observed gains nevertheless suggest that an informative but
+incompleteZ canstillimprovegeneralisation. Combiningthecriterionwithproximalcausalinference
+is a possible extension, requiring suitable proxies and additional identifying assumptions.
+
+5   Conclusion
+
+We proposed a CRL-motivated method for making predictive models more robust under the distri-
+bution shift characteristic of on-policy recommendation. We introduced an information-theoretic
+disentanglement criterion, characterised its properties, and derived a tractable training objective. The
+methodusesexistingobservationallogsandaddsnoinference-timecost. Syntheticandsemi-synthetic
+experimentsdemonstrateimprovedrobustnessundercontrolledshifts,whilealarge-scaleproduction
+A/B test showed significant gains in listener engagement.
+
+Acknowledgments and Disclosure of Funding
+
+Thisworkwas supportedby Spotify. The majority ofYorgos Felekis’s contributionwas completed
+during an internship at Spotify. Michael O’Riordan, Oriol Corcoll, and Ciarán M. Gilligan-Leewere
+affiliated with Spotify during this work. The authors declare no additional competing interests.
+
+References
+Martin Arjovsky, Léon Bottou, Ishaan Gulrajani, and David Lopez-Paz. Invariant risk minimization.
+   arXiv preprint arXiv:1907.02893, 2019.
+David Barber and Felix V. Agakov.  Information maximization in noisy channels: A variational
+   approach. InAdvances in Neural Information Processing Systems 16 (NIPS). MIT Press, 2003.
+MohamedIshmaelBelghazi,AristideBaratin,SaiRajeshwar,SherjilOzair,YoshuaBengio,Aaron
+   Courville, and Devon Hjelm. Mutual information neural estimation. InInternational Conference
+   on Machine Learning (ICML), 2018.
+Simon Bing, Jonas Wahl, and Jakob Runge.  Structural causal bottleneck models, 2026.  URL
+   https://arxiv.org/abs/2603.08682.
+
+StephenBonnerandFlavianVasile. Causalembeddingsforrecommendation. InProceedingsofthe
+  12th ACM Conference on Recommender Systems (RecSys), 2018.
+
+Jiawei Chen, Hande Dong, Xiang Wang, Fuli Feng, Meng Wang, and Xiangnan He.  Bias and
+   debiasinrecommendersystem: Asurveyandfuturedirections.ACMTransactionsonInformation
+  Systems, 41(3):1–39, 2023.
+Pengyu Cheng, Weituo Hao, ShuyangDai, Jiachang Liu, Zhe Gan,and Lawrence Carin. CLUB:A
+   contrastive log-ratioupper boundof mutualinformation. InInternational Conference onMachine
+  Learning (ICML), 2020.
+Oriol Corcoll, Athanasios Vlontzos, Michael O’Riordan, and Ciarán M. Gilligan-Lee. Contrastive
+   representations of structured treatments.npj Artificial Intelligence, 2:49, 2026.  doi: 10.1038/
+   s44387-026-00105-2. URLhttps://www.nature.com/articles/s44387-026-00105-2.
+JianfengDeng,QingfengChen,DeboCheng, JiuyongLi,LinLiu,andXiaojingDu. Mitigatingdual
+   latent confounding biases in recommender systems.arXiv preprint arXiv:2410.12451, 2024.
+Jake Fawkes, Michael O’Riordan, Athanasios Vlontzos, Oriol Corcoll, and Ciarán Mark Gilligan-
+   Lee.  The hardness of validating observational studies with experimental data.arXiv preprint
+   arXiv:2503.14795, 2025.
+
+YorgosFelekis,FabioMassimoZennaro,NicolaBranchini,andTheodorosDamoulas. Causaloptimal
+   transport of abstractions. InCausal Learning and Reasoning, pages 462–498. PMLR, 2024.
+
+
+                                                       10
+
+=== PDF PAGE 11 ===
+Yorgos Felekis, Theodoros Damoulas, and Paris Giampouras. Distributionally robust causal abstrac-
+  tions, 2026. URLhttps://arxiv.org/abs/2510.04842.
+
+Yaroslav Ganin and Victor Lempitsky. Unsupervised domain adaptation by backpropagation. In
+  International Conference on Machine Learning (ICML), 2015.
+Chongming Gao, Shijun Li, Yuan Zhang, Jiawei Chen, Biao Li, Wenqiang Lei, Peng Jiang, and
+  XiangnanHe. KuaiRand: Anunbiasedsequentialrecommendationdatasetwithrandomlyexposed
+  videos. InProceedingsofthe31stACMInternationalConferenceonInformation&Knowledge
+  Management (CIKM), 2022.
+Jingyue Gao, ShuguangHan, Han Zhu, SiranYang, Yuning Jiang, JianXu, and Bo Zheng. Rec4Ad:
+  AfreelunchtomitigatesampleselectionbiasforadsCTRpredictioninTaobao. InProceedingsof
+  the 32nd ACM International Conference on Information and Knowledge Management (CIKM),
+  2023. doi: 10.1145/3583780.3615496.
+LoganGraham,CiaránMLee,andYuraPerov. Copy,paste,infer: arobustanalysisoftwinnetworks
+  for counterfactual inference. InNeurIPS19 CausalML workshop, 2019.
+HuifengGuo,RuimingTang,YunmingYe,ZhenguoLi,andXiuqiangHe. DeepFM:Afactorization-
+  machine basedneural network for CTRprediction. InInternational Joint Conferenceon Artificial
+  Intelligence (IJCAI), 2017.
+ShonosukeHaradaandHisashiKashima. GraphITE:Estimatingindividualeffectsofgraph-structured
+  treatments. InProceedingsofthe30thACMInternationalConferenceonInformation&Knowledge
+  Management (CIKM), pages 659–668, 2021. doi: 10.1145/3459637.3482349.
+R.DevonHjelm,AlexFedorov,SamuelLavoie-Marchildon,KaranGrewal,PhilBachman,Adam
+  Trischler,and YoshuaBengio. Learningdeep representationsbymutualinformationestimation
+  and maximization. InInternational Conference on Learning Representations (ICLR), 2019.
+Jiahui Huang, Lan Zhang, Junhao Wang, Shanyang Jiang, Dongbo Huang, Cheng Ding, and Lan
+  Xu. Utilizingnon-clicksamplesviasemi-supervisedlearningforconversionrateprediction. In
+  Proceedings of the 18th ACM Conference on Recommender Systems (RecSys), pages 350–359,
+  2024. doi: 10.1145/3640457.3688151.
+OlivierJeunen,CiaránGilligan-Lee,RishabhMehrotra,andMouniaLalmas. Disentanglingcausal
+  effectsfromsetsofinterventionsinthepresenceofunobservedconfounders.AdvancesinNeural
+  Information Processing Systems, 35:27850–27861, 2022.
+ThorstenJoachims,AdithSwaminathan,andTobiasSchnabel. Unbiasedlearning-to-rankwithbiased
+  feedback. InProceedings of the 10th ACM International Conference on Web Search and Data
+  Mining (WSDM), 2017.
+JeanKaddour,YuchenZhu,QiLiu,MattJ.Kusner,andRicardoSilva. Causaleffectinferencefor
+  structuredtreatments. InAdvances inNeuralInformation Processing Systems34 (NeurIPS),2021.
+
+Armin Keki´c, Bernhard Schölkopf, and Michel Besserve.  Targeted reduction of causal models.
+  InProceedings of the Fortieth Conference on Uncertainty in Artificial Intelligence, UAI ’24.
+  JMLR.org, 2024.
+
+Ilyes Khemakhem, Diederik P. Kingma, Ricardo Pio Monti, and Aapo Hyvärinen.  Variational
+  autoencodersand nonlinear ICA:a unifyingframework. InInternationalConference onArtificial
+  Intelligence and Statistics (AISTATS), 2020.
+
+PaulPuLiang,ZihaoDeng,MartinQ.Ma,JamesZou,Louis-PhilippeMorency,andRuslanSalakhut-
+  dinov.  Factorized contrastive learning: going beyond multi-view redundancy.  InProceedings
+  of the 37th International Conference on Neural Information Processing Systems, NIPS ’23, Red
+  Hook, NY, USA, 2023. Curran Associates Inc.
+
+Francesco Locatello, Stefan Bauer, Mario Lucic, Gunnar Rätsch, Sylvain Gelly, Bernhard Schölkopf,
+  and Olivier Bachem. Challengingcommon assumptionsin theunsupervised learningof disentan-
+  gled representations. InInternational Conference on Machine Learning (ICML), 2019.
+
+
+                                                      11
+
+=== PDF PAGE 12 ===
+ChristosLouizos,UriShalit,JorisM.Mooij,DavidSontag,RichardZemel,andMaxWelling. Causal
+  effect inference with deep latent-variable models. InAdvances in Neural Information Processing
+  Systems (NeurIPS), 2017.
+
+Judea Pearl. Causal inference in statistics: An overview.Statistics Surveys, 3:96–146, 2009.
+
+Jonas Peters, Peter Bühlmann, and Nicolai Meinshausen.   Causal inference by using invariant
+  prediction: identificationandconfidenceintervals.JournaloftheRoyalStatisticalSociety: Series
+  B, 78(5):947–1012, 2016.
+
+Reid Pryzant, Dallas Card, Dan Jurafsky, Victor Veitch, and Dhanya Sridhar.  Causal effects of
+  linguisticproperties. InProceedingsofthe2021Conferenceof theNorthAmericanChapterofthe
+  AssociationforComputationalLinguistics: HumanLanguageTechnologies(NAACL-HLT),pages
+  4095–4109.AssociationforComputationalLinguistics,2021. doi: 10.18653/v1/2021.naacl-main.
+  323.
+
+Hadrien Reynaud, Athanasios Vlontzos, Mischa Dombrowski, Ciarán Gilligan Lee, Arian Beqiri,
+  Paul Leeson, and Bernhard Kainz. D’artagnan: Counterfactual video generation. InInternational
+  conference on medical image computing and computer-assisted intervention, pages 599–609.
+  Springer, 2022.
+
+JonathanGRichens,CiaránMLee,and SaurabhJohri. Improvingtheaccuracyofmedicaldiagnosis
+  with causal machine learning.Nature communications, 11(1):3923, 2020.
+
+PaulKRubenstein,SebastianWeichwald,StephanBongers,JorisMMooij,DominikJanzing,Moritz
+  Grosse-Wentrup, and Bernhard Schölkopf. Causal consistency of structural equation models. In
+  33rd Conference on Uncertainty in Artificial Intelligence (UAI 2017), pages 808–817. Curran
+  Associates, Inc., 2017.
+
+Yuta Saito.  Asymmetric tri-training for debiasing missing-not-at-random explicit feedback.  In
+  Proceedings of the 43rd ACM SIGIR Conference on Research and Development in Information
+  Retrieval, 2020.
+
+Tobias Schnabel, Adith Swaminathan, Ashudeep Singh, Navin Chandak, and Thorsten Joachims.
+  Recommendations astreatments: Debiasing learning andevaluation. InInternational Conference
+  on Machine Learning (ICML), 2016.
+
+Bernhard Schölkopf, Francesco Locatello, Stefan Bauer, Nan Rosemary Ke, Nal Kalchbrenner,
+  AnirudhGoyal,andYoshuaBengio. Towardcausalrepresentationlearning.Proceedingsofthe
+  IEEE, 109(5):612–634, 2021.
+
+UriShalit, FredrikD.Johansson, andDavidSontag. Estimatingindividualtreatmenteffect: general-
+  ization bounds and algorithms. InProceedings of the 34th International Conference on Machine
+  Learning(ICML),volume70ofProceedingsofMachineLearningResearch,pages3076–3085.
+  PMLR, 2017.
+
+Claudia Shi, David M. Blei, and Victor Veitch.  Adapting neural networks for the estimation of
+  treatment effects. InAdvances in Neural Information Processing Systems 32 (NeurIPS), 2019.
+
+Francisco N. F. Q. Simoes, Mehdi Dastani, and Thijs van Ommen. The causal information bottle-
+  neck and optimal causal variable abstractions. In Silvia Chiappa and Sara Magliacane, editors,
+  Proceedings of the Forty-first Conference on Uncertainty in Artificial Intelligence, volume 286
+  ofProceedingsof MachineLearningResearch,pages 3878–3897.PMLR, 21–25Jul 2025. URL
+  https://proceedings.mlr.press/v286/simoes25a.html.
+
+RohanTaori,AchalDave,VaishaalShankar,NicholasCarlini,BenjaminRecht,andLudwigSchmidt.
+  Measuring robustness to natural distribution shifts in image classification. InAdvances in Neural
+  Information Processing Systems 33 (NeurIPS), 2020.
+
+AaronvandenOord,YazheLi,andOriolVinyals. Representationlearningwithcontrastivepredictive
+  coding.arXiv preprint arXiv:1807.03748, 2018.
+
+
+                                                       12
+
+=== PDF PAGE 13 ===
+Graham VanGoffrier,Lucas Maystre, andCiarán MarkGilligan-Lee. Estimatinglong-term causal
+  effectsfromshort-termexperimentsandlong-termobservationaldatawithunobservedconfounding.
+  InConference on Causal Learning and Reasoning, pages 791–813. PMLR, 2023.
+Athanasios Vlontzos, Bernhard Kainz, and Ciarán M Gilligan-Lee. Estimating categorical counter-
+  factuals via deep twin networks.Nature Machine Intelligence, 5(2):159–168, 2023.
+AthanasiosVlontzos,DavidGustafsson,MichaelO’Riordan,andCiaránMGilligan-Lee. Incremental
+  recommendation via causal models.arXiv preprint arXiv:2608.26804, 2026.
+Ruoxi Wang, Rakesh Shivanna, Derek Cheng, SagarJain, Dong Lin, Lichan Hong, and Ed H. Chi.
+  DCN V2: Improved deep & cross network and practical lessons for web-scale learning to rank
+  systems.  InProceedings of the Web Conference 2021 (WWW), pages 1785–1797, 2021.  doi:
+  10.1145/3442381.3450078.
+WenjieWang,XinyuLin,FuliFeng,XiangnanHe,MinLin,andTat-SengChua.Causalrepresentation
+  learning for out-of-distribution recommendation. InProceedings of the ACM Web Conference
+  2022 (WWW), pages 3562–3571, 2022. doi: 10.1145/3485447.3512251.
+Yejing Wang, Dong Xu, Xiangyu Zhao, Zhiren Mao, Peng Xiang, Ling Yan, Yao Hu, Zijian
+  Zhang, Xuetao Wei, and Qidong Liu.   Bi-level user modeling for deep recommenders.   In
+  2024 IEEE International Conference on Data Mining (ICDM), pages 510–519, 2024.   doi:
+  10.1109/ICDM59182.2024.00058.
+Yixin Wang, Dawen Liang, Laurent Charlin, and David M. Blei. Causal inference for recommender
+  systems. InProceedingsofthe14thACMConferenceonRecommenderSystems(RecSys),pages
+  426–431, 2020. doi: 10.1145/3383313.3412225.
+Kevin Xia and Elias Bareinboim. Neural causal abstractions.Proceedings of the AAAI Conference
+  onArtificialIntelligence,38(18):20585–20595,Mar.2024. doi: 10.1609/aaai.v38i18.30044. URL
+  https://ojs.aaai.org/index.php/AAAI/article/view/30044.
+FabioMassimoZennaro,MátéDrávucz,GeaninaApachitei,W.DhammikaWidanage,andTheodoros
+  Damoulas. Jointlylearningconsistentcausalabstractionsovermultipleinterventionaldistributions.
+  InMihaelavanderSchaar,ChengZhang,andDominikJanzing,editors,ProceedingsoftheSecond
+  Conference on Causal Learning and Reasoning, volume 213 ofProceedings of Machine Learning
+  Research,pages88–121.PMLR,11–14Apr2023. URL  https://proceedings.mlr.press/
+  v213/zennaro23a.html.
+QingZhang,XiaoyingZhang,YangLiu,HongningWang,MinGao,JihengZhang,andRuocheng
+  Guo. Debiasingrecommendationbylearningidentifiablelatentconfounders. InProceedingsof
+  the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD), 2023.
+Yang Zhang, Fuli Feng, Xiangnan He, Tianxin Wei, Chonggang Song, Guohui Ling, and Yongdong
+  Zhang. Causal intervention for leveraging popularity bias in recommendation. InProceedings of
+  the 44th ACM SIGIR Conference on Research and Development in Information Retrieval, 2021.
+Weiqi Zhao, Dian Tang, Xin Chen, Dawei Lv, Daoli Ou, Biao Li, Peng Jiang, and Kun Gai. Dis-
+  entangledcausal embeddingwithcontrastive learning forrecommender system. InCompanion
+  Proceedings of the ACM Web Conference 2023 (WWW ’23 Companion), 2023.
+Yu Zheng, Chen Gao, Xiang Li, Xiangnan He, Yong Li, and Depeng Jin. Disentangling user interest
+  andconformityforrecommendationwithcausalembedding. InProceedingsofthewebconference
+  2021, pages 2980–2991, 2021.
+
+
+
+
+
+
+
+
+
+
+
+                                                     13
+
+=== PDF PAGE 14 ===
+A   Proofs for §2
+
+Throughout,weusethestructuralassumptionsintroducedin§2. Theobservedtreatmentdecomposes
+as
+                                                         T=m(T           C,TnC),
+the outcome is conditionally independent of the non-causal latents,
+                                                 (A1)Y⊥T             nC |(T  C,Z),
+and the non-causal latents contain residual confounder information beyond the causal latents,
+                                                (A2)I(T           nC;Z|T     C)>0.
+
+Proof of Proposition 1
+
+We compare the ideal representation g⋆(T) =T       C with the naive representation ˜g(T) =T=
+(T C,TnC).
+
+Utility.  By the chain rule for conditional mutual information,
+                               I(˜g(T);Y|Z) =I(T                          C,TnC;Y|Z)
+                                                      =I(T      C;Y|Z)+I(T              nC;Y|T    C,Z).
+The second term is zero byA1. Hence
+                                 I(˜g(T);Y|Z) =I(T                          C;Y|Z) =I(g              ⋆(T);Y|Z).
+Penalty.  Again, by the mutual-information chain rule,
+                                       I(˜g(T);Z) =I(T                      C,TnC;Z)
+                                                        =I(T      C;Z)+I(T          nC;Z|T     C).
+ByA2,I(T              nC;Z|T     C)>0. Therefore
+                                         I(˜g(T);Z)>I(T                     C;Z) =I(g           ⋆(T);Z).
+Equivalently, using the entropy chain rule,
+             I(T   C,TnC;Z) =H(T            C,TnC)−H(T          C,TnC |Z)
+                                   =H(T     C)+H(T        nC |T C)−H(T     C |Z)+H(T            nC |T C,Z)
+                                   =I(T      C;Z)+I(T          nC;Z|T     C).
+Thus, the excess penalty of the naive representation is exactly the unique spurious leakage term.
+
+Conclusion.Thetworepresentationshaveequalutility,butthenaiverepresentationhasastrictly
+larger penalty. Hence
+                   J(g    ⋆)−J(˜g) =   I(g   ⋆;Y|Z)−I(˜g;Y|Z)       +λI(˜g;Z)−I(g                  ⋆;Z) 
+                                       =λI(T      nC;Z|T     C)>0.
+ThereforeJ(g                    ⋆)>J(˜g).
+
+Proof of Proposition 2
+
+Consider a representation satisfying the recoverability assumption:
+                                                  g(T) =h   ϕ(T    C),ℓ(T     nC),
+wherethecausalcomponentϕ(T    C)isdeterministicallyrecoverablefromg(T)     . Thatis,thereexistsa
+maprsuch that
+                                                         r(g(T)) =ϕ(T                 C).
+Define the purified representation by
+                                                  ¯g(T) :=r(g(T)) =ϕ(T                             C).
+Thus ¯g   isadeterministicfunctionofg. Attherepresentationlevel,weassumethattheresidualinfor-
+mationing(T)      beyondtherecoveredcausalcomponentcontainsnoadditionaloutcomeinformation
+but does contain residual confounder information:
+                                           (R1)I(g(T);Y|ϕ(T                            C),Z) = 0,
+and
+                                             (R2)I(g(T);Z|ϕ(T                            C))>0.
+
+
+                                                                    14
+
+=== PDF PAGE 15 ===
+Utility preservation.Since         ¯g=ϕ(T           C) is a deterministicfunction ofg, the pair(g,¯g)       contains the
+same information asg. Hence
+                                                 I(g;Y|Z) =I(g,¯g;Y|Z).
+By the chain rule for conditional mutual information,
+                                   I(g,¯g;Y|Z) =I(¯g;Y|Z)+I(g;Y|¯g,Z).
+Since¯g=ϕ(T                     C), the second term is
+                                            I(g;Y|¯g,Z) =I(g;Y|ϕ(T                                 C),Z),
+which is zero byR1. Therefore
+                                                   I(g;Y|Z) =I(¯g;Y|Z).
+Thus purification preserves the utility term.
+
+Penalty reduction.Again, since¯gis a deterministic function ofg,
+                                                       I(g;Z) =I(g,¯g;Z).
+Applying the mutual-information chain rule,
+                                           I(g,¯g;Z) =I(¯g;Z)+I(g;Z|¯g).
+Using¯g=ϕ(T                     C), we obtain
+                                 I(g;Z)−I(¯g;Z) =I(g;Z|¯g) =I(g;Z|ϕ(T                                                             C)).
+ByR2, this quantity is strictly positive. Hence
+                                                         I(¯g;Z)<I(g;Z).
+
+Objective comparison.Combining utility preservation and penalty reduction,
+                     J(¯g)−J(g) =     I(¯g;Y|Z)−I(g;Y|Z)         +λI(g;Z)−I(¯g;Z)       
+                                        =λI(g;Z|ϕ(T                  C))>0.
+ThereforeJ(¯g)>J(g)for everyλ>0.
+
+General Predictive Purification Result
+
+The purification result in the main text assumes that the causal componentϕ(T    C) is recoverable
+fromtherepresentation. Wenowshowthatamoregeneralpurificationprincipleholdswithoutthis
+assumption.
+Let
+                                                              G:=g(T)
+beanarbitraryrepresentation. Wecall ¯G=s(G)             apredictivepurificationof                  Gifitisadeterministic
+function ofGsatisfying
+                                                          Y⊥G|(         ¯G,Z).
+In words, once ¯G and Z are known, the remaining information in G does not provide additional
+predictive information aboutY.
+
+Existence.Under standard regularity conditions, such astatistic exists. Onecanonical construction
+is the conditional response profile
+                                           s(G) :=  p(Y|G,Z=z) :z∈Z     	.
+Thisobjectrecords,foreachvalueofG,theconditionallawofY acrossvaluesoftheconfounder.
+By construction,
+                                                p(Y|G,Z) =p(Y|s(G),Z),
+which implies
+                                                        Y⊥G|(s(G),Z).
+This statistic may be infinite-dimensional and is used only as a population-level object.
+
+
+                                                                    15
+
+=== PDF PAGE 16 ===
+Proposition 4(General predictive purification)¯G=s(G)be a predictive purification. Then, for anyλ>0,. Let                     G=g(T)             be any representation, and let
+
+
+                                                           J(  ¯G)≥J(G),
+
+with exact improvement
+                                               J(  ¯G)−J(G) =λI(G;Z|                             ¯G).
+The inequality is strict wheneverI(G;Z|               ¯G)>0.
+
+
+Proof.Since       ¯G=s(G)is a deterministic function ofG,
+
+                                               I(G;Y|Z) =I(G,                   ¯G;Y|Z).
+By the chain rule,
+                                  I(G,    ¯G;Y|Z) =I(              ¯G;Y|Z)+I(G;Y|                      ¯G,Z).
+The second term is zero by predictive sufficiency, so
+
+                                                 I(G;Y|Z) =I(                 ¯G;Y|Z).
+
+For the penalty,
+                                  I(G;Z) =I(G,                ¯G;Z) =I(           ¯G;Z)+I(G;Z|                    ¯G).
+Thus
+                                         I(G;Z)−I(               ¯G;Z) =I(G;Z|                    ¯G)≥0.
+
+Combining,
+                                            J(  ¯G)−J(G) =λI(G;Z|                             ¯G)≥0.
+
+
+
+Connectionto thecausal setting.  Theresultabove ispurely information-theoretic andapplies to
+anyrepresentation. ItscausalinterpretationfollowsfromassumptionA1. Forthefullentangledlatent
+representation
+                                                          G= (T    C,TnC),
+we have
+                                            p(Y|T       C,TnC,Z) =p(Y|T             C,Z),
+sothepredictivepurificationdependsonlyonthecausalcomponentTC,uptooutcome-equivalence.
+Thus, in the SCM considered in this work, the population target of purification can be written as
+                                                           g(T) =ϕ(T             C).
+
+Relation to the main result.Proposition 4 shows that the disentanglement criterion removes
+information that is irrelevant for predictingY|Z    but still informative about the confounder, without
+requiring any structural assumptions on g.  The main-text result strengthens this conclusion by
+imposing a recoverability assumption, which allows the purified representation to be identified
+explicitly as a function of the causal componentT                  C.
+
+B   Reparameterisation of the Disentanglement Criterion
+
+The objective in (1),
+                                         J(g) =I(g(T);Y|Z)−λI(g(T);Z),
+usestheunboundedpenaltyweightλ∈[0,∞)            . Itisoftenmoreconvenienttoworkwithanequivalent
+bounded parameterγ∈[0,1].
+
+
+                                                                    16
+
+=== PDF PAGE 17 ===
+Reparameterisation.Forλ>0, maximisingJ(g)is equivalent to minimising
+                                       −J(g) =λI(g(T);Z)−I(g(T);Y|Z).
+Dividing by the positive constant1+λ    does not change the minimiser, so the same solutions are
+obtained by minimising
+                                         λ
+                                      1+λ   I(g(T);Z)−                  11+λ   I(g(T);Y|Z).
+Define
+                                                     γ:=      11+λ   ∈(0,1),
+so that1−γ=λ/(1+λ). The equivalent bounded objective is
+                                  Lγ(g) := (1−γ)I(g(T);Z)−γI(g(T);Y|Z),                                (13)
+which we minimise over g.  The limiting case λ= 0   corresponds to γ= 1  , i.e.  pure utility
+maximisation. Conversely,λ→∞corresponds toγ→0, i.e. pure penalty minimisation.
+
+Optimality condition underγ.  Using the same notation as Proposition 3, compare the uncom-
+pressed representation TC with a lossy alternative ϕ(T    C).  The uncompressed representation is
+preferred underL         γ when
+                                                   Lγ(T C)<L γ(ϕ(T     C)).
+Expanding this inequality gives
+                                             (1−γ)∆P(ϕ)−γ∆U(ϕ)<0,
+or equivalently
+                                             γ >         ∆P(ϕ)∆U(ϕ)+∆P(ϕ)                   =: Γ(ϕ).
+
+ThusΓ(ϕ)       isthecriticalutilityweightabovewhichthefullcausalcomponentispreferredtothelossy
+compressionϕ.
+Proposition 5(High-utility regime under  γ). Let  H, ∆U(ϕ)          , and ∆P(ϕ)          be as in Proposition 3,
+and assume the no-free-lunch condition∆U(ϕ)>0and∆P(ϕ)>0for everyϕ∈H. Define
+                                      γ⋆ := sup                               ∆P(ϕ)
+
+                                               ϕ∈H  Γ(ϕ) = supϕ∈H      ∆U(ϕ)+∆P(ϕ)                 .
+Then for any γ∈(γ      ⋆,1) , the uncompressed representation TC strictly dominates every lossy
+alternativeϕ(T                      C),ϕ∈H, under the objectiveL                        γ.
+
+Proof. Fix any ϕ∈ H  . The condition Lγ(T C)< L γ(ϕ(T     C)) holds if and only if γ >Γ(ϕ)         . By
+definition of the supremum,
+                                                  Γ(ϕ)≤γ            ⋆     ∀ϕ∈H.
+Hence, for anyγ >γ  ⋆,
+                                                   γ >Γ(ϕ)    ∀ϕ∈H.
+Therefore Lγ(T C)< L γ(ϕ(T     C)) uniformly overH, so the uncompressed causal representation
+strictly dominates all lossy alternatives.
+
+CorrespondencewithProposition3. The   λ-andγ-parameterisationsdescribethesametrade-off.
+Since
+                                                           γ=      11+λ   ,
+the condition
+                                                     λ<Λ(ϕ) =          ∆U(ϕ)∆P(ϕ)
+
+is equivalent to
+                                             γ >         ∆P(ϕ)∆U(ϕ)+∆P(ϕ)                   = Γ(ϕ).
+
+Thus the low-λlossless regime in Proposition 3 is the same as the high-γregime in Proposition 5.
+
+
+                                                                  17
+
+=== PDF PAGE 18 ===
+C   Toy Example
+
+We give a closed-form sanity check for the Disentanglement Criterion:
+                                         J(g) =I(g(T);Y|Z)−λI(g(T);Z)
+inalinearadditiveGaussianmodel. Thetreatmentconsistsofcausalandnon-causalcomponents,but
+only the causal ones affects the outcome. Consider the following SCM:
+                                                       Z=ϵ      Z,                                                                          (14)
+                                                     TC =αZ+ϵ         C,                                                               (15)
+                                                    TnC =βZ+ϵ         N,                                                               (16)
+                                                       Y=ρT     C +δZ+ϵ         Y,                                                    (17)
+where all noise variables are mutually independent and Gaussian:
+                ϵZ ∼N(0,σ       2Z),   ϵ C ∼N(0,σ       2C),   ϵ N ∼N(0,σ       2N),   ϵ Y ∼N(0,σ       2Y).
+The observed treatment is
+                                                         T= (T    C,TnC).
+By construction, the outcome depends on the treatment only through the causal component:
+                                                      Y⊥T     nC |(T  C,Z).
+Moreover, under non-degenerate parameters, e.g. β̸= 0  ,σ2Z >0   ,σ2C >0   , andσ2N >0   , the non-
+causal component contains residual information about the confounder beyond thecausal component:
+                                                      I(T   nC;Z|T     C)>0.
+Indeed, since the variables are jointly Gaussian,
+
+                                      I(T   nC;Z|T     C) = 12 log   Var(T     nC |T C)Var(T     nC |Z,T C).
+
+Now
+                                                   Var(T     nC |Z,T C) =σ   2N,
+whereas
+                                        Var(T     nC |T C) =β   2Var(Z|T         C)+σ   2N,
+with
+                                                Var(Z|T         C) =     σ2Zσ2Cα2σ2Z +σ   2C.
+
+Therefore,
+                              I(T   nC;Z|T     C) = 12 log         1+      β2σ2Zσ2Cσ2N(α 2σ2Z +σ   2C)>0.
+
+ThustheGaussianSCMsatisfiesassumptionsA1andA2fromthemaintext. Consequently,wenow
+compare the ideal causal representation with the naive entangled representation:
+                                        g1(T) =T       C,   g2(T) =T= (T           C,TnC).
+For scalar jointly Gaussian variables,
+
+                                          I(U;V|W) =              12 log   Var(V|W)Var(V|U,W)          .
+
+Conditioned onZ,
+                                                Y= (ρα+δ)Z+ρϵ                      C +ϵ   Y,
+so
+                                                  Var(Y|Z) =ρ               2σ2C +σ   2Y.
+Conditioned on(T     C,Z),
+                                                     Y=ρT     C +δZ+ϵ         Y,
+and therefore
+                                                     Var(Y|T         C,Z) =σ      2Y.
+
+                                                                   18
+
+=== PDF PAGE 19 ===
+Hence                                                                 ρ2σ2C +σ   2Y
+
+                                       I(T   C;Y|Z) =        12 log          σ2Y                                             (18)
+
+                                                          = 12 log     1+ ρ2σ2Cσ2Y      .                                          (19)
+
+Since Y⊥T     nC |(T  C,Z)   =⇒I(T             C,TnC;Y|Z) =I(T              C;Y|Z)       .  So the ideal and naive
+representations have identical utility.
+For the penalty term,
+                                                   α2σ2Z +σ   2C
+                          I(T   C;Z) =    12 log           σ2C          = 12 log      1+ α2σ2Zσ2C      .
+
+By the mutual-information chain rule,
+                                  I(T   C,TnC;Z) =I(T          C;Z)+I(T          nC;Z|T     C).
+The second term is strictly positive by the calculation above, so
+                                              I(g   2(T);Z)>I(g               1(T);Z).
+Therefore, for anyλ>0,
+                                J(g    1)−J(g         2) =λI(g   2(T);Z)−I(g                   1(T);Z)                                   (20)
+                                                     =λI(T         nC;Z|T     C)>0.                                              (21)
+Thus, in this Gaussian SCM, the criterion strictly prefers the causal representationTC over the naive
+entangled representation(T C,TnC). Figure 4 shows the same effect empirically in a multivariate
+simulation where the representation progressively removes coordinates of TnC.  Retaining more
+non-causal information leaves the utility unchanged but increases the confounding penalty, so the
+corresponding objective values decrease more rapidly asλgrows.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure4:Progressiveremovalofnon-causalleakage.Theobjective               J(g)      isplottedasafunctionof
+the penalty weightλ for representations retaining different amounts of the non-causal component
+TnC. SinceTnC contributesconfounderinformationwithoutaddingoutcomeinformationbeyondTC,
+representationswithmorenon-causalleakageincuralargerpenalty. Thepurelycausalrepresentation
+g(T) =T         C achieves the highest score among the tested representations.
+
+After the non-causal component has been removed, the remaining question is whether the optimal
+representation should preserve all ofTC or compress it. To model lossy compression analytically,
+consider the stochastic representation channel
+                                         G=T      C +ϵ   G,       ϵG∼N(0,σ       2G),
+
+
+                                                               19
+
+=== PDF PAGE 20 ===
+Figure5:Losslessregimeandcriticalpenaltyweight.Theobjective             J(g)      isplottedasafunctionof
+λforstochasticcompressedrepresentationsG=T      C+ϵ   G,whereϵG∼N(0,σ       2G). Thedashedcurve
+corresponds to the uncompressed causal representation σ2G = 0. For small λ, preserving the full
+causal component is optimal; for largerλ, compression can become preferable because the reduction
+in confounder information outweighs the utility loss.
+
+
+withϵG independentofallothervariables. ThiscanbeviewedasaGaussianMarkovkernelfromTC
+toG, whereσ                 2G controls the amount of compression. The penalty is
+
+                                  P(σ    2G) :=I(G;Z) =              12 log1+   α2σ2Zσ2C +σ   2G,
+
+and the utility is                                                                                   
+
+                        U(σ    2G) :=I(G;Y|Z) =                 12 log        ρ2σ2C +σ   2Y          .
+                                                                      (ρ 2σ2C +σ   2Y)−    ρ2σ4Cσ2C+σ   2G
+
+Both terms decrease asσ2G increases: compression removes information about the confounder, but it
+also removes predictive information about the outcome. The objective is
+                                              J(σ    2G) =U(σ        2G)−λP(σ            2G).
+At the uncompressed boundaryσ                2G = 0,
+                                          dP    σ2G=0 =−           α2σ2Z
+
+                                          dσ2G                 2σ  2C(σ 2C +α   2σ2Z),
+and                                                 dU   σ2G=0
+                                                   dσ2G           =−    ρ22σ  2Y .
+
+Thus the uncompressed representation is locally optimal wheneverσ2G=0σ2G=0σ2G=0
+                                    dJ            =  dU              −λ   dP             ≤0.
+                                   dσ2G               dσ2G                dσ2G
+Equivalently,                                                      dU σ2G=0
+
+                                                                   dσ2G
+                                                λ≤λ      crit :=   dP σ2G=0.
+
+                                                                   dσ2G
+
+
+                                                               20
+
+=== PDF PAGE 21 ===
+This threshold is the ratio between the marginal utility loss and the marginal penalty reduction
+at zero compression.  Figure 5 visualises this trade-off:  for small λ, preserving the full causal
+componentisoptimal;forlargerλ,thepenaltybecomessufficientlyexpensivethatanoisycompressed
+representation can achieve a higher objective value. This is the Gaussian analogue of the lossless
+regime in Proposition 3.
+
+D   NCE-CLUB Upper Bound and Critic Interpretation
+
+To construct a tractable surrogate for the disentanglement objective
+                                      J(g) =I(g(T);Y|Z)−λI(g(T);Z),
+we require an upper bound on the penalty termI(g(T);Z).
+
+GeneralNCE-CLUBbound.WeusetheNCE-CLUBestimatorLiangetal.[2023]. Forapairof
+random variables(X               1,X2), NCE-CLUB provides the upper bound
+                                         I(X   1;X 2)≤I     NCE-CLUB       (X 1;X 2),
+where, for the optimal criticf         ⋆,                  f⋆(x 1,x+2)−E   x1∼p(x      1),x −           f⋆(x 1,x−2).
+    INCE-CLUB       (X 1;X 2) :=E    (x 1,x+
+                                            2)∼p(x        1,x2)                                 2∼p(x      2)
+The first expectation is over joint, or positive, pairs; the second is over independently sampled, or
+negative, pairs.
+
+Application to the penalty term.Applying this construction to the penalty with
+                                               X1 =g(T),       X           2 =Z,
+gives
+                                        I(g(T);Z)≤I                     NCE-CLUB       (g(T);Z).
+In practice, the optimal criticf⋆ is unknown, so we use a learned criticdϕ and obtain the plug-in
+estimator               INCE
+                            -CLUB       (g(T);Z;d              ϕ) :=E    p(g(T),z)   dϕ(g(T),z)   
+                                                               −E   p(g(T))p(z)    dϕ(g(T),z)   .
+This is the quantity used as the penalty estimator in the main text.
+
+Interpretation of the criticd         ϕ.  The optimal critic corresponds to the log-density ratio
+
+                                d⋆(g,z) = log   p(z|g)p(z)        = logp(z|g)−logp(z),
+
+whichisintractablebecausethetrueconditionalp(z|g)         isunknown. Wethereforeapproximateit
+with a learnable criticd        ϕ(g,z), which can be interpreted as a variational estimate
+                                  dϕ(g θ(T),z)≈logq                  ϕ(z|g    θ(T))−logp(z),
+whereq          ϕ(z|g)is a learned conditional model.
+The critic is trained to distinguish positive pairs
+                                                      (g,z)∼p(g,z)
+from negative pairs
+                                                    (g,z)∼p(g)p(z).
+This training aims to moved ϕ toward the optimal log-ratio and thereby tighten the plug-in estimate.
+
+Adversarial training dynamics.The optimisation alternates between critic fitting and encoder
+updates. ThecriticparametersϕaretrainedtomaximisetheInfoNCEobjective,approximatingthe
+optimal criticfor the current representation. Then, holding the critic fixed, theencoder parameters
+θ are trained to minimise the NCE-CLUB penalty together with the utility loss. This encourages
+representations that remain predictive of Y  while discouraging dependence on Z.  The gradient-
+reversed InfoNCE implementation used in our experiments is described in Section 2.4.
+
+
+                                                              21
+
+=== PDF PAGE 22 ===
+E   Synthetic SCM: experimental details
+
+We generate 1,000 training samples, and 1,000 validation samples from the following linear additive
+SCM withd= 10,d               c = 5:
+
+                      Z∼N(0,I          d),
+                     TC =Z   0:d  c +ϵ   TC,                                  ϵTC ∼N(0,I       dc),
+                   TnC =Z   dc:d +ϵ   TnC,                               ϵTnC ∼N(0,I       d−d    c),
+                      T= [T   C,TnC],
+                      Y=1    ⊤TC +1  ⊤Z+ϵ      Y,                        ϵY,i   iid∼N(0,σ       2Y).
+
+
+The predictor is a linear model ˆY=w    ⊤ZZ+w    ⊤TT+b     . We take the treatment representation to
+be the per-coordinate contribution of T to the prediction, gT  =T⊙w         T ∈R  10, where wT  is
+the treatment slice of the predictor’s own weight vector.  The MI critic therefore decorrelatesZ
+fromthecomponents ofT thatthepredictor actuallyuses. UndergradientreversalthispusheswT
+toward the causal coordinates of T.  The critic itself is bilinear: two bias-free linear projections
+Wg,Wz ∈R  10×10       to a shared embedding space, with InfoNCE scores given by the full B×B
+matrixS= (W    ggT)(W   zZ)  ⊤ over a minibatchof sizeB. We trainwith lr3×10    −4  , batchsize64,
+4,000    epochs, and GRL schedule withλ= 0   for epochs 0–200, cubic ramp0→λ      max = 0.5    over
+epochs 200–1000, held constant thereafter.
+
+F   Semi-Synthetic KuaiRand: experimental details
+
+WeusetheKuaiRand-PureGaoetal.[2022](Zenodo10439422)datasetwith27,285      users,7,583
+items,and∼1.186Mdistinctuser-videopairsfromtherandomized-exposurelog. KuaiRandprovides
+30userfeatures,ofwhichwekeep24includingfourcounts,twobinaryindicators,and18anonymized
+category codes. We drop the four bucketed versions of the counts, the categorical activity label, and
+one binary indicator that is constant in KuaiRand-Pure. For simplicity when generating synthetic
+outcomes we treat each anonymized category code as numerical. KuaiRand also provides62 video
+features, of which we keep54 including duration, width, height, and51 video statistics. We drop
+identifiers,categoricalfeatures,uploaddate,andconstantfeatures. Welogtransformcounts,duration,
+video statistics, and then standardize them. We standardize the numerical user features.
+LetZ denotethe24userfeaturesandTC the54videofeatures. Wegenerateasyntheticclickoutcome
+from a user termh       u(Z), video termh             v(T C), and user-video interaction termh         uv(Z,T C)as
+                Y∼Bernoulli(sigmoid(std(4h         u(Z)+h       v(T C)+h   uv(Z,T C))+b))
+
+wherestd correspondstocentering andscaling. Theinterceptb calibratesthemean click probability
+to the actual click rate in the randomized log. We define the user, video, and user-video interaction
+terms as follows. Letq1,q2 ∈R  24, q3 ∈R  54, Q1 ∈R  24×16     , and Q2 ∈R  54×16       be fixed random
+projections. We define
+
+                          hu(Z) = std  tanh std(Z     ⊤q1)tanh std(Z     ⊤q2),
+                        hv(T C) = std(T ⊤Cq3),                                                
+
+                                                  16X
+                    huv(Z,T C) = std 116             tanh (Z ⊤Q1)jtanh (T ⊤CQ2)j.
+
+                                                 j=1
+
+Theentriesofeachprojectionareindependentzero-meanGaussiansampleswithvarianceequalto
+theinverseofitsinputdimension. Tobeclear,thedatagenerationprocessaboveisnotintendedtobe
+arealisticmodelofuserbehaviour. Itprovidesanonlinearoutcome mechanism withknowncausal
+structure built from real KuaiRand features.
+Totestourmethod,we introduceanon-causaltreatmentcomponentTnC ∈{1,...,16}         ,whichdoes
+notimpacttheoutcome,butisrelatedtoZ andcanbeexploitedbythemodelwhenmakingpredictions.
+Weappendthisnon-causalshortcutfeaturetotheobservedtreatmentinputT= (T    C,TnC). Inthe
+
+
+                                                          22
+
+=== PDF PAGE 23 ===
+sourcedistribution,TnC isstronglyrelatedtotheuserresponseterm. LetQ(Z)        bethequantilebin
+ofh   u(Z), then
+                                 p(T   nC =t|Z) =         exp(α1[t=Q(Z)])exp(α)+15              .
+
+Theparameterα controlstheshortcutstrength,andwechooseα sothatthemutualinformationis
+I(T   nC;Q|V) = 2        nats,whereV isthevideoID.Forthetargetdistribution,weinsteadsetα= 0  ,
+sampling thenon-causal feature uniformlyand removing theZ shortcut. Source and targettest sets
+containthesameusers,videos,features,andsyntheticclicks,onlyTnC changes. Weencodethecode
+as16one-hot values scaled by3, so the treatment encoder receives54+16 = 70inputs.
+Wetrainon70%ofthedata,use15%asourvalidationsetforearlystopping,andtheremaining15%
+asthetestsetforcalculatingsourceandtargetAUCandrankingmetrics. OurmodelisaDeepFMGuo
+etal.[2017]backbonewith16-dimensionallearneduser-IDandvideo-IDembeddings. Thetreatment
+encodermaps70→32→16                withaReLUhiddenlayer. Appendingthevideo-IDembeddinggives
+a32-dimensionaltreatmentrepresentation. Appendingtheuser-IDembeddingtothe24userfeatures
+givesa40-dimensional userrepresentation. The DeepFM networkhas hiddensizes[32,16]      , dropout
+0.2   ,andFMembeddingdimension8. TheCRLvariantusesthesamepredictorandaddsanInfoNCE
+critic. Thepredictorarchitectureandcapacityareidenticalacrossconfigurations. Eachcriticinput
+is mapped through a two-layer projection with widths64 and32, followed by a dot-product score.
+Gradientreversalacts onthe treatmentrepresentation. The userrepresentation isdetached fromthe
+criticloss. The reversal weightλ iszero for25 steps, riseslinearlyto0.3    overthe next50 steps, and
+then remainsfixed. Wetrain for fourepochs with Adam, learningrate2×10    −3  , weight decay10−6  ,
+batchsize4,096   ,andgradient-normclippingat1. Weevaluatesource-validationAUCevery50steps
+and retain the best checkpoint.
+When applyingDCCL Zhao etal. [2023] to ourKuaiRand setup, wesplit each16-dimensional user
+and video ID embedding equally into interest and conformity components, preserving the predictor’s
+total capacity. Two popularity-weighted contrastive losses supplement the prediction loss, using
+clickedexamplesasanchorsandupto128in-batchnegatives. Bothauxiliarylossesuseweight0.01   .
+AswellassourceandtargetAUC,inTable1wereporttargetRecall@5andtargetNDCG@5[see
+eg. Zhang et al., 2023, Denget al., 2024, who report similar metrics on KuaiRand]. For each user in
+the test split we rank the items they were exposed to by predicted click probability. Recall@K is
+thefractionofthatuser’spositivesthatappearinthetop-K,andNDCG@K usesbinaryrelevance
+withdiscount1/log    2(i+1)   atranki andIDCG computedover theuser’strue positives. Bothare
+averaged over users with at least one positive and at least five exposed items.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                        23

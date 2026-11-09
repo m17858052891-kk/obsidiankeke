@@ -1,0 +1,874 @@
+
+PAGE 1
+HELIX: Purified and Unified — Rethinking Feature
+Interaction and Sequence Modeling for Large-Scale
+Recommendation
+Data - Global E-Commerce Recommendation Video Team
+Abstract
+Industrial recommendation ranking models typically scale along two modeling axes: feature
+interaction over heterogeneous user, item, context, and cross features, and sequence modeling over
+long, informative, and multi-type user behavior histories. We find that scaling either capability
+in isolation is insufficient, as each exhibits a limited scaling ceiling and a suboptimal scaling-law
+slope. We conjecture that achieving a more favorable scaling-law slope requires jointly scaling
+both axes. To support this, we present HELIX, a purified and unified architecture for large-scale
+recommendation. HELIX interleaves sequence retrieval and feature interaction while enforcing
+one-way information flow from reusable sequence states to candidate-conditioned mix-tokens.
+This design preserves cross-depth communication between the two modeling axes while keeping
+user-side sequence computation amortizable, enabling flexible and asymmetric scaling of sequence
+modeling and feature interaction. Deployed in TikTok’s e-commerce recommendation system,
+HELIX consistently improves offline CTR AUC, CVR AUC, and other ranking metrics. In online
+A/B tests, it achieves an approximately 6% increase in e-commerce video GMV per user.
+Date:August 27, 2026
+MixTokenizer SeqTokenizer
+MixFormer SeqFormer
+Encoder
+SeqFormer
+Decoder
+Mean Pooling
+Task Towers
+RMSNorm
+Position-wise FFN
+Self-Attention
+Token Compression
+RMSNorm
+RMSNorm
+Mixup
+Cross-Attention
+RMSNorm
+Per-token FFN
+Mix tokens
+UxC tokens
+U-only tokens
+M-FALCON
+Q
+K/V
+Q
+Q
+K/V
+K/V
+Q
+Non-Seq Features UxC Seq Features U-only Seq Features
+K/V cache
+Figure 1Architecture of HELIX. Non-sequence, U ×C sequence, and U-only sequence features are tokenized into
+separate streams. The model stacks three types of blocks: (1) SeqFormer Encoder blocks encode U-only sequences into
+a reusable K/V cache; (2) MixFormer blocks repeatedly retrieve from U×C sequences and update mix-tokens through
+feature interaction; and (3) SeqFormer Decoder blocks repeatedly retrieve from the cache and further refine mix-tokens
+through feature interaction.
+1
+arXiv:2609.37183v2  [cs.IR]  30 Sep 2026
+
+PAGE 2
+Contents
+1 Introduction. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .3
+2 HELIX. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .4
+2.1 Architecture Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2.2 Three-Stream Tokenization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2.3 MixFormer . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+2.4 SeqFormer . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3 Experiments. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .7
+3.1 Experimental Setup . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.2 RQ1: Overall Offline Performance . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.3 RQ2: Scaling Behavior . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+3.4 RQ3: Which Design Choices Matter? . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+3.5 RQ4: Online Impact . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+4 Training and Serving Optimizations. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .11
+4.1 Pyramidal Query Compression . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+4.2 Variable-Length Sequence Execution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+4.3 User-Side Computation Amortization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+5 Related Work. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .13
+6 Conclusion. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .13
+A Contributions. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .16
+B Detailed Online Metrics. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .17
+2
+
+PAGE 3
+1 Introduction
+Industrial recommendation ranking models sit at the junction of two modeling problems. The first is
+feature interaction: given many user, item, context, and cross features, the model must discover high-order
+combinations that are predictive of classification and regression targets such as CTR, CVR, and GMV.
+Classical architectures such as FM, DeepFM, and DCN [7, 14, 18] encode manually designed interaction
+patterns through strong inductive biases. They perform well at moderate model scales, but their gains often
+saturate quickly as width and depth increase, and larger variants can become increasingly difficult to optimize.
+The second issequence modeling: the model must interpret behavior trajectories to identify user intent and
+candidate-relevant evidence. Target-aware sequence models such as DIN, DIEN, and DSIN [4, 26, 27] have
+made candidate-conditioned behavior aggregation a standard component in industrial ranking systems, but
+their relatively shallow aggregation limits gains from increased sequence-modeling capacity.
+Recent work has begun to unlock scaling along each axis independently. For feature interaction, Wukong,
+RankMixer, and TokenMixer-Large [11, 24, 28] tokenize heterogeneous feature embeddings and apply stable
+residual blocks, making feature interaction resemble a scalable token-processing backbone. On the sequence-
+modeling side, HSTU, Ultra HSTU, and STCA [3, 6, 23] show that richer attention blocks can produce
+predictable gains as sequence modeling capacity grows.
+However, scaling either axis alone leaves the other as a bottleneck. Recent unified architectures such as
+InterFormer [22], Kunlun [10], and OneTrans [25] bring feature interaction and sequence modeling into a
+shared backbone, enabling the two capabilities to communicate across stacked layers and scale jointly.
+Unified designs face three limitations. First, TokenMixer and UniMixer [8, 11] suggest that self-attention is
+not necessarily the most effective feature-interaction operator for heterogeneous tokens. Second, one-step
+designs such as OneTrans, SORT [17], and MTFM [15] perform feature interaction and sequence retrieval
+within the same modeling step, which may disperse mix-token attention over heterogeneous non-sequential
+inputs and weaken behavior retrieval. Third, bidirectional designs such as InterFormer and Kunlun allow
+candidate-conditioned features to update user-side sequence states, making those states candidate-dependent
+and preventing user-side computation from being amortized across candidates with M-FALCON [23] or across
+samples with user-level training in production settings.
+To address these limitations, we present HELIX, a purified and unified architecture for large-scale recommen-
+dation. It isunifiedbecause sequence retrieval and feature interaction are interleaved through the network
+rather than separated into two stages. It ispurifiedbecause it avoids extra architectural components and
+training objectives, such as LHUC, DCN-M, FM modules, cross-layer residual connections, and auxiliary losses,
+retaining only the essential operations for feature interaction and sequence modeling. The backbone also
+enforces a one-way information flow from the reusable sequence-modeling branch to the candidate-conditioned
+feature-interaction branch. Specifically, a pyramidal sequence encoder first constructs a candidate-independent
+cache from the user’s behavioral history. Candidate-conditioned mix-tokens then repeatedly attend to this
+cache and perform Mixup-PerToken-FFN, a simplified variant of the TokenMixer interaction block. This design
+assigns clear roles to the two operations: attention retrieves behavior evidence from a reusable user-side cache,
+while token-wise feed-forward interaction updates heterogeneous feature tokens for the current candidate.
+Our contributions are:
+• We propose HELIX, an interleaved architecture that unifies feature interaction and sequence mod-
+eling while preserving reusable user-side computation, enabling M-FALCON and user-level training
+amortization in production systems.
+• We provide scaling-law analyses showing that HELIX converts additional model capacity and compute
+into consistent ranking-quality gains.
+• We report significant offline and online improvements from deploying HELIX in TikTok’s e-commerce
+video recommendation system.
+3
+
+PAGE 4
+2 HELIX
+Before presenting HELIX, we briefly describe the task setting. We consider fine ranking in a large-scale
+e-commerce video recommendation system, where the ranking model scores a set of candidate videos for a
+user under the current context. In production, the model jointly predicts multiple classification and regression
+targets, including click, conversion, and GMV-related outcomes. For a useru and candidate videoc, the
+predictions are written as
+ˆyu,c =f Θ(xc, su, su×c),(1)
+where xc contains non-sequential user, video, context, and cross features;su denotes candidate-independent
+U-only behavior sequences;su×c denotes candidate-conditioned U×C behavior sequences; andΘdenotes the
+trainable parameters. The U-only histories are shared by candidates from the same user request, whereas
+xc and su×c depend on the candidate being scored. The task predictions are subsequently combined into a
+final ranking scoresu,c = g(ˆyu,c), which determines the ordering of candidate videos, whereg(·)denotes the
+multi-task prediction fusion function.
+2.1 Architecture Overview
+Given this input partition, HELIX maintains three token streams. A MixTokenizer maps heterogeneous
+non-sequential featuresxc to M candidate-conditioned mix-tokens. A SeqTokenizer separately maps candidate-
+independent user historiessu and candidate-conditioned U×C histories su×c to two sequence-token streams:
+X0
+c =T m(xc),S 0
+u =T u(su),S u×c =T g(su×c),(2)
+where X0
+c ∈R M×d m, S0
+u ∈R Lu×ds, and Su×c ∈R Lu×c×ds. We omit the batch dimension throughout this
+section. Here, M is the number of mix-tokens;dm and ds are the hidden dimensions of the non-sequential
+mix-token and sequence-token streams; andLu and Lu×c are the lengths of the U-only and U×C streams
+respectively, where U×C denotes sequences constructed using candidate information, such as hard-search
+and soft-search similarity sequences. We further useNM, NE, and ND to denote the numbers of MixFormer,
+SeqFormer Encoder, and SeqFormer Decoder blocks.
+Figure 1 shows the resulting computation graph. The SeqFormer Encoder processesS0
+u once to construct a
+candidate-independent K/V cache. On the candidate side, stacked MixFormer blocks first alternate retrieval
+from Su×c with feature interaction over the mix-tokens. Stacked SeqFormer Decoder blocks then alternate
+retrieval from the reusable cache with the same feature-interaction operator. A final mean pooling sends the
+resulting mix-token representation to task-specific towers. Crucially, information flows from the user-side
+sequence stream to the candidate-side mix-tokens, but never in the reverse direction. The resulting K/V
+cache therefore can be shared across all candidates within the same request during serving and across all
+samples of the same user during training, when properly designed.
+2.2 Three-Stream Tokenization
+2.2.1 MixTokenizer
+The MixTokenizer converts heterogeneous ranking features intoM mix-tokens. Its inputs include embeddings
+of all non-sequential categorical and numerical features, together with a mean-pooled representation of every
+sequence feature. For each sequence featureEs, mean pooling along the sequence dimension produces a
+fixed-length summary ¯es = MeanPool(Es). These summaries provide the mix-token stream with coarse
+information from all U×C and U-only sequences, while retaining their token-wise representations for the
+SeqTokenizer described next.
+The MixTokenizer first appliesAll-Concatto concatenate all non-sequential feature embeddings and sequence
+summaries into one vector:
+a= Concat(e 1, . . . , eF ,¯e1, . . . ,¯eS).(3)
+It then appliesAuto-Split, which partitionsa into fixed-width groups and zero-pads an incomplete final group:
+[a1, . . . , aM] = AutoSplit(a).(4)
+4
+
+PAGE 5
+Each group is processed using independently parameterized LayerNorm and feed-forward projection to produce
+one mix-token. This per-token parameterization preserves the distinct semantics and input distributions
+of heterogeneous feature groups. Per-token LayerNorm normalizes heterogeneous token embeddings to a
+comparable value range, making the tokenizer easier to optimize. Specifically, we adopt per-token LayerNorm
+instead of per-token RMSNorm, as LayerNorm naturally introduces a learnable per-token offsetβ, which
+plays a role analogous to the field-aware biases in FAT [20]. All remaining normalization layers use RMSNorm,
+making this the only LayerNorm in the entire model.
+2.2.2 SeqTokenizer
+The SeqTokenizer processes two types of sequence features. U×C sequences, such as similarity-based and
+item-to-item sequences, incorporate candidate-side information, whereas U-only sequences contain only user-
+side information. During serving withC candidates or training withJ samples, U-only sequence computation
+can be amortized across candidates or samples, unlike U×C sequence computation.
+Each sequence s is independently mapped to the same sequence dimensionds by a learned projection matrix
+Ws. Position embeddings are then applied separately within each sequence:
+Qs =E sWs +P s,(5)
+where Ps is the position embedding specific to sequences. Applying positions before concatenation avoids
+imposing a global positional relationship between elements from different sequences, for which no well-defined
+relative order exists across sequence types.
+The projected sequences are concatenated according to their dependency type. Several learnable[SINK]
+tokens are prepended to the concatenated streams, marking the beginning of each stream and serving as
+attention sinks [19]:
+S0
+u =
+
+Qsink
+u ; Concats∈su Qs
+
+,
+Su×c =
+
+Qsink
+u×c; Concats∈su×c Qs
+
+.
+(6)
+2.3 MixFormer
+As illustrated in the left inset of Figure 1, each MixFormer block consists of two consecutive residual sublayers:
+cross-attention retrieves candidate-relevant information from U×C sequences, and Mixup-PerToken-FFN
+(MPTF) subsequently performs feature interaction among mix-tokens. An input normalization is applied to
+the heterogeneous mix-tokens before they enter the block stack.
+MixFormer blockℓ∈ {0, . . . , N M −1}computes
+bX ℓ
+c =X ℓ
+c + CrossAttn
+ 
+RMSNorm(X ℓ
+c),S u×c
+
+,(7)
+X ℓ+1
+c = bX ℓ
+c + MPTF
+
+RMSNorm(bX ℓ
+c)
+
+,(8)
+After the final MixFormer block,X NM
+c is passed directly to the SeqFormer Decoder. We deliberately omit
+output normalization here, because the following decoder (Section 2.4.2) already normalizes its input.
+2.3.1 Cross-Attention
+All attention modules in HELIX use QK normalization, grouped-query attention (GQA), and gated attention
+[13]. Let CrossAttn(X, Y )denote the cross-attention sublayer, whereX supplies query states andY supplies
+key/value states. For one attention head, we define gated scaled dot-product attention (SDPA) as follows:
+Q=XW Q,[K, V, G] =Y W KV G ,
+¯Q= RMSNorm(Q), ¯K= RMSNorm(K),
+eV=V⊙σ(G),
+A(Q, K,eV) = softmax
+ ¯Q ¯K ⊤
+√dh
+
+eV W O.
+(9)
+5
+
+PAGE 6
+where σ denotesthesigmoidfunction. InMixFormer, X = X ℓ
+c containsmix-tokensand Y = Su×c containsU ×C
+sequence tokens. The query projection matrixW Q is parameterized per mix-token to preserve heterogeneity,
+while U×C sequence tokens use position-wise K/V/G projections.
+2.3.2 Mixup-PerToken-FFN
+MPTF simplifies the TokenMixer interaction operator [11]. Let X = [x1; . . .; xM] ∈R M×d m and assume dm is
+divisible by M. Split every token intoM channel chunks,xj = [x(1)
+j ; . . .; x(M)
+j ], and define the parameter-free
+Mixup transformation as
+ext = [x(t)
+1 ;x (t)
+2 ;. . .;x (t)
+M ],1≤t≤M.(10)
+Each output token therefore receives one channel slice from every input token. A token-wise FFN with
+SwiGLU activation then performs nonlinear interaction:
+MPTFt(X) = [SiLU(extW g
+t )⊙(extW u
+t )]W d
+t .(11)
+Mixup provides explicit cross-token communication without the quadratic attention map used by self-attention,
+while the token-wise projections retain feature-group heterogeneity. Repeatedly stacking Cross-Attention and
+MPTF enables sequence retrieval and feature interaction in an interleaved style.
+2.4 SeqFormer
+SeqFormer uses an encoder to transform U-only histories into a reusable user-side K/V cache. Its decoder
+enables candidate-side mix-tokens to repeatedly retrieve information from that cache.
+2.4.1 SeqFormer Encoder
+As shown in the right inset of Figure 1, each encoder block contains two residual sublayers: self-attention
+followed by a position-wise FFN.
+Before the first block, padded positions are removed once according to the sequence mask. All subsequent
+encoder computation operates on the resulting variable-length representation, avoiding redundant attention
+and feed-forward computation on padding. Figure 3 illustrates this execution path, and Section 4 provides
+the full implementation details.
+Let S e
+u ∈R Le×ds denote the valid states entering encoder blocke∈ { 0, . . . , NE − 2}, and letRe denote the
+retained states used as query and residual branch. The source and retained states are constructed as
+¯S e
+u = RMSNorm(S e
+u),
+Re =
+(
+Gather(S e
+u;k s), e= 0,
+Truncate(Se
+u, Le+1), e >0,
+¯Re =
+(
+Gather
+  ¯S e
+u;k s
+
+, e= 0,
+Truncate
+  ¯S e
+u, Le+1
+
+, e >0.
+(12)
+The attention projections are then computed as
+Qe = ¯ReW Q
+e ,[K e, V e, Ge] = ¯S e
+uW KV G
+e ,
+eV e =V e ⊙σ(G e).
+(13)
+The block update is
+bS e+1
+u =R e +A
+
+Qe, Ke,eV e
+
+,(14)
+S e+1
+u = bS e+1
+u + FFN
+
+RMSNorm(bS e+1
+u )
+
+.(15)
+6
+
+PAGE 7
+The encoder further reduces cost by progressively decreasing the number of query states while retaining all
+current states as keys and values. It follows a predefined compression schedule
+L0 ≥L 1 ≥ · · · ≥L NE −1 =L c,(16)
+where Lc is the number of user-side states retained for cache construction. Gather performs the first
+compression by extracting recent tokens from every source sequence. Each sequence receives a token budgetks
+determined by feature-importance analysis, and Gather selects itsks most recent valid states before packing
+all selected states into one query stream. Following the direct truncation strategy of Ultra HSTU [3], later
+blocks retain a shrinking prefix of this stream. The retained query states attend to all valid states in the
+current layer before compression.
+The final encoder block projects these states into the K/V cache: it omits SDPA, out projection, and
+position-wise FFN, and applies only K/V projection and value gating.
+[Ku, Vu, Gu] =P KV G
+ 
+RMSNorm(S NE −1
+u )
+
+,
+eVu =V u ⊙σ(G u).(17)
+The resulting user-side K/V cache isCu = (Mu, Ku,eVu). As shown in Figure 3, the variable-length K/V
+tensors are padded back to a static shape with a fixed maximum length, andMu denotes their valid-position
+mask.
+Unlike MixFormer and the SeqFormer Decoder, the SeqFormer Encoder uses a shared position-wise FFN
+because U-only sequence tokens are comparatively homogeneous.
+2.4.2 SeqFormer Decoder
+The decoder mirrors MixFormer’s two-sublayer structure. It replaces the U×C sequence input with the
+reusable user-side cache and first applies an input RMSNorm,Z0
+c = RMSNorm(X NM
+c ). Decoder block
+r∈ {0, . . . , N D −1}then retrieves from the cache and applies MPTF:
+bZ r
+c =Z r
+c +A cache
+
+RMSNorm(Z r
+c ), Ku,eVu;M u
+
+,(18)
+Z r+1
+c = bZ r
+c + MPTF
+
+RMSNorm(bZ r
+c )
+
+.(19)
+Here, we adopt a lazy K/V strategy: onlyZ r
+c is projected using the per-token query projection, while the
+cached Ku and eVu are reused without additional projection. AsZ r
+c is progressively refined, subsequent blocks
+can leverage higher-order queries to retrieve richer patterns from the same K/V cache. Attention is responsible
+for sequence retrieval, while MPTF is responsible for feature interaction. Alternating these operations instead
+of combining them into a single attention layer prevents mix-tokens from over-attending to themselves, which
+could otherwise reduce their ability to retrieve useful sequential information from the K/V cache. A final
+RMSNorm followed by mean pooling produces the representation consumed by the task-specific towers for
+prediction.
+3 Experiments
+We conduct comprehensive experiments to evaluate HELIX on a large-scale internal industrial dataset.
+Through offline evaluations and online A/B tests, we aim to answer the following research questions (RQs):
+• RQ1: Overall effectiveness and efficiency.How does HELIX compare with representative production
+ranking architectures in ranking quality and computational cost?
+• RQ2: Scaling behavior.Does jointly scaling feature interaction and sequence modeling produce predictable
+and sustained quality gains as model capacity and compute increase?
+• RQ3: Key design choices.Which choices in feature interaction, numerical stabilization, K/V-cache
+construction, and attention/residual design contribute to ranking quality?
+7
+
+PAGE 8
+Table 1Offline comparison on the internal industrial dataset. Quality metrics are relative lifts over the RankMixer +
+Transformer baseline; parameters and per-sample training FLOPs are absolute. OneTrans here is evaluated using an
+updated production implementation with post-publication optimizations. In our scenario, a relative AUC improvement
+of 0.03% is considered practically significant and can lead to substantial gains in online metrics.
+CTR CVR Efficiency
+Model∆AUC↑∆UAUC↑∆AUC↑∆UAUC↑Params FLOPs
+RankMixer + Transformer (baseline) – – – – 210M 5.75G
+RankMixer + Transformer (Large) +0.04% +0.15% +0.03% +0.19% 1069M 27.50G
+OneTrans +0.15% +0.61% +0.10% +0.66% 361M 39.27G
+HELIX-L +0.21% +0.82% +0.17% +1.38% 358M 35.28G
+• RQ4: Production deployment.Does deploying HELIX in a live recommendation system yield meaningful
+improvements in key business metrics?
+3.1 Experimental Setup
+Dataset and tasks.We conduct offline experiments on an anonymized internal industrial dataset collected
+from TikTok’s e-commerce video recommendation system. The ranking model jointly predicts multiple
+user-response and value targets. Following the production setting, we report CTR and CVR as representative
+classification tasks.
+Baselines.We compare HELIX with two baseline architectures in the same industrial training stack.
+RankMixer + Transformer[28], evaluated in standard and large configurations, is the production baseline
+architecture.OneTrans[ 25] is another strong baseline that combines feature interaction and sequence retrieval
+in a unified token stream. We use an updated production implementation that incorporates post-publication
+optimizations. All methods use aligned data, features, prediction tasks, and optimization protocols.
+Metrics.Offline effectiveness is measured by AUC and user-level AUC (UAUC). To avoid disclosing absolute
+production metrics, we report the relative lift over the RankMixer + Transformer baseline. Efficiency is
+characterized by non-embedding parameter count and per-sample training FLOPs before amortization. For
+the online evaluation, we report relative business-metric lifts from a randomized A/B test against the deployed
+production baseline.
+3.2 RQ1: Overall Offline Performance
+Table 1 compares ranking quality and computational cost. HELIX outperforms all compared architectures
+across the CTR and CVR metrics. Scaling the RankMixer + Transformer baseline to its large configuration
+yields only limited gains, indicating that this two-stage architecture remains difficult to scale effectively.
+OneTrans combines both stages in a single attention stream, but differs from HELIX in three respects. First,
+it uses self-attention for feature interaction, whereas MPTF is better suited to highly heterogeneous feature
+tokens. Second, allowing mix-tokens to attend themselves diverts attention away from the sequence K/V
+cache, thereby weakening targeted behavior retrieval. Third, OneTrans employs causal attention, whereas the
+SeqFormer Encoder uses full, non-causal attention. Causal masking is unnecessary for discriminative ranking
+and introduces additional inductive biases, such as imposing an artificial ordering among input sequences. By
+interleaving bidirectional cross-attention with MPTF, HELIX effectively addresses these limitations.
+3.3 RQ2: Scaling Behavior
+Using aligned data and training settings, we scale HELIX across S/M/L/XL/XXL configurations by jointly
+increasing backbone width, depth, and the retained sequence-token budget. Table 2 summarizes their
+parameter and compute budgets. Figure 2 shows that CTR and CVR AUC improve smoothly with compute
+and remain unsaturated at the largest configuration. RankMixer at two scales and OneTrans are included as
+8
+
+PAGE 9
+Table 2HELIX model-scale configurations. Quality metrics are relative lifts over HELIX-S.
+Model CTR∆AUC↑CVR∆AUC↑Params FLOPs
+HELIX-S – – 46M 2.31G
+HELIX-M +0.24% +0.07% 99M 7.90G
+HELIX-L +0.34% +0.18% 358M 35.28G
+HELIX-XL +0.39% +0.20% 740M 72.41G
+HELIX-XXL +0.45% +0.27% 1050M 130.24G
+reference points at their corresponding compute budgets. RankMixer remains competitive at low FLOPs but
+falls behind as compute grows, while OneTrans trails HELIX-L despite a larger compute budget, indicating
+that architectural design determines how effectively additional compute translates into ranking gains. The
+consistent power-law trends indicate predictable ranking-quality gains from jointly scaling feature interaction
+and sequence modeling.
+101 102
+2.31 7.90 35.28 72.41 130.24
+FLOPs (G)
+9.0
+10.0
+11.0
+12.0
+13.0
+CTR ΔAUC (×10−3)
+S
+M
+L
+XL
+XXL
+RM
+RM-L
+OneTrans
+log(ΔAUC) = 0.085log C − 4.733
+R2 = 0.925
+101 102
+2.31 7.90 35.28 72.41 130.24
+FLOPs (G)
+3.5
+4.0
+4.5
+5.0
+5.5
+6.0
+CVR ΔAUC (×10−3)
+S
+M
+L
+XL XXL
+RM
+RM-L
+OneTrans
+log(ΔAUC) = 0.132log C − 5.749
+R2 = 0.994
+Figure 2Scaling behavior on CTR and CVR AUC. Dashed lines show linear fits betweenlog(∆AUC)and log FLOPs
+for the observed HELIX S/M/L/XL/XXL configurations. RankMixer and OneTrans points are shown for reference
+and excluded from the fits. Both axes are logarithmic.
+3.4 RQ3: Which Design Choices Matter?
+Table 3 summarizes paired ablations of the design groups that most directly determine HELIX’s effectiveness
+and stability during training.
+9
+
+PAGE 10
+Table 3Relative AUC gains from ablations of key design choices in HELIX. MPTF is compared against self-attention;
+K/V Cache-Only Cross-Attention is compared against cross-attention over both mix-tokens and the sequence K/V
+cache; and the Final-Layer K/V Cache is compared against the Per-Layer K/V Cache. Rows prefixed with+report
+the gains obtained by adding the corresponding component. Specifically, our final design adopts only gated attention
+applied after the value projection.
+Design choice CTR∆AUC↑CVR∆AUC↑
+Mixup-PerToken-FFN +0.05% +0.02%
+K/V Cache-only Cross-Attention +0.02% +0.02%
+Final-Layer K/V Cache +0.01% 0.00%
++Non-parametric Gate-Up-Norm +0.02% +0.01%
++Gated attention (after value) +0.03% +0.02%
++Gated attention (after SDPA) +0.02% +0.01%
++QK-Norm +0.03% +0.01%
++Grouped-query attention 0.00% 0.00%
++Encoder LayerScale +0.01% 0.00%
+Mixup-PerToken-FFN.Replacing self-attention-based feature interaction in the SeqFormer Decoder
+with MPTF improves CTR and CVR AUC by 0.05% and 0.02%, respectively, at a matched parameter and
+compute budget. Consistent with TokenMixer [11], this result suggests that self-attention is a poor fit for
+highly heterogeneous feature tokens: it brings less quality benefit in this setting while consuming additional
+compute and activation memory. We therefore use MPTF for feature interaction.
+K/V Cache-only Cross-Attention.We remove the mix-token self-attention component from the original
+cross-attention over[mix-tokens,K/V Cache]in OneTrans, restricting mix-tokens to attend exclusively to
+the K/V cache. This modification yields a 0.02% AUC gain on both CTR and CVR. We hypothesize that
+mix-tokens tend to allocate substantial attention mass to themselves, thereby diverting attention away from
+sequential representations and weakening effective behavior retrieval. By excluding mix-tokens from the
+key/value set, cross-attention is forced to focus solely on sequence information, enabling more targeted
+extraction of user behaviors.
+Final-Layer K/V Cache.Decoder mix-tokens retrieve only from the K/V cache produced by the last
+layer of the SeqFormer Encoder. Our experiments show comparable ranking quality to retrieving from all
+encoder-layer K/V caches, while storing only the last-layer cache reduces memory overhead.More importantly,
+the last-layer K/V cache allows for more flexible computation allocation between feature interaction and
+sequence modeling. Per-layer caches tie each feature-interaction block to a corresponding sequence-modeling
+layer, forcing the depths and parameter counts of the two axes to grow together. A single last-layer cache
+removes this coupling: sequence modeling can be deepened without proportionally increasing candidate-side
+feature interaction, enabling asymmetric scaling toward the better-amortized sequence branch. The last-layer
+design improves CTR AUC by 0.01% while keeping CVR AUC unchanged.
+Non-parametric Gate-Up-Norm.The combination of per-token parameterization and SwiGLU’s element-
+wise multiplication is the primary source of MPTF’s training instability. The gate and up-projection branches
+can develop heterogeneous activation scales, whose product further amplifies outliers. We initially use SoftCap
+to hard-clip extreme activation values. Although this stabilizes training to some extent, activations below
+the clipping threshold can still have large scales and impair training stability. Inspired by QK-Norm [9, 12],
+we first introduceGate-Up-Norm, which separately normalizes the gate and up-projection activations before
+their element-wise product. However, its learnable gains can re-amplify the normalized activations, so large
+activation values remain. Following the non-parametric normalization used in OLMo [5], we remove these
+learnable gains to obtainNon-parametric Gate-Up-Norm. This design substantially narrows the activation
+ranges of the product and down-projection outputs, keeping them within the FP16 dynamic range and
+10
+
+PAGE 11
+Table 4Online A/B-test lifts for HELIX-L in TikTok’s e-commerce video recommendation system. RankMixer +
+Transformer is the production control.
+Metric Relative lift↑
+E-commerce video clicks / user +2.0591%
+E-commerce video GMV / user +5.9932%
+E-commerce video paid orders / user +6.0964%
+E-commerce video GPM +5.4624%
+the high-precision region of BF16 without SoftCap. Non-parametric Gate-Up-Norm stabilizes training and
+improves CTR AUC by 0.02% and CVR AUC by 0.01%.
+Other Refinements.Following gated attention [13], we compare two gate placements. Applying the gate
+after SDPA improves CTR and CVR AUC by 0.02% and 0.01%, respectively, whereas applying it after the
+value projection improves them by 0.03% and 0.02%. We hypothesize that the larger gain from value-side
+gating arises because sequence compression leaves the value stream longer than the query stream, allowing
+the gate to modulate more sequence states before attention aggregation.
+QK-Norm, which normalizes queries and keys before SDPA, further improves CTR and CVR AUC by 0.03%
+and 0.01%, respectively. Grouped-query attention (GQA) [1] reduces K/V cache size by sharing K/V heads
+across query heads and also lowers the cost of K/V/G projections. With the same number of query heads,
+GQA matches multi-head attention in AUC. Finally, applying LayerScale [16] to the SeqFormer Encoder
+residual branches improves CTR AUC by 0.01% with neutral CVR AUC.
+3.5 RQ4: Online Impact
+We deploy the HELIX-L configuration in TikTok’s e-commerce video recommendation system and evaluate it
+through a randomized, full-traffic online A/B test against the RankMixer + Transformer production baseline.
+Table 4 reports relative lifts for the e-commerce video recommendation scenario. HELIX improves video clicks
+per user by 2.0591%, video GMV per user by 5.9932%, video paid orders per user by 6.0964%, and video GPM
+by 5.4624%. These results confirm substantial production impact from the offline ranking gains achieved by
+HELIX in deployment.
+4 Training and Serving Optimizations
+To make HELIX efficient at production scale, we optimize two complementary aspects of its execution. Within
+the SeqFormer Encoder, pyramidal query compression reduces the active query length, while padding removal
+and fused variable-length kernels eliminate padded computation. In parallel, the candidate-independent
+user-side branch enables computation amortization: M-FALCON [23] shares the K/V cache across candidates
+during serving, while user-level training amortizes encoder computation across samples from the same user
+during large-scale production training.
+4.1 Pyramidal Query Compression
+A U-only history contains multiple behavior sequences whose lengths and predictive importance vary. Pro-
+cessing every valid state as a query in the first encoder block would make its query-side cost grow with the
+full history length. To bound this cost, HELIX selects a limited set of query states across these sequences.
+Directly truncating the globally concatenated stream would make the selected tokens depend on sequence
+order and could over-allocate the budget to whichever sequence appears first. Instead, we assign each source
+sequence a budgetks determined by feature-importance analysis and useGatherto select itsks most recent
+valid states. This choice also matches the non-uniform information density of behavior histories: recent or
+high-intensity actions tend to be more informative. Pooling methods, such as the uniform pooling used in
+Funnel-Transformer [2] or segmented pooling, perform worse in our setting, likely due to the characteristics
+11
+
+PAGE 12
+Unpad to dynamic shape Pad to static shape
+Gather
+Truncate
+SeqFormer Encoder
+Figure 3Variable-length execution in the SeqFormer Encoder. Padding is removed once; the first compression
+gathers tokens under per-sequence budgets into a single stream, later blocks retain shrinking prefixes, and the resulting
+user-side states are padded back to a static shape for candidate-side retrieval.
+of recommendation histories, where recent behaviors are more informative and better reflect users’ current
+interests. We then use the selected states as queries and main branch. They attend to all valid input states as
+keys and values, allowing the first block to compress the full history while retaining unselected evidence.
+Later blocks utilizeTruncate, which retains a progressively shorter prefix at each depth following Equation 12.
+The retained states serve as queries, while all input states to the current layer remain available as keys and
+values; each block can therefore absorb information from the states it will remove before passing a shorter
+stream forward. This produces the schedule in Equation 16: early blocks preserve broad behavior coverage,
+while deeper blocks concentrate computation on the most recent states.
+4.2 Variable-Length Sequence Execution
+As summarized in Figure 3, U-only histories contain substantial padding because their valid lengths vary across
+users and sequence types. We apply the sequence mask once at the SeqFormer Encoder entrance and pack all
+valid states. For a batch ofB histories with valid lengths{ℓb}B
+b=1, the encoder operates onNv =P
+b ℓb states
+rather than a padded tensor withBLmax positions. This packed representation is maintained throughout the
+encoder, so padding is neither materialized nor processed between blocks.
+Data-dependent packed shapes can trigger repeated XLA recompilation, so we disable XLA for this path
+and recover efficiency through fused variable-length kernels for normalization, projections, SwiGLU, residual
+updates, Gather, Truncate, etc. The attention sublayers use the variable-length interface of FA4 [21]. Once
+the encoder constructs its K/V cache, we pad the cache back to a fixed maximum length and record its
+valid-position mask. The SeqFormer Decoder thus receives a static-shape cache while the substantially more
+expensive encoder stack remains padding-free.
+4.3 User-Side Computation Amortization
+Serving and training expose the same reuse pattern. A serving request associates one user history with
+multiple candidate items, while training may group multiple samples from one user with similar histories. Let
+CM, CE, and CD denote the computation costs of MixFormer, SeqFormer Encoder, and SeqFormer Decoder,
+respectively. Processingncandidate-conditioned instances independently costs
+Costindependent(n) =n(C M +C E +C D),(20)
+whereas reusing K/V Cache produced by the SeqFormer Encoder costs
+Costreuse(n) =C E +n(C M +C D).(21)
+The resulting speedup is
+Speedup(n) = Costindependent(n)
+Costreuse(n)
+= n(CM +C E +C D)
+CE +n(C M +C D) .
+(22)
+12
+
+PAGE 13
+Let p = CE/(CM +CE+CD)denote the amortizable fraction of the total per-instance computation, attributable
+to the SeqFormer Encoder; the remaining fraction is1−p = (CM + CD)/(CM + CE + CD). Equation 22 can
+then be written in the standard Amdahl form:
+Speedup(n) = 1
+(1−p) +p/n .(23)
+The asymmetric modeling discussed in Section 3.4 enables a larger fraction of the computation to be allocated
+to the amortizable SeqFormer Encoder, thereby increasingp. When p = 0.95and n = 100, the theoretical
+speedup can reach approximately16.8×.
+Serving with M-FALCON.For a request containing C candidates, we setn = C and encode the U-only
+history once. The remaining challenge is allowing a microbatch of candidate queries to access the same cache
+efficiently. A conventional implementation expands the batch-one cache to the candidate batch size, writes
+the materialized copies to high-bandwidth memory (HBM), and reads them again for attention. M-FALCON
+[23] instead maps every candidate query directly to the shared cache inside the attention kernel. It avoids
+candidate-wise cache materialization and the associated HBM traffic in the short-query, long-key regime. This
+optimization applies to the SeqFormer Decoder; MixFormer remains candidate-dependent because its U×C
+sequences vary across candidates.
+Training with user-level training.For J samples belonging to the same user, we setn = J. User-level
+training (ULT) groups these samples and evaluates the U-only encoder once, while their candidate-conditioned
+inputs, MixFormer computation, and SeqFormer Decoder computation remain sample-specific. ULT thus
+changes the user-side cost from one encoder evaluation per sample to one evaluation per distinct user, allowing
+sequence-modeling capacity to grow without multiplying its full cost by the number of associated training
+samples assigned to each user.
+5 Related Work
+Scalable recommendation modeling.Recommendation ranking models have developed along two
+complementary scaling directions. Feature-interaction methods range from classical factorization and cross
+networks [7, 14, 18] to tokenized interaction backbones, including Wukong, RankMixer, TokenMixer-Large, and
+UniMixer [8, 11, 24, 28]. In parallel, sequential recommendation has progressed from target-aware behavior
+aggregation [4, 26, 27] to large transformer-style models such as HSTU, Ultra HSTU, and STCA [3, 6, 23].
+Together, these lines scale feature interaction and sequence modeling.
+Unified architectures.Recent architectures, including InterFormer, Kunlun, OneTrans, SORT, and
+MTFM [10, 15, 17, 22, 25], connect the two modeling axes within a shared or repeated backbone. HELIX
+follows this joint-scaling direction but gives retrieval and interaction distinct roles: candidate-conditioned
+mix-tokens repeatedly retrieve sequence representations and then undergo feature interaction across depth.
+Its one-way information flow keeps user-side sequence computation candidate-independent, so the resulting
+K/V cache remains reusable across candidates and samples. This design preserves practical amortization
+through M-FALCON and user-level training while allowing feature interaction and sequence modeling to scale
+asymmetrically in practice.
+6 Conclusion
+We present HELIX, a purified and unified architecture for large-scale industrial recommendation that
+jointly scales feature interaction and sequence modeling. By interleaving dedicated sequence retrieval
+with heterogeneous feature interaction and enforcing one-way information flow, HELIX allows candidate-
+conditioned mix-tokens to repeatedly benefit from deep user-history modeling while preserving reusable
+user-side computation. Its pyramidal sequence encoder and candidate-independent K/V cache further enable
+asymmetric scaling, while padding-free variable-length execution, M-FALCON, and user-level training make
+this reuse practical in both training and serving. Furthermore, across the recommendation cascade, the
+13
+
+PAGE 14
+same cache can be computed once and reused by generative retrieval, pre-ranking, and ranking, amortizing
+user-side sequence computation across stages. Comprehensive offline experiments demonstrate predictable
+scaling behavior and validate the key architectural choices, while deployment in TikTok’s e-commerce video
+recommendation system confirms that these gains translate into meaningful online business impact. Together,
+these results establish HELIX as an effective and production-ready approach to scaling recommendation
+ranking models along both modeling axes.
+References
+[1] Joshua Ainslie, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sang-
+hai. GQA: Training generalized multi-query transformer models from multi-head checkpoints.arXiv preprint
+arXiv:2305.13245, 2023.
+[2] Zihang Dai, Guokun Lai, Yiming Yang, and Quoc V. Le. Funnel-Transformer: Filtering out sequential redundancy
+for efficient language processing.arXiv preprint arXiv:2006.03236, 2020.
+[3] Qin Ding, Kevin Course, Linjian Ma, Jianhui Sun, Ruochen Liu, Zhao Zhu, Chunxing Yin, Wei Li, Dai Li,
+Yu Shi, Xuan Cao, Ze Yang, Han Li, Xing Liu, Bi Xue, Hongwei Li, Rui Jian, Daisy Shi He, Jing Qian, Matt Ma,
+Qunshu Zhang, and Rui Li. Bending the scaling law curve in large-scale recommendation systems.arXiv preprint
+arXiv:2602.16986, 2026.
+[4] Yufei Feng, Fuyu Lv, Weichen Shen, Menghan Wang, Fei Sun, Yu Zhu, and Keping Yang. Deep session interest
+network for click-through rate prediction. InProceedings of the Twenty-EighthInternational Joint Conference
+on Artificial Intelligence, pages 2301–2307, California, USA, 2019. International Joint Conferences on Artificial
+Intelligence Organization. doi: 10.24963/IJCAI.2019/319.
+[5] Dirk Groeneveld, Iz Beltagy, Pete Walsh, Akshita Bhagia, Rodney Kinney, Oyvind Tafjord, Ananya Harsh Jha,
+Hamish Ivison, Ian Magnusson, Yizhong Wang, Shane Arora, David Atkinson, Russell Authur, Khyathi Raghavi
+Chandu, Arman Cohan, Jennifer Dumas, Yanai Elazar, Yuling Gu, Jack Hessel, Tushar Khot, William Merrill,
+Jacob Morrison, Niklas Muennighoff, Aakanksha Naik, Crystal Nam, Matthew E. Peters, Valentina Pyatkin,
+Abhilasha Ravichander, Dustin Schwenk, Saurabh Shah, Will Smith, Emma Strubell, Nishant Subramani, Mitchell
+Wortsman, Pradeep Dasigi, Nathan Lambert, Kyle Richardson, Luke Zettlemoyer, Jesse Dodge, Kyle Lo, Luca
+Soldaini, Noah A. Smith, and Hannaneh Hajishirzi. OLMo: Accelerating the science of language models.arXiv
+preprint arXiv:2402.00838, 2024.
+[6] Lin Guan, Jia-Qi Yang, Zhishan Zhao, Beichuan Zhang, Bo Sun, Xuanyuan Luo, Jinan Ni, Xiaowen Li, Yuhang
+Qi, Zhifang Fan, Hangyu Wang, Qiwei Chen, Yi Cheng, Feng Zhang, and Xiao Yang. Make it long, keep it fast:
+End-to-end 10k-sequence modeling at billion scale on Douyin. InProceedings of the ACM Web Conference 2026,
+pages 7989–7998, New York, NY, USA, 2026. ACM.
+[7] Huifeng Guo, Ruiming Tang, Yunming Ye, Zhenguo Li, and Xiuqiang He. DeepFM: A factorization-machine
+based neural network for CTR prediction. InProceedings of the Twenty-SixthInternational Joint Conference
+on Artificial Intelligence, pages 1725–1731, California, USA, 2017. International Joint Conferences on Artificial
+Intelligence Organization. doi: 10.24963/IJCAI.2017/239.
+[8] Mingming Ha, Guanchen Wang, Linxun Chen, Xuan Rao, Yuexin Shi, Tianbao Ma, Zhaojie Liu, Yunqian Fan,
+Zilong Lu, Yanan Niu, Han Li, and Kun Gai. UniMixer: A unified architecture for scaling laws in recommendation
+systems. arXiv preprint arXiv:2604.00590, 2026.
+[9] Alex Henry, Prudhvi Raj Dachapally, Shubham Pawar, and Yuxuan Chen. Query-Key normalization for
+transformers. arXiv preprint arXiv:2010.04245, 2020.
+[10] Bojian Hou, Xiaolong Liu, Xiaoyi Liu, Jiaqi Xu, Yasmine Badr, Mengyue Hang, Sudhanshu Chanpuriya, Junqing
+Zhou, Yuhang Yang, Han Xu, Qiuling Suo, Laming Chen, Yuxi Hu, Jiasheng Zhang, Huaqing Xiong, Yuzhen
+Huang, Chao Chen, Yue Dong, Yi Yang, Shuo Chang, Xiaorui Gan, Wenlin Chen, Santanu Kolay, Darren Liu, Jade
+Nie, Chunzhi Yang, Ellie Wen, Jiyan Yang, and Huayu Li. Kunlun: Establishing scaling laws for massive-scale
+recommendation systems through unified architecture design.arXiv preprint arXiv:2602.10016, 2026.
+[11] Yuchen Jiang, Jie Zhu, Xintian Han, Hui Lu, Kunmin Bai, Mingyu Yang, Shikang Wu, Ruihao Zhang, Wenlin
+Zhao, Shipeng Bai, Sijin Zhou, Huizhi Yang, Tianyi Liu, Wenda Liu, Ziyan Gong, Haoran Ding, Zheng Chai,
+Deping Xie, Zhe Chen, Yuchao Zheng, and Peng Xu. TokenMixer-Large: Scaling up large ranking models in
+industrial recommenders. arXiv preprint arXiv:2602.06563, 2026.
+[12] Niklas Muennighoff, Luca Soldaini, Dirk Groeneveld, Kyle Lo, Jacob Morrison, Sewon Min, Weijia Shi, Pete
+Walsh, Oyvind Tafjord, Nathan Lambert, Yuling Gu, Shane Arora, Akshita Bhagia, Dustin Schwenk, David
+Wadden, Alexander Wettig, Binyuan Hui, Tim Dettmers, Douwe Kiela, Ali Farhadi, Noah A. Smith, Pang Wei
+14
+
+PAGE 15
+Koh, Amanpreet Singh, and Hannaneh Hajishirzi. OLMoE: Open mixture-of-experts language models.arXiv
+preprint arXiv:2409.02060, 2025.
+[13] Zihan Qiu, Zekun Wang, Bo Zheng, Zeyu Huang, Kaiyue Wen, Songlin Yang, Rui Men, Le Yu, Fei Huang, Suozhi
+Huang, Dayiheng Liu, Jingren Zhou, and Junyang Lin. Gated attention for large language models: Non-linearity,
+sparsity, and attention-sink-free.arXiv preprint arXiv:2505.06708, 2025.
+[14] Steffen Rendle. Factorization machines. In Proceedings of the 2010 IEEE International Conference on Data
+Mining, pages 995–1000, Piscataway, NJ, USA, 2010. IEEE. doi: 10.1109/ICDM.2010.127.
+[15] Xin Song, Zhilin Guan, Ruidong Han, Binghao Tang, Tianwen Chen, Bing Li, Zihao Li, Han Zhang, Fei Jiang,
+Qing Wang, Zikang Xu, Fengyi Li, Chunzhen Jing, Lei Yu, and Wei Lin. MTFM: A scalable and alignment-free
+foundation model for industrial recommendation in meituan.arXiv preprint arXiv:2602.11235, 2026.
+[16] Hugo Touvron, Matthieu Cord, Alexandre Sablayrolles, Gabriel Synnaeve, and Hervé Jégou. Going deeper with
+image transformers. arXiv preprint arXiv:2103.17239, 2021.
+[17] Chunqi Wang, Bingchao Wu, Taotian Pang, Jiahao Wang, Jie Yang, Jia Liu, Hao Zhang, Hai Zhu, Lei Shen,
+Shizhun Wang, Bing Wang, and Xiaoyi Zeng. SORT: A systematically optimized ranking transformer for
+industrial-scale recommenders. arXiv preprint arXiv:2603.03988, 2026.
+[18] Ruoxi Wang, Bin Fu, Gang Fu, and Mingliang Wang. Deep & cross network for ad click predictions. InProceedings
+of the ADKDD’17, pages 1–7, New York, NY, USA, 2017. ACM. doi: 10.1145/3124749.3124754.
+[19] Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. Efficient streaming language models
+with attention sinks.arXiv preprint arXiv:2309.17453, 2024.
+[20] Bencheng Yan, Yuejie Lei, Zhiyuan Zeng, Zheye Deng, Di Wang, Kaiyi Lin, Pengjie Wang, Chuan Yu, Jian Xu,
+and Bo Zheng. From scaling to structured expressivity: Rethinking transformers for CTR prediction.arXiv
+preprint arXiv:2511.12081, 2025.
+[21] Ted Zadouri, Markus Hoehnerbach, Jay Shah, Timmy Liu, Vijay Thakkar, and Tri Dao. FlashAttention-4:
+Algorithm and kernel pipelining co-design for asymmetric hardware scaling.arXiv preprint arXiv:2603.05451,
+2026.
+[22] Zhichen Zeng, Xiaolong Liu, Mengyue Hang, Xiaoyi Liu, Qinghai Zhou, Chaofei Yang, Yiqun Liu, Yichen Ruan,
+Laming Chen, Yuxin Chen, Yujia Hao, Jiaqi Xu, Jade Nie, Xi Liu, Buyun Zhang, Wei Wen, Siyang Yuan, Hang Yin,
+Xin Zhang, Kai Wang, Wen-Yen Chen, Yiping Han, Huayu Li, Chunzhi Yang, Bo Long, Philip S. Yu, Hanghang
+Tong, and Jiyan Yang. InterFormer: Effective heterogeneous interaction learning for click-through rate prediction.
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management, pages
+6225–6233, New York, NY, USA, 2025. ACM. doi: 10.1145/3746252.3761527.
+[23] Jiaqi Zhai, Lucy Liao, Xing Liu, Yueming Wang, Rui Li, Xuan Cao, Leon Gao, Zhaojie Gong, Fangda Gu, Michael
+He, Yinghai Lu, and Yu Shi. Actions speak louder than words: Trillion-parameter sequential transducers for
+generative recommendations.arXiv preprint arXiv:2402.17152, 2024.
+[24] Buyun Zhang, Liang Luo, Yuxin Chen, Jade Nie, Xi Liu, Daifeng Guo, Yanli Zhao, Shen Li, Yuchen Hao, Yantao
+Yao, Guna Lakshminarayanan, Ellie Dingqiao Wen, Jongsoo Park, Maxim Naumov, and Wenlin Chen. Wukong:
+Towards a scaling law for large-scale recommendation.arXiv preprint arXiv:2403.02545, 2024.
+[25] Zhaoqi Zhang, Haolei Pei, Jun Guo, Tianyu Wang, Yufei Feng, Hui Sun, Shaowei Liu, and Aixin Sun. OneTrans:
+Unified feature interaction and sequence modeling with one transformer in industrial recommender. InProceedings
+of the ACM Web Conference 2026, pages 8162–8170, New York, NY, USA, 2026. ACM. doi: 10.1145/3774904.
+3792838.
+[26] Guorui Zhou, Xiaoqiang Zhu, Chenru Song, Ying Fan, Han Zhu, Xiao Ma, Yanghui Yan, Junqi Jin, Han Li, and
+Kun Gai. Deep interest network for click-through rate prediction. InProceedings of the 24th ACM SIGKDD
+International Conference on Knowledge Discoveryand Data Mining, pages 1059–1068, New York, NY, USA, 2018.
+ACM. doi: 10.1145/3219819.3219823.
+[27] Guorui Zhou, Na Mou, Ying Fan, Qi Pi, Weijie Bian, Chang Zhou, Xiaoqiang Zhu, and Kun Gai. Deep
+interest evolution network for click-through rate prediction. InProceedings of the AAAI Conference on Artificial
+Intelligence, pages 5941–5948, Palo Alto, CA, USA, 2019. AAAI Press. doi: 10.1609/aaai.v33i01.33015941.
+[28] Jie Zhu, Zhifang Fan, Xiaoxie Zhu, Yuchen Jiang, Hangyu Wang, Xintian Han, Haoran Ding, Xinmin Wang,
+Wenlin Zhao, Zhen Gong, Huizhi Yang, Zheng Chai, Zhe Chen, Yuchao Zheng, Qiwei Chen, Feng Zhang, Xun Zhou,
+Peng Xu, Xiao Yang, Di Wu, and Zuotao Liu. RankMixer: Scaling up ranking models in industrial recommenders.
+In Proceedings of the 34th ACM International Conference on Information and Knowledge Management, pages
+6309–6316, New York, NY, USA, 2025. ACM. doi: 10.1145/3746252.3761507.
+15
+
+PAGE 16
+Appendix
+A Contributions
+Core Contributors (equal contribution)
+Yuntao Zheng
+Miao Zhang
+Yadong Ding
+Yanchuan Tang
+Lixiyu Chen
+Contributors
+Hao Wang
+Quan Li
+Shiying Cai
+Yue Lin
+Jiayu Li
+Yu Feng
+Wentao Yang
+Rongkun Xing
+Jiekai Wang
+Mingge Zhang
+Feiling Gong
+Xiang Gao
+Jinyu Dong
+Yajing Zhang
+Pengfei Ren
+Yinzhou Wang
+16
+
+PAGE 17
+B Detailed Online Metrics
+Table 5 reports a representative subset of additional online metrics from the same randomized, full-traffic
+A/B test as the primary results in Table 4. The selected metrics span business conversion, customer growth
+and retention, click-through, and downstream engagement.
+Table 5Representative online A/B-test lifts for HELIX-L over the RankMixer + Transformer production control. All
+values are relative lifts; higher is better.
+Metric Relative Lift↑
+Business Conversion
+E-commerce Video GMV per User +5.9932%
+E-commerce Video Paid Orders per User +6.0964%
+E-commerce Video GPM +5.4624%
+Customer Activity and Growth
+E-commerce Purchase Days +4.3789%
+E-commerce New Paying User Rate +5.8657%
+Repurchase
+Repurchase Days per Paying User +0.6617%
+7-Day Repurchase Rate (RPR) +0.6927%
+30-Day Repurchase Rate (RPR) +0.6661%
+Click-Through
+Video Anchor Click-Through Rate +1.8174%
+Engagement
+E-commerce Video Watch Time +0.9931%
+E-commerce Video Product Detail Page Dwell Time +2.1324%
+E-commerce Video Like Rate +0.8489%
+E-commerce Video Follow Rate +2.5940%
+E-commerce Video Share Rate +1.7905%
+E-commerce Video Favorite Rate +1.6013%
+17

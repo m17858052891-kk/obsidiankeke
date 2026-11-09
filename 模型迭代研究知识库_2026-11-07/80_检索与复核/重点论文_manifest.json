@@ -1,0 +1,846 @@
+[
+  {
+    "id": "T01",
+    "title": "Representation Curriculum: Stagewise Training for Robust Ranking and Allocation",
+    "file": "10_训练动力学/T01_先学内容再开放历史信号_RC.md",
+    "url": "https://arxiv.org/abs/2606.09891",
+    "first_date": "2026-06-03",
+    "read_version": "v1 2026-06-03",
+    "category": "current",
+    "mechanism": "历史捷径导致内容梯度饥饿；内容先训+masked prediction/参数锚定",
+    "key_results": [
+      "MSLR cold NDCG@3 .4049→.4076，总体.4456→.4441（M=1000）",
+      "ML20M Full ordinary/frozen AUC .678/.580；RC anchor .664/.661"
+    ],
+    "evidence_locations": [
+      "§2–4，式2–20，算法1",
+      "§5.1 p7表1；§5.2 p8；§5.3 p9表2/3"
+    ],
+    "gaps": [
+      "重复次数1000 runs与5 repeats叙述冲突",
+      "ML20M只报代表配置；线上sale-velocity分母和X/Y阈值不完整"
+    ],
+    "priority_experiments": [
+      {
+        "title": "先后顺序是否真的重要",
+        "section": "可证伪实验单A：先后顺序是否真的重要"
+      },
+      {
+        "title": "锚定保护了功能还是仅做了正则",
+        "section": "可证伪实验单B：锚定保护了功能还是仅做了正则"
+      }
+    ],
+    "source_sha256": "3d430c7f1a4b0acb90d82d771f7858a3e6cd1807dad04e66469b30615360dc17",
+    "arxiv_id": "2606.09891",
+    "official_status": "12 pages, 5 figures",
+    "read_version_date": "2026-06-03",
+    "archive_file": "90_原文证据/training/2606.09891.pdf",
+    "experiments": [
+      {
+        "id": "T01-A",
+        "title": "先后顺序是否真的重要"
+      },
+      {
+        "id": "T01-B",
+        "title": "锚定保护了功能还是仅做了正则"
+      }
+    ]
+  },
+  {
+    "id": "T02",
+    "title": "OneRank: Unified Transformer-Native Ranking Architecture for Multi-Task Recommendation",
+    "file": "10_训练动力学/T02_任务私有通路与梯度隔离_OneRank.md",
+    "url": "https://arxiv.org/abs/2606.16838",
+    "first_date": "2026-06-15",
+    "read_version": "v1 2026-06-15",
+    "category": "current",
+    "mechanism": "任务token早期专门化、候选集汇聚、前向共享/跨任务反向detach",
+    "key_results": [
+      "C/A/O AUC .7910/.8463/.9024；4.9M params、1.0G FLOPs",
+      "去detach A-AUC .8463→.8460；线上GMV/UU相对+1.01%"
+    ],
+    "evidence_locations": [
+      "§2式1–15；§3.2",
+      "p7表1/2与图3；§4.3；附录B/C与表4"
+    ],
+    "gaps": [
+      "无切分细节/种子方差；隔离消融很小",
+      "pre-norm与式5冲突；Paid GMV和Paid Orders命名冲突",
+      "任务token隔离不消除全部共享Transformer冲突"
+    ],
+    "priority_experiments": [
+      {
+        "title": "隔离是否真的抑制负迁移",
+        "section": "可证伪实验单A：隔离是否真的抑制负迁移"
+      },
+      {
+        "title": "收益来自集合信息还是任务表示",
+        "section": "可证伪实验单B：收益来自集合信息还是任务表示"
+      }
+    ],
+    "source_sha256": "fae4f0e6a7b92b00f566d2d83056e6304390279f2ccc9b229b3b62d0833e6983",
+    "arxiv_id": "2606.16838",
+    "official_status": "KDD 2026 Accepted",
+    "read_version_date": "2026-06-15",
+    "archive_file": "90_原文证据/training/2606.16838.pdf",
+    "experiments": [
+      {
+        "id": "T02-A",
+        "title": "隔离是否真的抑制负迁移"
+      },
+      {
+        "id": "T02-B",
+        "title": "收益来自集合信息还是任务表示"
+      }
+    ]
+  },
+  {
+    "id": "T03",
+    "title": "Learned Cross-Task Relationships in Multi-Task Models",
+    "file": "10_训练动力学/T03_跨任务关系辅助监督_YouTube.md",
+    "url": "https://arxiv.org/abs/2609.28776",
+    "first_date": "2026-09-23",
+    "read_version": "v2 2026-09-25",
+    "category": "current",
+    "mechanism": "真实交叉/无条件关系头补联合监督；区分辅助迁移与policy额外信息",
+    "key_results": [
+      "Notifications combined DAU +.17% [+.01,+.32]，Sends -7.21%",
+      "Homepage非服务辅助头与policy消费分两阶段均有收益，部分任务回退"
+    ],
+    "evidence_locations": [
+      "§2式1/2及二元联合推导；§4/5",
+      "p7表2；§6.1–6.3；§7"
+    ],
+    "gaps": [
+      "标签与指标专有变体，AUC相对口径不全",
+      "完整head search/任务权重/配对预算未公开",
+      "缺随机辅助头、等正例重加权和联合概率合法性控制"
+    ],
+    "priority_experiments": [
+      {
+        "title": "关系监督还是额外训练信号",
+        "section": "可证伪实验单A：关系监督还是额外训练信号"
+      },
+      {
+        "title": "额外policy信息与梯度路径分开",
+        "section": "可证伪实验单B：额外policy信息与梯度路径分开"
+      }
+    ],
+    "source_sha256": "250e56664ae27d5dda381d0bb6a7bf60f65cee9db407930007a0756a30a63c29",
+    "arxiv_id": "2609.28776",
+    "official_status": "Accepted to the 20th ACM Conference on Recommender Systems (RecSys 2026). 10 pages, 6 figures",
+    "read_version_date": "2026-09-25",
+    "archive_file": "90_原文证据/training/2609.28776.pdf",
+    "experiments": [
+      {
+        "id": "T03-A",
+        "title": "关系监督还是额外训练信号"
+      },
+      {
+        "id": "T03-B",
+        "title": "额外policy信息与梯度路径分开"
+      }
+    ]
+  },
+  {
+    "id": "T04",
+    "title": "The Double Dilemma in Multi-Task Radiology Report Generation: A Gradient Dynamics Analysis and Solution",
+    "file": "10_训练动力学/T04_梯度方向与幅度分离_CAMEGrad.md",
+    "url": "https://arxiv.org/abs/2605.22635",
+    "first_date": "2026-05-21",
+    "read_version": "v2 2026-05-22",
+    "category": "current",
+    "mechanism": "方向修正、范数恢复/放大、原梯度混合三步；需排除有效学习率解释",
+    "key_results": [
+      "REVTAF F1 .589→.607；CE Avg .607→.626",
+      "S1+S3 F1 .601；S1+SGLD+S3 .569；完整.607"
+    ],
+    "evidence_locations": [
+      "§3式8–14/算法1",
+      "p8表3、p9表4；附录B.1 p13；附录D/E/F"
+    ],
+    "gaps": [
+      "默认对照vs逐模型CAME调参不等预算",
+      "nu未披露自适应规则；共享/全参数作用域含糊",
+      "SDE噪声解释非唯一，信赖域不能无条件保证所有任务下降",
+      "无多种子CI/墙钟显存；尚无推荐实证"
+    ],
+    "priority_experiments": [
+      {
+        "title": "方向修正还是有效学习率",
+        "section": "可证伪实验单A：方向修正还是有效学习率"
+      },
+      {
+        "title": "冲突发生在哪些参数块",
+        "section": "可证伪实验单B：冲突发生在哪些参数块"
+      }
+    ],
+    "source_sha256": "03d9097b1f9b5e39de89703385586123a87dcbfbf574207a89ece58a01f28295",
+    "arxiv_id": "2605.22635",
+    "official_status": "Accepted by ICML 2026",
+    "read_version_date": "2026-05-22",
+    "archive_file": "90_原文证据/training/2605.22635.pdf",
+    "experiments": [
+      {
+        "id": "T04-A",
+        "title": "方向修正还是有效学习率"
+      },
+      {
+        "id": "T04-B",
+        "title": "冲突发生在哪些参数块"
+      }
+    ]
+  },
+  {
+    "id": "T05",
+    "title": "Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation",
+    "file": "10_训练动力学/T05_显式稀疏与扩容失效_SSR.md",
+    "url": "https://arxiv.org/abs/2604.08011",
+    "first_date": "2026-04-09",
+    "read_version": "v4 2026-04-22",
+    "category": "historical",
+    "mechanism": "多view先过滤后稠密融合；静态结构稀疏vs动态竞争激活稀疏",
+    "key_results": [
+      "工业RankMixer→SSR-D Click .6621→.6667、Pay .8122→.8194",
+      "Criteo SSR-S .8098>SSR-D .8096；线上表延迟26ms(+1ms)"
+    ],
+    "evidence_locations": [
+      "§3式3–9；§4式10–14/算法1",
+      "p6表2、p7表3/图3/4、p8表4、p9表5/6"
+    ],
+    "gaps": [
+      "首发04-09窗口外",
+      "Criteo正文/表3冲突，延迟正文25ms/表6 26ms冲突",
+      "稀疏率不是梯度SNR；α正值参数化及loss细节缺失",
+      "FLOPs是单次推理代理，非全训练墙钟"
+    ],
+    "priority_experiments": [
+      {
+        "title": "过滤噪声还是随机子空间正则",
+        "section": "可证伪实验单A：过滤噪声还是随机子空间正则"
+      },
+      {
+        "title": "何种扩容轴真的有效",
+        "section": "可证伪实验单B：何种扩容轴真的有效"
+      }
+    ],
+    "source_sha256": "d22431549d715be8ce3e021503a06863b93bcbac0ee3018cc547d5c7a476eba6",
+    "arxiv_id": "2604.08011",
+    "official_status": "Accepted as a full paper at SIGIR 2026. 11 pages, 6 figures",
+    "read_version_date": "2026-04-22",
+    "archive_file": "90_原文证据/training/2604.08011.pdf",
+    "experiments": [
+      {
+        "id": "T05-A",
+        "title": "过滤噪声还是随机子空间正则"
+      },
+      {
+        "id": "T05-B",
+        "title": "何种扩容轴真的有效"
+      }
+    ]
+  },
+  {
+    "id": "D01",
+    "arxiv_id": "2609.29988",
+    "title": "Let Training Guide Selection: Online Synthetic Data Filtering via Real-Anchored Utility",
+    "file": "20_数据监督/D01_FROST_真实梯度锚定过滤.md",
+    "url": "https://arxiv.org/abs/2609.29988",
+    "first_date": "2026-09-24",
+    "read_version": "v1 2026-09-24",
+    "category": "current",
+    "mechanism": "真实梯度EMA参照、批级z gate+例级IQR过滤异常合成更新",
+    "key_results": [
+      "广告全合成relative NE +.211%，FROST -.096%；drop36%但无精确匹配random36%",
+      "Spider EX64.8→65.7；Hard切片54.6低于all56.9"
+    ],
+    "evidence_locations": [
+      "§3式1–12；p6表1、p7表2、p9表3",
+      "附录B.3吞吐及C消融"
+    ],
+    "gaps": [
+      "不提供线上A/B；NE为相对变化",
+      "未归一化梯度分数受幅度影响；过滤预算未精确等量"
+    ],
+    "priority_experiments": [
+      {
+        "title": "筛掉的到底是错标签还是大梯度",
+        "section": "可证伪实验单 A：筛掉的到底是错标签还是大梯度"
+      },
+      {
+        "title": "分层路由是否优于相同预算的全局筛选",
+        "section": "可证伪实验单 B：分层路由是否优于相同预算的全局筛选"
+      }
+    ],
+    "source_sha256": "64e4fcc90b94fd8f343cec88117351e22c936ac95d6f99dbfb8c57cfc5ae4c46",
+    "official_status": "21 pages, 6 figures",
+    "read_version_date": "2026-09-24",
+    "archive_file": "20_数据监督/证据/2609.29988.pdf",
+    "experiments": [
+      {
+        "id": "D01-A",
+        "title": "筛掉的到底是错标签还是大梯度"
+      },
+      {
+        "id": "D01-B",
+        "title": "分层路由是否优于相同预算的全局筛选"
+      }
+    ]
+  },
+  {
+    "id": "D02",
+    "arxiv_id": "2610.00814",
+    "title": "Training-Aware Target Coverage for Synthetic Data Selection",
+    "file": "20_数据监督/D02_TATC_条件样本价值.md",
+    "url": "https://arxiv.org/abs/2610.00814",
+    "first_date": "2026-09-30",
+    "read_version": "v1 2026-09-30",
+    "category": "current",
+    "mechanism": "先以优化器感知更新价值shortlist，再以训练集条件覆盖去冗余",
+    "key_results": [
+      "GSM8K B128 TATC87.34 vs OptimSyn86.07 vs coverage85.19",
+      "fig3两面板max generation1536/3072，跨面板不能作同协议比较"
+    ],
+    "evidence_locations": [
+      "§2–4命题/式1–7；算法1；p9图3",
+      "附录B/C/D，p22–24优化器与训练细节"
+    ],
+    "gaps": [
+      "理论线性oracle与LLM启发式不同",
+      "固定预算非h>0停止；真实probe有成本"
+    ],
+    "priority_experiments": [
+      {
+        "title": "收益来自误差控制还是输入互补",
+        "section": "可证伪实验单 A：收益来自误差控制还是输入互补"
+      },
+      {
+        "title": "probe未覆盖时，再生成能否替代真实标注",
+        "section": "可证伪实验单 B：probe未覆盖时，再生成能否替代真实标注"
+      }
+    ],
+    "source_sha256": "86f4ac991fdbf11a3a9e340bdaa4f0345d465a9b2e9e5ef61617e573bb823b47",
+    "official_status": "",
+    "read_version_date": "2026-09-30",
+    "archive_file": "20_数据监督/证据/2610.00814v1.pdf",
+    "experiments": [
+      {
+        "id": "D02-A",
+        "title": "收益来自误差控制还是输入互补"
+      },
+      {
+        "id": "D02-B",
+        "title": "probe未覆盖时，再生成能否替代真实标注"
+      }
+    ]
+  },
+  {
+    "id": "D03",
+    "arxiv_id": "2610.07708",
+    "title": "Evidence Before Sampling: Interpretable Implicit Negative Candidate Discovery for Recommendation",
+    "file": "20_数据监督/D03_负例有效性与采样分离.md",
+    "url": "https://arxiv.org/abs/2610.07708",
+    "first_date": "2026-10-06",
+    "read_version": "v2 2026-10-19",
+    "category": "current",
+    "mechanism": "用统计规则判定未知候选负例有效性，再交给采样器控制难度",
+    "key_results": [
+      "工业K4 PR-AUC .5166→.5814；K2随机.5907优于symbolic.5837",
+      "自然KuaiRec negative symbolic .4100低于random.4617；MNAR75 .1337高于random.0940",
+      "表10LLMreview precision .9490→.8902，coverage21.64%→5.03%"
+    ],
+    "evidence_locations": [
+      "§3式1–18；p8工业表3",
+      "p9–11自然/MNAR/组合表；p16表10–11与AppA4–A5"
+    ],
+    "gaps": [
+      "公开实验未启用LLMreview；BNS为简化版",
+      "候选精度提升不等于排序改善；曝光可迁移性未证明"
+    ],
+    "priority_experiments": [
+      {
+        "title": "有效性×难度的正交实验",
+        "section": "可证伪实验单 A：有效性×难度的正交实验"
+      },
+      {
+        "title": "规则能否跨曝光策略与时间迁移",
+        "section": "可证伪实验单 B：规则能否跨曝光策略与时间迁移"
+      }
+    ],
+    "source_sha256": "17889b3f4aa8ed607a445ec449ca0721618f3a208416655baf97d6575d3d3fef",
+    "official_status": "",
+    "read_version_date": "2026-10-19",
+    "archive_file": "20_数据监督/证据/2610.07708v2.pdf",
+    "experiments": [
+      {
+        "id": "D03-A",
+        "title": "有效性×难度的正交实验"
+      },
+      {
+        "id": "D03-B",
+        "title": "规则能否跨曝光策略与时间迁移"
+      }
+    ]
+  },
+  {
+    "id": "D04",
+    "arxiv_id": "2608.22920",
+    "title": "Beyond Observed Auxiliary Relations: Environment-Conditioned Modeling for Multi-Behavior Recommendation",
+    "file": "20_数据监督/D04_BOAR_多行为缺失与噪声分治.md",
+    "url": "https://arxiv.org/abs/2608.22920",
+    "first_date": "2026-08-24",
+    "read_version": "v1 2026-08-24",
+    "category": "current",
+    "mechanism": "辅助缺失环境去偏补关系；辅助已观测环境以目标锚剪噪声；soft路由",
+    "key_results": [
+      "原报Taobao HR .3183→.3432",
+      "Tmall MF-BPR General .0427低于两子组.0662/.3996，无法按正文分区加权闭合"
+    ],
+    "evidence_locations": [
+      "§3式2–21；p8表2",
+      "p9表3消融与表4效率；AppA1"
+    ],
+    "gaps": [
+      "分组汇总协议重要不一致，效果降权",
+      "p由1:1辅助观测训练，不等于校准target propensity"
+    ],
+    "priority_experiments": [
+      {
+        "title": "缺失需要补、噪声需要删吗",
+        "section": "可证伪实验单 A：缺失需要补、噪声需要删吗"
+      },
+      {
+        "title": "改善来自去偏还是普通重平衡",
+        "section": "可证伪实验单 B：改善来自去偏还是普通重平衡"
+      }
+    ],
+    "source_sha256": "549c5a71e6b2be6f13671d712fbcb3df0ebff0dfd8f4643710f7da86c552e1bb",
+    "official_status": "Accepted at CIKM 2026 (35th ACM International Conference on Information and Knowledge Management). 11 pages, 7 figures, 4 tables",
+    "read_version_date": "2026-08-24",
+    "archive_file": "20_数据监督/证据/2608.22920v1.pdf",
+    "experiments": [
+      {
+        "id": "D04-A",
+        "title": "缺失需要补、噪声需要删吗"
+      },
+      {
+        "id": "D04-B",
+        "title": "改善来自去偏还是普通重平衡"
+      }
+    ]
+  },
+  {
+    "id": "D05",
+    "arxiv_id": "2605.30619",
+    "title": "Reward Learning from Best-of-N Preference Data: Targets, Tradeoffs, and Design Principles",
+    "file": "20_数据监督/D05_BestOfN_标签生成改变目标.md",
+    "url": "https://arxiv.org/abs/2605.30619",
+    "first_date": "2026-05-28",
+    "read_version": "v1 2026-05-28",
+    "category": "current",
+    "mechanism": "偏好生成器改变BT目标尺度；margin与比较图覆盖共同决定价值",
+    "key_results": [
+      "N16 n2048可比N2 n8192，候选量减半但不等于全部compute减半",
+      "PKU重采样低端上调+2.9pp，高端上调-3.6pp；真实未展示小N最终反超"
+    ],
+    "evidence_locations": [
+      "§3–5式5–17及定理；p11–14图3–7",
+      "附录C1–C8 p39–44"
+    ],
+    "gaps": [
+      "合成seed数20/5冲突；tournament比较次数写成log轮数",
+      "GSM测试oracle筛选及rewardmargin≥2，不代表全GSM性能"
+    ],
+    "priority_experiments": [
+      {
+        "title": "N效应是标签质量还是比较覆盖",
+        "section": "可证伪实验单 A：N效应是标签质量还是比较覆盖"
+      },
+      {
+        "title": "between-mass能否预测应补哪种样本",
+        "section": "可证伪实验单 B：between-mass能否预测应补哪种样本"
+      }
+    ],
+    "source_sha256": "313dcc353aaec7bb57328d53710f2ebbc45ff5d67ef206762e0e0c7af6316432",
+    "official_status": "",
+    "read_version_date": "2026-05-28",
+    "archive_file": "20_数据监督/证据/2605.30619v1.pdf",
+    "experiments": [
+      {
+        "id": "D05-A",
+        "title": "N效应是标签质量还是比较覆盖"
+      },
+      {
+        "id": "D05-B",
+        "title": "between-mass能否预测应补哪种样本"
+      }
+    ]
+  },
+  {
+    "id": "D06",
+    "arxiv_id": "2606.07597",
+    "title": "Repetition Mismatch: Why Data Mixture Experiments Don't Scale and How to Fix Them",
+    "file": "20_数据监督/D06_RepetitionMismatch_配比迁移先对齐重复率.md",
+    "url": "https://arxiv.org/abs/2606.07597",
+    "first_date": "2026-05-29",
+    "read_version": "v2 2026-09-03",
+    "category": "current",
+    "mechanism": "代理实验同比缩数据唯一池与token预算，保持稀缺域重复率",
+    "key_results": [
+      "1.17B WikiText单horizon mix比例误差 .850→.100；PubMed .700→.150",
+      "30M反而更差；三源单horizon失败，757M两horizon loss2.7699",
+      "6.2%仅每run token分母，实际还须乘mix×LR run数"
+    ],
+    "evidence_locations": [
+      "§3–6；p6表1、p8表2",
+      "p14表3/4、p16表5/6、p19表16；附录A–G"
+    ],
+    "gaps": [
+      "只评高质量域loss，无下游任务；主要单seed",
+      "表4 757M WikiText目标.80与表3/.85及主表不一致",
+      "作者相同sweep次数假设未有完整实耗账本"
+    ],
+    "priority_experiments": [
+      {
+        "title": "配比漂移来自重复率还是支持集与学习进度",
+        "section": "可证伪实验单 A：配比漂移来自重复率还是支持集与学习进度"
+      },
+      {
+        "title": "早期省预算能否跨容量与多业务目标成立",
+        "section": "可证伪实验单 B：早期省预算能否跨容量与多业务目标成立"
+      }
+    ],
+    "source_sha256": "627345d470eba12e82d1bb8331d3a04ba83ab0ec73dcd8f71dd28c7047d3d03c",
+    "official_status": "EMNLP 2026 Main Conference",
+    "read_version_date": "2026-09-03",
+    "archive_file": "20_数据监督/证据/2606.07597.pdf",
+    "experiments": [
+      {
+        "id": "D06-A",
+        "title": "配比漂移来自重复率还是支持集与学习进度"
+      },
+      {
+        "id": "D06-B",
+        "title": "早期省预算能否跨容量与多业务目标成立"
+      }
+    ]
+  },
+  {
+    "title": "Causal Representation Learning for Generalisable Recommendation",
+    "file": "30_诊断泛化/G01_CRL_观察日志到线上泛化.md",
+    "id": "G01",
+    "url": "https://arxiv.org/abs/2605.27043",
+    "first_date": "2026-05-26",
+    "read_version": "v2, 2026-10-23",
+    "category": "current",
+    "mechanism": "候选表示去混杂；离线线上泛化",
+    "key_results": "Table 1 target AUC 0.6914 -> 0.7212; Table 2 streams +0.75% [0.54,0.96], skips -0.61%, minutes +0.50%",
+    "evidence_locations": "Eq1, Prop1–3, Eq7–12, Fig2/3, Table1/2 PDFp9, AppendixF",
+    "gaps": "半合成标签；InfoNCE下界实际优化不保证MI下降；线上分流/成本未披露",
+    "source_sha256": "b6d42f1b1f110e01e7bf652bd8b55bd2d9c3b441effefb8d24cddc9df8b27919",
+    "evidence_status": "full text examined",
+    "characters": 4026,
+    "arxiv_id": "2605.27043",
+    "official_status": "Accepted at NeurIPS 2026",
+    "read_version_date": "2026-10-23",
+    "archive_file": "90_原文证据/diagnosis/G01_CRL_2605.27043v2.pdf",
+    "experiments": [
+      {
+        "id": "G01-A",
+        "title": "收益来自抑制曝光捷径，还是一般正则化"
+      },
+      {
+        "id": "G01-B",
+        "title": "何时惩罚开始删除真实兴趣"
+      }
+    ]
+  },
+  {
+    "title": "An Embarrassingly Simple Graph Heuristic Reveals Shortcut-Solvable Benchmarks for Sequential Recommendation",
+    "file": "30_诊断泛化/G02_TGH_序列推荐捷径审计.md",
+    "id": "G02",
+    "url": "https://arxiv.org/abs/2605.07125",
+    "first_date": "2026-05-08",
+    "read_version": "v1, 2026-05-08",
+    "category": "current",
+    "mechanism": "局部转移图与文本相似度作为序列能力负对照",
+    "key_results": "Sports NDCG@10 2.90 vs LightGCN2.10 (+38.10%); CDs4.34 vs3.01; competitive10/14 not first10/14",
+    "evidence_locations": "Eq1, Table1–5, Fig2/3, AppendixD",
+    "gaps": "不同历史长度与预算；无在线；Table4与文字STEAM/H&M出度互换",
+    "source_sha256": "79ce920473b0f49f7b8d015a7b0060bb63e922ba6ba77da48bb89ab572d447c8",
+    "evidence_status": "full text examined",
+    "characters": 3885,
+    "arxiv_id": "2605.07125",
+    "official_status": "",
+    "read_version_date": "2026-05-08",
+    "archive_file": "90_原文证据/diagnosis/G02_TGH_2605.07125v1.pdf",
+    "experiments": [
+      {
+        "id": "G02-A",
+        "title": "新序列模块是否真的学到远历史"
+      },
+      {
+        "id": "G02-B",
+        "title": "优势来自文本语义，还是候选缩小和流行度"
+      }
+    ]
+  },
+  {
+    "title": "Toward Calibrated Mixture-of-Experts Under Distribution Shift",
+    "file": "30_诊断泛化/G03_MoE_路由与校准.md",
+    "id": "G03",
+    "url": "https://arxiv.org/abs/2606.20544",
+    "first_date": "2026-06-18",
+    "read_version": "v1, 2026-06-18",
+    "category": "current",
+    "mechanism": "软路由配置频率漂移；聚合proper loss对抗重加权",
+    "key_results": "CIFAR hard ECE0.281->0.074 with accuracy0.920->0.904; Civil hard ECE0.108->0.037",
+    "evidence_locations": "Prop4.1, Eq4–8, Tables1–3 PDFp7, AppendixB/C/D3–D5",
+    "gaps": "hard子群非严格配置干预；准确率权衡；hidden-state MoE不可直接套定理",
+    "source_sha256": "9dd59ac436aac6b0a385070b5242ec15854021beaf09c71533f62f07c766887d",
+    "evidence_status": "full text examined",
+    "characters": 4141,
+    "arxiv_id": "2606.20544",
+    "official_status": "",
+    "read_version_date": "2026-06-18",
+    "archive_file": "90_原文证据/diagnosis/G03_MoE_2606.20544v1.pdf",
+    "experiments": [
+      {
+        "id": "G03-A",
+        "title": "漂移真由配置构成变化导致吗"
+      },
+      {
+        "id": "G03-B",
+        "title": "filtered是否优于一般难例挖掘"
+      }
+    ]
+  },
+  {
+    "title": "When does distribution shift break graph neural networks calibration?",
+    "file": "30_诊断泛化/G04_STAC_无标签校准失败剖面.md",
+    "id": "G04",
+    "url": "https://arxiv.org/abs/2607.10804",
+    "first_date": "2026-07-12",
+    "read_version": "v1, 2026-07-12",
+    "category": "current",
+    "mechanism": "批判性负例：oracle校准与无标签accuracy估计分离",
+    "key_results": "amazon-ratings uncal ECE0.085, STAC0.432, oracle0.024; estimated accuracy0.81 vs true0.38",
+    "evidence_locations": "Eq1/Remark2 PDFp6, Algorithm1, Table2 PDFp10, Sections6.3–7.6, AppendixA",
+    "gaps": "高SNR极限文字错误；正温度边界；节点充分性；真实图方法失败，不推荐直接部署",
+    "source_sha256": "1d1a6fdd41ba9a676cf2047e40c9b1210e2e86aa32e3eefbd0d085ec6236a0e5",
+    "evidence_status": "critical negative case",
+    "characters": 3647,
+    "arxiv_id": "2607.10804",
+    "official_status": "",
+    "read_version_date": "2026-07-12",
+    "archive_file": "90_原文证据/diagnosis/G04_GNN_2607.10804v1.pdf",
+    "experiments": [
+      {
+        "id": "G04-A",
+        "title": "瓶颈是估计accuracy还是温度表达能力"
+      },
+      {
+        "id": "G04-B",
+        "title": "扰动一致性是否只是稳定错误"
+      }
+    ]
+  },
+  {
+    "title": "GH-ESD: Grounded Hypothesis-Driven Error Slice Discovery for Instance-Level Vision Tasks",
+    "file": "30_诊断泛化/G05_GHESD_实例错误切片.md",
+    "id": "G05",
+    "url": "https://arxiv.org/abs/2512.24592",
+    "first_date": "2025-12-31",
+    "read_version": "v4, 2026-09-05",
+    "category": "historical",
+    "mechanism": "关系型假设生成、实例归属、连续匹配与趋势筛选",
+    "key_results": "GESD P@10 0.73 vs0.63; bicycle mAP33.59 vs28.58 with different learning rates",
+    "evidence_locations": "Sections3.1–3.4/4, Table1/3, Fig5/6, AppendixS3.5 PDFp23–24",
+    "gaps": "封闭GT替换；自适应趋势非因果；repair学习率5倍；历史首发不可算本期",
+    "source_sha256": "aa339b0484449d9a53bc1458ebbf6ddc97def4e1686f63fabebc73669334d7af",
+    "evidence_status": "full text examined",
+    "characters": 4409,
+    "arxiv_id": "2512.24592",
+    "official_status": "Accepted by ECCV2026",
+    "read_version_date": "2026-09-05",
+    "archive_file": "90_原文证据/diagnosis/G05_GHESD_2512.24592v4.pdf",
+    "experiments": [
+      {
+        "id": "G05-A",
+        "title": "LLM提出的失败条件能在独立数据成立吗"
+      },
+      {
+        "id": "G05-B",
+        "title": "修复收益来自正确切片还是更大学习率"
+      }
+    ]
+  },
+  {
+    "id": "O01",
+    "title": "Strategic Decision Focused Learning",
+    "file": "40_决策导向/O01_StrategicDFL_预测误差与决策边界.md",
+    "url": "https://arxiv.org/abs/2609.14907",
+    "first_date": "2026-09-14",
+    "read_version": "v1 2026-09-14",
+    "category": "current",
+    "mechanism": "策略响应下预测目标与决策边界错配",
+    "evidence_locations": "表1/算法1/命题3.3证明/附录B.1",
+    "key_results": "真实GPS/交通数据上的安全博弈仿真，不是线上；PTO与Hybrid预测误差和utility方向相反",
+    "gaps": "完整最优不能被错误真值击败；策略空间/调参/训练成本限制",
+    "arxiv_id": "2609.14907",
+    "official_status": "",
+    "read_version_date": "2026-09-14",
+    "archive_file": "90_原文证据/decision_continual_system/2609.14907v1.html",
+    "source_sha256": "c9425d037addd93bb7c30e41a227e548fd36632cbf4a541701933c95d92930ec",
+    "experiments": [
+      {
+        "id": "O01-A",
+        "title": "先证明决策敏感方向不同"
+      },
+      {
+        "id": "O01-B",
+        "title": "对手反应是否必要，还是模拟器被利用"
+      }
+    ]
+  },
+  {
+    "id": "O02",
+    "title": "Jacobian Rank Collapse in Decision-Focused Learning",
+    "file": "40_决策导向/O02_JacobianRank_决策损失为何无效.md",
+    "url": "https://arxiv.org/abs/2609.39261",
+    "first_date": "2026-09-30",
+    "read_version": "v1 2026-09-30",
+    "category": "current",
+    "mechanism": "输出Jacobian方向与优化坐标决定DFL是否有新增作用",
+    "evidence_locations": "表28/29/30；秩1定理；forward与archive协议说明",
+    "key_results": "受控背包收益显著，路径Holm校正后不显著；可逆缩放可改变SGD表现而不改变exact rank",
+    "gaps": "pointwise与batch不同；金融无稳定总体收益；53页未逐表全复核",
+    "arxiv_id": "2609.39261",
+    "official_status": "53 pages, 21 figures, 32 tables. Includes theoretical proofs and supplementary experiments",
+    "read_version_date": "2026-09-30",
+    "archive_file": "90_原文证据/decision_continual_system/2609.39261v1.html",
+    "source_sha256": "e0534652efa9a8511f51d6babfa34710a1487bfa0457720338fcd16904ae9c63",
+    "experiments": [
+      {
+        "id": "O02-A",
+        "title": "新loss受限于接口还是没有有效业务信号"
+      },
+      {
+        "id": "O02-B",
+        "title": "低有效rank是表达瓶颈还是坐标病态"
+      }
+    ]
+  },
+  {
+    "id": "C01",
+    "title": "TRACER: Balancing Stability-Plasticity-Cognitivity Trilemma for LLM Enhanced Continual Recommendation",
+    "file": "50_持续学习/C01_TRACER_语义先验与兴趣更新.md",
+    "url": "https://arxiv.org/abs/2608.16075",
+    "first_date": "2026-08-17",
+    "read_version": "v2 2026-08-25",
+    "category": "current",
+    "mechanism": "语义初始化/双通道/相容性监督平衡新信息与保留",
+    "evidence_locations": "§3方法、表2/3/4、附录数据与SRT协议",
+    "key_results": "LightGCN Yelp NDCG20 7.30%→8.35%；部分消融BWT略高",
+    "gaps": "块内随机切分；总参数/时效混杂；SRT支持query独立性未明确",
+    "arxiv_id": "2608.16075",
+    "official_status": "Accepted to CIKM 2026 Full Research Paper",
+    "read_version_date": "2026-08-25",
+    "archive_file": "90_原文证据/decision_continual_system/2608.16075v2.html",
+    "source_sha256": "0745b2ad7f5523ca5f2313316ec5a264ee4dd8b8e5ee7d76ec86fc7ff32102f1",
+    "experiments": [
+      {
+        "id": "C01-A",
+        "title": "是语义冲突还是额外正则带来收益"
+      },
+      {
+        "id": "C01-B",
+        "title": "语义信息增量还是坐标/容量收益"
+      }
+    ]
+  },
+  {
+    "id": "C02",
+    "title": "Predicting Plasticity in Deep Continual Learning: A Theoretical Perspective",
+    "file": "50_持续学习/C02_OptimizationReadiness_可塑性诊断.md",
+    "url": "https://arxiv.org/abs/2605.09044",
+    "first_date": "2026-05-09",
+    "read_version": "v1 2026-05-09",
+    "category": "current",
+    "mechanism": "梯度强度与相干性诊断短步优化可塑性",
+    "evidence_locations": "定义OR/定理条件/表2/图4/附录C.1",
+    "key_results": "100步gain排序SCR .977±.002；PMNIST .899±.004，SE",
+    "gaps": "经验probe下降非未来泛化；理论SGD步长条件；不是修复方法",
+    "arxiv_id": "2605.09044",
+    "official_status": "21 pages, 4 figures, 2 tables",
+    "read_version_date": "2026-05-09",
+    "archive_file": "90_原文证据/decision_continual_system/2605.09044v1.html",
+    "source_sha256": "1ae4239d85d333526ce03b4bf426241ce03df568d5d2d6e1276fb356909d55ed",
+    "experiments": [
+      {
+        "id": "C02-A",
+        "title": "OR在真实优化器下能预测更新收益吗"
+      },
+      {
+        "id": "C02-B",
+        "title": "能力、优化状态与时效分别贡献多少"
+      }
+    ]
+  },
+  {
+    "id": "S01",
+    "title": "SequenceO1: End-to-End Ultra-Long (100K) Sequence Modeling in Recommendation with Low-Rank Caching",
+    "file": "60_压缩与系统/S01_SequenceO1_长历史压缩与缓存.md",
+    "url": "https://arxiv.org/abs/2609.08443",
+    "first_date": "2026-09-08",
+    "read_version": "v1 2026-09-08",
+    "category": "current",
+    "mechanism": "候选无关长历史摘要+缓存释放分支资源",
+    "evidence_locations": "公式与表1–5/复杂度/缓存段",
+    "key_results": "100K压缩保留直接STCA约83%增益；线上Duration+1.4999%；49.9×仅长历史训练分支",
+    "gaps": "缓存训练梯度未明；质量/历史长度/工程贡献不可相加",
+    "arxiv_id": "2609.08443",
+    "official_status": "RecSys'26 Industry Track, accepted as a long oral presentation. Production deployment on Douyin. Topics: industrial recommender systems, sequential recommendation, ultra-long user behavior sequence modeling, long-term user modeling, end-to-end ranking, CTR prediction, efficient attention, sequence compression, user representation caching, and large-scale recommendation systems",
+    "read_version_date": "2026-09-08",
+    "archive_file": "90_原文证据/decision_continual_system/2609.08443v1.html",
+    "source_sha256": "0943d9bcd6ca8dbd8911526e17e63188fb6ab0f8441de971d61661f65614cb57",
+    "experiments": [
+      {
+        "id": "S01-A",
+        "title": "摘要是否保留稀有且任务相关的长程信息"
+      },
+      {
+        "id": "S01-B",
+        "title": "成本释放还是摘要本身带来收益"
+      }
+    ]
+  },
+  {
+    "id": "S02",
+    "title": "CCFormer: Efficient Cross-Field Interaction and Hierarchical Sequence Compression for Industrial Recommendation at Tencent",
+    "file": "60_压缩与系统/S02_CCFormer_交互后压缩与共享计算.md",
+    "url": "https://arxiv.org/abs/2607.28070",
+    "first_date": "2026-07-30",
+    "read_version": "v2 2026-10-29",
+    "category": "current",
+    "mechanism": "交互后层级压缩与候选共享降低计算",
+    "evidence_locations": "v2表1–7/附录A–C/公共负采样与线上协议",
+    "key_results": "工业AUC77.66→77.94，FLOPs36.89→16.64；各线上场景历史增长不同",
+    "gaps": "above-chance提升分母；场景候选packing基线；同精度压缩不一定涨AUC",
+    "arxiv_id": "2607.28070",
+    "official_status": "",
+    "read_version_date": "2026-10-29",
+    "archive_file": "90_原文证据/decision_continual_system/2607.28070v2.html",
+    "source_sha256": "60351671efa01791e7c6f1f2e0d64684fdff7bbf28c2de859652098e622ef0b5",
+    "experiments": [
+      {
+        "id": "S02-A",
+        "title": "独立softmax真解决字段竞争吗"
+      },
+      {
+        "id": "S02-B",
+        "title": "先交互后压缩与成本再投资"
+      }
+    ]
+  }
+]

@@ -1,0 +1,721 @@
+=== PAGE 1 ===
+         Beyond Dense Connectivity: Explicit Sparsity for Scalable
+                                                           Recommendation
+                     Yantao Yu                                             Sen Qiao                                              Lei Shen
+        yuyantao.yyt@alibaba-inc.com                        qiaosen.qiaosen@alibaba-inc.com                            kenny.sl@alibaba-inc.com
+         Alibaba International Digital                         Alibaba International Digital                         Alibaba International Digital
+                Commercial Group                                      Commercial Group                                     Commercial Group
+                 HangZhou, China                                      HangZhou, China                                       HangZhou, China
+                                              Bing Wang                                            Xiaoyi Zeng
+                                   lingfeng.wb@alibaba-inc.com                             yuanhan@alibaba-inc.com
+                                    Alibaba International Digital                         Alibaba International Digital
+                                           Commercial Group                                     Commercial Group
+                                           HangZhou, China                                       HangZhou, China
+Abstract                                                                              Keywords
+Recent  progress  in  scaling  large  models  has  motivated  recom-                  Recommender Systems; Scaling Up; Ranking Model; Model Sparsity;
+mender systems to increase model depth and capacity to better                         Personalized Recommendation
+leverage massive behavioral data. However, recommendation in-                         ACM Reference Format:
+puts are high-dimensional and extremely sparse, and simply scaling                    Yantao Yu, Sen Qiao, Lei Shen, Bing Wang, and Xiaoyi Zeng. 2026. Beyond
+dense backbones (e.g., deep MLPs) often yields diminishing returns                    Dense Connectivity: Explicit Sparsity for Scalable Recommendation. In
+or even performance degradation. Our analysis of industrial CTR                       Proceedings of the 49th International ACM SIGIR Conference on Research and
+models reveals a phenomenon of implicit connection sparsity: most                     Development in Information Retrieval (SIGIR ’26), July 20–24, 2026, Melbourne,
+learned connection weights tend towards zero, while only a small                      VIC, Australia.ACM, New York, NY, USA, 11 pages. https://doi.org/10.1145/
+fraction remain prominent. This indicates a structural mismatch                       3805712.3809630
+between dense connectivity and sparse recommendation data; by
+compelling the model to process vast low-utility connections in-                      1    Introduction
+stead of valid signals, the dense architecture itself becomes the                     Deep learning recommender systems (DLRS) are the core rank-
+primary bottleneck to effective pattern modeling. We proposeSSR                       ing engines in many online services. Inspired by the success of
+(ExplicitSparsity forScalableRecommendation), a framework that                        LLMs [13, 15], we investigate whether recommender models ex-
+incorporates sparsity explicitly into the architecture. SSR employs                   hibit similar scaling properties, where performance improves as
+a multi-view "filter-then-fuse" mechanism, decomposing inputs                         model capacity and data size grow together. In practice, mainstream
+into parallel views for dimension-level sparse filtering followed by                  industrial CTR backbones such as Wide&Deep [4] and DLRM [20]
+dense fusion. Specifically, we realize the sparsity via two strategies:               remain relatively shallow, often 3–4 layers. Attempts to simply
+a Static Random Filter that achieves efficient structural sparsity via                scale up these dense MLP-based architectures frequently lead to
+fixed dimension subsets, and Iterative Competitive Sparse (ICS), a                    diminishing returns or even performance degradation, as reported
+differentiable dynamic mechanism that employs bio-inspired com-                       in prior studies [17, 22]. This implies that naive scaling of dense
+petition to adaptively retain high-response dimensions. Experi-                       architectures is suboptimal.
+ments on three public datasets and a billion-scale industrial dataset                    A fundamental issue is the mismatch between dense connectivity
+from AliExpress (a global e-commerce platform) show that SSR                          and sparse recommendation data. Unlike images or text with natural
+outperforms state-of-the-art baselines under similar budgets. Cru-                    spatial or sequential locality, recommendation inputs consist of
+cially, SSR exhibits superior scalability, delivering continuous per-                 hundreds of heterogeneous feature fields where only a small subset
+formance gains where dense models saturate. The code is available                     is relevant for any given sample [21, 35]. As we show in Figure
+at https://github.com/Atticus666/SSRNet.                                              1, learned weights in a production CTR model exhibit extreme
+                                                                                      implicit sparsity: 92% of connections are suppressed to near-zero,
+CCS Concepts                                                                          and 80% of weight mass concentrates in just 4% of dimensions. This
+•Information systems → Recommender systems;Learning to                                confirms that the dense architecture itself becomes the bottleneck to
+rank.                                                                                 effective scaling, and we provide a detailed analysis and theoretical
+                                                                                      grounding in Section 2.
+                                                                                         Building on this insight, we proposeSSR(ExplicitSparsity for
+                                                                                      ScalableRecommendation), a framework tailored for scaling on
+This work is licensed under a Creative Commons Attribution 4.0 International License. sparse recommendation data. SSR introduces a paradigm shift from
+SIGIR ’26, Melbourne, VIC, Australia                                                  implicit weight suppression to explicit signal filtering, building
+©2026 Copyright held by the owner/author(s).                                          on a simple principle: first filter, then fuse. It performs explicit
+ACM ISBN 979-8-4007-2599-9/2026/07
+https://doi.org/10.1145/3805712.3809630                                               dimension-level sparse filtering before dense nonlinear fusion. We
+
+=== PAGE 2 ===
+SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia                                                                                                      Yantao Yu, Sen Qiao, Lei Shen, Bing Wang, and Xiaoyi Zeng
+
+                                                                                          28, 35], each instance typically activates only a small subset of in-
+                                                                                          formative dimensions in a large feature space [21]. Unlike images
+                                                                                          or text, where inputs exhibit natural spatial or sequential locality
+                                                                                          that architectures like CNNs and Transformers. Recommendation
+                                                                                          inputs consist of hundreds of heterogeneous feature fields such as
+                                                                                          user profiles, item attributes, contextual signals, and behavioral se-
+                                                                                          quences, concatenated into a flat vector with no inherent adjacency
+                                                                                          or ordering among dimensions. For a specific impression or pur-
+                                                                                          chase, only a few contextual signals and historical preferences are
+                                                                                          truly relevant, while the vast majority are weakly relevant for that
+                                                                                          specific sample [18, 33]. This sparsity pattern means the effective
+                                                                                          response of the model (e.g., weight mass) is concentrated on a small
+                                                                                          fraction of the input dimensions.
+Figure 1: Sparsity analysis of the hidden layer in online CTR                                 In contrast, a fully connected layer enforces globally dense con-
+backbone. (Left) 92% of weights are suppressed to near-zero                               nectivity by coupling each output neuron with all input dimensions.
+(<   10−3 ). (Right) 80% of weight power concentrates in the top                          This forces the model to process vast low-utility connections, which
+4% of dimensions.                                                                         dilutes valid signals and burdens the optimizer with suppressing
+                                                                                          noise rather than learning complex patterns [23]. We argue that this
+                                                                                          constitutes amisalignment of inductive bias: the dense connectivity
+realize the sparsity via two complementary strategies: a Static Ran-                      assumes all dimension pairs are equally likely to interact, whereas
+dom Filter (SSR-S) that achieves efficient structural sparsity via                        the data exhibits highly concentrated, subset-based interactions.
+fixed dimension subsets at zero FLOP cost, and Iterative Competi-                             To support this analysis, we visualize the learned weights of
+tive Sparse (ICS/SSR-D), a differentiable dynamic mechanism that                          the fully connected layer in an online industrial CTR model (Fig-
+introduces sparsity to adaptively filter dimensions based on sample                       ure 1). This model was trained without any sparsity-inducing con-
+context. Unlike existing methods that rely on soft attention [14]                         straints (e.g., L2 regularization). Despite its dense design, the learned
+or post-hoc pruning [17], which maintain a fully connected graph                          weights exhibit a highly sparse operating pattern: more than 92% of
+and thus fail to block noise at scale, SSR enforces explicit sparsity,                    connections are implicitly suppressed to near-zero values (< 10−3  ),
+preventing noise propagation at the source and thus providing a                           and 80% of the weight mass is concentrated in the top 4% of the
+cleaner gradient flow for scaling. The main contributions of this                         input dimensions. While this confirms a strong sparsity prefer-
+paper are summarized as follows:                                                          ence driven by the data distribution, such implicit suppression is
+     •  We analyze the problem of scaling dense MLPs on sparse data,                      inefficient: many weights are simply driven close to zero, which
+        highlighting that implicit weight suppression fails to block                      neither eliminates the interference of noise nor provides a mech-
+        noise, and provide evidence of strong sparse connection in                        anism for signal filtering. Making this sparsity explicit [7, 8], i.e.,
+        Figure 1.                                                                         transforming it from an implicit training artifact into a controllable
+     •  We propose SSR, shifting the paradigm from implicit weight                        architectural design, is therefore the key to overcoming the scaling
+        suppression to explicit signal filtering. It realizes explicit                    bottleneck. However, what constitutes noise varies across users, so
+        sparsity to isolate noise before dense interaction, ensuring                      a static sparse structure shared by all samples misses the context
+        expanded capacity is dedicated to valid signals.                                  dependence of recommendation. To scale effectiveness, we need
+     •  We introduce two strategies to realize the explicit sparsity: a                   both structural and dynamic, sample-conditional sparsity.
+        Static Random Filter for efficient structural sparsity, and ICS,
+        a differentiable dynamic filtering mechanism that enables
+        input-adaptive sparsification to capture complex dependen-                        2.2    Sparsity as Inductive Bias Alignment
+        cies.                                                                             From an inductive bias perspective, a model architecture implicitly
+     •  Experiments on three public datasets and a billion-scale                          encodes assumptions about the structure of its input data. CNNs en-
+        industrial dataset from AliExpress demonstrate that SSR                           code spatial locality through convolutional kernels; Transformers
+        achieves better accuracy under comparable compute bud-                            encode sequential dependencies via self-attention [27]. Both suc-
+        gets and exhibits more stable improvements when scaling                           ceed because their structural design matches the natural structure
+        size.                                                                             of the data.
+2    Motivation and Theoretical Foundation                                                    Recommendation inputs, however, lack such natural locality.
+Before presenting the SSR framework, we provide the analytical                            Hundreds of heterogeneous feature fields are concatenated into a
+and theoretical motivation underlying our design choices.                                 flat vector with no inherent spatial or temporal ordering. Dense
+                                                                                          MLP’s fully connected topology imposes no structural prior, treat-
+2.1    Why Dense MLPs Fail for Recommendation                                             ing all dimension pairs as equally likely to interact. When the data’s
+                                                                                          effective interactions are concentrated on small feature subsets, as
+Recommendation inputs differ fundamentally from language or                               our empirical analysis confirms (Figure 1). This design becomes a
+vision data. They are high-dimensional yet extremely sparse [16,                          misaligned inductive bias, forcing the optimizer to expend most
+
+=== PAGE 3 ===
+Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation                                                                            SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia
+
+of its capacity learning which connections to suppress rather than                         process: Sparse Filtering (F𝑖) to filter the information, followed by
+which patterns to model.                                                                   Dense Fusion (M𝑖) to process it. The view outputs{z1,..., z𝑏} are
+   This perspective is supported by recent theoretical work on                             then aggregated to form the layer output; the specific aggregation
+structured sparsity. Hayase and Karakida [12] proved that MLP-                             strategy differs between intermediate and final layers.
+Mixer [27] is mathematically equivalent to awide and sparseMLP.
+Its Token-Mixing and Channel-Mixing layers can be expressed via                            3.2    Multi-view Sparse Filtering
+Kronecker product structure:                                                               This stage constitutes the "Filter" stage of the SSR framework, im-
+                       vec(WX)=(I       𝐶⊗W)vec(X)                         (1)             plementing strict dimension-level signal filtering. We define a set
+                       vec(XV)=(V    ⊤⊗I 𝑆)vec(X)                         (2)              of sparse filter operators{F1,...,F𝑏}. For the𝑖-th view, the op-
+                                                                                           erator extracts a purified representationh         𝑖∈R 𝑑𝑣  from the high-
+This structure yields an effective width of𝑚=𝑆×𝐶           (potentially                    dimensional inputx:
+104–10   6) while maintaining a non-zero weight ratio of only1  /𝐶   or                                                       h𝑖 =F 𝑖(x)                                        (3)
+1/𝑆  , which is inherently highly sparse. Moreover, this Kronecker
+product parameterization carries an implicit𝐿1 regularization effect.                      This process essentially performs𝑏  parallel filtering operations.
+Together with the Golubeva hypothesis [9], which states that at                            We propose two instantiation strategies forF𝑖, trading off efficient
+fixed parameter count, increasing width (and thus sparsity) consis-                        structural sparsity and context-aware dynamic sparsity.
+tently improves generalization, these findings provide theoretical                         SSR-S: Static Random Filter (Static Instantiation)This strategy
+grounding for why structured sparsity serves as a beneficial induc-                        treatsF𝑖 as a sample-agnostic operator to enforce structural sparsity.
+tive bias.                                                                                 We implementF𝑖 using a binary selection matrix𝑀𝑖∈{0, 1}𝑑𝑖𝑛×𝑑   𝑣 ,
+   SSR extends this principle from vision to recommendation. While                         where each column is strictly a one-hot vector. Furthermore, this
+MLP-Mixer relies on fixed mathematical structure (Kronecker prod-                          matrix remains fixed after initialization. To construct𝑀𝑖, we sample
+ucts) that exploits the spatial regularity of image patches, recom-                        𝑑𝑣 feature indices from the input dimension range{1,...,𝑑𝑖𝑛}. The
+mendation data lacks such regularity: which feature interactions                           sampling is performed uniformly without replacement within each
+are informative is highly data-dependent and sample-dependent.                             view, ensuring distinct features in a single subspace. However, the
+This motivates SSR’s design of two complementary explicit sparsity                         sampling is independent across different views, allowing feature
+mechanisms, namely static random filtering for efficient structural                        overlap. This independence creates a "Feature Bagging" effect [2],
+sparsity and dynamic competitive filtering for sample-adaptive se-                         promoting structural diversity and robustness across the parallel
+lection. The transition from MLP-Mixer to SSR thus represents a                            views. The filtered feature is calculated as:
+advance: from implicit sparsity embedded in fixed mathematical
+structure to explicit sparsity engineered for the data’s intrinsic                                                             h𝑖 =xM 𝑖                                           (4)
+properties. this motivates the filter-then-fuse paradigm detailed in
+the next section.                                                                          Since𝑀𝑖 consists of column-wise one-hot vectors, the operation
+3    The SSR Framework                                                                     is implemented not as a matrix multiplication, but as a zero-FLOP
+                                                                                           parallel gather operation (i.e., direct index slicing). This blocks the
+We propose SSR (Explicit Sparsity for Scalable Recommendation)                             propagation of unselected dimensions at the source.
+framework to resolve the mismatch between globally dense con-                                  Existing methods like Statistical Top-k [32] or even our own
+nectivity and sparse input data. In this section, we detail the design                     dynamic ICS utilize logical sparsity: they multiply non-informative
+of a single SSR Layer, which comprises two cascaded stages: (1)                            features by zero, but the physical computation graph remains wide
+Multi-view Sparse Filtering and (2) Intra-view Dense Fusion. Figure                        (𝑂(𝑑      2)). In contrast, SSR-S enforces hard dimension reduction. By
+2 presents an overview of the framework.                                                   strictly slicing the input indices before computation, it decouples
+                                                                                           the dimension selection cost from the inference cost.
+3.1    Overview                                                                            SSR-D: Iterative Competitive Sparse (Dynamic Instantiation)
+To overcome the scaling issue caused by the indiscriminate mixing                          To capture context-aware dependencies, we employ ICS (detailed
+and signal dilution inherent in traditional densely connected layers,                      in Sec. 4), a dynamic mechanism. ICS dynamically adjusts the focus
+SSR introduces a new computational paradigm based on explicit                              based on the input’s semantic context. It sparsifies the input by
+signal filtering. First, the model converts raw features—including                         actively zeroing out less salient elements in the input vectorxwhile
+user profiles, candidate item attributes, cross-feature statistics, and                    retaining high-response values. The formula forh  𝑖 becomes:
+behavior sequences—into embeddings. These embeddings are con-
+catenated to form the initial input vectorx∈R     𝑑in.                                                                   h𝑖 =ICS 𝑖(xW 𝑝𝑟𝑜𝑗i )                                 (5)
+   Unlike  a  standard  dense  layer  that  learns  a  global  mapping
+x∈R 𝑑𝑖𝑛 , SSR decouples the modeling task into𝑏  independent                               Here,h𝑖∈R 𝑑∗𝑣 , where the view dimension is typically expanded
+purification views. For each view𝑖∈{ 1,...,𝑏}  , we define a view-                         (e.g.,𝑑∗𝑣 >𝑑 𝑣) to maintain capacity for adaptive dimension sparsity,
+specific mapping𝜙𝑖 that processes the input into a local subspace                          unlike the static strategy.W𝑝𝑟𝑜𝑗𝑖  ∈R 𝑑in×𝑑 ∗𝑣  is a learnable projection
+representationz         𝑖∈R 𝑑𝑣 . Each mapping filters the key dimensions                   matrix for view𝑖. The outputhis a sparse representation, in the
+in the full inputxand projects them into a low-dimensional sub-                            𝑑∗𝑣-dimensional space, where most non-critical elements are strictly
+space. Each mapping𝜙𝑖 is implemented through a strict two-stage                            truncated to zero.
+
+=== PAGE 4 ===
+SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia                                                                                                      Yantao Yu, Sen Qiao, Lei Shen, Bing Wang, and Xiaoyi Zeng
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 Figure 2: The SSR Framework: Explicit Sparsity for Scalable Recommendation.
+
+3.3    Intra-view Dense Fusion                                                               3.4    Last-Layer Aggregation
+Following dimension-level sparse filtering, the input has been dis-                          In intermediate layers, view outputs are concatenated and passed to
+tilled into𝑏 views of purified vectors[ℎ  1,...,ℎ𝑏]. While the first                         the next layer as defined in Eq. (7). However, for the final layer that
+stage blocks noise, this second stage focuses on exploiting this                             produces prediction logits (e.g., CTR/CVR scores), the aggregation
+sparsity to enable efficient high-order modeling within a refined                            strategy switches from concatenation to averaging:
+signal environment. Its strategic application exclusively within the                                                             𝑏∑︁
+refined subspaces prevents the re-aggregation of low-utility con-                                                       ¯z=   1     LayerNorm(z       𝑖)                            (8)
+nections, resolving the signal dilution issue inherent in globally                                                           𝑏  𝑖=1
+dense architectures.                                                                         Each view independently completes dense fusion to obtainz     𝑖, and
+   Mathematically, this operation is equivalent to applying a Block-                         the resulting shared representation ¯z is then fed into task-specific
+Diagonal weight matrixW               block =diag(         V1,..., V𝑏) to the concate-       prediction heads via fully connected layers, e.g.,
+nated input. Unlike a standard dense layer where all dimensions
+interact, the block-diagonal structure enforces strict semantic iso-                                                      𝑦ctr =𝜎(W        ctr¯z+b      ctr)                               (9)
+lation between views, ensuring that features from the𝑖-th view
+are transformed exclusively by parametersV         𝑖∈R 𝑑𝑣×𝑑   𝑣  for static                  Averaging offers two advantages over concatenation. First, it pushes
+or𝑉𝑖 ∈R 𝑑∗𝑣×𝑑   𝑣  for dynamic. In practice, this is efficiently imple-                      all views toward a shared semantic space instead of letting them
+mented as b parallel projections, avoiding the storage of zero-valued                        drift independently. Concatenation preserves discrepancies between
+off-diagonal blocks. The outputz     𝑖 for the𝑖-th view is calculated as:                    views, but averaging encourages consistency. Second, averaging
+                                                                                             fixes the prediction head input dimension at𝑑𝑣 regardless of the
+                             z𝑖 =𝜎 (h𝑖V𝑖+bias 𝑖)                                 (6)         view count. With concatenation, the dimension would grow to𝑏·𝑑  𝑣,
+                                                                                             making the prediction head scale linearly with the number of views.
+
+Here,𝜎 is an activation function (such as GELU). For intermedi-                              4    Iterative Competitive Sparse
+ate layers, the outputs from all views are processed with Layer                              As the core mechanism for dynamic instantiation in SSR, Iterative
+Normalization and recombined via concatenation:                                              Competitive Sparse (ICS) is a differentiable operator that differs
+
+      y=concat(LayerNorm(z                                          1),...,LayerNorm(z        𝑏))∈R 𝑏·𝑑    𝑣     (7)from traditional sparsification—typically handled by discrete Top-
+                                                                                             K sorting—as a continuous dynamical system. This formulation
+                                                                                             enables end-to-end, adaptive sparse filtering across dimensions.
+The number of parameters in this structure is𝑂(𝑏·𝑑          2𝑣). Compare                         We treat the inputp   ∈R 𝑑𝑣  as a population in an ecosystem
+this with a standard fully connected layer, which has a complexity                           where feature intensities represent vitality. This framework rede-
+of𝑂((𝑏·𝑑    𝑣)2). By utilizing the independence of each view, SSR                            fines sparsification as a discrete-time nonlinear dynamical system
+reduces complexity by a factor of1 /𝑏  . This makes it possible to                           rather than a static sorting task. It comprises three continuous
+significantly expand parameters within the same computational                                stages: initialization, iterative competition, and signal recovery.
+budget.                                                                                      The ICS forward pass is fully differentiable, enabling integration
+
+=== PAGE 5 ===
+Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation                                                                            SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia
+
+Algorithm 1Iterative Competitive Sparse (ICS) Forward Pass                                   4.2    Signal Recovery
+Input:  Project featurez ∈R 𝑑𝑣 , Iterations𝑇 , Learnable extinction                          To counteract this inherent attenuation, we introduce a learnable
+     rates{𝛼     𝑡}𝑇−1𝑡=0    , Learnable scale𝛾                                              scale parameter𝛾. After𝑇  rounds of iteration, the sparse statex   (𝑇)
+Output:Sparse feature vectory∈R            𝑑𝑣                                                is mapped to the final outputythrough a linear transformation:
+  1:Initialize:x       (0) ←ReLU(z)
+  2:for𝑡=0to𝑇−1do                                                                                                              y=𝛾⊙x   (𝑇)                                         (14)
+  3:  𝜇 (𝑡) ←Mean(x     (𝑡) )                                                                we introduce𝛾 as a learnable rescaling parameter, we implement𝛾∈
+  4:      x (𝑡+1)  ←ReLU(x     (𝑡) −𝛼 𝑡·𝜇(𝑡) )                                               R𝑑𝑣 as a vector, assigning an independent weight to each dimension.
+  5:end for                                                                                  While theoretically, the subsequent linear layer could absorb a scalar
+  6:Signal Recovery:y←𝛾⊙x     (𝑇)                                                            multiplication, we specifically introduce𝛾  to decouple recovery
+  7:returny                                                                                  from transformation. The parameter𝛾 serves as a variance stabilizer,
+                                                                                             ensuring numerical stability and an optimal dynamic range for the
+into gradient-based optimization. The standard flow is shown in                              optimization process.
+
+Algorithm 1.                                                                                 4.3    Comparison with Other Top-k Mechanisms
+4.1    Initialization and Competitive Dynamics                                               Our ICS mechanism offers distinct advantages over existing differ-
+Dynamic competition requires feature intensity to have a non-                                entiable selection strategies. First, compared to Straight-Through
+negative physical meaning. Therefore, we first rectify the input to                          Estimator (STE) [1] based Top-k methods, ICS eliminates the gra-
+be non-negative. We define the initial system state as:                                      dient mismatch problem. By formulating sparsification as a con-
+                                                                                             tinuous dynamical system rather than a discrete truncation, ICS
+                                 x0 =ReLU(z)                                    (10)         ensures a consistent gradient flow that stabilizes training. Second,
+   Then, the system enters an iterative process for𝑇  rounds (𝑡=                             unlike Soft Top-k relaxations or NeuralSort [10], which typically
+0,...,𝑇−   1). During iterations, a mean-field global inhibition force                       involve sorting operations with super-linear𝑂(𝑁log𝑁)                complex-
+drives features toward extinction. We define the global inhibition                           ity, ICS achieves sparsity through parallel competitive inhibition.
+field𝜇   (𝑡)   in step𝜆   𝑡  as the mean of all current features.                            This results in a strictly linear𝑂(𝑇·𝑁)           complexity, avoiding the
+                                                                                             computational bottleneck of sorting high-dimensional recommen-
+                                            𝑑𝑣∑︁                                             dation features while ensuring that noise dimensions are driven to
+                               𝜇(𝑡)   =  1𝑑𝑣    𝑥(𝑡)𝑗                                     (11)true zero rather than merely assigned low probabilities.
+                                            𝑗=1
+   The state update follows the "survival of the fittest" rule. Only                         5    Experiments
+features significantly stronger than the inhibition field can survive.                       This section aims to address the following core research questions:
+The rest will converge to true zero as hard sparsity. The specific                            RQ1  Effectiveness & Efficiency:Does SSR outperform SOTA
+update equation is:                                                                                   models on mainstream benchmarks in terms of both predic-
+                      x(𝑡+1)     =ReLU    x(𝑡) −𝛼 𝑡·𝜇(𝑡)                        (12)                  tion accuracy and computational efficiency?
+Here,𝛼={𝛼         0,...,𝛼𝑇−1 },𝛼 𝑡∈R  , we introduce𝑇  learnable extinc-                      RQ2  Scalability:Does SSR scale effectively, i.e., does performance
+tion rates where different iterations use different𝛼𝑡 . Crucially, the                                consistently improve as the model scale increases?
+iterative design (𝑇>   1) is necessary because the statistical distri-                        RQ3  Ablation & Mechanism:What are the respective contribu-
+                                                                                                      tions of the sparse filtering design and the dense fuse? Does
+bution of the features is not stable during the iterative process. A                                  ICS truly achieve dynamic sparsity?
+single-step thresholding (𝑇=   1) relies on a static estimation of the                        RQ4  Online A/B Tests:Does deploying SSR online yield signifi-
+noise floor. Through𝑇  iterations, as noise is progressively extin-                                   cant lifts in key business metrics under latency constraints?
+guished, the mean𝜇(𝑡)   is continuously refined to reflect the true
+signal baseline. This allows the model to perform progressive fil-                           5.1    Experimental Setup
+tering by removing coarse noise first and fine-tuning later, thereby                         5.1.1    Datasets.We evaluated on a large-scale industrial dataset
+approximating a complex non-linear sparsification that a single                              and three public datasets, e.g., Criteo1, Avazu2, Alibaba3. Dataset
+linear filtering cannot achieve.                                                             statistics are summarized in Table 1. The industrial dataset con-
+   In each iteration, we only perform additions/subtractions and                             tains over 1 billion production logs from AliExpress, a global cross-
+compute the mean, all of which are𝑂(𝑁)        operations. Over𝑇  itera-                      border e-commerce platform under Alibaba International Digital
+tions, the total complexity is𝑂(𝑇·𝑁)          . Since𝛼𝑡  > 0and 𝜇(𝑡) ≥ 0,                    Commerce Group. The data is collected from its recommendation
+the update rule ensures that no feature intensity can increase. The                          system, which serves personalized product recommendations to
+system forms a monotonically non-increasing sequence:                                        users worldwide. The dataset encompasses more than 300 feature
+                               |x(𝑡+1) |1≤|x(𝑡) |1                                  (13)     fields including user profiles, item attributes, and contextual signals,
+This inequality implies that the total energy of the system inevitably                       1https://www.kaggle.com/c/criteo-display-ad-challenge/data
+decays over time𝑡. While this effectively filters out noise, it also                         2https://www.kaggle.com/c/avazu-ctr-prediction
+causes significant attenuation of the useful signal intensity.                               3https://tianchi.aliyun.com/dataset/408
+
+=== PAGE 6 ===
+                  SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia                                                                                                      Yantao Yu, Sen Qiao, Lei Shen, Bing Wang, and Xiaoyi Zeng
+
+                                         Table 1: Statistics of Datasets                                           Table 2: Overall performance and efficiency comparison on
+                                                                                                                   the industrial dataset. The best results are highlighted in
+                                                                                                                   bold. * indicates statistical significance over the best baseline
+                                                                                                                   with𝑝<0.05.
+
+
+
+
+
+
+
+
+                  and we use a time-based split where the most recent day is used
+                  for validation and testing to mimic an online setting. For public
+                  datasets, we follow the standard random split (8:1:1). All numeri-
+                  cal features are log-transformed and discretized, and categorical
+                  features with frequency≤5are removed.
+
+                  5.1.2    Evaluation protocols.To evaluate the proposed method, we
+                  consider both prediction effectiveness and computational efficiency.
+                  In  terms  of  effectiveness,  we  use  AUC  and  LogLoss  across  all                           that the performance gain comes from the sparse architecture itself
+                  datasets.  For  the  industrial  datasets,  we  additionally  introduce                          rather than parameter capacity.
+                  GAUC to mitigate user activity bias and focus on intra-user rank-                                    In comparisons with automated and attention-based models,
+                  ing performance. The industrial dataset includes two tasks,click                                 although AutoFIS benefits from a low parameter count during re-
+                  andpay; for thepaytask, we evaluate on the full sample space.                                    training, its limited capacity results in a suboptimal AUC of 0.6592.
+                  Regarding efficiency and scalability, we report Params and FLOPs.                                Similarly, AutoInt incurs higher computational costs of 1.7G FLOPs
+                  Note that the parameter count includes only the backbone network                                 compared to 1.4G for SSR-S yet yields a lower score of 0.6594. These
+                  (excluding embedding tables) to decouple architectural evaluation                                self-attention mechanisms use softmax to assign strictly positive
+                  from dataset-specific feature cardinality. Furthermore, we calculate                             weights (𝛼𝑖𝑗  >  0) to all feature pairs, thereby preserving a fully
+                  FLOPs based on a single inference pass of the neural network com-                                connected graph similar to that of a dense fully connected layer.
+                  ponents to serve as a proxy for the computational overhead during                                    Against state-of-the-art architectures, the dynamic SSR-D vari-
+                  the training phase.                                                                              ant achieves the highest overall performance. While RankMixer
+                  5.1.3    Baselines.We benchmark SSR against four groups of repre-                                serves as the strongest baseline with a Click AUC of 0.6621, SSR-
+                  sentative methods: (1) Classic Deep Models: DeepFM [11] and DCN                                  D surpasses it across all metrics, reaching 0.6667 in Click AUC
+                  v2 [29], which serve as standard baselines utilizing dense feature in-                           and 0.8194 in Pay AUC. Finally, SSR offers a superior efficiency
+                  teractions; (2) Attention-based & Dynamic models: AutoInt [23] and                               trade-off. SSR-S outperforms RankMixer using only 56% of the pa-
+                  MMOE [19], which employ self-attention or gating mechanisms for                                  rameters and 44% of the FLOPs, validating the benefits of structured
+                  adaptive feature learning; (3) Feature Selection (AutoML): AutoFIS                               sparsity. SSR-D operates within a similar computation budget to
+                  [17], AFN [5], a state-of-the-art method that improves efficiency                                RankMixer but delivers significant performance gains, verifying
+                  by pruning redundant interactions; and (4) SOTA scalable archi-                                  the effectiveness of the Iterative Competitive Sparse mechanism.
+                  tectures: Wukong [34] and RankMixer [37], representing the latest                                5.2.2    Generalization on Public Benchmarks.To verify the robust-
+                  advancement in high-performance industrial recommendation.                                       ness of SSR under different data distributions and domains, we
+                      All methods are implemented in TensorFlow and trained on a                                   conducted experiments on three widely used public benchmarks:
+                  NVIDIA A100 cluster. For a fair comparison, we set the embedding                                 Avazu, Criteo, and Alibaba. These datasets differ in feature sparsity
+                  dimension to 16 for all models and used Adam with a batch size of                                and semantic complexity. As summarized in Table 3, the proposed
+                  1024 and early stopping. The iterations𝑇  of ICS are set to 5, the                               SSR framework achieves consistent improvements over all base-
+                  learnable extinction rates𝛼𝑡 are initialized to 0.1, and the Learnable                           lines across these datasets. Specifically, the dynamic variant SSR-D
+                  scale𝛾is initialized to a vector of 1.                                                           achieved the top performance in both AUC and LogLoss. When
+                  5.2    Effectiveness & Efficiency (RQ1)                                                          compared to the strongest baseline, RankMixer, SSR-D improves
+                                                                                                                   AUC by 0.63% on Avazu, 0.03% on Criteo, and 0.43% on Alibaba.
+                  5.2.1    Performance on Industrial Datasets.Table 2 presents quan-                               This suggests that the gains come from the model design rather
+                  titative results for Click and Pay tasks on industrial datasets. We                              than dataset-specific tuning, and transfer across benchmarks.
+                  compare three groups of baselines against the static random strat-                                   In addition to predictive accuracy, the static SSR-S variant demon-
+                  egy SSR-S and the dynamic ICS strategy SSR-D. SSR consistently                                   strates superior efficiency consistently across all benchmarks, in-
+                  outperforms classic feature interaction models. For instance, the                                cluding Avazu, Alibaba, and Criteo. Taking Avazu as a represen-
+                  static SSR-S variant achieves a Click AUC of 0.6644, surpassing                                  tative example, SSR-S outperforms RankMixer with an AUC of
+                  standard baselines like DeepFM and DCN v2. Notably, SSR-S out-                                   0.7827 compared to 0.7772, yet it requires only 0.33M parameters
+                  performs a Dense MLP of comparable parameter size, indicating                                    and 688.7M FLOPs. This cuts parameters and FLOPs by roughly
+
+
+
+Model                   CLICK                       PAY               #Params    FLOPs/1
+                 AUC       GAUC       AUC       GAUC
+Dense MLP      0.6593       0.6281       0.8083       0.6770          60M            3.4G
+DeepFM           0.6563       0.6251       0.8053       0.6730          13M            0.6G#Categorical#Numerical#Feature
+Data               #Samples    #PositiveRatio  Features        Features       Values
+DCN v2           0.6571       0.6262       0.8065       0.6742          15M            0.9G
+Avazu               40,428,967          16.98%                       23                        0     1,544,489MMoE              0.6578       0.6267       0.8063       0.6757          21M            1.2G
+Criteo               45,840,617          25.62%                       26                      13        998,974AutoInt            0.6594       0.6279       0.8078       0.6769         26.2M           1.7G
+Alibaba            42,299,905            3.89%                       23                        4     1,342,817AutoFIS*          0.6592       0.6285       0.8085       0.677710.8M         0.5G
+Wukong          0.6615       0.6298       0.8115       0.6805          93M            2.9G
+Industrial    1,003,204,206            3.45%/ 0.08%                      183                    129                  –
+RankMixer      0.6621       0.6305       0.8122       0.6815         101M            3.2G
+SSR-S    0.6644       0.6326       0.8162       0.6841          57M            1.4G
+SSR-D           0.6667∗    0.6351∗    0.8194∗    0.6862∗        100M            3.3G
+* For AutoFIS, metrics refer to the re-training phase (post-pruning).
+
+=== PAGE 7 ===
+                 Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation                                                                            SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia
+
+                 Table 3: Performance and efficiency comparison on public benchmarks (Avazu, Alibaba, and Criteo). The best results are
+                 highlighted in bold. * indicates statistical significance over the best baseline with𝑝<0.05.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                 half relative to RankMixer, while improving AUC, showing that
+                 SSR removes redundant computation without sacrificing accuracy.
+                     On Criteo, a highly competitive and saturated benchmark, the
+                 margins for improvement are inherently narrow. Nonetheless, SSR-
+                 S and SSR-D achieve a superior AUC of 0.8098, outperforming
+                 strong baselines like RankMixer (0.8093) and Wukong (0.8073).
+                 These results demonstrate that even in performance-saturated set-
+                 tings, SSR successfully identifies refined, high-order dependencies
+                 that traditional models overlook, affirming its effectiveness across
+                 diverse data environments.
+                                                                                                                               (a) Industrial                                 (b) Avazu
+
+                 5.3    Scalability Analysis (RQ2)                                                                Figure 3: Impact of scaling model dimensions on perfor-
+                                                                                                                  mance and cost across Industrial and Avazu datasets.
+                 5.3.1    Internal Efficiency Analysis.We analyze the scaling proper-
+                 ties in Figure 3 to identify the optimal resource allocation strategy.
+                 The results highlight that increasing the number of views (𝑏) is the
+                 most reliable scaling dimension, though distinct behaviors emerge
+                 across datasets. On the smaller Avazu dataset (Figure 3b), satura-
+                 tion is pervasive across all dimensions. Performance gains diminish
+                 significantly as views increase from 8 to 16, and subspace width
+                 (𝑑𝑣) even shows performance degradation beyond𝑑=   128. This in-
+                 dicates that on limited data, the model easily hits a capacity ceiling
+                 regardless of the scaling dimension.
+                     In contrast, the billion-scale Industrial dataset (Figure 3a) exhibits
+                 a different pattern where the primary bottleneck is underfitting
+                 rather than redundancy. The performance curve for scaling views
+                 maintains a steady upward trajectory up to𝑏=   64without the
+                 saturation seen in Avazu. Scaling width (𝑑𝑣) also proves effective,
+                 serving as a strong baseline that scales well in low-to-medium re-
+                 source regimes. However, it eventually exhibits diminishing returns
+                 at high complexity levels, where its curve flattens compared to the                              Figure 4: Performance (AUC) vs. Model Parameters (log scale)
+                 sustained growth of view scaling.                                                                on the Industrial Dataset.
+                     Conversely, scaling depth (𝐿) consistently yields the lowest re-
+                 turns per FLOP on both datasets, saturating early with marginal
+                 gains. Consequently, while scaling width remains a viable sec-                                   5.3.2    Scalability Efficiency Analysis.We evaluate the scalability of
+                 ondary option, we prioritize scaling the number of views as the                                  SSR framework against two types of baselines. To ensure a rigorous
+                 primary mechanism for the SSR backbone, as it offers the potential                               comparison, we conducted an independent hyperparameter grid
+                 for long-term expandability on large-scale data.                                                 search for all baselines at each parameter scale. First, we compare
+
+Model                                  Avazu                                                 Alibaba                                                  Criteo
+                  AUC      LogLoss    Params*     FLOPs                   AUC      LogLoss    Params*     FLOPs                   AUC      LogLoss    Params*     FLOPs
+DeepFm            0.7752        0.3801         0.23M        464.2 M      0.6594        0.1604         0.21M        421.3 M       0.7986        0.4539         0.29M        599.5 M
+DCN v2            0.7729        0.3915         0.36M        736.8 M      0.6526        0.1659         0.35M        712.0 M       0.8064        0.4537         0.69M         1.22 G
+AFN               0.7755        0.3839         0.15M        317.4 M      0.6757        0.1638         0.15M        316.4 M       0.8080        0.4561         0.90M         1.96 G
+AutoInt           0.7722        0.3859         0.07M        850.2 M      0.6784        0.1575         0.29M         1.18 G       0.8053        0.4462         0.01M         1.66 G
+AutoFIS*          0.7802        0.3792         0.23M        472.7 M      0.6637        0.1602         0.21M        427.2M        0.8089        0.4430         0.23M        472.7 M
+Wukong            0.7756        0.3826         0.17M        719.6 M      0.6782        0.1567         0.17M        694.6 M       0.8073        0.4445         0.18M        799.7 M
+RankMixer         0.7772        0.3818         0.64M         1.32 G      0.6801        0.1566         0.63M         1.30 G       0.8092        0.4427         1.15M         2.36 G
+SSR-S            0.7827*       0.37810.33M      688.7 M                  0.6827*       0.15680.34M      688.5 M                 0.8098*      0.4417        0.48M      977.6 M
+SSR-D           0.7835*      0.37810.97M         2.00 G                 0.6844*      0.15620.89M         1.83 G                  0.8096*       0.4425         1.23M         2.53 G
+* For AutoFIS, metrics refer to the re-training phase (post-pruning).
+* The parameter count includes only the backbone network excluding embedding tables.
+
+=== PAGE 8 ===
+SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia                                                                                                      Yantao Yu, Sen Qiao, Lei Shen, Bing Wang, and Xiaoyi Zeng
+
+against state-of-the-art architectures like RankMixer and Wukong                          Table 4: Impact of different components and mechanisms.
+to establish a strong reference point. Second, we include a standard                      The baseline is the full SSR-D model. Performance changes
+Dense MLP to validate the structural advantage of our sparse filter-                      are reported in AUC (×10 −2  ).
+ing. Figure 4 plots the performance trajectory of each model across
+parameter scales ranging from 5M to nearly 900M.                                                                                                   ΔAUC
+   Compared with the strongest baselines, RankMixer and Wukong,                                   Setting                                     Avazu    Industrial
+SSR exhibits not only higher accuracy but also a steeper scaling
+trajectory. As shown in Figure 4, while RankMixer maintains steady                                Component Effectiveness
+improvement as parameters increase, its growth rate is flatter than                                   w/o Sparse Filtering−0.50 −0.37
+that of SSR. Consequently, the performance gap between SSR and                                        w/o Multi-view Strategy−0.22 −0.15
+the state-of-the-art widens as the model scales up. In the large-scale                            Mechanism Analysis
+increases approaching 900M parameters, SSR converts additional                                        Static (SSR-S) vs. Dynamic−0.12 −0.23
+capacity into performance gains much more efficiently than the                                        Top-k (STE) vs. ICS   −0.18 −0.29
+baselines, resulting in a larger margin. This indicates that the multi-                               Dropout vs. SSR-S  −0.32 −0.45
+view architecture makes better use of large-scale parameter budgets
+than existing methods.
+   Comparing our model against the Dense MLP is crucial for val-
+idating our design choices. We observed that even with carefully
+tuned regularization (e.g., Dropout, weight decay), the Dense MLP
+exhibits premature saturation, where doubling the parameter count
+yields diminishing returns. This plateauing effect indicates that
+without an explicit selection mechanism, a dense backbone strug-
+gles to utilize additional capacity to capture finer interaction pat-
+terns. In contrast, SSR maintains a steady upward trend throughout
+the entire scale. This confirms that the sparse filtering mechanism is
+pivotal for scaling. By replacing indiscriminate dense connections
+with selective views, SSR allocates expanded capacity to modeling                            (a) Layer-1 View 1 Mean Abs                (b) Layer-1 View 1 Sparsity
+the most informative signals, thereby mitigating the saturation
+bottleneck that limits traditional dense networks.
+
+5.4    Ablation Studies & Mechanism Analysis
+        (RQ3)
+5.4.1    Ablation Studies.To validate the SSR framework, we per-
+formed comprehensive ablation studies on the Avazu and Industrial
+datasets. We measured the contribution of each design element by
+tracking the AUC performance drop relative to the SSR-D baseline,
+as summarized in Table 4.                                                                    (c) Layer-2 View 1 Mean Abs                (d) Layer-2 View 1 Sparsity
+   Dimension-level sparse filtering proved essential for our architec-
+ture. Eliminating this module (thereby exposing the input directly to                     Figure 5: Visualization of training dynamics for the Iterative
+dense blocks)leads to the most significant performance degradation,                       Competitive Sparse (ICS) module.
+causing the AUC to decline by 0.50pt on Avazu and 0.37pt on the In-
+dustrial dataset. This sharp decline confirms our central hypothesis
+that globally dense connectivity is suboptimal for recommendation                         variability. Furthermore, the superiority of our differentiable ICS
+inputs, as forcing the backbone to process all input dimensions                           operator is highlighted by its comparison with the standard Top-k
+indiscriminately dilutes effective patterns with irrelevant connec-                       selection strategy (STE),𝑘=𝑑  𝑣. The non-differentiable nature of
+tions. Complementing this, the multi-view decomposition strategy                          Top-k truncation results in a performance penalty of roughly 0.18pt,
+plays a vital role in maintaining model capacity. Constraining the                        0.29pt in AUC. In contrast, our ics provides stable gradient prop-
+model to a single representation subspace (𝑏=   1) resulted in per-                       agation and retains critical feature information more effectively.
+formance losses of 0.22pt on Avazu and 0.15pt on the Industrial                           Finally, we replace our sparse filtering with Dropout to verify that
+dataset, indicating that parallel view projections are essential for                      our gains are not merely due to regularization. The resulting drastic
+capturing diverse and complementary feature interactions.                                 performance drops of 0.32pt and 0.45pt demonstrate that SSR has
+   Beyond component existence, we examined the underlying im-                             learned meaningful sparsity.
+plementation mechanisms. The necessity of dynamic adaptation
+is evidenced by the performance drop of 0.12pt and 0.23pt when                            5.4.2    ICS Analysis.To understand how the Iterative Competitive
+replacing the dynamic SSR-D with a static SSR-S variant, suggest-                         Sparse module learns during optimization, we visualize the first
+ing that fixed sparsity patterns fail to account for sample-specific                      two layers in Figure 5. We tracked the sparsity ratio and the mean
+
+=== PAGE 9 ===
+                Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation                                                                            SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia
+
+                Table 5: Sensitivity Analysis and Mechanism Validation on
+                Avazu Dataset.
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                              (a) Layer 1                                 (b) Layer 2
+
+                                                                                                                Figure 6: Visualization of cosine similarity between views.
+
+
+                                                                                                                                 Table 6: Online A/B testing results.
+
+
+
+
+
+                absolute magnitude over 35,000 steps. As shown in Figure 5b and 5d,
+                sparsity rose quickly early on and then levels off. Layer 2 converges
+                to a much higher sparsity (about 90%) than Layer 1 (about 75%),                                final fusion step integrates comprehensive and non-redundant sig-
+                suggesting that deeper layers become more selective and produce                                nals from the input data. SSR does not require an explicit diversity
+                more abstract, sparse representations. The stability observed in the                           regularizer. Since all view outputs are concatenated and optimized
+                later stages confirms that stable convergence rather than continual                            under the same loss, training naturally suppresses redundant views
+                switching among feature subsets.Meanwhile, Figure 5a and 5c show                               and favors those that capture complementary patterns.
+                that the mean absolute feature magnitude increases over training.
+                In Layer 2, it briefly drops in the first 10,000 steps before increasing,                      5.5    Online A/B Testing (RQ4)
+                consistent with an early suppression of weak or redundant features
+                followed by strengthening of the remaining ones.                                               We conducted an online A/B test in a core recommendation sce-
+                   To assess the sensitivity of the ICS mechanism, we conduct a                                nario to verify the practical value of SSR. The baseline model is
+                controlled grid search on Avazu (Table 5), varying the number of                               RankMixer with identical parameters, which represents the current
+                iterations𝑇 , the initial extinction rate𝛼0, and the rescaling factor𝛾.                        production standard. We compared this against the SSR-D over a
+                The results support the need for progressive filtering, single-step                            two-week period to evaluate performance under real-world traf-
+                thresholding (𝑇=   1) yields limited sparsity and suboptimal accu-                             fic. As shown in Table 6, SSR-D delivers consistent improvements
+                racy, whereas increasing𝑇  to 5 produces cleaner representations                               across all key business metrics. The model achieved a 2.1% increase
+                and achieves the best AUC of 0.7835 at 91.0% sparsity. We also find                            in Click-Through Rate while driving substantial gains in conversion,
+                that𝛼0 serves as an effective sparsity regulator, smoothly shifting                            with per capita orders rising by 3.2% and Gross Merchandise Value
+                sparsity from 80.4% to 94.5% while keeping performance stable over                             by 3.5%. These results confirm that the high-quality representations
+                a wide range of initial values (𝛼𝑡∈[0.1, 0.5]), indicating that the                            learned by SSR directly translate into better ranking decisions and
+                mechanism is robust rather than brittle. Finally,𝛾 is important for                            higher commercial value. Crucially, these performance gains are
+                numerical stability: removing it reduces AUC to 0.7832, consistent                             achieved without compromising system latency. As detailed in the
+                with our analysis that explicit magnitude rescaling is needed to                               efficiency statistics, both the baseline RankMixer and the proposed
+                offset the signal attenuation.                                                                 SSR-D operate with an average response time of 25ms. This parity
+                5.4.3    View Diversity. To verify whether the multi-view architec-                            confirms that SSR improves recommendation quality through supe-
+                ture truly learns complementary patterns rather than redundant                                 rior structural design rather than by increasing the inference time
+                information, we visualize the pairwise cosine similarity between                               burden on the serving system.
+
+                the projection matrixW      𝑝𝑟𝑜𝑗𝑖       of different views in Figure 6. The                    6    Related Work
+                heatmaps for both Layer 1 and Layer 2 exhibit consistently low                                 We review three lines of related work that contextualize the SSR
+                similarity scores across the off-diagonal elements. This indicates                             framework: feature interaction modeling, sparsity-driven architec-
+                that the feature vectors generated by different views remain largely                           tures, and dynamic selection mechanisms.
+                orthogonal to each other. Such a distinct separation confirms that
+                the parallel views have successfully converged to diverse subspaces,                           6.1    From Global Dense to Sparse Filtering
+                with each view capturing a unique aspect of the feature interactions.
+                By avoiding mode collapse where views become identical, the frame-                             Capturing non-linear dependencies among high-dimensional sparse
+                work maximizes its representational capacity and ensures that the                              features is fundamental to recommender systems. Early models,
+Setting                   Parameter Value        Sparsity (%)          AUC
+(A) Impact of Iterations𝑇(with initial𝛼               𝑡 =0.1, w/𝛾)
+                      𝑇=1(Single Step)               76.4%                0.7821
+Iterations (𝑇)                𝑇=2                        88.6%                0.7826
+                        T=5(Default)               91.0%              0.7835
+(B) Impact of Learnable Extinction Rates𝛼     𝑡  (with fixed𝑇=5, w/𝛾)Model                      Efficiency                Business Metrics (Lift)
+                         Latency             CTR          Orders          GMV𝛼𝑡 =0.01                   80.4%                0.7832
+Extinction (𝛼 𝑡 )SSR-D (Ours) 26ms(+1ms)           +2.1%            +3.2%            +3.5%𝛼t =0.1(Default)             91.0%              0.7835
+                            𝛼𝑡 =0.3                      93.3%                0.7833
+                            𝛼𝑡 =0.5                      94.0%                0.7828
+(C) Necessity of Rescaling𝛾(with fixed𝑇=5, initial𝛼                   𝑡 =0.1)
+
+Rescaling (𝛾)                         w/o𝛾                        94.5%                0.7832w/𝜸(Default)               91.0%              0.7835
+
+=== PAGE 10 ===
+SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia                                                                                                      Yantao Yu, Sen Qiao, Lei Shen, Bing Wang, and Xiaoyi Zeng
+
+like Factorization Machines, explicitly handled second-order inter-                         embedding compression [16] to generate sparse activations for
+actions. In the deep learning era, architectures generally fall into                        scalable retrieval.
+three categories: Hybrid models (e.g., Wide&Deep [4], DeepFM [11])                              However, most existing methods rely on independent gating or
+combine linear and nonlinear components to balance memorization                             static projections, where feature selection decisions are made lo-
+and generalization; Self-attention mechanisms (e.g., AutoInt, AFN                           cally or via simple dot products. SSR advances this by proposing the
+[5, 23]) utilize multi-head attention for high-order correlations; and                      Iterative Competitive Sparse (ICS) mechanism. ICS models feature
+implicit models (e.g., DCN v2 [29], RankMixer [37]) rely on deep                            selection as a dynamic system inspired by biological global inhibi-
+stacks of fully connected layers to capture interactions. However, a                        tion. It introduces competition where dominant features suppress
+fundamental mismatch exists between these globally dense archi-                             weaker neighbors, rather than independent gating. This allows SSR
+tectures and intrinsic data sparsity. While Graph Neural Networks                           to learn a robust, global selection policy that adapts iteratively to
+like IntentGC [36] attempt to address sparsity by leveraging graph                          the input context.
+topology to guide interactions, they often incur costs related to
+graph construction and neighbor sampling in industrial settings.                            7    Conclusion
+   Similarly, self-attention models (e.g., AutoInt [23]) theoretically                      In this work, we revisited the scaling laws of recommender systems
+capture fine-grained correlations. However, standard Softmax op-                            and identified the mismatch that leads to performance saturation in
+erations produce strictly positive weights, inherently preserving a                         dense backbones. Our analysis revealed that indiscriminate mixing
+fully connected graph. Although Sparse Attention mechanisms [6]                             in standard dense layers often leads to signal dilution, necessitating
+have been proposed to limit receptive fields, they often introduce                          a shift from passive implicit suppression to explicit signal filtering.
+complex indexing overheads. In contrast, SSR adopts a filter-then-                          SSR implements this paradigm through the "filter-then-fuse" topol-
+fuse paradigm. Instead of relying on heavy graph structures or                              ogy. By employing mechanisms like Iterative Competitive Sparse
+complex sparse attention indices, SSR employs explicit signal filter-                       (ICS), SSR blocks noise propagation at the source, ensuring that
+ing. By decomposing inputs into parallel views and blocking noise                           expanded model capacity is concentrated exclusively on high-SNR
+before fusion, SSR enables the model to scale effectively without                           (Signal-to-Noise Ratio) subspaces.
+the saturation observed in dense baselines.                                                     Our empirical results demonstrate that this sparsity success-
+                                                                                            fully breaks the scaling ceiling where dense models saturate. More
+6.2    From Pruning to Structural Sparsity                                                  broadly, this work instantiates a general principle: effective archi-
+To mitigate the computational burden of high-dimensional features,                          tectures align their inductive biases with the structure of their
+explicit sparsity has become an active research direction. Tradi-                           data. Just as convolutional kernels succeed because they match
+tional methods largely fall into two categories: Feature Selection                          the spatial locality of images, and self-attention succeeds because
+(e.g., AutoFIS [17]) which prunes redundant fields, and Mixture-of-                         it captures long-range dependencies in sequences, SSR’s explicit
+Experts (MoE) (e.g., MMOE [19], PLE [26]) which uses conditional                            sparsity succeeds because it matches the high-dimensional, subset-
+routing to expand capacity. These approaches have limitations. Fea-                         based interaction patterns inherent in recommendation data. This
+ture selection often follows a model-then-prune logic—attempting                            perspective challenges the prevailing reliance on globally dense
+to remove redundancy after dense interactions have already oc-                              connectivity and points towards a principled direction for future
+curred. MoE models, while increasing capacity, face challenges                              research: designing architectures whose structural priors reflect
+with routing collapse and load balancing. Recent advancements                               the sparse, combinatorial nature of user behaviors. We anticipate
+have shifted towards intrinsic sparsity. For instance, recent studies                       that explicit filtering mechanisms will be instrumental in develop-
+[30] propose a Dynamic Sparse Learning paradigm to train sparse                             ing larger, foundational models for recommendation that are both
+models from scratch, effectively avoiding the redundancy of post-                           scalable and computationally efficient.
+hoc pruning. Similarly, subsequent research [24] utilizes sparse
+approximate inverses to enhance scalability in collaborative filter-                        Acknowledgments
+ing autoencoders. SSR diverges from traditional post-hoc pruning                            An AI language model was used to improve the clarity and grammar
+and soft attention by introducing a hard-filtering paradigm. Rather                         of parts of this manuscript. It was not used to generate content.
+than learning then deleting or preserving noise through strictly
+positive weights, SSR implements a learn-while-filtering mecha-                             References
+nism from the start. Most significantly, by enforcing truncation                             [1]  Yoshua Bengio, Nicholas Léonard, and Aaron Courville. 2013.  Estimating or
+(zero-weight connections), SSR achieves signal isolation that blocks                              propagating gradients through stochastic neurons for conditional computation.
+noise propagation.                                                                                arXiv preprint arXiv:1308.3432(2013).
+                                                                                             [2]Leo Breiman. 2001. Random forests.Machine learning45, 1 (2001), 5–32.
+                                                                                             [3]  Xuening Chen, Hanwen Liu, and Dan Yang. 2019.  Improved LSH for privacy-
+6.3    From Gating to Global Inhibition                                                           aware and robust recommender system with sparse data in edge environment.
+                                                                                                  EURASIP Journal on Wireless Communications and Networking2019, 1 (2019),
+To achieve input-aware adaptivity, dynamic mechanisms are es-                                     171.
+sential. Existing works have explored various techniques to han-                             [4]  Heng-Tze Cheng, Levent Koc, Jeremiah Harmsen, Tal Shaked, Tushar Chandra,
+                                                                                                  Hrishi Aradhye, Glen Anderson, Greg Corrado, Wei Chai, Mustafa Ispir, et al.
+dle data sparsity dynamically. MaskNet [31] and LHUC [25] intro-                                  2016. Wide & deep learning for recommender systems. InProceedings of the 1st
+duce Instance-Aware Masks to highlight informative features via                                   workshop on deep learning for recommender systems. 7–10.
+element-wise gating. Other approaches leverage Locality-Sensitive                            [5]  Weiyu Cheng, Yanyan Shen, and Linpeng Huang. 2020. Adaptive factorization
+                                                                                                  network: Learning adaptive-order feature interactions. InProceedings of the AAAI
+Hashing [3] for efficient retrieval in edge environments or employ                                Conference on Artificial Intelligence, Vol. 34. 3609–3616.
+
+=== PAGE 11 ===
+Beyond Dense Connectivity: Explicit Sparsity for Scalable Recommendation                                                                            SIGIR ’26, July 20–24, 2026, Melbourne, VIC, Australia
+
+
+ [6]  Rewon Child. 2019. Generating long sequences with sparse transformers.arXiv                                [22]  Steffen Rendle, Walid Krichene, Li Zhang, and John Anderson. 2020.  Neural
+      preprint arXiv:1904.10509(2019).                                                                                  collaborative filtering vs. matrix factorization revisited. InProceedings of the 14th
+ [7]  William Fedus, Barret Zoph, and Noam Shazeer. 2022.   Switch transformers:                                        ACM conference on recommender systems. 240–248.
+      Scaling to trillion parameter models with simple and efficient sparsity. Journal                           [23]  Weiping Song, Chence Shi, Zhiping Xiao, Zhijian Duan, Yewen Xu, Ming Zhang,
+      of Machine Learning Research23, 120 (2022), 1–39.                                                                 and Jian Tang. 2019.  Autoint: Automatic feature interaction learning via self-
+ [8]  Jonathan Frankle and Michael Carbin. 2018. The lottery ticket hypothesis: Finding                                 attentive neural networks. InProceedings of the 28th ACM international conference
+      sparse, trainable neural networks.arXiv preprint arXiv:1803.03635(2018).                                          on information and knowledge management. 1161–1170.
+ [9]  Anna Golubeva, Guy Gur-Ari, and Behnam Neyshabur. [n. d.]. Are wider nets                                  [24]  Martin Spisak, Radek Bartyzal, Antonin Hoskovec, Ladislav Peska, and Miroslav
+      better given the same number of parameters?. InInternational Conference on                                        Tuma. 2023. Scalable approximate nonsymmetric autoencoder for collaborative
+      Learning Representations.                                                                                         filtering. InProceedings of the 17th ACM conference on recommender systems.
+[10]  Aditya Grover, Eric Wang, Aaron Zweig, and Stefano Ermon. 2019. Stochastic                                        763–770.
+      optimization of sorting networks via continuous relaxations.arXiv preprint                                 [25]  Pawel Swietojanski and Steve Renals. 2014. Learning hidden unit contributions
+      arXiv:1903.08850(2019).                                                                                           for unsupervised speaker adaptation of neural network acoustic models. In2014
+[11]  Huifeng Guo, Ruiming Tang, Yunming Ye, Zhenguo Li, and Xiuqiang He. 2017.                                         IEEE Spoken Language Technology Workshop (SLT). IEEE, 171–176.
+      DeepFM: a factorization-machine based neural network for CTR prediction.arXiv                              [26]  Hongyan Tang, Junning Liu, Ming Zhao, and Xudong Gong. 2020. Progressive
+      preprint arXiv:1703.04247(2017).                                                                                  layered extraction (ple): A novel multi-task learning (mtl) model for personalized
+[12]  Tomohiro Hayase and Ryo Karakida. 2024.   Understanding MLP-Mixer as a                                            recommendations. InProceedings of the 14th ACM conference on recommender
+      wide and sparse MLP. InInternational Conference on Machine Learning. PMLR,                                        systems. 269–278.
+      17734–17758.                                                                                               [27]  Ilya O Tolstikhin, Neil Houlsby, Alexander Kolesnikov, Lucas Beyer, Xiaohua
+[13]  Jordan  Hoffmann,  Sebastian  Borgeaud,  Arthur  Mensch,  Elena  Buchatskaya,                                     Zhai, Thomas Unterthiner, Jessica Yung, Andreas Steiner, Daniel Keysers, Jakob
+      Trevor Cai, Eliza Rutherford, Diego de Las Casas, Lisa Anne Hendricks, Johannes                                   Uszkoreit, et al. 2021. Mlp-mixer: An all-mlp architecture for vision.Advances in
+      Welbl, Aidan Clark, et al. 2022. Training compute-optimal large language models                            [28]  Leyao Wang, Xutao Mao, Xuhui Zhan, Yuying Zhao, Bo Ni, Ryan A Rossi, Nes-neural information processing systems34 (2021), 24261–24272.
+      (2022).arXiv preprint arXiv:2203.15556(2022).
+[14]  Tongwen Huang, Zhiqi Zhang, and Junlin Zhang. 2019. FiBiNET: combining fea-                                       reen K Ahmed, and Tyler Derr. 2025.   Towards Bridging Review Sparsity in
+      ture importance and bilinear feature interaction for click-through rate prediction.                               Recommendation  with  Textual  Edge  Graph  Representation.arXiv  preprint
+      InProceedings of the 13th ACM conference on recommender systems. 169–177.                                         arXiv:2508.01128(2025).
+[15]  Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B Brown, Benjamin Chess,                                   [29]  Ruoxi Wang, Rakesh Shivanna, Derek Cheng, Sagar Jain, Dong Lin, Lichan Hong,
+      Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. 2020.                                        and Ed Chi. 2021. Dcn v2: Improved deep & cross network and practical lessons
+      Scaling laws for neural language models.arXiv preprint arXiv:2001.08361(2020).                                    for web-scale learning to rank systems. InProceedings of the web conference 2021.
+[16]  Petr Kasalick`y, Martin Spišák, Vojtěch Vančura, Daniel Bohuněk, Rodrigo Alves,                                   1785–1797.
+      and Pavel Kordík. 2025.   The Future is Sparse: Embedding Compression for                                  [30]  Shuyao Wang, Yongduo Sui, Jiancan Wu, Zhi Zheng, and Hui Xiong. 2024. Dy-
+      Scalable Retrieval in Recommender Systems. InProceedings of the Nineteenth                                        namic sparse learning: A novel paradigm for efficient recommendation. InPro-
+      ACM Conference on Recommender Systems. 1099–1103.                                                                 ceedings of the 17th ACM international conference on web search and data mining.
+[17]  Bin Liu, Chenxu Zhu, Guilin Li, Weinan Zhang, Jincai Lai, Ruiming Tang, Xi-                                       740–749.
+      uqiang He, Zhenguo Li, and Yong Yu. 2020. Autofis: Automatic feature interaction                           [31]  Zhiqiang Wang, Qingyun She, and Junlin Zhang. 2021.  Masknet: Introducing
+      selection in factorization models for click-through rate prediction. Inproceedings                                feature-wise multiplication to CTR ranking models by instance-guided mask.
+      of the 26th ACM SIGKDD international conference on knowledge discovery & data                                     arXiv preprint arXiv:2102.07619(2021).
+      mining. 2636–2645.                                                                                         [32]  Chong You, Kan Wu, Zhipeng Jia, Lin Chen, Srinadh Bhojanapalli, Jiaxian Guo,
+[18]  Wantong Lu, Yantao Yu, Yongzhe Chang, Zhen Wang, Chenhui Li, and Bo Yuan.                                         Utku Evci, Jan Wassenberg, Praneeth Netrapalli, Jeremiah J Willcock, et al. 2025.
+      2021. A dual input-aware factorization machine for CTR prediction. InProceedings                                  Spark Transformer: Reactivating Sparsity in FFN and Attention.arXiv preprint
+      of the twenty-ninth international conference on international joint conferences on                                arXiv:2506.06644(2025).
+      artificial intelligence. 3139–3145.                                                                        [33]  Yantao Yu, Zhen Wang, and Bo Yuan. 2019. An Input-aware Factorization Machine
+[19]  Jiaqi Ma, Zhe Zhao, Xinyang Yi, Jilin Chen, Lichan Hong, and Ed H Chi. 2018.                                      for Sparse Prediction.. InIJCAI. 1466–1472.
+      Modeling task relationships in multi-task learning with multi-gate mixture-of-                             [34]  Buyun Zhang, Liang Luo, Yuxin Chen, Jade Nie, Xi Liu, Daifeng Guo, Yanli Zhao,
+      experts. InProceedings of the 24th ACM SIGKDD international conference on                                         Shen Li, Yuchen Hao, Yantao Yao, et al. 2024. Wukong: Towards a scaling law for
+      knowledge discovery & data mining. 1930–1939.                                                                     large-scale recommendation.arXiv preprint arXiv:2403.02545(2024).
+[20]  Maxim  Naumov,  Dheevatsa  Mudigere,  Hao-Jun  Michael  Shi,  Jianyu  Huang,                               [35]  Weinan Zhang, Jiarui Qin, Wei Guo, Ruiming Tang, and Xiuqiang He. 2021. Deep
+      Narayanan Sundaraman, Jongsoo Park, Xiaodong Wang, Udit Gupta, Carole-                                            learning for click-through rate estimation.arXiv preprint arXiv:2104.10584(2021).
+      Jean Wu, Alisson G Azzolini, et al. 2019. Deep learning recommendation model                               [36]  Jun Zhao, Zhou Zhou, Ziyu Guan, Wei Zhao, Wei Ning, Guang Qiu, and Xiaofei
+      for personalization and recommendation systems.arXiv preprint arXiv:1906.00091                                    He. 2019.  Intentgc: a scalable graph convolution framework fusing heteroge-
+      (2019).                                                                                                           neous information for recommendation. InProceedings of the 25th ACM SIGKDD
+[21]  Qi Pi, Guorui Zhou, Yujing Zhang, Zhe Wang, Lejian Ren, Ying Fan, Xiaoqiang                                       international conference on knowledge discovery & data mining. 2347–2357.
+      Zhu, and Kun Gai. 2020.   Search-based user interest modeling with lifelong                                [37]  Jie Zhu, Zhifang Fan, Xiaoxie Zhu, Yuchen Jiang, Hangyu Wang, Xintian Han,
+      sequential behavior data for click-through rate prediction. InProceedings of the                                  Haoran Ding, Xinmin Wang, Wenlin Zhao, Zhen Gong, et al. 2025. Rankmixer:
+      29th ACM International Conference on Information & Knowledge Management.                                          Scaling up ranking models in industrial recommenders. InProceedings of the
+      2685–2692.                                                                                                        34th ACM International Conference on Information and Knowledge Management.
+                                                                                                                        6309–6316.

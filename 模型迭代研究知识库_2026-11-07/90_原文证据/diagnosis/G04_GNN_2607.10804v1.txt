@@ -1,0 +1,1045 @@
+
+=== PDF PAGE 1 ===
+          When does distribution shift break graph neural networks calibration?
+
+
+                                                      AbderaoufBahia
+
+aComputer Science and Applied Mathematics Laboratory (LIMA), Faculty of Science and Technology, Chadli Bendjedid University, El
+                                                      Tarf 36000, Algeria
+
+
+
+
+Abstract
+Graphneuralnetworks(GNNs)areincreasinglydeployedinreal-worldapplicationswheredistributionshiftisun-
+avoidable.However,howsuchshiftsaffectmodelcalibration,definedastheagreementbetweenpredictiveconfidence
+andactualaccuracy,remainspoorlyunderstood,andexistinggraphcalibrationmethodstypicallyrelyonlabeled
+validationdatafromthedeploymentdistribution.Inthiswork,Ipresentthefirstclosed-formtheoreticalcharacter-
+izationofGNNcalibrationunderdistributionshift. Ishowthatcalibrationisgovernedbyasinglescalarquantity
+thatexplicitlydependsonstructuralchangesbetweenthesourceandtargetgraphs,aswellasfeaturequality.This
+characterizationpreciselyidentifieswhenamodelbecomesover-confident,under-confident,orremainscalibrated,
+anddirectlyyieldstheoptimaltemperaturescalingstrategy. Ifurtherextendtheanalysistographconvolutional
+networkswithsymmetricnormalization,multi-classclassification,andcovariateshift,andderiveatheoreticalupper
+boundontheexpectedcalibrationerror. Myanalysisalsorevealsthat,underhomogeneousdistributionshift,a
+singleglobaltemperatureistheoreticallyoptimal,providingaprincipledexplanationforwhymorecomplexnode-
+wiserecalibrationmethodsoffernoadditionalbenefit. Buildingonthesetheoreticalinsights,IproposeSTAC,a
+source-free,label-freecalibrationmethod. Experimentsonsyntheticbenchmarksdemonstratesubstantialcalibra-
+tionimprovements,whileevaluationsonfivereal-worldgraphdatasetsshowthatreliablecalibrationwithouttarget
+labelsremainschallengingdespitethestrongpredictivepowerofthetheory. Thesefindingsidentifylabel-freeac-
+curacyestimationunderdistributionshiftasthecentralunresolvedchallengeforpracticalcalibrationofGNNsand
+establishatheoreticalfoundationforfutureresearchontrustworthygraphlearning.Projectdetailsareavailableat
+https://github.com/AraoufBh/GNN-Calibration.
+Keywords:graphneuralnetworks,calibration,distributionshift,homophily,temperaturescaling,uncertainty
+quantification
+
+
+1. Introduction
+   Graphneuralnetworks(GNNs)[1]arenowroutinelydeployedinsettingswherethegraphseenattesttime
+differsfromtheoneusedfortraining: socialandfinancialnetworksevolve,sensorandinfrastructuregraphsare
+rewiredafterfailuresorupgrades,andcitation,molecularorrecommendationgraphsusedatinferencearedrawn
+fromdifferentsub-populationsthanthoseusedtotrainthemodel.Inmanyofthesesettingsrawpredictiveaccuracy
+isnottheprimarybottleneck;whatdetermineswhetheraGNNcanbetrustedinsideafraud-review,clinical-triage,
+orinfrastructure-monitoringpipelineiswhetheritsconfidencescoresarecalibrated: whetherapredictionreported
+with90%confidenceis,infact,correct90%ofthetime. Miscalibrationisnotcosmetic: itsilentlycorruptsevery
+downstreammechanismthatconsumesprobabilityoutputs,fromselectivepredictionandhuman-in-the-looptriage
+torisk-weighteddecisionrulesandmodelensembling.
+   TwoobservationsmakeGNNcalibrationunderdistributionshiftbothpracticallyimportantandtheoretically
+awkward.(i)GNNsaremiscalibratedinstructure-dependentways;unlikeimageclassifiers(typicallyover-confident),
+theyareoftenunder-confidentin-distribution, andthesizeofthegapcorrelateswithgraphpropertiessuchas
+homophilyandnodedegree[2,3].(ii)Standardcalibratorsneedlabelsfromthetestdistribution: temperature
+scaling[4]anditsgraph-specificvariants[2,3,5–7]allfitatemperature(oratemperature-valuedfunctionofthe
+node)byminimizingnegativelog-likelihoodonalabeledvalidationsetdrawnfromthesamedistributionastraining.
+Undershiftthattemperatureissimplywrong,andnotargetlabelsareavailabletorefitit.
+   DespiteanincreasinglyrichempiricalliteratureonGNNcalibration(Section2),noexistingaccountexplains,
+fromfirstprinciples,howandwhyshiftmovesaGNN’sconfidenceawayfromitsaccuracy,inwhichdirection,and
+byhowmuch. Existingpost-hocgraphcalibrators(CaGCN,GATS,GETS,WATS,SimCalib)areallvalidatedin-
+distributionandare,byconstruction,vulnerabletoexactlythefailuremodethatmattersmostindeployment: a
+validationsetthatnolongerrepresentsthetestdistribution. EmpiricalstudiesofGNNreliabilityundershift[8]
+documentthattheproblemisrealandthatarchitecturalexpressivityalonedoesnotfixit,butstopshortofa
+
+=== PDF PAGE 2 ===
+                    Figure1:The calibration slope.Asource-calibratedlinearGNNreportsconfidenceσ(t)(blue)butitstrueaccuracyisσ(κt)(red).
+                    Theshadedareaisthecalibrationerror.Whenhomophily/covariateshiftmakesκ<1themodelisover-confident;asingletemperature
+                    T⋆ = 1/κ(i.e.σ(t/T                ⋆) =σ(κt))removesthegapexactly.
+
+
+                    mechanism.Isupplythatmechanismforamodelsimpleenoughtoanalyzeinclosedformyetexpressiveenoughto
+                    reproduce,quantitatively,thecalibrationbehaviouroftrainedGCNsinsimulationandonfiverealgraphsspanning
+                    twoordersofmagnitudeinedgehomophily(Fig.1previewsthecoreresult).
+
+                    Contributions..(C1) A closed-form calibration slope(Section4): conf(t) =σ(t)butacc(t) =σ(κt),withκ
+                    explicitinhomophilyandsignal-to-noiseratio(SNR);over/under-confidenceandT       ⋆ = 1/κfollowimmediately,andI
+                    proveamatchingECEbound.(C2) Extensionstotheself-loopGCNoperator,toKclassesviaasignalcoefficient
+                    cK(h),andtocovariateshift.(C3) A structural corollary(global-temperatureoptimalityunderhomogeneous
+                    shift)thatpredicts,aheadofrunninganyexperiment,anegativeresult: per-noderecalibrationcannothelpunless
+                    shiftisheterogeneousacrossnodes.(C4) A method, a reduction, and an honest negative result(Sections5–
+                    6):IturnthetheoryintoSTAC,asource-free,label-freerecalibrator,andshowthewholetaskreducestoestimating
+                    onescalar(targetaccuracy)fromunlabeleddata;amethodbuiltonstandardestimatorshalvesthegaponsynthetic
+                    shiftsbutisunreliableacrossfiverealgraphs,whileasingleoracletemperaturerecoverscalibrationonallofthem.
+                    Label-freeaccuracyestimationundershiftisthesoleremainingbottleneck.(C5) A positioning of the theory
+                    against the closest empirical alternatives(Section2,Table1):Isituatetheclosed-formaccountagainstrecent
+                    empiricalGNN-reliabilitymethods[8,9]andtheory-groundedgraphdomainadaptation[10],clarifyingwhichnotion
+                    ofreliabilityeachprovidesandhowtheycouldbecombined.
+                        The remainder of this paper is organized as follows: Section2positions this work against the calibration,
+                    distribution-shift, andlabel-free-estimationliteraturesandsummarizeselevencloselyrelatedmethodsalongthe
+                    axesthatmatterfordeployment(Table1).Section3fixesnotationandtheCSBMIanalyze,andmotivateswhya
+                    linearGNNonaCSBMistherightlevelofabstraction. Section4statesandprovesthecalibration-slopetheorem
+                    anditsextensions. Section5turnsthetheoryintoSTAC,asource-free,label-freerecalibrationmethod. Section6
+                    validateseverytheoreticalclaimnumericallyandevaluatesSTAConsyntheticshiftsandfiverealgraphs.Section7
+                    discussestheimplications,ishonestaboutlimitations,andlaysouttheopenproblemsthetheoryexposes.Section8
+                    concludes.AppendixAppendixAgivesfullproofsofeverytheoreticalresult.
+
+
+                    2. Related work
+
+                    2.1. Calibrationofneuralnetworks
+                        Modernnetworkstrainedwithcross-entropyaresystematicallymiscalibrated,typicallyover-confidentonnatural
+                    images[4].Temperaturescaling[4],dividingthelogitsbyasinglescalarfitbyminimizingNLLonalabeledvalidation
+                    set,remainsthemostwidelyusedpost-hocfix,extendedtoclass-wiseandDirichletvariants[11].Expectedcalibration
+                    error(ECE)andreliabilitydiagrams[12]arethestandarddiagnostic;large-scalestudies[13]showcalibrationis
+                    sensitivetoarchitecture,augmentation,andtraininglengthevenin-distribution,andtraining-timeremediessuchas
+                    focalloss[14]tradeaccuracyforcalibrationbyreshapingthelossdirectly.Ovadiaetal.[15]showedthatallofthese
+                    fixesdegradeunderdistributionshiftonimageclassifiers;thepresentpapersupplies,forGNNs,themechanismthat
+                    wasleftasanempiricalobservationthere.
+
+                    2.2. In-distributioncalibrationofGNNs
+   1                    GNNsmiscalibrateinwaysthatarestructurallydistinctfromimageclassifiers: ratherthanbeinguniformly
+                    over-confident,theyarefrequentlyunder-confidentin-distribution,andthesizeofthegapcorrelateswithgraph
+                    propertiessuchasnodedegreeandhomophily[2,3].Afirstfamilyofmethodslearnsaper-nodetemperaturefrom
+0.75
+                                                                                     2                  confidenceσ(t)
+ 0.5                                                                                                 accuracyσ(κt),κ=0.5
+
+     0                                       2                                       4                                       6
+                                                        logitmagnitudet
+
+=== PDF PAGE 3 ===
+anauxiliarymodeltrainedonlabeleddata:CaGCN[2]regressestemperatureswithasecondGCN;GATS[3]attends
+overstructuralcovariatesidentifiedasdriversofmiscalibration;GETS[5]ensemblesseveraltemperature-generating
+expertsinamixture-of-expertshead;WATS[6]conditionsthetemperatureonheat-kernelgraph-waveletfeatures
+thatencodemulti-scalestructurewithoutrelyingonneighbours’logits;SimCalib[7]tiescalibrationerrordirectly
+tonodewiseembeddingsimilarity. Asecondfamilyregularizesthetraininglossitselfratherthanpost-processing
+logits,e.g.thegraphcalibrationlossofWangetal.[16].Allofthesemethodsaretrainedandvalidatedondatafrom
+thesamedistributionasthetestgraph;nonemodels,orisevaluatedunder,distributionshift,and,asIdiscussin
+Section7.2,everyoneoftheminheritsthefailuremodeofordinarytemperaturescalingoncethetargetdistribution
+moves. Arelatedlinequantifiespredictiveuncertaintyratherthancalibrationperse,e.g.JuryGCN’sjackknife
+varianceestimates[17];suchestimatesareinformativebutdonotbythemselvesspecifyarecalibrationtemperature.
+
+2.3. GNNreliabilityunderdistributionshift
+   Thegapthispapertargets,calibrationundershift,hassofarbeenapproachedempiricallyratherthananalytically.
+Trivedietal.[8]document,acrosscovariate,concept,andgraph-sizeshifts,thatincreasedGNNexpressivitydoesnot
+byitselfimproveconfidence-indicatorquality,andproposeG-∆UQ,astochastic-anchoringschemethatestimates
+epistemicuncertaintyfromasinglemodelandusesittomodulateconfidence;thisconsistentlyimprovesout-of-
+distributionECErelativetoMonteCarlodropoutandvanillatemperaturescaling,butoffersnoclosed-formaccount
+ofwhyshiftmovescalibrationorofwhattheoptimalcorrectionis,anditrequiresretrainingthebaseGNNwith
+astochastic-centeringobjectiveratherthanrecalibratingafrozenmodel. Huangetal.[9]takeacomplementary,
+distribution-freeroute: conformalizedGNNs(CF-GNN)wrapanytrainedGNNwithatopology-awareconformal
+predictorthatprovablyachievesatargetmarginalcoverage,tradingthepointwisenotionofcalibrationthispaper
+studiesforaset-valuedguaranteethatholdsunderexchangeabilitybutisnotdesignedtotrackhowmiscalibration
+growsashomophilyorfeaturenoisechange.Myclosed-formslopeκis,tomyknowledge,thefirstresultthatpredicts
+thesign,magnitude,andoptimalcorrectionofGNNmiscalibrationundershiftanalytically,andthefirsttoexplain
+whyasingleglobaltemperatureshouldbeexpectedtosuffice.
+
+2.4. Distributionshiftandout-of-distributiongeneralizationongraphs
+   Aseparateandmuchlargerliteraturetargetsaccuracy,ratherthancalibration,undergraphdistributionshift.
+Invariance-basedtrainingregularizesrepresentationstobestableacrossenvironments(EERM[18],SR-GNN[19]),
+out-of-distributiongeneralizationisbenchmarkedsystematicallybyGOOD[20],andOOD-GNN[21]proposesan
+architecture-levelgeneralizationbound.Youetal.[10]deriveamodel-basedriskboundforgraphdomainadaptation
+anduseittodesignaspectralregularizer(GDA-SpecReg),theory-groundedinthesamespiritasmyapproach,
+butaimedatboundingthetargeterror,notatcharacterizingtheresultingconfidence-accuracygap,anditrequires
+accesstothesourcegraphatadaptationtime.GTrans[22]adaptsthegraphitself(featuresandedges)attesttime
+ratherthanthemodel,butagainoptimizesaccuracy.Noneofthesemethodsproduce,orareevaluatedon,calibrated
+probabilities.
+
+2.5. Source-freeandtest-timeadaptation
+   Outsidecalibration,source-freetest-timeadaptationremovestherequirementofaccesstosourcedataatde-
+ploymentbyadaptingmodelparametersusingonlythetargetinputdistribution:entropyminimization(Tent[23]),
+self-supervisedtest-timetraining[24](specializedtographsbyWangetal.[25]),andsource-hypothesistransfer
+(SHOT[26])alloptimizeanunsupervisedproxyforaccuracyonthetargetdata. STAC(Section5)issource-free
+inthesamesense(onlyascalarthresholdiscarriedfromthesourcemodel),butoptimizesacalibrationobjective
+ratherthanaccuracy,and,followingCorollary1,deliberatelyrestrictstheadaptationtoasingleglobalscalarunder
+homogeneousshiftratherthanadaptingmodelweights.
+
+2.6. Label-freeperformanceestimationundershift
+   ATC[27]anddisagreement-basedgeneralization-gapestimators[28]predictamodel’saccuracyonunlabeled,
+shifteddatafromconfidencestatisticsandpredictiondisagreementunderperturbation,respectively. Theorem1
+showsthattheseestimatorssupplyexactlythemissingingredientacalibrationmethodneeds(asingletarget-accuracy
+scalarpinsdownT      ⋆ = 1/κ),andSection6showsthisissimultaneouslySTAC’sstrength(itreducesrecalibration
+toonewell-studiedsub-problem)anditsweakness(existingestimatorsarenotaccurateenoughundergraphshift;
+Section7.4).
+
+
+
+
+
+
+                                                               3
+
+=== PDF PAGE 4 ===
+Table1:Positioning against closely related work.“Test-distr.labels” askswhetherthemethodneedslabeleddataassumedto
+representthedistributionitisappliedto(allin-distributioncalibratorsdo;STACandtheoraclebaselinedonot). “Shift-aware”asks
+whetherthemethod’sdesignoranalysisexplicitlytargetsachangeofdistribution. “Granularity”istheunitofcorrection. “Theory”
+recordsthetypeofformalguarantee,ifany.
+
+                       Method            Year Test-distr.      Shift-aware  Granularity  Theoretical
+                                                     labels                                 guarantee
+                       Temperature           2017    Yes        No        Global    Asymptotic
+                       scaling[4]                                                           NLL-optimality
+                       CaGCN[2]         2021    Yes        No       Per-node   None
+                       GATS[3]          2022    Yes        No       Per-node   None
+                       CF-GNN[9]        2023    Yes        No         Sets                  Coverage
+                                                                              (per-node)    (conformal)
+                       GDA-SpecReg[10]  2023    No        Yes        Global                 Riskbound
+                                                                               (bound)      (accuracy)
+                       SimCalib[7]        2024    Yes        No       Per-node   None
+                       G-∆UQ[8]         2024    Yes               Partial      Per-node   None
+                                                    (retrain)    (empir.)
+                       GETS[5]          2025    Yes        No       Per-node   None
+                       WATS[6]          2025    Yes        No       Per-node   None
+                       STAC (this            n/a   No            Yes           Global      Closed form (κ,
+                       work)                                                                ECE bound)
+
+
+2.7. Homophily-awareandphysics-inspiredGNNarchitectures
+    Mysignalcoefficientc K(h)recoversthehomophilythresholdthatmotivatesafamilyofspectralandphysics-
+inspiredGNNarchitecturesdesignedtoremainaccurateacrossthehomophilyspectrum:FAGCN[29]learnsasigned
+low/high-passfilter,GPR-GNN[30]learnssignedpropagationweights,andGraphCON[31]andA-DGN[32]use
+oscillatory/anti-symmetricODEdynamicstopropagateinformationwithouttheover-smoothingthaterodessignal
+atlowhomophily. Theseworkschangethearchitecturetoremainaccurateacrossh;Iholdthearchitecturefixed
+andinsteadshowhowhgovernstheconfidence-accuracygapofwhateverarchitectureproducedthelogits,viac          K(h)
+inProposition2.Thetwoviewsarecomplementary:ahomophily-robustarchitecturechangestheoperatingpoint,
+butthecalibrationslope,andtheoptimalityofasingletemperature,followfromTheorem1regardlessofwhich
+architectureproducedthelogits,consistentwithmyreal-graphexperiments,whichcalibrateSIGN/logistic-regression
+features,notthelinearaggregationofSection3directly.
+
+2.8. Summaryandpositioning
+    Table1summarizesthepositioningofthispaperagainsttheelevenmostcloselyrelatedmethodsalongtheaxes
+thatdeterminedeployabilityundershift: whetherthemethodneedslabelsthatareassumedrepresentativeofthe
+testdistribution,whetheritexplicitlymodelsdistributionshift,thegranularityofthecorrection(asingleglobal
+scalarvs.aper-nodefunction),andwhetheritcomeswithatheoreticalguarantee.Onlythepresentworkcombines
+aclosed-form,shift-awaretheorywithafullylabel-freecorrection;theprice,madeexplicitinSection7.4,isthatits
+practicalreliabilityinheritsthereliabilityofwhicheverlabel-freeaccuracyestimatorispluggedin.
+
+
+3. Problem setup
+
+3.1. Problemstatement
+    IamgivenasourcegraphG          s = (A s,Xs,Ys)withnodelabels,onwhichaGNNfistrainedandcalibrated(e.g.
+byordinarytemperaturescalingonasourcevalidationsplit,sofiscalibratedonG          s).AttesttimeIobserveatarget
+graphG          t = (A t,Xt)fromthesamefeature/labelspacebutadifferentdistribution(differenthomophily,different
+featurenoise,orboth),withnotargetlabelsandnofurtheraccesstoG                sorY   s.Themodelfisfrozen:re-training
+isnotassumedtobeanoptioninthedeploymentsettingsItarget(streaminggraphs,on-deviceinference,orsimply
+thecostofretrainingaproductionmodel).ThequestionIansweris:howdoestheconfidence-accuracyrelationship
+off’sfrozenpredictionschangefromG           stoG   t,andhowcanitbecorrectedwithoutlabels?
+
+3.2. Contextualstochasticblockmodel
+    Nodes and labels.NnodesarepartitionedintoKbalancedclasseswithlabelsy                      ii.i.d.uniformon{1,...,K}.
+Features.x                i =µ   yi +ξ   iwithξ        i ∼ N(0,σ        2I)i.i.d.,classmeans∥µ                 c∥=r,  Pcµc = 0(binarycase:µ        ± =±rˆµ).
+Thescalerrelativetothenoiselevelσisthesignal-to-noise ratioρ=r                                         2/σ2: largeρmeansclassesareeasy
+toseparatefromfeaturesalone.Edges and homophily.Edgesareintra-classwithprobabilitypandinter-class
+
+
+                                                                   4
+
+=== PDF PAGE 5 ===
+                          Figure2:Overview.Theory(top):onaCSBM,aggregationscalestheclasssignalby(2h−1)andthenoiseby1/d,givingaclosed-form
+                          calibrationslopeκ;themodel’sconfidenceisσ(t)butitsaccuracyisσ(κt),sotheoptimaltemperatureisT                        ⋆=1/κ. Method(middle):
+                          freezethesource-calibratedmodeland,ontheshiftedunlabeledtarget,estimateaccuracyfromperturbationstosetonetemperature
+                          (STAC,Section5).Validation(bottom):theclosedformisexactinsimulationandoneoracletemperaturerecoverscalibrationonfive
+                          realgraphs;theonlybottleneckislabel-freeaccuracyestimation(Section7.4).
+
+
+                          withprobabilityq;theedge homophilyh=p/(p+q(K−1))istheprobabilitythatauniformlyrandomedge
+                          joinstwosame-classnodes:h >1/Kishomophilic,h <1/Kheterophilic,andh= 1/Kisthepointatwhich
+                          classstructureisinvisibletoasame-class-countingstatistic. ThisisthestandardcontextualSBMusedtostudy
+                          information-plus-structurelearningproblems[33].
+
+                          3.3. LinearGNNandcalibration                 P
+                              Ianalyzemeanaggregationz                   i =  1dij∼i    xjandthesymmetric-normalizedGCNoperator ˆA=    ˜D−1/2     (A+I)         ˜D−1/2   [34],
+                          followedbyalinearclassifiercalibratedonthesourcegraph;multi-hopSIGN[35,36]featuresareusedonrealdata
+                          inSection6.Withlogitδ                  i,confidenceisσ(|δ       i|)andthepredictioniscorrectiffsign(δ            i) =y   i;ECEbinspredictions
+                          byconfidenceandaverages|acc−conf|[4,12]. Temperaturescalingmapsδ7→δ/Tandneverchangespredictions,
+                          soitcannothelporhurtaccuracy,onlycalibration.
+
+                          3.4. WhyalinearGNNonaCSBM?
+                              AskepticalreadermayaskwhyIrestricttheclosed-formanalysistoalinearclassifieronGaussianCSBM
+                          featuresratherthanadeep,nonlinearGNN.Ifollowalongtraditioninlearningtheory(ofwhichtheCSBMitself
+                          isacanonicalgraphinstance[33])oftradingarchitecturalrealismforamodelsimpleenoughtosolveexactly,then
+                          checkingnumericallyhowfaritspredictionstraveltowardtheregimeofinterest. Threeconsiderationssupport
+                          thischoicehere. First,mean/GCNaggregationfollowedbyalinearread-outisnotmerelyatoy: itistheexact
+                          computationperformedbySGC[36]and,feature-wise,bySIGN[35],bothcompetitivewithdeeperGNNsonthe
+                          heterophilousbenchmarksIuseinSection6,sothemodelclassIanalyzeisareal,widelyusedGNNfamily,notmerely
+                          anapproximationofone.Second,theobjectIcharacterize,themapfromlogitmagnitudetoaccuracy,dependson
+                          theaggregationstep,whichmixessame-anddifferent-classneighboursinahomophily-dependentratio,farmore
+                          thanonthespecificnonlinearityoftheclassifierhead;thisiswhytheclosed-formslope,derivedforalinearhead,
+                          tracksaself-loopGCN’ssimulatedslopeclosely(Section6.1,Fig.6)andalogistic-regressionheadonSIGNfeatures
+                          onfiverealgraphs(Section6.4).Third,andmostimportantly,everyqualitativeclaimthetheorymakes(thesignof
+                          over/under-confidence,theexistenceofasingleoptimaltemperature,thenon-benefitofper-nodecalibrationunder
+                          homogeneousshift)isfalsifiableandischeckedagainstsimulationandrealdatathroughoutSection6;Itreatthe
+                          tractablemodelasasourceoffalsifiable,quantitativepredictionsaboutarealcomputation(mean/GCNaggregation
+                          plusalinearornear-linearhead),notasaclaimaboutmechanisminsidearbitrarilydeep,nonlinearGNNs.
+
+
+                          4. Theoretical analysis
+
+                              AllproofsareinAppendixAppendixA;resultsholdinalarge-degreeGaussianregimeandareconfirmednu-
+                          merically(Section6). Figure2previewshowthethreepartsofthepaper(theory,method,andvalidation)fit
+                          together.
+
+
+
+                                                                                              5
+CSBM+aggregation:               calibration slope                confσ(t)vs.
+    signal(2h−1),              κ(h   s,ht,ρ)(Eq.1)                accσ(κt)
+     noise∝1/d                                                   ⇒T    ⋆=1/κ
+                                           apply
+
+   source-calibrate              target (shifted,            STAC sets asingle
+   &freezemodel                    unlabeled):                     T⋆=1/ˆκ
+                              perturb→estimateˆa
+                                           test
+                                  5 real graphs:                open problem:
+  synthetic:κ&T       ⋆             one oracle                  label-free ac-
+    exact (r=0.99)                  Trecovers                     curacy est.
+                                  ECE≤0.024
+
+=== PDF PAGE 6 ===
+4.1. Theaggregateddiscriminantcoordinate
+Lemma1(Aggregatedcoordinate).Undermeanaggregation,conditionalony                         i = +1anddegreed       i,thediscriminant
+coordinateg           i  =  ˆµ ⊤zi hasmean(2h−1)randvariance       4h(1−h)r                 2 +σ   2/di, andisasymptoticallyGaussianas
+di→∞.
+
+Remark1(Readingthelemma).Themean(2h−1)risexactlytheexcessofsame-classoverdifferent-classneighbours,
+scaledbytheclass-meanseparationr; itispositiveforhomophilicgraphs(h >1/2),zeroath= 1/2wherea
+neighbourisacoinflipoverthetwoclasses,andnegativeforheterophilicgraphs,whereaggregationsystematically
+pullsanode’srepresentationtowardthewrongclass. Thevariancecombinestwoindependentnoisesources,label
+randomnessamongneighbours(4h(1−h)r                   2)andfeaturenoise(σ 2),andbothshrinkas1/d     i: high-degreenodes
+averageoutnoiseexactlyasonewouldexpectfromasamplemeanofd   iroughlyindependentterms.Gaussianityis
+notanapproximationtackedonforconvenience;itisagenuineLindebergcentral-limiteffectoverthed     ineighbours,
+whichiswhytheclosedformsbelowareaccuratealreadyatmoderatedegree(d≈20,Section6).
+
+4.2. Thecalibrationslope
+Theorem 1(Calibrationslope).Letthelogitbeδ=ag,soδ|y=+1∼ N(m,s                                           2)withm=a(2h−1)r,s                                      2 =
+a2(4h(1−h)r                   2+σ   2)/d,andδ|y=−1∼N(−m,s                                      2).Withκ:= 2m/s                2,foreveryt
+
+                                        Pr(correct|δ=t) =σ(κt),   confidence(t) =σ(t).
+
+Hencethemodelisover-confidentiffκ <1, under-confidentiffκ >1, calibratediffκ= 1; theNLL-optimal
+temperatureisT   ⋆ = 1/κ;andwithafixedbysourcecalibration(κ(h                      s)=1),
+
+                                                  κ(h    t) = (2h   t−1) 1+4h  s(1−h       s)ρ(2h   s−1) 1+4h  t(1−h       t)ρ,                                (1)
+
+independentofdegree.
+
+Remark2(ReadingEq.(1)).Equation(1)sayshomophilycontrolsthesignandstrengthoftheaggregationsignal,
+(2h−1): movingh                     ttoward  12 shrinksthesignalfasterthanthevariance,soκ <1andthefrozenmodelbecomes
+over-confident;atargetmorehomophilousthanthesource(h t >hs,both>1/2)givesκ>1andthemodelbecomes
+under-confident,becausethesamelogitmagnitudethatwasappropriateforanoisiersourceaggregationnowunder-
+stateshowreliablethecleanertargetsignalactuallyis.Theformulaisantisymmetricinausefulsense:κ(h              s) = 1by
+construction,andκcrosseszeroexactlywhenh                  t = 1/2,wheretheaggregatedsignalvanishesandnologitmagnitude,
+howeverlarge,canbepredictive,anearlywarningthattheboundinProposition4becomesuninformativethere.
+Thedependenceonρentersonlythroughthecombination4h(1−h)ρ,i.e.SNRmattersonlyinsofarasitcompetes
+withthesamesame-/different-classmixingvariancethathomophilyitselfcontrols;atρ→ ∞(noiselessfeatures)
+Eq.(1)reducestothepurelystructuralratio(2h                t−1)/(2h            s−1).
+
+Corollary1(Globaltemperatureisoptimal).Underhomogeneousshift(asingleκ),T                                    ⋆ = 1/κmakesthemodelequal
+tothetrueconditional,attainingminimumpopulationNLLandzeropopulationECE.Anyper-nodetemperatures
+{T  i}withT         i ̸=T   ⋆onapositive-measuresetstrictlyincreaseNLL.Per-noderecalibrationcanthereforeonlyhelp
+underheterogeneousshift.
+
+Remark3(Whythiscorollarymattersoperationally).Corollary1isanegativeresultstatedasapositiveone: it
+saysthatanyextramodelingeffortspentonaper-nodetemperaturefunctionisprovablywastedunderhomogeneous
+shift,nomatterhowexpressivetheper-nodemodelis,becausethepopulation-optimalper-nodesolutionisalready
+theconstantfunctionT               ⋆.Thisisastrong,falsifiablepredictionaboutmethodslikeCaGCNandGATS(Section2),
+whichfitaper-nodetemperatureevenwhentheshifttheyarecorrectingforishomogeneous;Section6.3teststhe
+predictiondirectlywithadedicatedablation(STAC-globalvs.STAC-full)andfindsitholds: theper-nodestage
+changeserror-detectionrankingonlymarginally,andnotmorethananablationthatdiscardsgraphstructureentirely.
+
+4.3. Extensions
+Proposition 1(Self-loopGCN).For              ˆA=    ˜D−1/2     (A+I)         ˜D−1/2  ,withA(h) = 1+d(2h−1)andB(h) = 4dh(1−h)ρ+
+(d+1),κ            SL(h t) =A(h        t)B(h      s)/[A(h         s)B(h      t)],whichreducesto(1)asd→∞.Theselftermmakesthesignalsurvive
+downtoh= (1−1/d)/2<                             12,formalizingwhyself-loopshelpunderheterophily.
+
+
+
+
+                                                                        6
+
+=== PDF PAGE 7 ===
+                     Figure3:STAC.Attesttimethefrozensourcemodelisappliedtotheshifted,unlabeledtargetgraph;afewperturbedpassesyielda
+                     label-freeaccuracyestimateˆa,whichfixesasingletemperatureT                             ⋆ = 1/ˆκsothatmeanconfidencematchesˆa. Notargetlabelsandno
+                     sourcedataareused.
+
+
+                     Remark4.Theself-looptermaddsadeterministicsame-classcontribution(+rwithcertainty,sinceanodeisalways
+                     itsownclass)thatdoesnotexistforanode’snoisyneighbours. Thisshiftsthezero-crossingoftheaggregated
+                     signalfromexactlyh= 1/2(meanaggregation)toh= (1−1/d)/2,slightlybelow1/2: self-loopsbuyasmallbut
+                     degree-dependentmarginofheterophilytolerancebeforethesignalvanishes,consistentwiththecommonempirical
+                     observationthataddingself-loopshelpsGCNsonmildlyheterophilicgraphs.
+
+                     Proposition 2(Kclasses).Withsymmetricsimplexmeans,conditionalony                           i =c,E[z          i] =c   K(h)µ     cwithc       K(h) =
+                     (hK−1)/(K−1)(zeroath= 1/K,equalto2h−1forK=2). Homophilyshiftrescalesthewholelogitvectorby
+                     cK(h t)/c K(h s),soasingletemperaturesuffices.
+
+                     Remark5.c              K(h)isthenaturalK-classgeneralizationof(2h−1): asame-classneighbour(probabilityh)con-
+                     tributes+µ                 c,andadifferent-classneighbour(probability1−h,uniformovertheremainingK−1classes)contributes
+                     −µ   c/(K−1)inexpectationbecausethesimplexmeanssumtozero. Thezero-crossingmovesfrom1/2to1/Kas
+                     thenumberofclassesgrows:themoreclassesthereare,thelesshomophilyisneededbeforearandomneighbouris
+                     morelikelytobeadifferentclassthannot(Fig.4inSection6illustratesthisschematically).Becausetherescaling
+                     byc  K(h t)/c K(h s)iscommontoeveryclassdirection,itactsonthefullK-dimensionallogitvectorexactlyasa
+                     scalartemperaturewould,whichiswhyasingleglobaltemperatureremainssufficienteveninthemulti-classcase,
+                     asconfirmednumericallyforK= 3,4,5inSection6.1.
+
+                     Proposition 3(Covariateshift).Atfixedh,ifthetargetfeature-noisevariancechangesσ                                   27→σ    2+τ    2(γ=τ        2/σ2),
+                     thenwithsourcecalibrationκ          cov =    4h(1−h)ρ+14h(1−h)ρ+1+γ                   <1andT            ⋆ = 1+γ/(4h(1−h)ρ+1)>1: covariateshiftalways
+                     inducesover-confidence,monotonicallyinγ.
+
+                     Remark6.Unlikehomophilyshift,covariateshiftisone-directional: becauseextrafeaturenoisecanonlyinflate
+                     thelogitvariances              2(itcannotchangethesignalm,whichdependsonlyontheclassmeansandhomophily),κ                                        cov
+                     canonlyfallbelow1. Thisisaclean,falsifiableprediction(covariateshiftnevercausesunder-confidence),which
+                     Section6.5confirmsonfiverealgraphs: theconfidence-accuracygapgrowsmonotonically,andonlyintheover-
+                     confidentdirection,astherelativefeature-noisestrengthincreases.
+                     Proposition 4(ECEbound).ECE≤                           14|κ−1|E|δ|;itvanishesasκ→1andgrowswiththelogitmagnitude.
+
+                     Remark7.Theboundfollowsfromthe                 14-LipschitzconstantofthesigmoidandturnsTheorem1’spointwisestatement
+                     intoasinglescalardiagnostic: becauseE|δ|isobservablefromthemodel’sownlogitsonthetargetgraphwithout
+                     labels,thisboundgivesafullylabel-free,ifconservative,upperestimateofhowmiscalibratedafrozenmodelcan
+                     possiblybeunderashiftofagivenseverity|κ−1|,usefulasanearly-warningsignalevenbeforeattemptingthe
+                     recalibrationofSection5.Theboundistightest,andtherecalibrationcorrespondinglymostconsequential,exactly
+                     whenconfidentpredictions(|δ|large)coincidewithashiftsevereenoughtomoveκfarfrom1;Section6confirms
+                     empiricallythattheboundistightnearthesourceandlooser,butneverviolated,farfromit.
+
+
+                     5. STAC: a source-free, label-free recalibration method
+
+                          Theorem1saystheentirejobistoestimateonenumber,T                       ⋆ = 1/κ,fromunlabeledtargetdata(Fig.3,Algo-
+                     rithm1).IcalltheresultingmethodSTAC(Structure-awareTest-timeAdaptiveCalibration).STAC(i)estimates
+                     targetaccuracyˆafromunlabeleddatabycombiningthresholdedconfidence[27]withpredictiondisagreementunder
+                     input/edgeperturbations[28],then(ii)choosesthesingleTsothatmeanconfidenceequalsˆa. Themethodis
+                     source-free(onlyascalarthresholdiscarriedfromtraining),addsO(1)parameters,andneedsnoGPU.
+
+
+
+
+
+                                                                                            7
+
+   Frozen         TargetG        t:Perturb×M       SetT     ⋆=1/ˆκ:  Calibrated
+  GNNf             logitsδ           ⇒est.            match            preds.
+(+thresh.τ)         shifted,       accuracyˆa       mean-conf         σ(δ/T    ⋆)
+ from source       unlabeled                           toˆa
+
+                         Target / test time: source-free, label-free
+
+=== PDF PAGE 8 ===
+Algorithm 1STAC:label-freetest-timerecalibration(globalstage)
+Require:frozen modelf, source thresholdτ, target graphG                                                     t, passesM
+ 1:δ←logits offonG                  t;  ˆa   ATC←frac. ofmaxσ(δ)≥τ
+ 2:runMperturbed passes;ˆa                            GDE←1−mean pairwise disagreement
+ 3:ˆa←min(ˆa             ATC,ˆa   GDE)
+ 4:T   ⋆←argmin    T  meani maxkσ(δ   i/T)    k−ˆa     2
+ 5:returncalibrated probabilitiesσ(δ/T                                          ⋆)
+
+
+Complexity..Algorithm1requiresMadditionalforwardpassesofthe(frozen)modeloverthetargetgraph(no
+gradients,noretraining),plusanO(M          2)pairwise-disagreementcomputationpernodeandaone-dimensionalline
+searchforT.InmyexperimentsM= 6–10suffices,andthewholeprocedurerunsinsecondsonCPUforgraphswith
+tensofthousandsofnodes;thedominantcostistheMforwardpasses,whichisthesameorderofcostascomputing
+M-sampleMonteCarlodropoutuncertainty,buthereappliedattesttimetoadeterministicfrozenmodelviainput
+andedgeperturbationsratherthanattrainingtimetoastochasticone.
+
+Optional per-node stage..A second, optional stage modulates the global temperature per node,T                 i   =
+Tglobexp(ctanh(ϕ               ⊤i w+b)), whereϕ                      i collects structure-aware signals (feature- and edge-perturbation instabil-
+ity,homophily-correctedneighbour-agreement,predictionentropy,margin,andlog-degree),fitbyminimizingthe
+samelabel-freebinnedcalibrationlosswithasmallridgepenaltyonw.ByCorollary1,thisstageisnotexpectedto
+helpunderhomogeneousshift,andIincludeitpurelyasanempiricaltestofthatprediction: anablationwithout
+structural signals (logits only) isolates whether any residual benefit comes from graph structure specifically or
+merelyfromhavingahigher-capacityper-nodefunction.Section6.3reportstheoutcomeofthisablation.
+
+Relationtothetheory..ThereductiontoasinglescalarˆaisnotasimplifyingchoiceImakeforconvenience;itis
+whatTheorem1andCorollary1proveissufficientunderhomogeneousshift. ThisiswhatdistinguishesSTAC’s
+globalstagefromtheper-nodecalibratorssurveyedinSection2: thosemethodsuseaper-nodefunctionbecause
+theyhavenotheoreticalreasontoexpectaglobalscalartobeoptimal,whereasSTACusesaglobalscalarbecause
+thetheorysaysitisoptimal,andonlyreachesforaper-nodecorrectionasadeliberatelyfalsifiableablation.
+
+
+6. Experiments
+
+    AllexperimentsrunonCPUusingonlyNumPy/SciPy/scikit-learn;codeanddataarereleased. IreportECE
+(15bins)throughout.
+
+6.1. Theoryvalidation(synthetic)
+    OnabinaryCSBM(h s=0.8,ρ=1),themeasuredslopeκ= 1/T                        oraclematchestheclosedform(1)acrossh              t ∈
+[0.55,0.9],capturingbothover-andunder-confidence,withκ≈1atthesource(Fig.5,left);ECEgrowsfrom0.004
+to0.25ash               tleavesh   sandT       ⋆returnsitto≤0.02(right). Figure4illustratesschematicallywhyhomophilyhas
+thiseffect: aggregationaveragessame-anddifferent-classneighbours,andtheresultingsignalalongthetrueclass
+directionisscaledbyc  K(h),whichvanishesandflipssignath= 1/K(Proposition2). Theself-loopslopeκ                                   SL
+matchestheGCNsimulationandisclosertoitthanthemean-aggregationformulaintheheterophilousregime
+(Fig.6,left);thesignalcoefficientc            K(h)matchesthemeasuredvalueexactlyforK= 3,4,5(right). Theboundof
+Proposition4holdsthroughout(Fig.7)and,asanticipatedintheremarkfollowingit,istightestnearthesource
+homophilyandlooser,butneverviolated,farfromit.
+
+6.2. Theclosedformpredictstheoptimaltemperature
+    Beyondsigns,thetheorypredictsthevalueT               ⋆ = 1/κ. Overagridofsource/targethomophiliesandSNRson
+thebinaryCSBM,thepredictedT                 ⋆matchestheoracletemperaturemeasuredonlabeledtargetdatawithPearson
+r= 0.99andameanabsoluteerrorof0.11temperatureunits(Fig.8). Theclosedformisthusquantitatively
+predictive,notmerelydirectional.
+
+
+
+
+
+
+
+
+
+                                                                     8
+
+=== PDF PAGE 9 ===
+Figure4:Whyhomophilycontrolscalibration.Aggregationaveragessame-anddifferent-classneighbours;theresultingsignalalong
+thetrueclassisscaledbyc K(h),whichvanishesandflipssignath= 1/K.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                Figure5:Theorem1.Closed-formslopevs.measured1/T                                          oracle(left);ECEbefore/afterT                 ⋆(right).
+
+
+6.3. STACundershift(synthetic)
+   OnCSBMnodeclassificationwithatrained2-layerGCN,acrossfeature,homophily,andheterogeneousshifts,
+STAC’sglobalstageroughlyhalvestheECEgapversussource-temperaturescalingandapproachestheoracle.
+Figure9makesthemechanismconcreteunderincreasingcovariate-shiftintensity.TheleftpanelshowsECEforfour
+methods:theuncalibratedmodeldegradessteadilyasshiftgrows;source-TS,fitonceonthesourcevalidationsplit,
+barelyhelpsandathighshiftintensityisclosetoindistinguishablefromnocalibrationatall,becauseittargetsthe
+sourceaccuracyratherthanthefallingtargetaccuracy;STAC-globaltracksroughlyhalf-waybetweensource-TS
+andtheoracleateveryshiftlevel;theoracle(whichusestargetlabelssolelytofitT,nevertoretrain)staysflat
+andlowthroughout. Therightpaneldiagnoseswhy: itplotsthetruetargetaccuracyagainstthetwocandidate
+proxiesacalibratorcoulduse.The‘Source-TSassumption’(dotted)isexactlythesourcevalidationaccuracy,which
+isshift-invariantbyconstructionandthereforedepartsfromthetruetargetaccuracy(solid)asshiftgrows;thisgap
+istheempiricalfaceofκmovingawayfrom1asshiftintensityincreases,anditiswhysource-fittedcalibratorsfail
+undershift(Section7.2). STAC’slabel-freeaccuracyestimate(dashed)tracksthetruetargetaccuracyfarmore
+closelythanthesourceassumptiondoes,butnotperfectly;theresidualgapbetweenthedashedandsolidcurvesis
+exactlywhatlimitsSTAC-global’sECErelativetotheoracleintheleftpanel,anditisthesamegapthatbecomes
+unmanageableonreal,heterophilousgraphsinSection6.4.
+   Undertheheterogeneous(‘mixed’)shift, whereonlyarandomhalfoftargetnodesreceiveastrongfeature
+perturbation,sonosingleκdescribesthewholegraph,asingletemperature(STAC-global,identicaltosource-TS
+byconstructiononceitslevelisfixed)cannot, bydefinition, changetherankingofnodesbyconfidence, soits
+error-detectionAUROCexactlymatchestheuncalibratedmodel’s. Onlytheoptionalper-nodestage(STAC-full,
+Section5),whichmodulatesT                            iusingstructure-awaresignals,canmovethisranking;inmyrunsitdoessoonly
+marginally,andanablationwithoutstructuralsignals(logitsonly)performscomparably,indicatingthat,atleastfor
+
+
+                                                                 9
+
+same-class(•)fractionh
+
+signalc         K(h) =     hK−1K−1   ,flipsath=        1K
+
+=== PDF PAGE 10 ===
+Figure6:Extensions.Self-loopGCNslopeκ                          SL(left)andtheK-classsignalcoefficientc         K(h)(right): linesaretheory,markersare
+simulation.
+
+                                      Table2:ECE(↓)onrealgraphsundercovariateshift(3splits).
+
+                                      graph            h    Uncal.    Src-T   STAC    Oracle
+                                      roman-empire      0.05     0.145     0.206     0.2000.022
+                                      amazon-ratings    0.38     0.085     0.075     0.4320.024
+                                      tolokers                0.59     0.132     0.052     0.1680.015
+                                      minesweeper        0.68     0.123     0.072     0.128 0.020
+                                      questions              0.84     0.024     0.006     0.0280.007
+
+
+theperturbationsignalsItried,graphstructuredoesnotadderror-detectioninformationbeyondwhatthemodel’s
+ownlogitsalreadycarry. ThisispreciselythefalsifiablepredictionofCorollary1puttothetest: asingleglobal
+scaleisagenuinelydifferentproblemfromfindingausefulper-noderankingsignal,andmyattemptatthelatter
+withoff-the-shelfstructuralfeaturesdoesnotyetsucceed;IreturntothisasanopenprobleminSection7.6. For
+reference,underfeatureshift(targetaccuracy0.61):UncalibratedECE0.203,Source-TS0.191,STAC-global0.100,
+Oracle0.024.
+
+6.4. Realgraphsacrossthehomophilyspectrum
+    Ievaluateonfiverealgraphs[37], namelyroman-empire(h=0.05,K=18), amazon-ratings(0.38,5), tolokers
+(0.59,2),minesweeper(0.68,2)andquestions(0.84,2),underafixedrelativecovariateshift(Fig.10,Table2).The
+robustfindingmatchesthetheory: asingleoracletemperaturerecoverscalibrationoneverygraph(ECE0.015–
+0.024),acrossthefullhomophilyrangeandmulti-classsettings. Howeverthelabel-freeSTACisnotreliablehere:
+becausetheaccuracyestimateovershootsundershift(e.g.amazon-ratingsˆa=0.81vs.true0.38),itcanworsenECE
+(0.085→0.432). In-distributioncalibrators[2,3,5–7]aresource-fittedandthusinheritthefailureofsource-TS
+undershift;empiricaluncertainty-quantificationmethodsdesignedwithshiftinmind,suchasG-∆UQ[8],could
+plausiblysupplyabetterˆahere,sinceneitheritnorSTAC’ssimpleATC/disagreementestimatorwasdesigned
+fortheheterophilous, high-Kregimeofroman-empire; Iseethisasapromising, directavenueforfuturework
+(Section7.4)ratherthanacompetingclaim.IreportSTAC’snegativeresultplainly.
+
+6.5. Covariate-shiftstrengthonrealgraphs
+    Proposition3predictsthatcovariateshiftmakesthefrozenmodelprogressivelyover-confident,andonlyover-
+confident. Sweepingtherelativefeature-noisestrengthγonallfivegraphs,theconfidence−accuracygapgrows
+monotonicallywithγandneverchangessign(Fig.11a;e.g.roman-empire−0.07→+0.57,minesweeper+0.07→
++0.29),whileasingleoracletemperaturekeepsECElowthroughout(Fig.11b).Thenearlyflatcurveforquestions
+(h=0.84,accuracy0.97)isexpected:Proposition3givesagap∝γ/(4h(1−h)ρ+1),smallwhenaccuracyishigh.
+
+
+
+
+
+                                                                      10
+
+=== PDF PAGE 11 ===
+          Figure7:Proposition4.Thebound                         14|κ−1|E|δ|upper-boundsthemeasuredECEandistightnearthesource.
+
+
+6.6. Adifferentshifttype:structuralrewiring
+   TotestbreadthbeyondcovariatenoiseIrewireafractionofthetargetedges.Thismiscalibratesseveralgraphs
+(e.g.minesweeperECE0.07→0.14at75%rewiring),andasingleoracletemperatureagainrecoverscalibrationacross
+allfive(ECE≤0.03;Fig.12).Forclass-imbalancedgraphswhoserandom-edgehomophilyisalreadyhigh(questions,
+tolokers)rewiringchangeshomophilylittleandcalibrationislargelyunaffected,consistentwiththetheory,inwhich
+theeffectismediatedbythechangeinedgehomophily.
+
+
+7. Discussion, limitations, and open problems
+
+   Imergediscussionandlimitationsdeliberately: everylimitationbelowisthedirect,falsifiablecounterpartofa
+claimmadeinSection4,andreadingthemtogetheriswhatmakesthetheory’sscopehonestratherthanmerely
+optimistic.
+
+7.1. Thecalibrationslopeasadiagnostic
+   BeyondmotivatingSTAC,κisusefulonitsown:Eq.(1)canbeevaluatedfromanestimateof(h               s,ht,ρ)alone,
+quantitiesthatarefareasiertoestimatewithoutlabelsthanaccuracyitself(homophilycanbeestimatedfrom
+alabel-propagationproxyorfromthemodel’sownagreementstatistics;SNRfromfeatureclustering),topredict
+whetheradeployedGNNislikelytobeover-orunder-confidentonanewgraphbeforeanyrecalibrationisattempted
+atall,usingProposition4asaconservativeseveritybound.
+
+7.2. Whysource-fittedcalibratorsfailundershift
+   Everyin-distributioncalibratorsurveyedinSection2(temperaturescalingitself,CaGCN,GATS,GETS,WATS,
+SimCalib)fitsitscorrection(ascalaroraper-nodefunction)byminimizingNLLonalabeledsplitassumedto
+representthedistributionthemodelwillseeattesttime. Theorem1makesexplicitwhythisassumptionbreaking
+isfatal: thefittedcorrectionisoptimalforκ(h       s,hs,ρ) = 1byconstruction, butthedeployment-timeslopeis
+κ(h    s,ht,ρ)̸= 1wheneverh         t̸=h   s,andnoamountofadditionallabeledsourcedatachangesthis,becausethesource
+splitneverobservesh t. ThisispreciselythemechanismFig.9makesvisible: source-TS’sassumptioncurveisflat
+
+
+                                                                11
+
+=== PDF PAGE 12 ===
+Figure8:Optimal temperature.PredictedT                                 ⋆ = 1/κvs.theoracletemperatureacross(h                 s,ht,ρ)configurations;pointshugy=x
+(r=0.99,MAE0.11).
+
+
+byconstruction,whilethetruetargetaccuracymoves. Methodswithaper-nodecorrectiondonotescapethis: a
+per-nodefunctionfitonsourcedatastilltargetsκ(h                s,hs,ρ) = 1pointwise,uniformlyacrossnodes,soitfailsin
+exactlythesamedirectionasglobaltemperaturescaling,merelywithadditional,source-fitteddegreesoffreedom
+thatprovidenoprotectionagainstashiftinh.
+
+7.3. Whendoesper-nodecalibrationhelp?
+   Corollary1localizesthevalueofper-nodecalibrationprecisely:ithelpsifandonlyifdifferentnodesexperience
+differenteffectiveslopesκ         i(heterogeneousshift),neverasamatterofrawmodelingcapacity. Thisreframesthe
+comparisoninSection2betweenglobalandper-nodecalibrators: thequestionisnot“doesamoreexpressiveper-
+nodemodelcalibratebetter” but“istheshiftitselfhomogeneousorheterogeneous”, whichisapropertyofthe
+deploymentscenario,notofthecalibrator.Myheterogeneous-shiftablation(Section6.3)isafirstattempttoanswer
+thisoperationally,anditsuggeststhatansweringitwellrequiresper-nodeshift-detectionsignalsthataremore
+informativethanthestructuralfeaturesItried;seeSection7.6.
+
+7.4. Thecruxislabel-freeaccuracyestimation
+   Thisisthepaper’scentrallimitation,andIstateitasplainlyaspossible:STAC’sentirepracticalreliabilityrests
+onˆa,andSection6.4showsthatonreal,heterophilous,high-Kgraphs(roman-empire,amazon-ratings),bothATC
+anddisagreement-basedestimatorscanbebadlywrong,overshootingtrueaccuracybyawidemargin,andthereby
+setT     ⋆inthewrongdirection. Twoimplicationsfollow,oneconstructiveandonemethodological. Constructively,
+
+
+                                                                 12
+
+=== PDF PAGE 13 ===
+Figure9:Mechanism (synthetic feature shift).Left:ECEvs.shiftintensityfortheuncalibratedmodel,source-TS,STAC-global,
+andtheoracle;STAC-globalconsistentlyhalvesthesource-TSgap.Right:thetruetargetaccuracy(solid)fallsasshiftgrows,whilethe
+source-TSassumption(dotted,frozenatthesourcevalidationaccuracy)doesnotmoveatall:thisdivergenceisthemechanismbehind
+source-TS’sfailure;STAC’slabel-freeestimate(dashed)tracksthetrueaccuracymuchmoreclosely,thoughnotexactly.
+
+
+theoracleresults(Table2)showthetheory’sceilingishigh:ifˆawereaccurate,asingletemperaturewouldsuffice
+everywhereItested,fromh=0.05toh=0.84anduptoK=18classes,sothereturnonimprovinglabel-freeaccuracy
+estimationspecificallyforgraphsislarge. Methodologically,ATCanddisagreementweredesignedandvalidated
+primarilyoncovariateshiftfori.i.d.image/textdata[27,28]; graphsaddatleasttwoconfoundsabsentthere:
+aggregationcompoundsshiftacrosshops,soanode’seffectiveshiftdependsonitsneighbourhood’sshift,notonlyits
+ownfeatures,andhomophilyitselfisafurtheraxisofshiftthathasnocounterpartinthei.i.d.settingtheseestimators
+werebuiltfor.Aconcrete,falsifiablenextstepisagraph-nativeaccuracyestimatorthatconditionsdisagreementon
+thelocalhomophilyestimatedatthesamenode,orthatcombinesSTAC’sestimatorwiththeepistemic-uncertainty
+signalofG-∆UQ[8](Section2),whichwasexplicitlyvalidatedundergraphcovariateandconceptshiftandcould
+plausiblycorrectexactlytheovershootIobserveonamazon-ratingsandroman-empire.
+
+7.5. Scopeofthetheory
+   TheclosedformsassumeGaussianclass-conditionalfeaturesandareasymptoticindegreed(aBerry–Esseen-
+typecorrectionisO(d     −1/2     ));Section6showsthisisalreadyaccurateatmoderatedegree(d≈20)butIdonotclaim
+anon-asymptotic,finite-degreeguarantee. TheCSBMisalsoafixed-homophilymodel: realgraphsmixaglobal
+homophilywithsubstantialnode-to-nodeheterogeneity,whichisexactlythegapbetweenthehomogeneous-shift
+theoryofSection4andtheheterogeneous-shiftablationofSection6.3.Finally,nearchanceaccuracy(asonpartsof
+roman-empireandamazon-ratings)thelogisticapproximationunderlyingTheorem1isleastinformative,precisely
+theregimewherelabel-freeaccuracyestimationisalsohardest(Section7.4);thesetwolimitationscompoundrather
+thanbeingindependent,whichiswhyreal-graphperformanceinTable2isweakestexactlywherethepointwise
+theoryisweakest.
+
+7.6. Heterogeneousshiftistheopenper-nodeproblem
+   Corollary1sayswhenper-nodecalibrationisneeded(heterogeneousshift)butnothowtodetect, nodeby
+node,whicheffectiveκ iapplies;myattempt(Section6.3)withgenericstructuralperturbationsignalsmovederror-
+detectionAUROConlymarginallyaboveastructure-freebaseline.Iviewthisnegativeresultasinformativerather
+thandiscouraging:itnarrowstheopenproblemtofindingper-nodesignalsthatspecificallytracklocalshiftseverity;
+candidatesincludelocalhomophilyestimatedfromanode’simmediateneighbourhood(directlymotivatedbyEq.(1)),
+aper-nodeanalogueoftheepistemic-uncertaintyestimatorofTrivedietal.[8],ortheper-nodeconformalwidth
+producedbyHuangetal.[9], whichisadifferentnotionofper-nodereliability(setsize)thatcouldplausibly
+correlatewithκ        iwithoutrequiringlabels.
+
+7.7. Broaderoutlook
+   IseethreenaturalcombinationswiththeempiricalliteraturesurveyedinSection2.First,G-∆UQ’sper-model
+epistemic-uncertaintyestimate[8]couldservedirectlyastheper-nodeshift-severitysignalthatSection7.6showsis
+
+
+                                                                13
+
+=== PDF PAGE 14 ===
+Figure10:Five real graphs under covariate shift.Oneoracletemperaturerecoverscalibrationacrossthehomophilyspectrum;
+STACisunreliable(accuracy-estimationbottleneck).
+
+
+currentlymissing.Second,thedistribution-freecoverageguaranteesofconformalizedGNNs[9]addressaset-valued,
+notpointwise,notionofreliability;combiningaglobally-correctedtemperaturewithaconformalwrapperisplausible
+andwouldletthetwoguarantees(closed-formpointwisecalibrationanddistribution-freecoverage)composerather
+thancompete.Third,GDA-SpecReg’sriskbound[10]boundstargeterror;anaccuracyboundofthatkind,iftight
+enough,isitselfacandidatelabel-freeˆaforSTAC,directlyaddressingSection7.4.
+
+
+8. Conclusion
+
+   Thispapergives,tomyknowledge,thefirstclosed-formaccountofhowdistributionshiftmovestheconfidence-
+accuracyrelationshipofagraphneuralnetwork:asinglecalibrationslopeκ,explicitinsource/targethomophilyand
+featuresignal-to-noiseratio,determinessimultaneouslythedirectionofmiscalibration(κ <1over-confident,κ >1
+under-confident),itsmagnitude(viatheprovenECEbound),anditsexactcorrection(T                                       ⋆ = 1/κ,provablyoptimal
+atthepopulationlevelandprovablysufficientasasingleglobalscalarunderhomogeneousshift).Thetheoryisnota
+qualitativestory:itpredictsthemeasuredslopeandtheoracletemperaturequantitativelyinsimulation(r= 0.99),
+anditscentraloperationalconsequence(asingletemperaturerecoverscalibration)holdsonfiverealgraphsspanning
+twoordersofmagnitudeinhomophilyandupto18classes.
+   Turningthetheoryintoafullyautomatic,label-freerecalibratorreducestoestimatingonenumber,targetaccu-
+racy,fromunlabeleddata;Ishowedthisreductioniscorrectinthatagoodestimate(theoracle)suffices,butthat
+today’soff-the-shelfestimators(ATC,disagreement)arenotyetaccurateenoughonreal,heterophilousgraphsto
+realizethetheory’sfullpromise.Iseethisnotasaweaknessofthetheorybutasitsmostusefuloutput:itisolates
+exactlythesub-problem(shift-robust,graph-nativeaccuracyestimation)onwhichfutureworkshouldconcentrate
+toconvertclosed-formunderstandingintoadeployable,zero-labelGNNcalibrator,andSection7laysoutconcrete,
+falsifiabledirectionstowardthatgoal,includingcombinationswithrecentempiricaluncertainty-quantificationand
+conformal-predictionmethodsforGNNs.Morebroadly,Ihopethecalibration-slopeviewpointoffersatemplatefor
+otherstructure-dependentreliabilityquestionsongraphs: writedownthesmallestmodelthatreproducesafailure
+modeinclosedform,deriveitsfalsifiableconsequences,andtesthowfaritspredictionstraveltowardreal,deployed
+graphlearningsystems.
+
+
+Appendix A. Assumptions and proofs
+
+   ThisappendixstatestheformalassumptionsunderlyingSections4,andgivescompleteproofsofeverytheoretical
+claiminthemaintext.AllresultsconcernalinearGNNonaCSBMinalarge-degreeregime;finite-degreeaccuracy
+isdiscussedinRemark8andconfirmednumericallyinSection6(Figs.5–6).
+
+
+
+
+                                                               14
+
+=== PDF PAGE 15 ===
+Figure11:Covariate-shiftsweep(Proposition3).(a)over-confidencegrowswithshiftstrengthoneveryrealgraph;(b)uncalibrated
+ECE(solid)riseswhileasingleoracletemperature(dashed)stayslow.
+
+
+AppendixA.1. Modelandassumptions
+Assumption 1(CSBM).ThereareNnodesandKbalancedclasseswithlabelsy                                           ii.i.d.uniformon{1,...,K}.
+Nodefeaturesarex     i =µ   yi+ξ   i,withξ        i∼N(0,σ        2IF)i.i.d.andclassmeanssatisfying∥µ                     c∥=rforallcand    Pcµc = 0
+(forK=2,µ                  + =rˆµ,µ        − =−rˆµforaunitvectorˆµ). Edgesaredrawnindependently: fori̸=j,Pr(i∼j) =pif
+yi =y   jandqotherwise.Writetheedgehomophilyh=p/(p+q(K−1))andthesignal-to-noiseratioρ=r                                                                                  2/σ2.
+Assumption 2(Large-degreeregime).Theexpecteddegreed=p(                                     NK−1)+q       N(K−1)K   satisfiesd→∞asN→∞,
+withhandρheldfixed.
+Assumption 3(Source-calibratedBayes-directionclassifier).TheclassifierislinearwithweightalongtheBayes-
+optimaldirection(ˆµforK=2;theclass-meandirectionsforK>2)andzerobias,optimalforthesymmetricGaussian
+modelofAssumption1.Itsscalarscalea>0isfixedbyrequiringcalibrationonthesourcegraph,i.e.κ(h                                                       s) = 1.A
+consistentestimatorsuchasregularization-freelogisticregressionrecoversthisdirectionand,aftersourcetemperature
+scaling,thisscale.
+Assumption4(Regular-degreeapproximation,self-loopoperatoronly).ForProposition1Iapproximatealldegrees
+bytheexpecteddegreedinthesymmetricnormalization              ˆAij  = ((d   i+1)(d        j+1))−1/2     ≈(d+1)     −1 . Theerroris
+O(Var(d        i)/d 2)andvanishesunderAssumption2forconcentrateddegrees.
+    Throughout,σ(u) = (1+e                         −u  )−1  andφisthestandardnormaldensity.
+
+AppendixA.2. ProofofLemma1(aggregatedcoordinate)
+Proof.Foraneighbourj,ˆµ            ⊤xj = ˆµ ⊤µyj + ˆµ ⊤ξj =y   jr+ζ     jwith rP    ζ        j ∼ N(0,σ        2)i.i.d.(sinceˆµ           ⊤µ± =±r). Hence
+gi =  1di       j∼i    yj +Pj∼i    ζj.Giveny    i=+1,eachneighbourissame-class(y          j=+1)withprobabilityhandopposite
+(y j=−1)withprobability1−h,independently;thuswithk= #{j:y                                     j=+1}∼Binomial(d                          i,h)Ihave Pjyj = 2k−d       i,
+soE[ Pjyj] =d   i(2h−1)andVar[     Pjyj] = 4Var(k) = 4d         ih(1−h).Thenoisesumhasmean0andvarianced                                      iσ2andis
+independentofthelabels.Dividingbyd  igivesthestatedmeanandvarianceexactly.Asymptoticnormalityfollows
+fromtheLindebergCLTappliedtotheindependentboundedlabeltermsandtheGaussiannoiseterm.
+
+Remark8(Finite-degreeerror).BytheBerry–EsseentheoremtheCDFofg                        idiffersfromitsGaussianlimitby
+O(d   −1/2i     ).Empiricallytheclosedformsholdtoafewpercentalreadyatd≈20(Section6);accuracydegradesonly
+whentargetaccuracyapproaches  12or1,wherethecalibrationslopeisinherentlyill-conditioned.
+
+AppendixA.3. ProofofTheorem1andCorollary1
+Proof.Taket >0(thecaset <0issymmetric),sothepredictionis+1andtheevent“correct”is{y=+1}. With
+balancedclassesandthetwoGaussianlikelihoods,
+                                                        
+               Pr(y=+1|δ=t) =                             φ t−m+φ t+ms =                     1
+                                         φ t−ms             s        1+exp − (t+m)           2−(t−m)               22s  2    =          11+e  −2mt/s      2 =σ(κt).
+
+
+                                                                           15
+
+=== PDF PAGE 16 ===
+Figure12:Structural shift.UncalibratedECE(solid)vs.oracletemperature(dashed)astargetedgesarerewired;onetemperature
+recoverscalibrationacrossgraphs.
+
+
+Themodeloutputsσ(δ)astheprobabilityofclass+1;forapredictionatδ=t>0itsconfidenceisσ(t).Calibration
+requiresσ(t) =σ(κt)forallt,i.e.κ= 1;thesignofκ−1givesover-/under-confidence. ApplyingtemperatureT
+mapsconfidencetoσ(t/T),whichequalsthetrueposteriorσ(κt)foralltiff1/T=κ. Becausethetemperatured
+modelthencoincideswiththetrueconditionaldistribution,itminimizesthepopulationNLL;henceT          ⋆ = 1/κ.
+Finally,
+                                        κ=   2ms2  =          2a(2h−1)ra2(4h(1−h)r                   2+σ   2)/d  =       2d(2h−1)ra(4h(1−h)r                     2+σ   2).
+
+
+Sourcecalibrationκ(h                       s) = 1givesa=             2d(2h        s−1)r4h  s(1−h       s)r 2+σ   2;substitutingintoκ(h       t),thecommonfactors2drcancel,
+anddividingnumeratoranddenominatorbyσ  2(sor      2/σ2 =ρ)yieldsEq.(1).Degreecancels.
+    ForCorollary1: underhomogeneousshift,T                             ⋆ = 1/κmakesthemodelequaltothetrueconditional,achieving
+theminimumofpopulationNLLandzeropopulationcalibrationerror,bytheargumentaboveappliedpointwise.
+PopulationNLLasafunctionofaper-nodescalingT            iis,atfixedδ        i,strictlyconvexin1/T     iwithauniqueminimizer
+1/T  ⋆;thereforeanyassignment{T   i}withT          i̸=T   ⋆onapositive-measuresetstrictlyincreasespopulationNLLrelative
+totheconstantassignmentT i≡T   ⋆.Thusper-nodetemperaturescannotimprovecalibrationunderahomogeneous
+κ;theycanonlyhelpwhenκvariesacrossnodes(heterogeneousshift).
+
+AppendixA.4. ProofofProposition1(self-loopGCN) xi +P
+Proof.UnderAssumption4,z                              i =    1d+1j∼i    xj. Projectingonˆµandconditioningony             i=+1: theselfterm
+contributesr+ζ                   i(same-class,deterministicmean+r);thedneighbourtermscontributeasinLemma1. Hence
+E[ˆµ   ⊤zi] =   rd+1 (1+d(2h−1)) =                rA(h)d+1 ,andVar[ˆµ      ⊤zi] =      1(d+1)    2 4dr  2h(1−h)+(d+1)σ                         2 = σ2B(h)(d+1)    2 (theselftermadds
+oneunitofnoisevariancebutnolabelvariance).Withδ=aˆµ              ⊤ziIgetκ     SL(h) =      2m                                                 A(h)
+                                                                                                             s2  =   2arA(h)/(d+1)a2σ2B(h)/(d+1)                2 = 2r(d+1)aσ2B(h)    .
+Fixingabyκ                SL(h s) = 1andformingtheratio,allfactorsexceptAandBcancel,givingtheclaim. Asd→ ∞,
+A(h)∼d(2h−1)andB(h)∼d(4h(1−h)ρ+1),recoveringTheorem1.
+
+
+
+
+                                                                             16
+
+=== PDF PAGE 17 ===
+AppendixA.5. ProofofProposition2(Kclasses)
+Proof.Aneighbourissame-class(probabilityh),contributingµ                         c,ordifferent-class(probability1−h)drawnuniformlyP
+amongtheK−1otherclasses,withconditionalmean                     1K−1      c′̸=c  µc′ =−     µcK−1   becausePc′µc′ = 0.Hence
+
+                        E[z    i|y i=c] =hµ        c+(1−h)−   µcK−1   =µ   c h(K−1)−(1−h)K−1               =µ   c hK−1K−1      .
+
+Sincethisscalingiscommontoallclassdirections,thesource-trainedlogitsscalebyc  K(h t)/c K(h s)undershift.
+
+Remark9.Theexactmulticlasscalibrationsloperequirestheorderstatisticsofthesoftmaxandisnotneededhere:
+Corollary1’smechanism(uniformlogitrescaling⇒asingletemperaturesuffices)carriesover,andisconfirmed
+numericallyforK=3,4,5(Fig.6).
+
+AppendixA.6. ProofofProposition3(covariateshift)
+Proof.Extrazero-meanfeaturenoiseleavesmunchangedandincreasesthelogitvariancetos                 2(τ) =a       2(4h(1−h)r                   2+
+σ2 +τ    2)/d. Thusκ          cov = 2m/s  2(τ) =κ(0)·s                 2(0)/s     2(τ);withκ(0) = 1(sourcecalibration)anddividingbyσ                      2,the
+formulafollows,andT       ⋆ = 1/κ  cov.
+
+AppendixA.7. ProofofProposition4(ECEbound)
+Proof.PopulationECE=E                δ|Pr(correct|δ)−conf(δ)|            . ByTheorem1,atδ=tthisintegrandis|σ(κt)−σ(t)|
+(witht=|δ|thepredictedconfidence’slogit).Sinceσis                                14-Lipschitz,|σ(κt)−σ(t)|≤                                  14|κt−t|=              14|κ−1||t|.Taking
+expectationoverδgivesthebound.Itvanishesasκ→1(noshift)andgrowswiththelogitmagnitude.
+
+AppendixA.8. Discussionofscope
+    Theresultsareexactinthelarge-degreeGaussianlimit(Assumption2)withaBayes-direction,source-calibrated
+linearclassifier(Assumption3).Twohonestcaveats,expandedoperationallyinSection7.5:(i)finite-degreecorrec-
+tionsareO(d        −1/2     )(Remark8),negligibleinthemoderate-accuracyregimebutgrowingasaccuracyapproaches                12or
+1;(ii)fordeepnonlinearGNNstheclosedformsholdonlyqualitatively,thoughtheoperationalconsequence(asingle
+globaltemperaturesufficesunderhomogeneousshift)isconfirmedonrealgraphsinSection6.4(e.g.amazon-ratings
+ECE0.085→0.024afteroneoracletemperature).
+
+
+References
+
+ [1]A.Bahi,Graphneuralnetworksapplicationsacrossdomains:Allinsightsyouneed(2026).arXiv:2606.27202.
+     URLhttps://arxiv.org/abs/2606.27202
+
+ [2]X.Wang,H.Liu,C.Shi,C.Yang,Beconfident! towardstrustworthygraphneuralnetworksviaconfidence
+     calibration,in:AdvancesinNeuralInformationProcessingSystems(NeurIPS),2021.
+
+ [3]H.H.-H.Hsu,Y.Shen,C.Tomani,D.Cremers,Whatmakesgraphneuralnetworksmiscalibrated?,in:Advances
+     inNeuralInformationProcessingSystems(NeurIPS),2022.
+
+ [4]C.Guo,G.Pleiss,Y.Sun,K.Q.Weinberger,Oncalibrationofmodernneuralnetworks,in: International
+     ConferenceonMachineLearning(ICML),2017.
+
+ [5]D.Zhuang,C.Jiang,Y.Zheng,S.Wang,J.Zhao,GETS:Ensembletemperaturescalingforcalibrationingraph
+     neuralnetworks,in:InternationalConferenceonLearningRepresentations(ICLR),2025.
+
+ [6]X.Li,L.Tao,H.Lu,M.Dong,J.Gao,C.Xu,WATS:Calibratinggraphneuralnetworkswithwavelet-aware
+     temperaturescaling,arXivpreprintarXiv:2506.23782(2025).
+
+ [7]B.Tang,Z.Wu,X.Wu,Q.Huang,J.Chen,S.Lei,H.Meng,SimCalib:Graphneuralnetworkcalibrationbased
+     onsimilaritybetweennodes,in:AAAIConferenceonArtificialIntelligence,2024.
+
+ [8]P.Trivedi,M.Heimann,R.Anirudh,D.Koutra,J.J.Thiagarajan,Accurateandscalableestimationofepistemic
+     uncertaintyforgraphneuralnetworks,in:InternationalConferenceonLearningRepresentations(ICLR),2024.
+
+ [9]K.Huang,Y.Jin,E.J.Candès,J.Leskovec,Uncertaintyquantificationovergraphwithconformalizedgraph
+     neuralnetworks,in:AdvancesinNeuralInformationProcessingSystems(NeurIPS),2023.
+
+
+                                                                    17
+
+=== PDF PAGE 18 ===
+[10]Y.You,T.Chen,Z.Wang,Y.Shen,Graphdomainadaptationviatheory-groundedspectralregularization,in:
+     InternationalConferenceonLearningRepresentations(ICLR),2023.
+
+[11]M.Kull,M.Perello-Nieto,M.Kängsepp,T.SilvaFilho,H.Song,P.Flach,Beyondtemperaturescaling: Ob-
+     tainingwell-calibratedmulti-classprobabilitieswithdirichletcalibration,in: AdvancesinNeuralInformation
+     ProcessingSystems(NeurIPS),2019.
+
+[12]M.P.Naeini,G.F.Cooper,M.Hauskrecht,Obtainingwellcalibratedprobabilitiesusingbayesianbinning,in:
+     AAAIConferenceonArtificialIntelligence,2015.
+
+[13]M.Minderer,J.Djolonga,R.Romijnders,F.Hubis,X.Zhai,N.Houlsby,D.Tran,M.Lucic,Revisitingthe
+     calibrationofmodernneuralnetworks,in:AdvancesinNeuralInformationProcessingSystems(NeurIPS),2021.
+
+[14]J.Mukhoti,V.Kulharia,A.Sanyal,S.Golodetz,P.H.S.Torr,P.K.Dokania,Calibratingdeepneuralnetworks
+     usingfocalloss,in:AdvancesinNeuralInformationProcessingSystems(NeurIPS),2020.
+
+[15]Y.Ovadia,E.Fertig,J.Ren,Z.Nado,D.Sculley,S.Nowozin,J.V.Dillon,B.Lakshminarayanan,J.Snoek,
+     Canyoutrustyourmodel’suncertainty?evaluatingpredictiveuncertaintyunderdatasetshift,in:Advancesin
+     NeuralInformationProcessingSystems(NeurIPS),2019.
+
+[16]M.Wang,H.Yang,Q.Cheng,GCL:Graphcalibrationlossfortrustworthygraphneuralnetwork,in: ACM
+     InternationalConferenceonMultimedia(ACMMM),2022.
+
+[17]J.Kang,Q.Zhou,H.Tong,JuryGCN:Quantifyingjackknifeuncertaintyongraphconvolutionalnetworks,in:
+     ACMSIGKDDConferenceonKnowledgeDiscoveryandDataMining(KDD),2022.
+
+[18]Q.Wu,H.Zhang,J.Yan,D.Wipf,Handlingdistributionshiftsongraphs: Aninvarianceperspective,in:
+     InternationalConferenceonLearningRepresentations(ICLR),2022.
+
+[19]Q.Zhu,N.Ponomareva,J.Han,B.Perozzi,Shift-robustGNNs:Overcomingthelimitationsoflocalizedgraph
+     trainingdata,in:AdvancesinNeuralInformationProcessingSystems(NeurIPS),2021.
+
+[20]S.Gui,X.Li,L.Wang,S.Ji,GOOD:Agraphout-of-distributionbenchmark,in:AdvancesinNeuralInformation
+     ProcessingSystems(NeurIPS),2022.
+
+[21]H.Li,X.Wang,Z.Zhang,W.Zhu,OOD-GNN:Out-of-distributiongeneralizedgraphneuralnetwork,IEEE
+     TransactionsonKnowledgeandDataEngineering(2022).
+
+[22]W.Jin,T.Zhao,J.Ding,Y.Liu,J.Tang,N.Shah,Empoweringgraphrepresentationlearningwithtest-time
+     graphtransformation,in:InternationalConferenceonLearningRepresentations(ICLR),2023.
+
+[23]D.Wang,E.Shelhamer,S.Liu,B.Olshausen,T.Darrell,Tent: Fullytest-timeadaptationbyentropymini-
+     mization,in:InternationalConferenceonLearningRepresentations(ICLR),2021.
+
+[24]Y.Sun,X.Wang,Z.Liu,J.Miller,A.A.Efros,M.Hardt,Test-timetrainingwithself-supervisionforgeneral-
+     izationunderdistributionshifts,in:InternationalConferenceonMachineLearning(ICML),2020.
+
+[25]Y.Wang,C.Li,W.Jin,R.Li,J.Zhao,J.Tang,X.Xie,Test-timetrainingforgraphneuralnetworks,arXiv
+     preprintarXiv:2210.08813(2022).
+[26]J.Liang,D.Hu,J.Feng,Dowereallyneedtoaccessthesourcedata?sourcehypothesistransferforunsupervised
+     domainadaptation,in:InternationalConferenceonMachineLearning(ICML),2020.
+
+[27]S.Garg,S.Balakrishnan,Z.C.Lipton,B.Neyshabur,H.Sedghi,Leveragingunlabeleddatatopredictout-of-
+     distributionperformance,in:InternationalConferenceonLearningRepresentations(ICLR),2022.
+
+[28]Y.Jiang,V.Nagarajan,C.Baek,J.Z.Kolter,AssessinggeneralizationofSGDviadisagreement,in:Interna-
+     tionalConferenceonLearningRepresentations(ICLR),2022.
+
+[29]D.Bo,X.Wang,C.Shi,H.Shen,Beyondlow-frequencyinformationingraphconvolutionalnetworks,in:AAAI
+     ConferenceonArtificialIntelligence,2021.
+
+[30]E.Chien,J.Peng,P.Li,O.Milenkovic,Adaptiveuniversalgeneralizedpagerankgraphneuralnetwork,in:
+     InternationalConferenceonLearningRepresentations(ICLR),2021.
+
+
+                                                            18
+
+=== PDF PAGE 19 ===
+[31]T.K.Rusch,B.P.Chamberlain,J.Rowbottom,S.Mishra,M.M.Bronstein,Graph-coupledoscillatornetworks,
+     in:InternationalConferenceonMachineLearning(ICML),2022.
+
+[32]A.Gravina,D.Bacciu,C.Gallicchio,Anti-symmetricDGN:Astablearchitecturefordeepgraphnetworks,in:
+     InternationalConferenceonLearningRepresentations(ICLR),2023.
+
+[33]Y.Deshpande,S.Sen,A.Montanari,E.Mossel,Contextualstochasticblockmodels,in: AdvancesinNeural
+     InformationProcessingSystems(NeurIPS),2018.
+
+[34]T.N.Kipf,M.Welling,Semi-supervisedclassificationwithgraphconvolutionalnetworks,in: International
+     ConferenceonLearningRepresentations(ICLR),2017.
+
+[35]F.Frasca,E.Rossi,D.Eynard,B.Chamberlain,M.Bronstein,F.Monti,SIGN:Scalableinceptiongraphneural
+     networks,arXivpreprintarXiv:2004.11198(2020).
+
+[36]F.Wu,A.Souza,T.Zhang,C.Fifty,T.Yu,K.Q.Weinberger,Simplifyinggraphconvolutionalnetworks,in:
+     InternationalConferenceonMachineLearning(ICML),2019.
+
+[37]O.Platonov,D.Kuznedelev,M.Diskin,A.Babenko,L.Prokhorenkova,AcriticallookattheevaluationofGNNs
+     underheterophily: Arewereallymakingprogress?,in: InternationalConferenceonLearningRepresentations
+     (ICLR),2023.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                             19

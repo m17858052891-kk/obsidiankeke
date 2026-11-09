@@ -1,0 +1,1817 @@
+=== PAGE 1 ===
+Repetition Mismatch: Why Data Mixture Experiments Don’t Scale
+and How to Fix Them
+Kevin Zhou†, Lisa Alazraki†, Kris Cao‡, Marek Rei†
+†Imperial College London, ‡Cohere
+kevinzhou497@gmail.com
+{lisa.alazraki20, marek.rei}@imperial.ac.uk
+kriscao@cohere.com
+Abstract
+Pre-training data mixtures are commonly tuned
+by running small-scale experiments and extrap-
+olating to the target training budget. When
+high-quality data is scarce and must be re-
+peated, this extrapolation frequently fails, but
+the source of the failure has not been isolated.
+We show that a primary culprit is a repetition
+mismatch: because high-quality datasets are
+small, their repetition rate changes as the train-
+ing budget grows, shifting the optimal mixture
+in ways that small-scale proxy experiments do
+not anticipate. A subsampling procedure that
+matches the target repetition rate controls for
+this effect. In a two-source setting combin-
+ing limited high-quality data with web crawl,
+a single repetition-controlled experiment us-
+ing only 1/16 of the target tokens recovers a
+mixture within 0.10 of the optimum on Wiki-
+Text for a 1.17B parameter model, compared
+to an error of 0.85 without repetition control.
+Achieving comparable accuracy without rep-
+etition control requires multiple training hori-
+zons, consuming 19%, 44%, and 94% of the
+target token budget when using the results from
+two, three, and four horizons respectively. With
+three data sources, the larger mixture space re-
+quires more than a single experiment to con-
+strain, but the approach remains effective: at
+the 757M scale, just two repetition-controlled
+horizons recover the optimal mixture, outper-
+forming baselines that instead require the full
+two-source experiments to construct. Our re-
+sults reveal that repetition dynamics, not scale
+alone, shape whether small-scale mixture ex-
+periments generalize. More broadly, they sug-
+gest that data repetition deserves treatment as
+a first-class variable in mixture optimization,
+rather than an inconvenient side effect of lim-
+ited data.
+1 Introduction
+The composition of training data from multiple
+sources is a critical factor in language model (LM)
+234M 468M 935M 1.87B 3.74B
+T otal training tokens
+1.5
+2
+3
+5
+7
+10
+15
+24
+Optimal repetitions of WikiT ext
+Model size
+30M
+124M
+345M
+757M
+1.17B
+Figure 1: Optimal number of WikiText repetitions
+across training horizons for five model sizes. All mod-
+els require similar repetition counts at small budgets,
+but diverge as the budget grows, causing mixtures op-
+timized at small scale by standard extrapolation to be
+systematically wrong at the target scale.
+pre-training, with substantial impact on down-
+stream performance (Miranda et al., 2025). Pre-
+training corpora typically combine noisy web crawl
+with cleaner, higher-quality sources such as books
+or curated websites, and the balance between them
+is a key challenge: high-quality data provides
+more substantive learning signals, while web crawl
+data helps with generalizability and regularization
+(Elazar et al., 2024; Longpre et al., 2024). As
+noted by Shukor et al. (2025), selecting data mix-
+tures through trial and error is costly and time-
+consuming, and several methods have been pro-
+posed for more efficient mixture selection (Xie
+et al., 2023; Fan et al., 2024; Ye et al., 2025). A
+common strategy is to run smaller-scale experi-
+ments and extrapolate the results to the target train-
+ing budget, yet practitioners frequently find that
+mixtures tuned at small scale fail to transfer to
+larger regimes (Kang et al., 2025).
+1
+arXiv:2606.07597v2  [cs.LG]  3 Sep 2026
+
+=== PAGE 2 ===
+In this work, we identify a key factor behind this
+failure:repetition mismatch. When high-quality
+data is scarce, it must be repeated many times dur-
+ing training. Crucially, the number of repetitions
+changes as the training budget grows, and exist-
+ing work has shown that repeated passes over a
+dataset can significantly affect model performance
+(Muennighoff et al., 2023). Standard scaling-based
+mixture selection ignores this effect: a small-scale
+proxy experiment imposes a fundamentally dif-
+ferent repetition regime on the high-quality data
+than the target run, distorting the loss landscape
+and shifting the apparent optimal mixture, an effect
+that grows with model scale (Figure 1). We show
+that controlling for this repetition mismatch largely
+resolves the extrapolation problem.
+Our approach builds on a repetition-aware sub-
+sampling procedure first used by Li et al. (2025)
+during pre-training. The procedure downsamples
+all data sources so that the high-quality data un-
+dergoes the same number of repetitions as in the
+full training run, while using only a fraction of the
+total tokens. We use this procedure to isolate rep-
+etition as a variable in mixture prediction. To test
+this, we compare it against a standard scaling laws-
+based approach that extrapolates optimal mixture
+ratios from shorter training runs without matching
+repetition rates.
+Our experiments combine a limited high-quality
+dataset – either WikiText (Merity et al., 2017) or
+biomedical literature from PubMed (National Cen-
+ter for Biotechnology Information (NCBI)) – with
+FineWeb (Penedo et al., 2024), a large-scale web
+crawl corpus. We first examine the two-source
+case, then extend to a three-source setting using
+both high-quality datasets alongside FineWeb. Ex-
+periments span five model sizes (30M to 1.17B),
+allowing us to trace how model capacity interacts
+with repetition dynamics in mixture prediction.
+Our findings are:
+• Repetition mismatch is a dominant con-
+founder in small-scale mixture prediction.
+Matching the repetition rate of the target run,
+rather than just reducing the training budget, is
+sufficient to recover accurate mixture predic-
+tions from small-scale experiments. The ef-
+fect is consistent across WikiText and PubMed
+as high-quality sources, as well as model sizes
+from 124M to 1.17B.
+• Repetition control enables accurate mix-
+ture prediction from minimal compute.In
+the two-source setting, a single repetition-
+controlled experiment using ∼1/16 of the tar-
+get horizon tokens recovers mixtures within
+0.10–0.15 of the optimum for the 1.17B model
+across both WikiText and PubMed, compared
+to errors of 0.70–0.85 without repetition con-
+trol. Reaching comparable accuracy without
+repetition control requires multiple training
+horizons, consuming 19%, 44%, and 94% of
+the target token budget when using the small-
+est two, three, and four horizons of our exper-
+imental setup respectively.
+• With more data sources, the mixture space
+requires more experiments to constrain,
+but repetition control remains effective.
+At 757M parameters, just two repetition-
+controlled horizons recover the target opti-
+mum at a fraction of the target token budget.
+At 124M, multiple repetition-controlled hori-
+zons outperform both baselines, with the four-
+horizon prediction effectively matching the
+optimum (loss2.91950vs.2.91820).
+• Repetition rate should be an explicit knob
+in mixture optimization, not an inciden-
+tal consequence of budget and dataset size.
+Our results demonstrate that controlling for
+repetition dynamics, rather than treating them
+as a side effect of limited data, is critical for
+reliable mixture prediction in data-constrained
+regimes.
+2 Background
+2.1 Data Mixing in Pre-training
+Pre-training corpora for language models combine
+multiple data sources, and the proportions assigned
+to each source have a substantial impact on model
+performance (Du et al., 2022; Miranda et al., 2025).
+Selecting effective mixtures through trial and error
+is costly (Shukor et al., 2025), motivating a range
+of methods that aim to predict good mixtures from
+smaller-scale experiments. These include scaling
+law-based approaches that fit parametric functions
+to predict loss under different mixture configura-
+tions (Ge et al., 2025; Shukor et al., 2025; Ye et al.,
+2025), proxy model methods that learn domain
+weights from auxiliary training signals (Xie et al.,
+2023; Fan et al., 2024), and regression-based ap-
+proaches that treat mixture selection as a predic-
+tion task (Liu et al., 2025a,b). Here we focus on
+domain-level mixing, with the goal of determining
+2
+
+=== PAGE 3 ===
+the proportion of each data source in the training
+mixture, rather than on strategies operating on in-
+dividual samples.
+2.2 Data Repetition and Its Effects
+When high-quality data is limited, repeated passes
+over the same documents are often unavoidable at
+training time. However, this repetition has well-
+documented non-linear effects on learning. Muen-
+nighoff et al. (2023) show that for a fixed compute
+budget, up to approximately four repetitions of a
+dataset are as effective as training on new data,
+whereas more than four trigger diminishing returns
+and performance eventually plateaus. Xue et al.
+(2023) extend this analysis, finding that the severity
+of multi-epoch degradation depends on model size,
+dataset size, as well as training objective, and that
+larger models are more susceptible to overfitting
+from excessive repetition on small datasets. Stan-
+dard scaling laws for pre-training (Hoffmann et al.,
+2022; Kaplan et al., 2020) typically assume abun-
+dant data and do not account for these repetition
+effects, raising questions about their applicability
+in data-constrained regimes.
+Crucially, these findings imply that the number
+of times a dataset is repeated during training is
+not merely a side effect of a limited data budget,
+but a variable that actively shapes the loss land-
+scape. When a high-quality dataset is small rel-
+ative to the training budget, the repetition count
+changes substantially as the budget grows. This
+means that a small-scale proxy experiment and the
+target training run operate under fundamentally dif-
+ferent repetition regimes, even when they use the
+same mixture proportions.
+2.3 The Repetition Mismatch Problem
+Although the effects of data repetition are well-
+established, existing methods for predicting opti-
+mal data mixtures from small-scale experiments do
+not explicitly control for these repetition dynam-
+ics. Scaling law-based approaches (Ge et al., 2025;
+Shukor et al., 2025; Ye et al., 2025) extrapolate
+performance trends across training budgets with-
+out accounting for the fact that the repetition count
+of constrained data sources changes between the
+proxy and target scales. Proxy model methods (Xie
+et al., 2023; Fan et al., 2024) similarly learn domain
+weights without modeling repetition. As a result,
+these methods implicitly assume that the relation-
+ship between mixture proportions and performance
+will hold at the target scale, an assumption that
+breaks down when repetition dynamics differ.
+Li et al. (2025) introduce a repetition-aware sub-
+sampling procedure that incidentally addresses this
+issue: by downsampling all data sources so that
+the high-quality data undergoes the same number
+of repetitions as in the full training run, the pro-
+cedure preserves repetition dynamics while using
+only a fraction of the total tokens. Li et al. (2025)
+use this procedure to inform data mixture decisions
+during pre-training, but do not isolate repetition
+mismatch as a distinct phenomenon or characterize
+when it matters. In this work, we identify repe-
+tition mismatch as a previously under-recognized
+confounder in data mixing research, and show that
+controlling for it addresses the extrapolation failure
+of small-scale mixture predictions across model
+sizes, dataset choices, and number of data sources.
+3 Experimental Setup
+To test whether repetition mismatch explains the
+failure of small-scale mixture extrapolation, we
+conduct experiments across multiple high-quality
+datasets, model sizes, and numbers of training do-
+mains.1
+3.1 Datasets
+We use datasets that differ in size and quality and
+are commonly employed in language model pre-
+training (Yang et al., 2025; Bolton et al., 2024),
+allowing us to study how repetition dynamics af-
+fect mixture prediction when combining smaller,
+high-quality datasets with larger, noisier sources.
+Additional details of each dataset are provided in
+Appendix A.
+WikiText(Merity et al., 2017) contains articles
+from Wikipedia’sGood and Featuredlist, provid-
+ing a high-quality data source that contrasts with
+more general web crawl. In our experiments, we
+use the wikitext-103-raw-v1 instance.2 After
+tokenization, the training set contains 116,881,107
+tokens. Model performance is evaluated on a held-
+out WikiText validation set of 131,072 tokens.
+In all experiments, we exclude web crawl data
+from the validation set and evaluate performance
+exclusively on high-quality domains. This allows
+us to more directly assess the effects of data rep-
+etition and mixture composition, as validation on
+1Our code is available at https://github.com/
+kevinzhou497/data-mixing-language-models
+2https://huggingface.co/datasets/Salesforce/
+wikitext
+3
+
+=== PAGE 4 ===
+noisy web-sourced text can obscure differences in-
+duced by mixing strategies. Focusing on curated
+domains provides a more stable and interpretable
+evaluation signal when high-quality data is the pri-
+mary object of optimization, consistent with prior
+studies that evaluate pre-training mixtures using
+curated-domain validation data (Muennighoff et al.,
+2023).
+PubMedis a collection of biomedical litera-
+ture (National Center for Biotechnology Informa-
+tion (NCBI)), with a corresponding dataset 3 that
+contains citation records for its articles. Many of
+these records include the text of the abstract, which
+we use as our data samples. To roughly match
+the size of the WikiText training set, we sample
+abstracts until the total number of tokens reaches
+approximately 120 million, resulting in a training
+set of 120,000,060 tokens. Evaluation is performed
+on a held-out PubMed validation set of 131,072 to-
+kens, consistent with our procedure for WikiText.
+FineWeb(Penedo et al., 2024) is a large-scale
+web-crawled text corpus. Penedo et al. (2024) have
+shown that this corpus leads to stronger language
+model performance compared to other web crawl
+datasets such as RefinedWeb (Penedo et al., 2023)
+and C4 (Raffel et al., 2020).
+We use the FineWeb-10BT dataset, a subsample
+of approximately 10 billion tokens. At this scale
+and with the training horizons we employ, no rep-
+etitions of the FineWeb dataset occur, creating a
+clear contrast with the smaller high-quality domain
+datasets. This reflects realistic scenarios where
+limited domain-specific data is supplemented by
+abundant web-crawled text, and where repetition is
+a factor for only the high-quality sources.
+3.2 Models
+We employ a modified version of
+NanoGPT (Karpathy, 2022) from the
+modded-nanogpt repository (Jordan et al.,
+2024a). This architecture reproduces GPT-2,
+with enhancements including the Muon opti-
+mizer (Jordan et al., 2024b) and Rotary Positional
+Embeddings (RoPE) (Su et al., 2024). Further
+details are provided in Appendix B.
+Five model sizes are considered, obtained by
+varying the number of layers and the embedding
+dimension, resulting in approximately 30 million,
+124 million, 345 million, 757 million, and 1.17
+3https://huggingface.co/datasets/ncbi/pubmed
+billion parameter models. This range allows us to
+trace how model capacity interacts with repetition
+dynamics in mixture prediction, which is central to
+our analysis. Training results for different horizons
+are obtained separately for each model size, isolat-
+ing the effect of model capacity on the severity of
+repetition mismatch.
+3.3 Data Mixing Objective
+Let D={D 1, ...,D n} be a set of datasets
+and T⋆ be the target training horizon. The
+goal is to find an optimal target mixture vec-
+tor m∗(T⋆) = [m∗
+1, ..., m∗
+n] of length n, withP m∗
+i = 1and0≤m ∗
+i ≤1.
+Since model size is fixed, the task is to pre-
+dict the optimal mixture at the full target hori-
+zon using the same model trained on smaller to-
+ken budgets. Specifically, after obtaining optimal
+mixture vectors {˜m(Tj)}h
+j=1 for smaller horizons
+0< T 1 <· · ·< T h < T ⋆, we aim to predict the
+target mixture
+m∗(T⋆)∈arg min
+m∈∆n−1
+L(m;T ⋆),
+where ∆n−1 ={m∈R n
+≥0 : Pn
+i=1 mi = 1} is the
+probability simplex and L(m;T ⋆) is the average
+cross-entropy loss on held-out validation data for
+mixturemand horizonT ⋆.
+Our objective is to predict m∗(T⋆) as accurately
+as possible while minimizing the number of re-
+quired experiments to reduce computational costs.
+4 Two-Source Data Mixtures
+We first investigate the two-source case: high-
+quality data from either WikiText or PubMed com-
+bined with FineWeb. To isolate the role of repe-
+tition mismatch, we compare mixture predictions
+obtained with and without repetition control, hold-
+ing all other experimental variables constant.
+Without Repetition Control (Scaling Laws).
+We identify the optimal data mixture at each of
+5 training horizons, with each subsequent horizon
+approximately doubling in length. For each hori-
+zon, we measure the optimal number of repetitions
+of the high-quality dataset, equivalent to the opti-
+mal mixing ratio in the two-source case. We then
+predict the target-horizon mixture in four ways:
+(i) using only the smallest horizon as a direct ex-
+trapolation; (ii–iv) fitting a linear regression over
+the two, three, or four smallest horizons between
+4
+
+=== PAGE 5 ===
+0.0 0.2 0.4 0.6 0.8
+Mixing Ratio (Proportion of FineWeb)
+3.0
+3.2
+3.4
+3.6
+3.8
+4.0
+4.2
+4.4Validation Loss
+Training Horizon
+232M, 1/16 subsample
+468M, 1/8 subsample
+936M, 1/4 subsample
+1.87B, 1/2 subsample
+234M
+468M
+935M
+1.87B
+3.74B, T arget
+Figure 2: Cross-entropy loss on the validation set at the end of the training run plotted for the 757M model when
+using WikiText as the high-quality domain data. The scaling laws-based experiment results are shown with the
+dotted lines, and the repeat-aware results are shown with the solid lines. The results for other model sizes display
+similar behavior, and all of the optimal mixtures from our two-source experiments are presented in Appendix D.
+training tokens and optimal repetitions. Unlike
+prior data mixing scaling laws, which predict loss
+or perplexity, we predict the optimal mixing ratio
+directly, as our goal is to evaluate how accurately
+small-scale experiments recover the target mixture.
+This linear-extrapolation baseline formalizes the
+practitioner workflow of running mixture sweeps
+at smaller scales and projecting forward, used in
+industry pre-training pipelines such as Llama 3
+(Grattafiori et al., 2024) and identified as standard
+practice by Shukor et al. (2025) and Kang et al.
+(2025). Each model size is treated as a separate set
+of experiments. For each horizon, we sweep over
+mixing ratios in increments of 0.05, training until a
+U-shaped curve in the validation loss emerges, in-
+dicating that the optimal ratio has been bracketed.
+Across experiments, the validation loss generally
+decreases toward the optimum and then increases;
+the occasional local non-monotonicity motivates
+our fine-grained 0.05 sweep granularity, which we
+find sufficient to identify the true optimum region
+rather than a local minimum.
+With Repetition Control (Repeat-aware).To
+control for repetition mismatch, we apply the sub-
+sampling procedure described in Section 2.3, us-
+ing the same target horizon and subsamples of
+1
+16 , 1
+8 , 1
+4 ,and 1
+2, with subsampling performed at the
+document level.
+To illustrate, let the target horizon contain T⋆
+tokens, the high-quality dataset be D with length
+nD, and the mixture proportion be h. In the full
+training setup, the number of repetitions of D is
+T⋆×h
+nD
+. In the 1
+S subsample scenario, only the first
+1
+S fraction of documents from D is used, and the
+training horizon is reduced to 1
+S ×T ⋆ tokens. Keep-
+ing the same mixture proportion h and assuming
+reasonably uniform document lengths, the number
+of repetitions becomes
+T⋆ × 1
+S ×h
+nD × 1
+S
+= T⋆ ×h
+nD
+.
+Thus, this setup preserves the same number of rep-
+etitions as the full scenario while using only 1
+S of
+the total tokens. A structural consequence of this
+identity is that repeat-aware predictions fix the tar-
+get repetition count deterministically, whereas the
+scaling-laws baseline leaves the repetition count
+to vary with the proxy horizon. We compute the
+optimal mixture at each subsampled horizon and
+predict the target mixture using the same four for-
+mulations as above. Further experimental details,
+including hyperparameters, are provided in Ap-
+5
+
+=== PAGE 6 ===
+High-Quality Dataset Model Size Scaling Laws Prediction Error Repeat-aware Prediction Error
+1-H 2-H 3-H 4-H 1-H 2-H 3-H 4-H
+WikiText
+30M0.250 0.0640.060 0.039 0.550 0.256 0.013 0.044
+124M 0.6500.034 0.006 0.001 0.2000.200 0.097 0.062
+345M 0.750 0.129 0.013 0.0000.1000.100 0.011 0.017
+757M 0.750 0.028 0.010 0.0060.0500.050 0.050 0.000
+1.17B 0.850 0.0900.052 0.014 0.1000.100 0.220 0.109
+PubMed
+30M0.300 0.1140.110 0.059 0.500 0.315 0.119 0.079
+124M 0.650 0.2590.0440.0320.200 0.2000.095 0.061
+345M 0.750 0.129 0.032 0.0120.1000.100 0.011 0.016
+757M 0.6500.011 0.0010.0290.1000.100 0.100 0.050
+1.17B 0.700 0.1290.0900.0270.1500.150 0.150 0.050
+Table 1: Distances from the optimal mixture across model sizes, measured by the absolute difference in FineWeb
+proportion across datasets and prediction horizons. Since these experiments involve only two data sources, this
+difference directly reflects the mixture prediction error. The better-performing method is inboldwhen the two
+methods differ by at least 0.05, our mixing-ratio sweep granularity; smaller differences should be counted as ties and
+thus neither method is bolded. The 1-H, 2-H, etc. column headers refer to the 1-Horizon, 2-Horizon, etc. predictions.
+pendix C.
+4.1 Two-Source Results and Discussion
+Figure 2 presents results for the 757M model with
+WikiText as the high-quality source. Training to-
+ken counts across corresponding horizons differ
+slightly between setups, as repeat-aware subsam-
+pling operates at the document level.
+Across all model sizes and both high-quality
+sources, a consistent pattern emerges: without rep-
+etition control, the optimal proportion of high-
+quality data decreases as the training budget in-
+creases, reflecting the diminishing returns from
+excessive repetition documented by Muennighoff
+et al. (2023). PubMed and WikiText follow remark-
+ably similar trajectories, underscoring the general-
+izability of these findings. Full mixture results are
+in Appendix D.
+Repetition Control Stabilizes Mixture Predic-
+tions.The most striking feature of Figure 2 is
+the tight clustering of optimal mixing ratios across
+horizons under repetition control, compared to the
+large drift without it. Table 1 quantifies this pattern.
+Single-Horizon Predictions.The single-horizon
+case most directly reveals the effect of repetition
+mismatch. Using only the smallest horizon (∼ 1
+16
+of the target tokens), repetition control recovers
+a mixture within 0.100 of the optimum for the
+1.17B model on WikiText, versus 0.850 without
+it. PubMed shows the same pattern (0.150 versus
+0.700), as does the 757M model on both domains
+(0.050 versus 0.750 with WikiText and0.100 ver-
+sus 0.650 with PubMed). With WikiText, this “one-
+shot” prediction uses only ∼232M tokens com-
+pared to 3.74B at the target ( ∼241M and 3.84B
+with PubMed), yet recovers a near-optimal mix-
+ture at a fraction of the cost. For the 124M, 345M,
+757M, and 1.17B model sizes and with both Wiki-
+Text and PubMed, repetition control recovers a
+stronger mixture with a single horizon than without
+it. For the smallest model (30M), repetition control
+performs worse.
+Multiple Horizons.As additional horizons are
+added, both methods converge toward comparable
+accuracy. Repeat-aware achieves this convergence
+immediately: its predictions are already near the
+target-horizon optimum after a single horizon and
+generally change little as more are added, while the
+linear regression baseline improves gradually as it
+accumulates fitting points. For the 345M and 757M
+models this produces effective ties across the 2-,
+3-, and 4-horizon regimes, with most differences at
+or below the 0.05 mixing-ratio sweep granularity.
+At 1.17B, the linear baseline continues to improve
+with additional horizons and eventually overtakes
+repeat-aware at three or four horizons by more than
+the 0.05 sweep granularity; but by that point the
+sweep has consumed 44–94% of the target token
+budget (Section 6), whereas repeat-aware has held
+its single-horizon prediction throughout at ∼6%
+of the target budget. The practical value of rep-
+etition control therefore lies in this early-locking
+behavior: a single cheap horizon already delivers a
+near-optimal mixture.
+6
+
+=== PAGE 7 ===
+The Role of Model Capacity.The benefit of rep-
+etition control depends strongly on model capacity
+(Table 1). The single-horizon improvement with
+WikiText shrinks from0.750 at 1.17B parameters
+to 0.450 at 124M, and at 30M, repetition control is
+outperformed by scaling-law extrapolation, iden-
+tifying a lower bound on the model scale where
+the method applies. Figure 1 reveals the under-
+lying mechanism: the optimal repetition count at
+the target horizon ranges from ∼5 for the 1.17B
+and 757M models to ∼24 for the 30M. Because
+subsampling preserves the repetition count while
+reducing the absolute number of high-quality to-
+kens, smaller models that require many repetitions
+at the target horizon end up with too few unique
+tokens to learn from. Repetition control therefore
+works best when the model is large enough to ex-
+tract signal from high-quality tokens efficiently.
+The 30M results illustrate the failure mode at very
+small model scales and establish this lower bound
+empirically; the 124M, 345M, 757M, and 1.17B
+results show the method works above it.
+Notably, the optimal repetition counts for the
+30M and 124M models substantially exceed the
+∼4-repetition threshold identified by Muennighoff
+et al. (2023), beyond which diminishing returns
+typically begin. Rather than contradicting this find-
+ing, this suggests that the threshold is model-size-
+dependent. The PubMed experiments exhibit the
+same pattern (Figure 4, Appendix D).
+Bootstrap Validation of the Optimal Mixtures
+We also compute paired bootstrap 95% confidence
+intervals on the loss over the validation set for the
+1.17B target-horizon mixture sweeps, using 10,000
+re-samples. For PubMed, the target-horizon opti-
+mum of 0.80 FineWeb and 0.20 PubMed is signifi-
+cantly separated from its neighboring mixtures of
+(0.75 FineWeb, 0.25 PubMed) and (0.85 FineWeb,
+0.15 PubMed). For WikiText, the loss landscape is
+comparatively flat around the optimal mixture of
+0.85 FineWeb and 0.15 WikiText. The optimum
+is significantly better than the (0.90, 0.10) mixture
+but not the (0.80, 0.20) mixture; however, both are
+significantly better than all other mixtures in the
+sweep, demonstrating that the true optimal mix-
+ture lies in this near-optimal region. Both sweeps
+also show a mild non-monotonicity at (0.75, 0.25),
+where the loss is higher than at either neighbor-
+ing mixture; this local perturbation motivates our
+fine-grained sweep granularity, which the bootstrap
+confirms is sufficient to identify the true optimum
+region rather than a local minimum. The full set of
+bootstrap confidence intervals for the target horizon
+is presented in Appendix F.
+5 Three-Source Data Mixtures
+We next test whether repetition control remains
+effective with a larger mixture space. We use
+three data sources: WikiText and PubMed as high-
+quality datasets, and FineWeb as the web crawl.
+Model evaluation averages the loss on the WikiText
+and PubMed validation sets. This setup reflects
+common pre-training configurations that combine
+multiple high-quality sources with general web
+crawl, such as the data mixture used for the first
+LLaMA models (Touvron et al., 2023).
+Experimental Procedure.We follow the same
+procedure as in the two-source case, using the same
+subsample proportions and a full target horizon of
+∼3.79 billion tokens. We run experiments at both
+the 124M and 757M model scales, mirroring the
+two-source setup and allowing us to test whether
+the model-capacity trend from Section 4.1 carries
+over to the larger mixture space. Since WikiText
+and PubMed differ slightly in total token count, we
+average the iteration counts from the corresponding
+two-source experiments at each horizon.
+Baselines.We compare against two baselines de-
+rived from the two-source results at each model
+scale: (i) using the optimal proportion of each
+high-quality domain from its respective two-
+source experiment, and (ii) averaging the optimal
+high-quality proportions across the WikiText and
+PubMed two-source experiments, allocated in pro-
+portion to their two-source optima. In both cases,
+the remainder is assigned to FineWeb. For the
+124M model, both two-source optima are 0.35,
+yielding Baseline 1 = [0.30,0.35,0.35] and Base-
+line 2 = [0.65,0.175,0.175] . For 757M, the Wiki-
+Text and PubMed optima are 0.15 and 0.20, yield-
+ing Baseline 1 = [0.65,0.15,0.20] and Baseline 2
+= [0.825,0.075,0.100] . Both baselines use target-
+horizon two-source optima, giving them strictly
+more information about the two-source structure
+of the problem than any small-scale extrapolation
+would have; comparisons against them are there-
+fore conservative.
+5.1 Three-Source Results and Discussion
+Table 2 presents the three-source results at the
+target horizon for the 124M and 757M models.
+7
+
+=== PAGE 8 ===
+Model Size Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+124M
+0.3, 0.35, 0.35 0.001 2.94270 Baseline 1
+0.45, 0.25, 0.3 0.001 2.91820 Optimal Mixture
+0.51, 0.245, 0.245 0.001 2.91950 Four-Horizon Prediction
+0.56, 0.22, 0.22 0.001 2.92830 Three-Horizon Prediction
+0.57, 0.215, 0.215 0.001 2.92965 Two-Horizon Prediction
+0.65, 0.175, 0.175 0.001 2.95570 Baseline 2
+0.75, 0.125, 0.125 0.00141 3.01300 Single-Horizon Prediction
+757M
+0.65, 0.175, 0.175 0.001 2.7699 Optimal / Two-Horizon Prediction
+0.65, 0.15, 0.20 0.001 2.7751 Baseline 1
+0.825, 0.075, 0.100 0.001 2.8337 Baseline 2
+0.85, 0.075, 0.075 0.001 2.8518 Single-Horizon Prediction
+Table 2: Key results from the three-source repeat-aware experiments at the full training horizon for the 124M
+and 757M models. Mixing ratios are shown as proportions of FineWeb, WikiText, and PubMed, with the optimal
+mixture per model size highlighted inbold.
+We evaluate mixture predictions here on valida-
+tion loss rather than mixing-ratio distance, since
+three-source mixtures cannot be reduced to a single
+scalar coordinate. Following the same conservative
+convention we apply throughout the paper, our con-
+clusions rest on the pattern that holds across model
+sizes rather than on any individual validation loss
+gap and we do not rely on interpreting small loss
+differences as providing strict rankings.
+One horizon is the floor; more horizons rapidly
+close the gap.With three sources, we observe
+the trend across both model sizes that a single
+horizon yields mixtures that are further from the
+optimum, but predictions with additional hori-
+zons do recover near-optimal mixtures. A single
+repetition-controlled horizon yields a mixture of
+[0.75,0.125,0.125] at 124M against a true opti-
+mum of [0.45,0.25,0.3] , and [0.85,0.075,0.075]
+at 757M against [0.65,0.175,0.175] . Both pre-
+dictions drift toward higher FineWeb proportions,
+leaving a loss gap of ∼0.08–0.10 from the opti-
+mum, consistent with the larger mixture space re-
+quiring more than one experiment to constrain. As
+we show next, adding even a single additional hori-
+zon dramatically narrows this gap.
+Two horizons suffice at larger model scale.At
+757M, two horizons close the remaining gap to the
+optimum. The two-horizon repetition-controlled
+prediction yields a FineWeb proportion of 0.65,
+giving a mixture of [0.65,0.175,0.175] that re-
+covers the target optimum at sweep granularity
+(avg. loss 2.7699). It outperforms Baseline 2
+(2.8337) and matches Baseline 1 ( 2.7751). Two
+short repetition-controlled runs in the three-source
+setting recover the optimal mixture, while the clos-
+est competing baseline requires two complete two-
+source sweeps as a prerequisite. This mirrors the
+model-capacity trend observed in the two-source
+experiments: as model size grows, repetition con-
+trol becomes increasingly sample-efficient, and the
+number of horizons needed to constrain the mixture
+space drops.
+Multi-horizon predictions converge to the opti-
+mum at smaller scale.At the 124M scale, where
+two horizons are not yet sufficient, additional hori-
+zons progressively close the gap to the optimum.
+Fitting linear regressions over the smallest two,
+three, and four horizons predicts FineWeb propor-
+tions of approximately 0.57, 0.56, and 0.51 respec-
+tively. Distributing the remaining budget evenly
+between WikiText and PubMed and training at
+these predicted mixtures, all three outperform both
+baselines (Table 11). The four-horizon prediction
+([0.51,0.245,0.245] ) achieves a loss of 2.91950,
+effectively matching the true optimum of 2.91820,
+while the two- and three-horizon predictions reach
+competitive accuracy at substantially lower cost.
+Together with the 757M two-horizon result, these
+findings show that repetition control remains ef-
+fective in the three-source setting, with the number
+of horizons needed shrinking as model capacity
+grows, mirroring the same interaction between rep-
+etition dynamics and model scale that underlies the
+two-source results.
+6 Compute Cost of Mixture Prediction
+Both approaches use the same training horizons and
+sweep over mixing ratios and learning rates identi-
+cally, so the cost at any given horizon is the same;
+8
+
+=== PAGE 9 ===
+1 2 3 4
+Number of Horizons
+0
+25
+50
+75
+100% of T arget T oken Budget
+T arget budget
+Figure 3: Cumulative training tokens across horizons for
+the WikiText two-source experiments, as a percentage
+of the target token budget. Each additional horizon
+roughly doubles the cumulative cost: by four horizons,
+a sweep consumes nearly the full target budget, making
+the single-horizon regime the most cost-efficient when
+accuracy permits.
+the practical difference is how many horizons are
+needed. In the two-source experiments with Wiki-
+Text, repetition control achieves a prediction error
+of just 0.05 for the 757M model and 0.10 for the
+1.17B model using a single horizon, roughly 6% of
+the target token budget. Without repetition control,
+the same horizon yields an error of 0.75 and 0.85
+respectively. Using multiple horizons to achieve
+comparable accuracy requires a much greater pro-
+portion of the target budget; roughly 19% for two
+horizons, 44% for three horizons, and 94% for four
+horizons (Figure 3). With three sources, the larger
+mixture space requires more than one horizon, but
+two repetition-controlled horizons (roughly 19%
+of the target budget) recover the optimum at 757M
+and beat both baselines at 124M. The savings thus
+come entirely from needing fewer horizons, and
+grow with the target training budget; for precise
+per-horizon token counts and a trillion-token ex-
+trapolation, see Appendix E.
+7 Conclusion
+In this work, we set out to understand why data
+mixtures tuned at small scale often fail to transfer to
+larger training budgets in data-constrained settings.
+Our experiments point to a clear culprit: repetition
+mismatch. When high-quality data is scarce, it
+must be repeated during training, and the number
+of repetitions changes as the training budget grows.
+Small-scale proxy experiments and full-scale target
+runs therefore operate under different repetition
+regimes, and standard scaling-based approaches do
+not account for this.
+Controlling for repetition resolves the problem.
+A single repetition-controlled horizon using 1/16
+of the target tokens recovers a mixture within
+0.10–0.15 of the optimum at 1.17B and 0.05–0.10
+at 757M across both WikiText and PubMed, com-
+pared to errors of 0.70–0.85 and 0.65–0.75 respec-
+tively without repetition control. This advantage
+strengthens with model capacity, and in a three-
+source setting, as few as two horizons match the
+target optimum at larger scale. Each of these results
+required holding repetition fixed between proxy
+and target experiments rather than letting it drift
+with the training budget.
+Repetition control is also a simple intervention,
+operating at the dataset level and requiring no para-
+metric modeling, proxy training runs, or hyperpa-
+rameter tuning beyond the mixing-ratio sweep that
+any mixture prediction method already performs. It
+is therefore orthogonal to existing approaches and
+could be incorporated into any of them, yet to our
+knowledge no current method does so.
+More broadly, these findings suggest that data
+repetition deserves to be treated as a primary vari-
+able in mixture optimization rather than an incon-
+venient side effect of limited data. Methods that
+predict mixtures from small-scale proxy experi-
+ments in data-constrained regimes should control
+for repetition dynamics, as failing to do so risks
+systematic prediction errors that grow with both
+model capacity and the gap between proxy and tar-
+get scales. As practitioners increasingly rely on
+smaller ablation runs to inform mixture decisions
+for billion-parameter models, accounting for repe-
+tition mismatch will only become more important.
+Limitations
+Our experiments use models up to 1.17B parame-
+ters and horizons up to ∼3.8B tokens, smaller than
+modern LLM pre-training. Extrapolating trends
+from smaller scales is standard practice in scaling
+laws research (Kaplan et al., 2020; Hoffmann et al.,
+2022), and repetition control’s general strength-
+ening with model size across the range we study
+suggests these findings extend to multi-billion pa-
+rameter models. Empirical confirmation at that
+scale is beyond our resources, and we leave it as a
+direction for future investigation.
+Our results are based on single runs per configu-
+ration, consistent with prevailing practice in scaling
+laws and data mixing research (Bordt and Pawel-
+czyk, 2026; Magnusson et al., 2025), where pre-
+training costs make multi-seed sweeps impractical
+at our mixture-ratio and horizon grid scales. Our
+9
+
+=== PAGE 10 ===
+claims accordingly rest on aggregate trends that
+hold across both high-quality datasets and the range
+of model sizes we study. As noted in Section 4.1,
+individual differences within the 0.05 mixing-ratio
+sweep granularity should be interpreted conserva-
+tively. A direct check on run-to-run variation shows
+that our conservative treatment is well within actual
+noise margins: rerunning five PubMed configura-
+tions under each method at three seeds each shifted
+validation loss by at most 0.0085, well below the
+differences underlying our main claims. Full multi-
+seed results are reported in Appendix G.
+We compare repetition control against a linear-
+regression baseline over optimal mixing ratios
+across horizons, formalizing the practitioner work-
+flow standard in industry pipelines (see Sec-
+tion 4). No published mixture-prediction method,
+to our knowledge, includes per-source repetition
+as an input variable, including the parametric ap-
+proaches of Ye et al. (2025), Shukor et al. (2025),
+Ge et al. (2025), Kang et al. (2025), and Liu
+et al. (2025b). These methods could incorpo-
+rate repetition-awareness through several natural
+routes: as an input feature in a RegMix-style re-
+gression, or as a repetition-dependent term in a
+parametric data-mixing law fit jointly with the mix-
+ture coefficients. The intervention is additive to
+existing methods rather than a replacement, and we
+view it as a natural extension of our findings.
+Our evaluation focuses on validation loss over
+the high-quality domains (WikiText and PubMed).
+This choice is consistent with prior data mixing
+work (Ye et al., 2025; Muennighoff et al., 2023)
+and reflects a methodological consideration in our
+setup: because FineWeb is unrepeated across all
+horizons, web-crawl perplexity primarily tracks
+exposure to FineWeb tokens rather than mixture
+quality, while the signal that distinguishes mixtures
+is most cleanly observable on the repeated high-
+quality sources. Our accuracy claims are there-
+fore scoped to this objective: a mixture identified
+as optimal here minimizes high-quality-domain
+validation loss, and whether it is optimal under
+downstream-task or full-corpus objectives is an em-
+pirical question we do not answer. Confirming that
+our findings transfer to downstream benchmarks
+remains an important direction for future work.
+Our experiments combine one or two high-
+quality datasets with a single large web crawl,
+a simplified setup compared to real-world pre-
+training corpora, which typically draw from seven
+or more sources with varying repetition rates (Tou-
+vron et al., 2023; Weber et al., 2024). This few-
+source design follows prior work studying repeti-
+tion effects and data composition in controlled set-
+tings (Muennighoff et al., 2023; Xue et al., 2023).
+A controlled few-source setup also avoids con-
+founds like content overlap or near-duplication that
+can obscure repetition effects; here, each high-
+quality source is repeated independently and dis-
+jointly from the web crawl, isolating the repetition
+variable cleanly. The repetition-aware procedure
+generalizes naturally to any number of sources,
+though we leave its empirical behaviour on more
+diverse mixtures with datasets of varied sizes to
+future investigation.
+All experiments use English-language datasets.
+Since data scarcity is often more acute for non-
+English languages (Joshi et al., 2020), repetition
+mismatch may be an even greater concern in mul-
+tilingual settings, which we leave to future work.
+Ethical Considerations
+All datasets employed in our experiments are pub-
+licly available and have been used in accordance
+with their respective licenses. Our models are
+based on open-source architectures and are trained
+using open-source software released under permis-
+sive licenses. Additionally, we share our code pub-
+licly to support reproducibility.
+Pre-training language models is computationally
+expensive, and the experimental sweeps required
+to study data mixing compound this cost. Our re-
+sults show that controlling for repetition can reduce
+the experimental budget needed to identify effec-
+tive mixtures. This may help reduce the computa-
+tional and environmental cost of mixture selection
+as data mixing studies become standard practice
+for billion-parameter pre-training.
+Our PubMed experiments use abstracts from the
+publicly released HuggingFace PubMed dataset.
+We did not extract or process any personally identi-
+fiable information, and all biomedical content used
+is publicly distributed for research purposes.
+References
+Jeremy Bernstein and Laker Newhouse. 2024. Old op-
+timizer, new norm: An anthology. InOPT 2024:
+Optimization for Machine Learning.
+Elliot Bolton, Abhinav Venigalla, Michihiro Ya-
+sunaga, David Hall, Betty Xiong, Tony Lee, Rox-
+ana Daneshjou, Jonathan Frankle, Percy Liang,
+Michael Carbin, and Christopher D. Manning. 2024.
+10
+
+=== PAGE 11 ===
+Biomedlm: A 2.7b parameter language model trained
+on biomedical text.Preprint, arXiv:2403.18421.
+Sebastian Bordt and Martin Pawelczyk. 2026. Train
+once, answer all: Many pretraining experiments for
+the cost of one. InThe F ourteenth International
+Conference on Learning Representations.
+Nan Du, Yanping Huang, Andrew M Dai, Simon Tong,
+Dmitry Lepikhin, Yuanzhong Xu, Maxim Krikun,
+Yanqi Zhou, Adams Wei Yu, Orhan Firat, Barret
+Zoph, Liam Fedus, Maarten P Bosma, Zongwei
+Zhou, Tao Wang, Emma Wang, Kellie Webster, Marie
+Pellat, Kevin Robinson, and 8 others. 2022. GLaM:
+Efficient scaling of language models with mixture-
+of-experts. InProceedings of the 39th International
+Conference on Machine Learning, volume 162 of
+Proceedings of Machine Learning Research, pages
+5547–5569. PMLR.
+Yanai Elazar, Akshita Bhagia, Ian Magnusson, Abhi-
+lasha Ravichander, Dustin Schwenk, Alane Suhr,
+Pete Walsh, Dirk Groeneveld, Luca Soldaini, Sameer
+Singh, Hannaneh Hajishirzi, Noah Smith, and Jesse
+Dodge. 2024. What's in my big data? InInter-
+national Conference on Representation Learning,
+volume 2024, pages 7735–7790.
+Simin Fan, Matteo Pagliardini, and Martin Jaggi. 2024.
+DOGE: Domain reweighting with generalization es-
+timation. InProceedings of the 41st International
+Conference on Machine Learning, volume 235 of
+Proceedings of Machine Learning Research, pages
+12895–12915. PMLR.
+Ce Ge, Zhijian Ma, Daoyuan Chen, Yaliang Li, and
+Bolin Ding. 2025. Bimix: A bivariate data mix-
+ing law for language model pretraining.Preprint,
+arXiv:2405.14908.
+Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri,
+Abhinav Pandey, Abhishek Kadian, Ahmad Al-
+Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten,
+Alex Vaughan, Amy Yang, Angela Fan, Anirudh
+Goyal, Anthony Hartshorn, Aobo Yang, Archi Mi-
+tra, Archie Sravankumar, Artem Korenev, Arthur
+Hinsvark, and 542 others. 2024. The llama 3 herd of
+models.Preprint, arXiv:2407.21783.
+Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch,
+Elena Buchatskaya, Trevor Cai, Eliza Rutherford,
+Diego de Las Casas, Lisa Anne Hendricks, Johannes
+Welbl, Aidan Clark, Tom Hennigan, Eric Noland,
+Katie Millican, George van den Driessche, Bogdan
+Damoc, Aurelia Guy, Simon Osindero, Karen Si-
+monyan, Erich Elsen, and 3 others. 2022. Training
+compute-optimal large language models. InPro-
+ceedings of the 36th International Conference on
+Neural Information Processing Systems, NIPS ’22,
+Red Hook, NY , USA. Curran Associates Inc.
+Keller Jordan, Jeremy Bernstein, Brendan Rap-
+pazzo, @fernbear.bsky.social, Boza Vlado, You
+Jiacheng, Franz Cesista, Braden Koszarsky, and
+@Grad62304977. 2024a. modded-nanogpt:
+Speedrunning the NanoGPT baseline.
+Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You,
+Franz Cesista, Laker Newhouse, and Jeremy Bern-
+stein. 2024b. Muon: An optimizer for hidden layers
+in neural networks.
+Pratik Joshi, Sebastin Santy, Amar Budhiraja, Kalika
+Bali, and Monojit Choudhury. 2020. The state and
+fate of linguistic diversity and inclusion in the NLP
+world. InProceedings of the 58th Annual Meeting of
+the Association for Computational Linguistics, pages
+6282–6293, Online. Association for Computational
+Linguistics.
+Feiyang Kang, Yifan Sun, Bingbing Wen, Si Chen,
+Dawn Song, Rafid Mahmood, and Ruoxi Jia. 2025.
+Autoscale: Scale-aware data mixing for pre-training
+LLMs. InSecond Conference on Language Model-
+ing.
+Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B.
+Brown, Benjamin Chess, Rewon Child, Scott Gray,
+Alec Radford, Jeffrey Wu, and Dario Amodei. 2020.
+Scaling laws for neural language models.CoRR,
+abs/2001.08361.
+Andrej Karpathy. 2022. NanoGPT. https://github.
+com/karpathy/nanoGPT.
+Aonian Li, Bangwei Gong, Bo Yang, Boji Shan, Chang
+Liu, Cheng Zhu, Chunhao Zhang, Congchao Guo,
+Da Chen, Dong Li, Enwei Jiao, Gengxin Li, Guo-
+jun Zhang, Haohai Sun, Houze Dong, Jiadai Zhu,
+Jiaqi Zhuang, Jiayuan Song, Jin Zhu, and 70 others.
+2025. MiniMax-01: Scaling foundation models with
+lightning attention.CoRR, abs/2501.08313.
+Fengze Liu, Weidong Zhou, Binbin Liu, Zhimiao
+Yu, Yifan Zhang, Haobin Lin, Yifeng Yu, Bingni
+Zhang, Xiaohuan Zhou, Taifeng Wang, and Yong
+Cao. 2025a. Quadmix: Quality-diversity balanced
+data selection for efficient llm pretraining.Preprint,
+arXiv:2504.16511.
+Qian Liu, Xiaosen Zheng, Niklas Muennighoff, Guang-
+tao Zeng, Longxu Dou, Tianyu Pang, Jing Jiang, and
+Min Lin. 2025b. Regmix: Data mixture as regression
+for language model pre-training. InThe Thirteenth
+International Conference on Learning Representa-
+tions.
+Shayne Longpre, Gregory Yauney, Emily Reif, Kather-
+ine Lee, Adam Roberts, Barret Zoph, Denny Zhou,
+Jason Wei, Kevin Robinson, David Mimno, and
+Daphne Ippolito. 2024. A pretrainer’s guide to train-
+ing data: Measuring the effects of data age, domain
+coverage, quality, & toxicity. InProceedings of the
+2024 Conference of the North American Chapter
+of the Association for Computational Linguistics:
+Human Language Technologies (V olume 1: Long
+Papers), pages 3245–3276, Mexico City, Mexico.
+Association for Computational Linguistics.
+Ian Magnusson, Nguyen Tai, Ben Bogin, David Heine-
+man, Jena D. Hwang, Luca Soldaini, Akshita Bha-
+gia, Jiacheng Liu, Dirk Groeneveld, Oyvind Tafjord,
+Noah A. Smith, Pang Wei Koh, and Jesse Dodge.
+11
+
+=== PAGE 12 ===
+2025. DataDecide: How to predict best pretraining
+data with small experiments. InProceedings of the
+42nd International Conference on Machine Learn-
+ing, volume 267 ofProceedings of Machine Learning
+Research, pages 42487–42502. PMLR.
+Stephen Merity, Caiming Xiong, James Bradbury, and
+Richard Socher. 2017. Pointer sentinel mixture mod-
+els. InInternational Conference on Learning Repre-
+sentations.
+Brando Miranda, Alycia Lee, Sudharsan Sundar, Al-
+lison Casasola, Rylan Schaeffer, Elyas Obbad, and
+Sanmi Koyejo. 2025. Beyond scale: The diversity
+coefficient as a data quality metric for variability in
+natural language data.Preprint, arXiv:2306.13840.
+Niklas Muennighoff, Alexander M. Rush, Boaz Barak,
+Teven Le Scao, Aleksandra Piktus, Nouamane Tazi,
+Sampo Pyysalo, Thomas Wolf, and Colin Raffel.
+2023. Scaling data-constrained language models. In
+Proceedings of the 37th International Conference on
+Neural Information Processing Systems, NIPS ’23,
+Red Hook, NY , USA. Curran Associates Inc.
+National Center for Biotechnology Information (NCBI).
+Pubmed.
+Guilherme Penedo, Hynek Kydlíˇcek, Loubna Ben Al-
+lal, Anton Lozhkov, Margaret Mitchell, Colin Raffel,
+Leandro V on Werra, and Thomas Wolf. 2024. The
+FineWeb datasets: decanting the web for the finest
+text data at scale. InProceedings of the 38th Interna-
+tional Conference on Neural Information Processing
+Systems, NIPS ’24, Red Hook, NY , USA. Curran
+Associates Inc.
+Guilherme Penedo, Quentin Malartic, Daniel Hesslow,
+Ruxandra Cojocaru, Hamza Alobeidli, Alessandro
+Cappelli, Baptiste Pannier, Ebtesam Almazrouei, and
+Julien Launay. 2023. The RefinedWeb dataset for fal-
+con LLM: outperforming curated corpora with web
+data only. InProceedings of the 37th International
+Conference on Neural Information Processing Sys-
+tems, NIPS ’23, Red Hook, NY , USA. Curran Asso-
+ciates Inc.
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine
+Lee, Sharan Narang, Michael Matena, Yanqi Zhou,
+Wei Li, and Peter J. Liu. 2020. Exploring the limits
+of transfer learning with a unified text-to-text trans-
+former.J. Mach. Learn. Res., 21(1).
+Mustafa Shukor, Louis Bethune, Dan Busbridge, David
+Grangier, Enrico Fini, Alaaeldin El-Nouby, and
+Pierre Ablin. 2025. Scaling laws for optimal data
+mixtures. InAdvances in Neural Information Pro-
+cessing Systems, volume 38, pages 129554–129579.
+Curran Associates, Inc.
+Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan,
+Wen Bo, and Yunfeng Liu. 2024. RoFormer: En-
+hanced transformer with rotary position embedding.
+Neurocomput., 568(C).
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier
+Martinet, Marie-Anne Lachaux, Timothée Lacroix,
+Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal
+Azhar, Aurélien Rodriguez, Armand Joulin, Edouard
+Grave, and Guillaume Lample. 2023. LLaMA: Open
+and efficient foundation language models.CoRR,
+abs/2302.13971.
+Maurice Weber, Daniel Y . Fu, Quentin Anthony,
+Yonatan Oren, Shane Adams, Anton Alexandrov,
+Xiaozhong Lyu, Huu Nguyen, Xiaozhe Yao, Vir-
+ginia Adams, Ben Athiwaratkun, Rahul Chalamala,
+Kezhen Chen, Max Ryabinin, Tri Dao, Percy Liang,
+Christopher Ré, Irina Rish, and Ce Zhang. 2024.
+RedPajama: an open dataset for training large lan-
+guage models. InAdvances in Neural Information
+Processing Systems 38: Annual Conference on Neu-
+ral Information Processing Systems 2024, NeurIPS
+2024, V ancouver , BC, Canada, December 10 - 15,
+2024.
+Sang Michael Xie, Hieu Pham, Xuanyi Dong, Nan Du,
+Hanxiao Liu, Yifeng Lu, Percy Liang, Quoc V . Le,
+Tengyu Ma, and Adams Wei Yu. 2023. Doremi: op-
+timizing data mixtures speeds up language model
+pretraining. InProceedings of the 37th International
+Conference on Neural Information Processing Sys-
+tems, NIPS ’23, Red Hook, NY , USA. Curran Asso-
+ciates Inc.
+Fuzhao Xue, Yao Fu, Wangchunshu Zhou, Zangwei
+Zheng, and Yang You. 2023. To repeat or not to
+repeat: insights from scaling llm under token-crisis.
+InProceedings of the 37th International Conference
+on Neural Information Processing Systems, NIPS
+’23, Red Hook, NY , USA. Curran Associates Inc.
+Yuanhang Yang, Chaozheng Wang, and Jing Li. 2025.
+UMoE: Unifying attention and FFN with shared ex-
+perts. InAdvances in Neural Information Processing
+Systems, volume 38, pages 36988–37013. Curran
+Associates, Inc.
+Jiasheng Ye, Peiju Liu, Tianxiang Sun, Jun Zhan, Yun-
+hua Zhou, and Xipeng Qiu. 2025. Data mixing
+laws: Optimizing data mixtures by predicting lan-
+guage modeling performance. InThe Thirteenth In-
+ternational Conference on Learning Representations,
+ICLR 2025, Singapore, April 24-28, 2025. OpenRe-
+view.net.
+12
+
+=== PAGE 13 ===
+A Dataset Details
+All datasets are tokenized with tiktoken 4 using
+GPT-2 encodings.
+A.1 WikiText
+WikiText consists of full-length articles, making
+it well-suited for evaluating models on long-range
+dependencies. Performance on the validation set
+thus partly reflects the model’s ability to capture
+relationships across longer spans within a docu-
+ment.
+A.2 PubMed
+We select PubMed as a second high-quality domain
+for two reasons. First, the text comes from pub-
+lished academic articles that undergo rigorous re-
+view, so the samples are consistently well-written,
+comparable in quality to theGood and Featured
+WikiText articles. Second, PubMed is domain-
+specific: biomedical literature contains specialized
+terminology in physiology, medicine, and related
+fields that is rare in general discourse. This combi-
+nation of high quality and domain specificity makes
+PubMed a useful complement to WikiText.
+The Hugging Face PubMed dataset does not pro-
+vide a predefined train/validation split, so we hold
+out approximately 1% of documents for validation.
+The full corpus contains 6,435,414,914 training
+tokens and 65,039,475 validation tokens. To main-
+tain comparable dataset sizes with WikiText, we
+sample abstracts until the training set reaches ap-
+proximately 120 million tokens (120,000,060), and
+construct a validation set of 200,191 tokens. As
+noted in the main paper, the number of validation
+tokens used in evaluation is fixed at 131,072.
+A.3 FineWeb
+FineWeb is a large-scale dataset of 18.5 trillion to-
+kens of cleaned and deduplicated web crawl data
+from Common Crawl5. We use the FineWeb-10BT
+subset, a random sample of approximately 10 bil-
+lion tokens, as described in Section 3.1.
+We chose FineWeb-10BT over alternatives such
+as FineWeb-Edu (Penedo et al., 2024) because the
+web crawl data in our experiments serves primarily
+as a source of regularization and generalizability.
+The more general FineWeb-10BT corpus aligns
+with this role and maintains a clear quality contrast
+with WikiText and PubMed.
+4https://github.com/openai/tiktoken
+5https://commoncrawl.org
+B Model Details
+B.1 NanoGPT
+NanoGPT (Karpathy, 2022) provides a streamlined
+framework for training medium-sized GPT mod-
+els. The modded-nanogpt repository (Jordan et al.,
+2024a) hosts a speedrun challenge where practi-
+tioners train a language model to reach a target loss
+on FineWeb as quickly as possible.
+We use a version that adds two modifications
+to the base GPT-2 architecture: the Muon op-
+timizer (Jordan et al., 2024b) and Rotary Posi-
+tional Embeddings (RoPE) (Su et al., 2024). Muon
+(MomentUm Orthogonalized by Newton-Schulz)
+applies a Newton-Schulz matrix iteration (Bern-
+stein and Newhouse, 2024) to SGD-momentum
+updates. In our setup, Muon optimizes the two-
+dimensional weight matrices in the hidden lay-
+ers, while AdamW handles the remaining parame-
+ters (embedding layer, final fully connected layer).
+RoPE encodes relative positions by rotating query
+and key vectors, improving training efficiency and
+robustness.
+These modifications correspond to the Octo-
+ber 11, 2024 pull request in the modded-nanogpt
+repository.6
+B.2 Model Sizes
+We use five model sizes, obtained by scaling the
+number of layers and embedding dimensions. The
+124M model follows the originalmodded-nanogpt
+configuration ( 12 layers, 768-dimensional em-
+beddings, 123,532,032 parameters). The 30M
+model scales both down by 50% (6 layers, 384
+dimensions, 29,915,520 parameters). The 345M
+model scales both up by 50% (18 layers, 1152 di-
+mensions, 344,550,528 parameters). The 757M
+model uses 24 layers and 1536-dimensional em-
+beddings (756,672,000 parameters). The 1.17B
+model uses 28 layers and 1792-dimensional em-
+beddings (1,169,045,248 parameters).
+C Training Details
+C.1 Hyperparameters
+We use a batch size of 128 and a sequence length
+of 256 to fit within GPU memory constraints. For
+the learning rate schedule, we apply a linear decay
+over the final 1800
+6200 ×(number of iterations) steps,
+following the modded-nanogpt convention. For
+6https://github.com/KellerJordan/
+modded-nanogpt/commit/b356a1f
+13
+
+=== PAGE 14 ===
+High-Quality
+Dataset
+Model
+Size
+Training
+Tokens
+Optimal
+Mixing Ratio
+WikiText
+30M
+234M (0.00, 1.00)
+468M (0.05, 0.95)
+935M (0.10, 0.90)
+1.87B (0.25, 0.75)
+3.74B (Target) (0.25, 0.75)
+124M
+234M (0.00, 1.00)
+468M (0.25, 0.75)
+935M (0.40, 0.60)
+1.87B (0.55, 0.45)
+3.74B (Target) (0.65, 0.35)
+345M
+234M (0.05, 0.95)
+468M (0.35, 0.65)
+935M (0.60, 0.40)
+1.87B (0.70, 0.30)
+3.74B (Target) (0.80, 0.20)
+757M
+234M (0.10, 0.90)
+468M (0.40, 0.60)
+935M (0.65, 0.35)
+1.87B (0.75, 0.25)
+3.74B (Target) (0.85, 0.15)
+1.17B
+234M (0.00, 1.00)
+468M (0.30, 0.70)
+935M (0.70, 0.30)
+1.87B (0.70, 0.30)
+3.74B (Target) (0.85, 0.15)
+PubMed
+30M
+240M (0.00, 1.00)
+480M (0.05, 0.95)
+960M (0.10, 0.90)
+1.92B (0.20, 0.80)
+3.84B (Target) (0.30, 0.70)
+124M
+240M (0.00, 1.00)
+480M (0.15, 0.85)
+960M (0.40, 0.60)
+1.92B (0.55, 0.45)
+3.84B (Target) (0.65, 0.35)
+345M
+240M (0.05, 0.95)
+480M (0.30, 0.70)
+960M (0.55, 0.45)
+1.92B (0.70, 0.30)
+3.84B (Target) (0.80, 0.20)
+757M
+240M (0.15, 0.85)
+480M (0.40, 0.60)
+960M (0.60, 0.40)
+1.92B (0.75, 0.25)
+3.84B (Target) (0.80, 0.20)
+1.17B
+240M (0.10, 0.90)
+480M (0.30, 0.70)
+960M (0.70, 0.30)
+1.92B (0.70, 0.30)
+3.84B (Target) (0.80, 0.20)
+Table 3: Optimal mixing ratios by high-quality dataset,
+model size, and training token budget for the two-source
+scaling laws experiments.
+sweeps, we typically train with three learning rates,
+evenly and logarithmically spaced. Exceptions oc-
+cur for the 757M and 1.17B models and the longest
+High-Quality
+Dataset
+Model
+Size
+Training
+Tokens
+Optimal
+Mixing Ratio
+WikiText
+30M
+234M (0.80, 0.20)
+468M (0.75, 0.25)
+935M (0.60, 0.40)
+1.87B (0.50, 0.50)
+3.74B (Target) (0.25, 0.75)
+124M
+234M (0.85, 0.15)
+468M (0.85, 0.15)
+935M (0.80, 0.20)
+1.87B (0.75, 0.25)
+3.74B (Target) (0.65, 0.35)
+345M
+234M (0.90, 0.10)
+468M (0.90, 0.10)
+935M (0.85, 0.15)
+1.87B (0.85, 0.15)
+3.74B (Target) (0.80, 0.20)
+757M
+234M (0.90, 0.10)
+468M (0.90, 0.10)
+935M (0.90, 0.10)
+1.87B (0.85, 0.15)
+3.74B (Target) (0.80, 0.20)
+1.17B
+234M (0.95, 0.05)
+468M (0.95, 0.05)
+935M (0.85, 0.15)
+1.87B (0.85, 0.15)
+3.74B (Target) (0.85, 0.15)
+PubMed
+30M
+241M (0.80, 0.20)
+481M (0.70, 0.30)
+958M (0.55, 0.45)
+1.92B (0.45, 0.55)
+3.84B (Target) (0.30, 0.70)
+124M
+241M (0.85, 0.15)
+481M (0.85, 0.15)
+958M (0.80, 0.20)
+1.92B (0.75, 0.25)
+3.84B (Target) (0.65, 0.35)
+345M
+241M (0.90, 0.10)
+481M (0.90, 0.10)
+958M (0.85, 0.15)
+1.92B (0.85, 0.15)
+3.84B (Target) (0.80, 0.20)
+757M
+241M (0.90, 0.10)
+481M (0.90, 0.10)
+958M (0.90, 0.10)
+1.92B (0.85, 0.15)
+3.84B (Target) (0.80, 0.20)
+1.17B
+241M (0.95, 0.05)
+481M (0.95, 0.05)
+958M (0.95, 0.05)
+1.92B (0.85, 0.15)
+3.84B (Target) (0.80, 0.20)
+Table 4: Optimal mixing ratios by high-quality dataset,
+model size, and training token budget for the two-source
+repeat-aware experiments.
+horizons of the 124M and 345M models, where
+only a single learning rate is used due to resource
+constraints. Subsequent sweep ranges are informed
+14
+
+=== PAGE 15 ===
+by previous results; for example, if 0.00141 is op-
+timal in [0.00141,0.002,0.00282] , the next hori-
+zon may use [0.001,0.00141,0.002] , reflecting the
+trend that optimal learning rates decrease for longer
+horizons. Across our sweeps, the optimal learning
+rate at a given horizon was largely stable across
+mixing ratios, indicating that the mixing-ratio and
+learning-rate axes are largely decoupled.
+C.2 Compute Resources
+Experiments on the 30M, 124M, 345M and 757M
+models were conducted on NVIDIA A100 GPUs
+(SXM4, 80GB). The 1.17B experiments were run
+across two compute clusters, on NVIDIA A100
+(SXM4, 80GB) and NVIDIA H200 (SXM, 141GB)
+GPUs respectively.
+Every 1.17B run uses two data-parallel workers
+with a per-device microbatch of 32 sequences, in-
+dependently of the GPUs available on each cluster,
+with gradient accumulation making up the batch
+size given above. We hold the number of workers
+fixed because our data loader assigns each worker
+a strided slice of the token stream, with both the
+per-worker offset and the stride determined by
+the world size: changing the number of devices
+changes which sequences are grouped into each
+batch even with the seed, the data and the batch
+size held fixed. Holding the world size constant
+keeps the sequence of training batches identical
+across clusters; remaining differences are limited
+to floating-point non-determinism in the underlying
+kernels.
+The random seed is fixed at 42 for both data
+pre-processing and model training.
+C.3 Mixing Ratios
+The mixing ratio specifies the proportion of training
+tokens from each data source, enforced at the batch
+level.
+For each horizon, we sweep over mixing ra-
+tios in increments of 0.05 until the optimal ratio
+is identified. We occasionally deviate from 0.05
+increments when an exploratory run at a coarser
+spacing clearly outperforms the previous ratio, in
+which case intermediate values would not mean-
+ingfully affect the search. We stop the sweep once a
+U-shaped curve in validation loss emerges, defined
+as a ratio that outperforms the ratios on either side.
+As mentioned in Section 4, across experiments, the
+validation loss generally decreases until the opti-
+mum and then increases. This behavior signals that
+this is a reliable stopping criterion.
+240M 480M 960M 1.92B 3.84B
+T otal training tokens
+1.5
+2
+3
+5
+7
+10
+15
+24
+Optimal repetitions of PubMed
+Model size
+30M
+124M
+345M
+757M
+1.17B
+Figure 4: Optimal number of PubMed repetitions across
+training horizons for the 30M, 124M, 345M, 757M and
+1.17B model experiments.
+D Additional Results
+D.1 Two-Source Mixtures
+Tables 3 and 4 present the optimal mixing ratios
+for all scaling laws and repeat-aware experiments,
+respectively. Figure 4 shows the optimal number
+of PubMed repetitions across model sizes, as dis-
+cussed in Section 4.1.
+D.2 Three-Source Mixtures
+Mixing ratios are reported as proportions of
+FineWeb, WikiText, and PubMed, with the best
+result across learning rates for each ratio. The “Ex-
+periment Type” column indicates whether the ratio
+corresponds to a baseline, the tuning procedure, or
+a multi-horizon prediction. For the 124M model,
+Tables 7, 8, 9, and 10 present results for the 1
+16,
+1
+8, 1
+4, and 1
+2 subsamples; Tables 12, 13, 14, and
+15 present the corresponding results for the 757M
+model. Target-horizon results for both models are
+combined in Table 11.
+E Compute Cost Details
+Table 5 reports cumulative training tokens across
+horizons for the WikiText two-source experiments
+in absolute terms. Each horizon involves multiple
+training runs (one per mixing ratio and learning
+rate), so the total experimental cost at a given hori-
+zon is the token budget shown here multiplied by
+the number of runs. Since both methods use the
+same sweep procedure, this multiplier is the same
+for both, and the relative cost comparison holds.
+15
+
+=== PAGE 16 ===
+Horizons Used Tokens per Run % of Target
+1 232M 6.2%
+2 700M 18.7%
+3 1.64B 43.7%
+4 3.50B 93.7%
+Target 3.74B 100%
+Table 5: Cumulative training tokens across horizons for
+the WikiText two-source experiments.
+(a) Scaling laws
+Seed 240M 480M 960M 960M 1.92B
+@0.10 @0.30 @0.65 @0.70 @0.70
+42 2.6344 2.6872 2.6720 2.6616 2.6536
+43 2.6362 2.6856 2.6745 2.6623 2.6554
+44 2.6379 2.6884 2.6745 2.6647 2.6541
+Range0.0035 0.0027 0.0025 0.0031 0.0018
+SD0.0017 0.0014 0.0014 0.0016 0.0009
+(b) Repeat-aware
+Seed 241M 481M 958M 958M 1.92B
+@0.85 @0.85 @0.80 @0.85 @0.85
+42 3.9078 3.6050 3.3984 2.8991 2.6890
+43 3.9089 3.6054 3.4032 2.8972 2.6942
+44 3.9093 3.5969 3.3964 2.8994 2.6896
+Range0.0015 0.0085 0.0068 0.0021 0.0053
+SD0.0008 0.0048 0.0035 0.0012 0.0029
+Table 6: Validation loss across three seeds (42, 43, 44)
+at 1.17B for PubMed sweeps, under scaling laws (a) and
+repeat-aware (b). Column headers give the token budget
+and mixing ratio (proportion of FineWeb). Scaling-
+laws entries use the optimal mixing ratio at each token
+budget, together with 960M @ 0.65 as the runner-up at
+that budget. Repeat-aware entries use mixing ratio 0.85
+throughout, together with 958M @ 0.80 as the runner-up
+at that budget. Seed-to-seed variation is at most 0.0035
+for scaling laws and 0.0085 for repeat-aware, in both
+cases well below the differences underlying our main
+claims.
+Two-source setting.A single repetition-
+controlled horizon at 6% of the target budget
+can replace a multi-horizon scaling laws analysis
+consuming 44 to 94% of it, since both methods
+perform the same number of runs per horizon.
+This advantage would scale with the target training
+budget if the per-horizon proportions held: at a
+1 trillion token target, the same 6% vs 94% split
+would correspond to roughly 62 billion tokens
+per run for a single repetition-controlled horizon,
+against around 940 billion for a four-horizon
+scaling laws analysis. Whether these proportions
+hold at this scale is an empirical question beyond
+the range of our experiments.
+Three-source setting.At the 757M scale, two
+repetition-controlled horizons (roughly 19% of the
+target budget) recover the optimal mixture at sweep
+granularity, matching or outperforming baselines
+whose construction requires the full two-source ex-
+periments. At the 124M scale, repetition-controlled
+predictions from two to four horizons all outper-
+form both baselines from two-source results, with
+the four-horizon prediction effectively reaching the
+optimum (loss 2.91950 vs. 2.91820), though at
+substantially higher cost. Even at this smaller scale,
+two horizons suffice to beat both baselines, suggest-
+ing that repetition control still substantially reduces
+the experimental budget needed when more data
+sources are involved.
+F Bootstrap Confidence Intervals
+We present the paired 95% bootstrap confidence
+intervals for the validation loss of the mixing ratio
+experiments at the target horizons for the WikiText
+and PubMed two-source experiments in Table 16.
+These bootstrap confidence intervals were calcu-
+lated using 10,000 re-samples.
+G Multi-Seed Analysis
+To corroborate the sweep-granularity convention
+we adopt throughout the paper, we rerun five
+PubMed configurations under each method (scal-
+ing laws and repeat-aware) at three seeds each (42,
+43, 44) at the 1.17B scale and measure the result-
+ing spread in validation loss. Table 6 reports the
+results.
+Across the ten configurations, validation loss
+varied by at most 0.0035 for scaling laws and
+0.0085 for repeat-aware. This is well below the
+differences underlying our main claims (e.g., the
+single-horizon 0.10–0.15 vs. 0.70–0.85 error gaps
+at 1.17B), and comparable to or smaller than the
+pairwise gaps in Table 16 that we report as signifi-
+cant. The sweep-granularity convention we apply
+throughout the paper is therefore well-calibrated
+to the actual run-to-run variability of our training
+setup.
+16
+
+=== PAGE 17 ===
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.7, 0.15, 0.15 0.00141 3.52295 Baseline 1
+0.75, 0.125, 0.125 0.00141 3.50460 Tuned
+0.75, 0.1, 0.15 0.00141 3.51945 Tuned
+0.75, 0.15, 0.1 0.00141 3.51950 Tuned
+0.8, 0.1, 0.1 0.00141 3.51725 Tuned
+0.85, 0.075, 0.075 0.002 3.54890 Baseline 2
+0.9, 0.05, 0.05 0.00141 3.62840 Tuned
+Table 7: Three-source repeat-aware results with a1/16 subsample for the 124M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.45, 0.275, 0.275 0.00141 3.66295 Tuned
+0.5, 0.25, 0.25 0.00141 3.53470 Tuned
+0.55, 0.225, 0.275 0.00141 3.44795 Tuned
+0.6, 0.2, 0.2 0.00141 3.38440 Tuned
+0.65, 0.175, 0.175 0.00141 3.34305 Tuned
+0.7, 0.15, 0.15 0.00141 3.32235 Baseline 1
+0.7, 0.2, 0.1 0.00141 3.35140 Tuned
+0.7, 0.1, 0.2 0.00141 3.37140 Tuned
+0.75, 0.125, 0.125 0.00141 3.33015 Tuned
+0.85, 0.075, 0.075 0.00141 3.38965 Baseline 2
+Table 8: Three-source repeat-aware results with a1/8 subsample for the 124M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.5, 0.25, 0.25 0.00141 3.23315 Tuned
+0.6, 0.2, 0.2 0.00141 3.17525 Baseline 1
+0.65, 0.175, 0.175 0.00141 3.16845 Tuned
+0.7, 0.15, 0.15 0.00141 3.16900 Tuned
+0.7, 0.2, 0.1 0.00141 3.18480 Tuned
+0.7, 0.1, 0.2 0.00141 3.20185 Tuned
+0.75, 0.125, 0.125 0.00141 3.19185 Tuned
+0.8, 0.1, 0.1 0.00141 3.21795 Baseline 2
+Table 9: Three-source repeat-aware results with a1/4 subsample for the 124M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.45, 0.275, 0.275 0.001 3.05655 Tuned
+0.5, 0.25, 0.25 0.001 3.03700 Baseline 1
+0.55, 0.225, 0.225 0.001 3.03345 Tuned
+0.55, 0.275, 0.175 0.001 3.04290 Tuned
+0.55, 0.175, 0.275 0.001 3.05045 Tuned
+0.6, 0.2, 0.2 0.001 3.03565 Tuned
+0.75, 0.125, 0.125 0.001 3.08405 Baseline 2
+Table 10: Three-source repeat-aware results with a1/2 subsample for the 124M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+17
+
+=== PAGE 18 ===
+Mixing Ratio Learning
+Rate
+Average
+Validation Loss
+Experiment
+Type
+124M Model
+0.3, 0.35, 0.35 0.001 2.94270 Baseline 1
+0.4, 0.3, 0.3 0.001 2.92300 Tuned
+0.45, 0.25, 0.3 0.001 2.91820 Tuned
+0.45, 0.3, 0.25 0.001 2.91915 Tuned
+0.45, 0.275, 0.275 0.001 2.91935 Tuned
+0.5, 0.25, 0.25 0.001 2.92115 Tuned
+0.51, 0.245, 0.245 0.001 2.91950 Four-Horizon Prediction
+0.56, 0.22, 0.22 0.001 2.92830 Three-Horizon Prediction
+0.57, 0.215, 0.215 0.001 2.92965 Two-Horizon Prediction
+0.6, 0.2, 0.2 0.00141 2.94150 Tuned
+0.65, 0.175, 0.175 0.001 2.95570 Baseline 2
+0.75, 0.125, 0.125 0.00141 3.01300 Single-Horizon Prediction
+757M Model
+0.55, 0.225, 0.225 0.001 2.81550 Tuned
+0.6, 0.2, 0.2 0.001 2.78805 Tuned
+0.65, 0.175, 0.175 0.001 2.76990 Two-Horizon Prediction
+0.65, 0.15, 0.2 0.001 2.77510 Baseline 1
+0.7, 0.15, 0.15 0.001 2.77015 Tuned
+0.7, 0.2, 0.1 0.001 2.78765 Tuned
+0.7, 0.1, 0.2 0.001 2.80405 Tuned
+0.75, 0.125, 0.125 0.001 2.78580 Tuned
+0.825, 0.075, 0.1 0.001 2.83365 Baseline 2
+0.85, 0.075, 0.075 0.001 2.85175 Single-Horizon Prediction
+Table 11: Three-source results at the full training horizon for the 124M and 757M models. Mixing ratios are
+proportions of FineWeb, WikiText, and PubMed. Best run per model inbold.
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.7, 0.15, 0.15 0.001 3.68130 Tuned
+0.75, 0.125, 0.125 0.001 3.48265 Tuned
+0.8, 0.1, 0.1 0.001 3.39890 Tuned
+0.85, 0.075, 0.075 0.001 3.38515 Tuned
+0.85, 0.1, 0.05 0.001 3.40070 Tuned
+0.85, 0.05, 0.1 0.001 3.41555 Tuned
+0.9, 0.05, 0.05 0.001 3.44425 Tuned
+Table 12: Three-source repeat-aware results with a 1/16 subsample for the 757M model. Mixing ratios are
+proportions of FineWeb, WikiText, and PubMed. Best run inbold.
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.5, 0.25, 0.25 0.001 4.49960 Tuned
+0.6, 0.2, 0.2 0.001 3.86945 Tuned
+0.7, 0.15, 0.15 0.001 3.37725 Tuned
+0.8, 0.1, 0.1 0.001 3.20075 Tuned
+0.8, 0.15, 0.05 0.001 3.30435 Tuned
+0.8, 0.05, 0.15 0.001 3.31390 Tuned
+0.85, 0.075, 0.075 0.001 3.20810 Tuned
+0.9, 0.05, 0.05 0.001 3.27125 Tuned
+Table 13: Three-source repeat-aware results with a1/8 subsample for the 757M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+18
+
+=== PAGE 19 ===
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.7, 0.15, 0.15 0.001 3.09955 Tuned
+0.75, 0.125, 0.125 0.001 3.04690 Tuned
+0.8, 0.1, 0.1 0.001 3.03955 Tuned
+0.8, 0.15, 0.05 0.001 3.09650 Tuned
+0.8, 0.05, 0.15 0.001 3.11155 Tuned
+0.85, 0.075, 0.075 0.001 3.06200 Tuned
+Table 14: Three-source repeat-aware results with a1/4 subsample for the 757M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+Mixing Ratio Learning Rate Avg. Validation Loss Experiment Type
+0.65, 0.175, 0.175 0.001 2.93330 Tuned
+0.7, 0.15, 0.15 0.001 2.90015 Tuned
+0.75, 0.125, 0.125 0.001 2.89195 Tuned
+0.75, 0.175, 0.075 0.001 2.93055 Tuned
+0.75, 0.075, 0.175 0.001 2.94015 Tuned
+0.8, 0.1, 0.1 0.001 2.90955 Tuned
+Table 15: Three-source repeat-aware results with a1/2 subsample for the 757M model. Mixing ratios are proportions
+of FineWeb, WikiText, and PubMed. Best run inbold.
+High-Quality
+Dataset
+Mixing
+Ratio
+Val.
+Loss
+Diff vs.
+Next Ratio
+95% CI
+of Diff Sig.
+WikiText
+0.60 3.6058 0.1920 [0.1783, 0.2059] Yes
+0.65 3.4138 0.2361 [0.2245, 0.2474] Yes
+0.70 3.1777 -0.1221 [-0.1348, -0.1101] Yes
+0.75 3.2998 0.1853 [0.1236, 0.2470] Yes
+0.80 3.1145 0.0046 [-0.0047, 0.0137] No
+0.85 3.1098-0.0810 [-0.0891, -0.0731] Yes
+0.90 3.1908 – – –
+PubMed
+0.40 4.4201 0.5606 [0.5339, 0.5869] Yes
+0.45 3.8595 0.3055 [0.2891, 0.3223] Yes
+0.50 3.5539 0.1255 [0.1123, 0.1390] Yes
+0.55 3.4284 0.3835 [0.3701, 0.3964] Yes
+0.60 3.0449 0.1561 [0.1465, 0.1660] Yes
+0.65 2.8889 0.1549 [0.1464, 0.1635] Yes
+0.70 2.7339 -0.1752 [-0.1837, -0.1668] Yes
+0.75 2.9091 0.1950 [0.1879, 0.2024] Yes
+0.80 2.7141-0.0096 [-0.0157, -0.0037] Yes
+0.85 2.7237 -0.1447 [-0.1976, -0.0918] Yes
+0.90 2.8684 – – –
+Table 16: Validation loss and paired 95% confidence intervals on the loss difference between each mixing ratio
+and the next-highest ratio, for the 1.17B target-horizon mixture sweeps (WikiText: 3.74B tokens; PubMed: 3.84B
+tokens). Mixing ratio is the proportion of FineWeb. Differences and confidence intervals are computed via paired
+percentile bootstrap (10,000 resamples) over per-sequence validation losses, using the same resampled document
+indices for both mixtures in each pair so that shared per-document difficulty cancels rather than compounds. The
+“Sig.” column indicates whether the interval excludes zero.
+19

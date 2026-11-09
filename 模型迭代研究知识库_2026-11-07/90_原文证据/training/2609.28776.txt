@@ -1,0 +1,557 @@
+=== PAGE 1 ===
+           Learned Cross-Task Relationships in Multi-Task Models∗
+
+           Victor Zhang                              Yiping Yuan                          Florian Raudies                           Bosun Adeoti
+     victorzhang@google.com                   yipingyuan@google.com                      raudies@google.com                        jabos@google.com
+                 Google                                   Google                                  Google                                  Google
+        San Bruno, CA, USA                       San Bruno, CA, USA                      San Bruno, CA, USA                       San Bruno, CA, USA
+                            Brian Y. C. Leung                     Sanjay Surendranath                          Naijing Zhang
+                        mikebrianleung@google.com                             Girija                        njzhang@google.com
+                                     Google                         sanjaysg@google.com                               Google
+                            San Bruno, CA, USA                                Google                         San Bruno, CA, USA
+                                                                     San Bruno, CA, USA
+ABSTRACT                                                                              simultaneously), this rich relational information is rarely explicitly
+We propose a framework that learns cross-task relationships in                        quantified as a model output. To illustrate this, consider an object
+multi-task models by approximating the joint distribution of task                     detection model trained to identify various entities, such as a cat
+labels through targeted pairwise relationships. This approach im-                     and a pet food bowl. While the model’s internal representation may
+proves performance via transfer learning and enhances information                     learn that these objects are highly correlated, the final output is typ-
+extraction without the intractable complexity of modeling the full                    ically restricted to the independent (marginal) probabilities of each
+joint space. Although our framework applies to any multi-task                         item,𝑃(cat)         and𝑃(pet bowl)        , discarding the joint structural infor-
+system, we demonstrate its efficacy within YouTube’s production                       mation. In the language of probability, the training data labels are
+recommendation systems. Experiments across the Notifications,                         sampled from thejoint distribution,      (𝑦  1,...,𝑦𝑁)∼D(𝑌  1,...,𝑌𝑁),
+Homepage, and Watch Next surfaces show improvements in both                           of the𝑁 tasks, whereas the model may output only a vector of mean
+accuracy and user satisfaction metrics. Finally, we propose a work-                   predictions,(𝑃  1,...,𝑃𝑁), estimating the𝑁  marginal distributions.
+flow template to facilitate broader future implementation.                            Consequently, while the label space possesses exponential underly-
+                                                                                      ing informational complexity in𝑁 , the standard model output is
+CCS CONCEPTS                                                                          significantly reduced to linear complexity in𝑁 . We elaborate on
+•Information systems → Recommender systems;•Comput-                                   this formulation in Section 2.
+ing methodologies→Transfer learning.                                                      This limitation suggests that multi-task models are constrained
+                                                                                      in their expressiveness, failing to fully describe the cross-task rela-
+KEYWORDS                                                                              tionships regardless of the computational and engineering efforts
+Multi-task learning, Recommender Systems, Reinforcement Learn-                        to improve the accuracy of individual task predictions.
+ing, Task Relationships                                                                   In this paper, we make the following contributions:
+
+                                                                                           (1)  We formalize the concept of learning cross-task relation-
+1    INTRODUCTION                                                                               ships as an approximation of the joint distribution via pair-
+Multi-task learning (MTL) [2, 8] posits that simultaneously training                            wise task interactions (e.g., covariance), and demonstrate
+on multiple related tasks yields superior performance compared                                  how this can be efficiently implemented by strategically
+to learning them in isolation. This is typically achieved through                               adding auxiliary heads to an existing multi-task model.
+a shared neural architecture, as illustrated in Figure 2, where the                        (2)  We propose two primary hypotheses explaining how learned
+shared body is trained using a weighted sum of the individual task                              task relationships enhance the performance of downstream
+losses. By consolidating learning signals into a unified model, the                             reinforcement learning (RL) systems that utilize multi-task
+system develops a “shared representation”—a rich feature space that                             predictions, and we detail the implementation and testing
+leverages cross-task relationships to improve both generalization                               workflow for each.
+and prediction accuracy, facilitating inductive transfer between                           (3)  We describe the implementation and results from full de-
+related tasks. Furthermore, the shared computational budget al-                                 ployments and experiments across multiple YouTube rec-
+lows for efficient resource utilization, enabling the model to scale                            ommender systems—specifically Notifications, Homepage,
+effectively across tasks.                                                                       and the Watch Next sidebar—where multi-task learning
+   While multi-task learning has become an industry standard, we                                is utilized to characterize user behavior through diverse
+identify a fundamental limitation in how its modeling objective is                              content interaction tasks.
+typically framed. Although the shared representation implicitly cap-
+tures the relationships between tasks (by training on multiple labels                 1.1    Related Work
+
+∗Accepted to the 20th ACM Conference on Recommender Systems (RecSys ’26), Min-        The use of auxiliary heads to enhance transfer learning in MTL
+neapolis, MN, USA, September 27–October 02, 2026. This is the author’s version of the is an established technique in large-scale recommender models
+work. It is posted here for your personal use. Not for redistribution. The definitive Ver-
+sion of Record was published in RecSys ’26, https://doi.org/10.1145/3773078.3831878.  [11, 16]. However, standard auxiliary-head frameworks typically
+
+=== PAGE 2 ===
+                                                                                                                                                                Zhang et al.
+
+focus on predicting independent, marginal probabilities of supple-                        a target task, and computing quantitative measures of inter-task
+mentary tasks to implicitly enrich the shared representation instead                      similarity.
+of extracting information on cross-task relations.                                           Our methodology also offers a novel structural perspective on
+   Our novelty lies in the strategic selection of pairwise targets.                       the well-documented challenge of task gradient conflict in multi-
+Rather than adding arbitrary related tasks, our approach—detailed                         task learning [23]. When optimizing a shared representation across
+in Section 2.2.1—explicitly constructs auxiliary heads to capture                         independent marginal tasks, gradients often point in conflicting
+structural cross-task relationships (e.g., cross-labels). By framing                      directions or vary wildly in magnitude, leading to destructive inter-
+these  specific  auxiliary  heads  as  estimators  of  covariance,  our                   ference and suboptimal convergence. A rich body of optimization
+method provides a targeted mathematical approximation of the                              literature has addressed this by intervening during backpropagation:
+joint distribution. This aligns with existing research on character-                      altering gradient magnitudes [4], projecting conflicting gradients
+izing uncertainty in deep learning, such as estimating predictive                        via gradient surgeries [23], or enforcing conflict-averse descent tra-
+variance [12], but applies the concept to inter-task dependencies.                        jectories [13]. Instead of manipulating the gradients algorithmically
+   Furthermore, prior work [9] has shown that for regression tasks,                       after they are computed, our approach structurally prevents gradi-
+learning a distribution over quantiles via multiple heads and subse-                      ent dilution. By introducing a cross-task head, the model explicitly
+quently deriving the mean yields superior accuracy compared to                            generates a unified gradient signal perfectly aligned with the in-
+direct mean estimation—a methodology that has also been deployed                          tersection of both tasks. We hypothesize that this auxiliary loss
+in production at YouTube. This parallels our objective of learning a                      structurally strengthens the gradient magnitudes for overlapping
+more complete probability model; however, rather than estimating                          features, guiding the shared representation toward a cooperative
+the full distribution of a single task, we focus on estimating the                        minima without the need for complex, dynamic gradient routing
+joint distribution across multiple tasks.                                                 or weighting schemes.
+   Well-studied architectures such as MMoE [14] and PLE [18] im-
+prove the shared representation via gating mechanisms, but unlike                         1.2    Multi-Task Learning in YouTube
+our approach, they still rely on independent marginal losses. To                                  Recommender Systems
+address the inherent limitations of assuming task independence, a                        The following two-step process, illustrated in Figure 1, demon-
+parallel line of research explicitly models structural relationships                      strates how YouTube recommender systems integrate multi-task
+between tasks and labels. For instance, Cao et al. [1] propose a                          learning within an RL framework and establishes the terminology
+relational multi-task learning framework that explicitly quanti-                          used throughout this paper.
+fies dependencies between data points and tasks. Similarly, in the
+multi-label classification domain, Chen et al. [5] utilize Graph Con-                     (1)  State Representation via MTL:A learned representation
+volutional Networks to map out label correlations, while Yeh et al.                           of user behavior is generated by a large, complex multi-task
+[22] derive a deep latent space specifically optimized for label co-                          model, which we call theUser Engagement Model. The output
+occurrence. These works share our motivation that discarding joint                            of this model forms a critical part of the state spaceS in the
+structural information inherently limits model expressiveness; how-                           standard RL formulation [17]. The User Engagement Model
+ever, they primarily focus on architectural routing or graph-based                            predicts distinct responses to content—such as the probability
+mapping rather than targeted mathematical approximations of co-                               of a click, save, or dismissal—as separate tasks. Key modeling
+variance via auxiliary heads.                                                                 considerations for this architecture are described in [7] and
+   Within the specific context of recommender systems, handling                               [24].
+nested or sequentially dependent tasks (e.g., an impression leading                       (2)  Policy Execution:These predictions serve as input features
+to a click, which in turn leads to a downstream action like a save or                         for adecision policy, derived from a reinforcement learning
+inline playback) is a well-recognized challenge. The Entire Space                             algorithm [3, 20], which selects an action from the action space
+Multi-Task Model (ESMM) [15] addresses sample selection bias by                               A (e.g., whether or not to send a notification) that maximizes a
+estimating the joint probability over the entire space utilizing the ex-                      reward objective. The policy may incorporate a learned neural
+act probability chain rule—𝑃(click∩conversion)=𝑃(conversion|                                  network component—as described in [20]—which is typically
+click)𝑃(click)                    —that underpins our derivation for conditional tasks        smaller than the User Engagement Model. We refer to such
+in Section 2.2.1. Building upon this, Xi et al. [21] propose the Adap-                        components as thelearned policy functions.
+tive Information Transfer Multi-task (AITM) model to explicitly
+capture sequential dependence among multi-step user conversions.                          2    MATHEMATICAL FORMULATION
+While these foundational works utilize conditional probability struc-                     2.1    Marginal and Joint Distributions
+tures to model deep user journeys, our novelty lies in introduc-
+ing targeted auxiliary unconditional and cross-label heads. This                          Consider a multi-task learning scenario where a user’s actions in
+uniquely forces the shared representation to encode discriminative                        response to a piece of content are modeled in a multi-task model,
+features specific to the interaction of tasks, deliberately optimiz-                      e.g., through predicting the probability of a click, save, or like, and
+ing the environmental state space for downstream reinforcement                            the expected watch time. These separate events can be considered
+learning policies.                                                                        as random variables whose probability (or expected value) the
+   A comprehensive survey by Crawshaw [8] reviews approaches                              multi-task model predicts. The output of the multi-task model is
+to task relationship learning. These methods include task grouping                        classically a collection of separate predictions, one for each task,
+strategies, identifying which related tasks maximize transfer for                         e.g.,𝑃(click),𝑃(save),E[watch_time].
+
+=== PAGE 3 ===
+              Learned Cross-Task Relationships in Multi-Task Models
+
+                                                                                                             The gradient signal∇𝜃Lstandard  does not explicitly penalize the
+                                                                                                             model for failing to capture the interaction between𝑋and𝑌.
+                                                                                                                Our proposed framework has an option (explained in more detail
+                                                                                                             in Section 2.2.1) that introduces an auxiliary head that predicts the
+                                                                                                             joint event𝑋𝑌 , with ground truthy          𝑥𝑦 = y𝑥· y𝑦 (logical AND) and
+                                                                                                             predicted probability  ˆ𝑝𝑥𝑦. The total objective becomes:
+
+
+                                                                                                                               Ltotal =L    standard+𝜆   𝑥𝑦LBCE(y  𝑥𝑦, ˆ𝑝𝑥𝑦)                 (2)
+
+                                                                                                                One may argue that if the shared embedding layer is sufficiently
+                                                                                                             robust, the joint information should already be encoded in the latent
+                                                                                                             state, even if the heads are marginal. While shared embeddings
+                                                                                                             implicitly allow for transfer, the standard lossL𝑋+L𝑌  does not
+                                                                                                             strictly penalize the model for failing to capture the covariance
+                                                                                                             structure, whereasL       𝑥𝑦 does.
+                                                                                                                The theoretical contribution of this additional term is twofold:
+                        Figure 1: Recommender System Architecture.                                                  •  Covariance Disentanglement:The cross-task head effec-
+                                                                                                                       tively estimates E[𝑋𝑌]      . Since the covariance is defined as
+                                                                                                                       Cov(𝑋,𝑌)=E[𝑋𝑌]−E[𝑋]E[𝑌]                               , and the marginal heads
+                 However, the collection of separate per-task predictions does                                         already estimate E[𝑋]        and E[𝑌]      , the system collectively
+              not constitute a complete model of the user. The full complexity—                                        learns the necessary components to resolve the correlation
+              assuming we take these actions (click, save, etc.) as the fundamental                                    structure between tasks; this is explained in Section 2.2.1.
+              ground truth—is contained in the joint distribution between the                                       •  Gradient Targeting:Crucially, the gradient    ∇𝜃L𝑥𝑦 pro-
+              tasks. In the language of probability, the separate prediction tasks                                     vides a learning signal specifically for the subset of the data
+              output the marginal distribution for each task, which is obtained                                        where tasks co-occur. Unlike simple loss weighting, which
+              from the joint distribution by integrating out the random variables                                      scales gradients globally, this term forces the shared rep-
+              of the other tasks, a process that effectively destroys information.                                     resentation𝜃 to encode discriminative features specific to
+                 Consider the following illustrative example of the loss of infor-                                     the interaction of tasks (e.g., distinguishing a “long watch”
+              mation using two actions: click and save. The marginal distributions                                     from a “long watch + like”), thereby enriching the shared
+              may be defined by justtwovalues:    𝑃(click)=              0.2, 𝑃(save)=        0.1.                     latent space for all downstream tasks.
+              In contrast, the joint distribution is defined by Table 1, which has
+              threedegrees of freedom. The marginal probabilities are obtained                               2.2    Modeling: Approximating Pairwise
+              by summing the joint probabilities along the Click and Save axes.                                       Relationships
+                 𝑃(click)=𝑃(click∩save)+𝑃(click∩no_save)=0.05+0.15                                           Because modeling the full joint distribution of𝑁  binary classifica-
+                 𝑃(save)=𝑃(click∩save)+𝑃(no_click∩save)=0.05+0.05                                            tion tasks requires𝑂(   2𝑁) additional prediction heads, doing so is
+                                                                                                             computationally intractable. Instead, we propose a finely control-
+                                                                                                             lable approximation. We strategically add auxiliary heads based
+                 Table 1: Joint Probability Distribution of Click vs. Save.                                  on specific pairs of existing heads, so that the labels are crosses of
+                                                                                                             existing labels or unconditioned versions of an existing task. This
+                                                      Save    No Save                                        approach ensures the model captures pairwise cross-task relation-
+                                                                                                             ships requiring at most𝑂(𝑁      2) heads, without altering the existing
+                                      Click  0.05         0.15                                               label definitions. For example:
+                                      No Click0.05         0.75                                                     •  If the model’s existing save and click heads predict the
+                                                                                                                       direct probabilities𝑃(click)            and𝑃(save)      among many other
+                 To rigorously distinguish our approach from standard multi-                                           heads, one of the additional heads is the head predicting
+              task learning, consider two tasks 𝑋  and 𝑌  with binary ground                                           the cross-label𝑃(save∩click).
+              truth labelsy      𝑥, y𝑦∈{0, 1} and predicted probabilities  ˆ𝑝𝑥, ˆ𝑝𝑦. In a                           •  In  some  cases,  the  existing  heads  are  slightly  different:
+             Learned Policy Functionstandard multi-task setup, the model minimizes a weighted sum of                   a base prediction of central importance is made, such as
+
+   Engagement Scoresthe marginal losses [14]. Assuming binary cross-entropy (BCE) forOther Input Features              𝑃(click), and many other prediction tasks are conditioned
+              classification tasks [18]:                                                                               on it, such as𝑃(save|click)              . This is achieved by masking
+             New Input(Phase 2, Sec. 3.2)                                                                              out training examples where the primary label (e.g., click)
+                            Lstandard =𝜆   𝑥LBCE(y  𝑥, ˆ𝑝𝑥)+𝜆   𝑦LBCE(y  𝑦, ˆ𝑝𝑦)            (1)Task Relation Heads     is negative. In this scenario, one of the added auxiliary
+     Existing Headswhere𝜆 represents the scalar loss weight for each task. Under(Phase 1, Sec. 3.1)                    heads is the unconditional prediction,𝑃(save)     , trained on
+              this formulation, the shared representation𝜃 is optimized to dis-                                        all examples.
+Click     Visit      Save             Save      Save×
+              criminate the marginal distributions𝑃(𝑋)       and𝑃(𝑌)       independently.Uncond.Share        We provide two explanations for this proposed selection below.
+
+
+                      Shared Body
+
+       Engagement Scoring Model (MTL)
+
+                      Input Features
+
+
+                   Content Retrieval
+
+=== PAGE 4 ===
+                                                                                                                                                                                           Zhang et al.
+
+                        2.2.1    Deriving Covariance. Rather than modeling the full joint                          3.2    Environment Modeling Hypothesis
+                        space, we can capture fundamental cross-task relationships by es-                          We hypothesize that there will be improved performance in the
+                        timating their covariance. For two random variables𝑋 and𝑌 , the                            RL agent that consumes the multi-task model signals when we
+                        covariance is:                                                                             incorporate the additional outputs from the heads approximating
+                                                                                                                   cross-task relationships.
+                                             Cov(𝑋,𝑌)=E[𝑋𝑌]−E[𝑋]E[𝑌]                                                   We attribute this to the fact that the model of the environment—
+                        The idea is to collect predictions for each pair of tasks𝑋,𝑌 covering                      represented by the multi-task model outputs—becomes richer and
+                        all three terms E[𝑋],E[𝑌],E[𝑋𝑌]                        that are required to compute the    more informative. In the context of YouTube recommendations,
+                        covariance. Typically two are present and one is missing.                                  the main way we assess this improvement in the RL agent is by
+                              •  Direct Tasks:If the model predicts unconditional tasks    𝑋                       measuring the impact on metrics in A/B tests on live users. For
+                                  and𝑌  (e.g.,𝑋=click     ,𝑌=save     ), it already estimates E[𝑋]                 example, it may be useful to know that for a certain class of videos, a
+                                  and E[𝑌]      . We add an auxiliary head for the cross-label,                    click is anti-correlated with a save because the user wants to watch
+                                  estimating E[𝑋𝑌]      , which in this example is also𝑃(𝑋∩𝑌)           .          it only once, while for other videos they are correlated because the
+                              •  Conditional Tasks:If the model predicts a binary task                             user finds value in repeating the experience.
+                                  𝑋  and a conditional task𝑌|𝑋   , we can derive the joint                         4    MODEL ARCHITECTURE
+                                  expectation via E[𝑋𝑌]=E[𝑌|𝑋]E[𝑋]                           . The missing term
+                                  is E[𝑌]      , and we add an auxiliaryunconditionedhead for  𝑌 .                 For the RL agent model, we incorporated the outputs of the addi-
+                        2.2.2    Deriving the Pairwise Joint Distribution.For any binary task                      tional cross-task relationship heads as standard input features. For
+                        pair𝑋,𝑌∈{  0, 1}, capturing the complete pairwise joint distribution                       the multi-task model, we evaluated two architectural approaches,
+                        requires modeling all four realization states: E[𝑋𝑌]      , E[𝑋(¬𝑌)]           ,           both of which proved effective. We initially explored the more com-
+                        E[(¬𝑋)𝑌], andE[(¬𝑋)(¬𝑌)].                                                                  plex second approach but ultimately adopted the first, which offered
+                           Because¬𝑋=      1−𝑋    and¬𝑌=      1−𝑌   , the linearity of expectation                 greater ease of implementation.
+                        guarantees that all four states can be analytically derived using                               (1)  Directly connect the added head to the shared body without
+                        strictly three terms:E[𝑋],E[𝑌], andE[𝑋𝑌]. For example:                                               stopping gradients as in Figure 2. This approach is the sim-
+                                                                                                                             plest, most scalable, and generally preferred based on our
+                             E[𝑋(¬𝑌)]=E[𝑋(1−𝑌)]=E[𝑋]−E[𝑋𝑌]                                                                   experience implementing across multiple YouTube models.
+                         E[(¬𝑋)(¬𝑌)]=E[(1−𝑋)(1−𝑌)]=1−E[𝑋]−E[𝑌]+E[𝑋𝑌]                                                    (2)  For a cross-label head𝑋𝑌  associated with existing heads𝑋
+                           Therefore, introducing auxiliary heads to ensure the model out-                                   and𝑌 , we implemented a smaller head (with fewer param-
+                        puts these three base components for a given pair is mathematically                                  eters) that connects directly to the top hidden layers of the
+                        equivalent to estimating their complete pairwise joint distribution.                                 specific heads for𝑋  and𝑌  without stopping gradients as
+                        This is a first-order approximation of the full joint space, which has                               in Figure 3. The rationale is that the representations most
+                        intractable𝑂(2                            𝑁)complexity.                                              useful for learning𝑋𝑌  are likely already contained within
+                                                                                                                             the specialized representations of𝑋 and𝑌 . While this ap-
+                        3    TWO PRIMARY HYPOTHESES                                                                          proach adds fewer total parameters than connecting to the
+                                                                                                                             shared body, the savings are likely negligible relative to the
+                        We propose two fundamental hypotheses for improving multi-task                                       total model size.
+                        learning by modeling cross-task relationships. While we theoreti-
+                        cally ground these hypotheses in joint distribution estimation and
+                        targeted gradient signals (Section 2), our primary validation is em-
+                        pirical through offline model evaluation and live user experiments.
+
+                        3.1    Transfer Learning Hypothesis
+                        We hypothesize that adding auxiliary heads to learn cross-task
+                        relations improves the performance of existing heads within the
+                        multi-task model. We posit that this is because the shared body of                                     Figure 2: Connect Directly to Shared Body.
+                        the multi-task model will improve when tasked with approximating
+                        the joint distribution, and that these benefits will transfer to the
+                        existing heads via the shared representation.                                              5    IMPLEMENTATION AND TESTING
+                           This can be verified in both offline and online experiments:                                  WORKFLOW
+                             (1)  Offline, by examining the AUC scores of the existing heads
+                                  before and after the auxiliary cross-task relationship heads                     The following workflow (also illustrated in Figure 5) suggests a way
+                                  are added.                                                                       to adopt our contribution in any stack involving a multi-task model
+                             (2)  In live user experiments, by serving the multi-task model                        and has been used widely across several YouTube surfaces.
+                                  with the added auxiliary heads but ignoring their outputs,                            (1)  Task Selection and Data Screening:Select the task pairs
+                                  purely to test the empirical impact of the improved perfor-                                for which to estimate cross-task relationships, explicitly
+                                  mance of the existing heads.                                                               excluding pairs with trivial joint distributions. Examples
+
+
+
+
+X, Y        XY
+
+=== PAGE 5 ===
+                            Learned Cross-Task Relationships in Multi-Task Models
+
+                                                                                                                                   •  Nested Tasks:For pairs such as    𝑋=open      and𝑌=
+                                                                                                                                      open (variant), where𝑌  implies𝑋 (𝑌⊆𝑋     ), the cross-
+                                                                                                                                      task label simplifies to the narrower task:𝑋𝑌=𝑌.
+                                                                                                                                   •  Mutually Exclusive Tasks:For pairs such as    𝑋=
+                                                                                                                                      open and𝑌=dismiss     , the two actions cannot occur
+                                                                                                                                      simultaneously, so the joint label is always zero (𝑋𝑌=
+                                                                                                                                      0).
+                                                                                                                                   •  Redundant Unconditionals:For a primary task            𝑋
+                                                                                                                                      (e.g.,click) and a conditional task     𝑌|𝑋    where𝑌⊆𝑋
+                               Figure 3: Connect to Existing Heads’ Top Hidden Layer.                                                 (e.g.,watch from click), the unconditional probability
+                                                                                                                                      is fully defined by the chain rule:𝑃(𝑌)=𝑃(𝑌∩𝑋)=
+                                                                                                                                      𝑃(𝑌|𝑋)𝑃(𝑋)                . Since 𝑃(𝑌)       is analytically derivable
+                                                                                                                                      from the existing predictions, adding it as an explicit
+                                                                                                                                      head yields no new information. We checked the back-
+                                                                                                                                      end label implementation to make sure the added un-
+                                                                                                                                      conditionals are not redundant.
+                                                                                                                           (2)  Offline Evaluation:Add the auxiliary cross-task relation-
+                                                                                                                                ship heads to the multi-task model. Check for AUC gains
+                                                                                                                                in the existing tasks, specifically focusing on the original
+                                                                                                                                two tasks involved in each cross-task relation.
+                                                                                                                           (3)  Live Experimentation:Execute the following two-phase
+                                                                                                                                live experiment strategy (illustrated in Figure 1):
+                                                                                                                                   •  Phase 1 (Transfer Learning Evaluation):Deploy
+                                                                                                                                      the updated multi-task model with the newly added
+                                                                                                                                      cross-task heads, butsuppressthe downstream con-
+                                                                                                                                      sumption of their outputs. This measures the impact
+                                                                                                                                      of transfer learning to the existing heads in isolation,
+                                                                                                                                      directly testing the Transfer Learning Hypothesis (Sec-
+                                       Figure 4: Decision Logic for Task Selection.                                                   tion 3.1).
+                                                                                                                                   •  Phase 2 (Environment Modeling Evaluation):Up-
+                                                                                                                                      date the deployment to serve the new cross-task predic-
+                                                                                                                                      tions as input features to the Learned Policy Function
+                                                                                                                                      (LPF). By using the Phase 1 arm as a baseline, this
+                                                                                                                                      isolates the specific value of the increased informa-
+                                                                                                                                      tion density—validating the Environment Modeling
+                                                                                                                                      Hypothesis (Section 3.2)—distinct from the accuracy
+                                                                                                                                      gains achieved via transfer learning.
+                                                                                                                           (4)  Iterative Refinement:Repeat this process with alternative
+                                                                                                                                head selections as necessary. Empirical results in a live
+                                                                                                                                environment may be difficult to predict, requiring iteration
+                                                                                                                                to identify the set of heads that yields a substantial impact
+                                                                                                                                on user experience.
+
+
+                                                                                                                       6    DESCRIPTION AND RESULTS ON YOUTUBE
+                          Task Selection & Data Screening                                                                   SURFACES
+                                                                                                                      This section details a cumulative series of launches and experi-
+                                                                                                                       ments conducted across YouTube surfaces, noting unique challenges
+                                  Offline Evaluation                                                                   in contexts where they proved significant. Additional evidence is
+                          Check existing heads performanceSelect Task Pair(𝑋, 𝑌)Figure 5: Experimentation Workflow.Discardpending from experiments and deployments that are currently in
+                                                                                                                       progress.
+                         Are 𝑋  and 𝑌  mutually exclusive?           Yes                                                  Validation Procedure and Terminology:Alive experiment
+                                Live Experimentation                                                                   refers to an A/B test conducted across a segment of the YouTube
+                                      below are also illustrated in Figure 4. Additionally, checkNo                    user base, where each experiment arm typically comprises tens
+                               Is 𝑌  nested within 𝑋?for data integrity, e.g.,𝑋𝑌  may be sparse compared to𝑋  orYes    of millions of users. Alaunchrefers to a change in the algorithm
+                              Phase 1: Transfer Learning
+             XY      Deploy model without serving new heads outputs𝑌.No                                                deployed to the entire user base (billions of users).Offline analysis
+
+                    What are the existing task representations?
+
+                            Phase 2: Environment Modeling
+                       Serve new heads as inputs to policy functions
+X              Both are UnconditionedY           𝑌  is conditioned on 𝑋
+
+
+              Add Cross-Label Head:Repeat and compare with alter-Add Unconditioned Head:
+                       E[𝑋𝑌]native task selections as neededE[𝑌]
+
+=== PAGE 6 ===
+                                                                                                                                                                                                                    Zhang et al.
+
+                                                   refers to model performance metrics (e.g., AUC) calculated on a                            heads𝐷), while the live combined arm demonstrated broad im-
+                                                   held-out evaluation set after training.                                                    provements across user engagement, satisfaction, and efficiency.
+                                                       Dataset Statistics:Billions or more of training examples are                           6.1.2    Follow-Up Launch on More Heads.A subsequent deployment
+                                                   generated daily. Each model consumes a time window spanning                                replaced the existing independent, overlapping variants in𝐷 with
+                                                   several weeks of data. The evaluation set comprises 1%.                                    a set of disjoint variants sharing a common base layer. This ar-
+                                                       Empirical Evaluation Context:First, while some reported                                chitectural shift raised a critical question regarding the optimal
+                                                   metric changes may appear small in magnitude (e.g., 0.1%), they                            gradient path for learning pre-existing cross-task relationships. In
+                                                   translate to substantial and statistically significant absolute impacts                    the newer architecture, the number of potential cross-task heads
+                                                   given the scale of the user base. Furthermore, such incremental                            scales with the number of variants modeled per event, necessitating
+                                                   gains are meaningful for mature and already optimized systems. Sec-                        a re-evaluation of how gradients from the cross-task loss are back-
+                                                   ond, the proprietary nature of the production environment means                            propagated to the shared body for transfer learning. We compared
+                                                   some of the precise mathematical formulations for our experiment                           two distinct gradient pathways:
+                                                   metrics and prediction labels are necessarily abstracted, which                            •  Path 1: Connect to Variant Layers.Gradients flow from the
+                                                   necessitates a certain degree of assumed domain knowledge. We ac-                             cross-task heads through the specialized (variant) tower layers,
+                                                   knowledge that these specific design choices and metric definitions                           see Figure 6.
+                                                   will vary across other applications.                                                       •  Path 2: Connect Directly to Shared Base.Gradients flow
+                                                       Discussion of Results:Offline AUC evaluation yields generally                             directly from the cross-task heads to the shared base layer, by-
+                                                   positive but mixed results; while some original heads show improve-                           passing the variant-specific towers, see Figure 7.
+                                                   ments, others remain neutral, with occasional minor regressions in
+                                                   unrelated heads. However, all live experiments demonstrate statis-
+                                                   tically significant gains in both user engagement and satisfaction.
+                                                   This confirms an expansion of the system’s operating point rather
+                                                   than a trade-off between objectives. The metrics are selected to
+                                                   illustrate this duality, such as Daily Active Users and Opt-outs for
+                                                   notifications (Sec. 6.1.1).
+
+                                                   6.1    Notifications
+                                                   The notifications product presents unique challenges for both mod-
+                                                   eling and live experimentation. One challenge is attribution: posi-
+                                                   tive signals of recommendation quality, such as visiting the app after
+                                                   a send, can often only be indirectly attributed to the notification. An-
+                                                   other challenge is user state: unlike in-app recommendations served                          Figure 6: Gradients flow through variant-specific towers.
+                                                   to users who have already proactively opened the app, notifications
+                                                   reach users at varying levels of availability and responsiveness. Con-
+                                                   sequently, baseline AUC scores for prediction tasks are often lower,
+                                                   and live experiments frequently exhibit wider confidence intervals.
+                                                   However, offline analysis can still verify accuracy improvements,
+                                                   and strategies such as repeating experiments or bundling changes
+                                                   can help achieve statistically significant improvements in quality
+                                                   metrics or increase confidence in the results.
+
+                                                   6.1.1    Initial Launch of 10 Heads.We conducted an initial launch
+                                                   adding ten auxiliary heads to the Notifications user engagement
+                                                   multi-task model, adopting the architecture shown in Figure 3
+                                                   (connecting to existing heads’ top hidden layers). The added heads
+                                                   predicted cross-task outcomes𝑋𝑌 , where𝑋∈𝐷      and𝑌∈𝑉      are
+                                                   drawn from two distinct sets of existing predictions defined below:
+                                                          •𝐷  : Five predictions of notification interactions:Open,Open                       Figure 7: Gradients flow directly to shared event base layers.
+                                                             (variant),Open (variant II),Dismissal,Dismissal (variant).
+                                                          •𝑉   : Two predictions of ambient activity indirectly attributed                       Empirical results demonstrated that Path 2 significantly outper-
+                                                             to the notification:Visit,Visit (variant).                                       formed Path 1, particularly on class-imbalanced and sparse-label
+                                                       The live experiment utilized a three-arm design to separate the                        tasks, where AUC performance consistently improved by approxi-
+                                XY                 testing of Hypotheses 3.1 and 3.2: a control arm, a transfer learning                      mately0    .6%–4%. This strongly suggests that direct regularization of
+                                     XY            arm (training only), and a combined arm that also served these pre-                        the event base layers via the cross-task loss yields a higher-quality,
+                                                   dictions to the RL policy. As summarized in Table 2, offline analysis                      non-specialized shared representation. We hypothesize that the di-
+                                                   confirmed accuracy improvements (primarily in direct interaction                           rect connection in Path 2 prevents cross-task gradients from being
+
+
+ X [variants]X [variants]                              Y [variants]Y [variants]
+
+
+
+X [base]X [base]                                            Y [base]Y [base]
+
+=== PAGE 7 ===
+Learned Cross-Task Relationships in Multi-Task Models
+
+              Table 2: Summary of Results.Note: Reported metrics may represent proprietary variants of the listed descriptors.
+
+Surface           Hypothesis            Auxiliary Heads                     AUC Impact                   Empirical Impact [95% CI]
+Notifications       Combined:                  10 heads (𝐷×𝑉     ):Cross-labels          +3–8% (Direct𝐷);                  +0.17%[+0.01,+0.32]Daily Active Users
+(Sec. 6.1.1)        Transfer Learning +        between direct actions𝐷                   Neutral (Ambient𝑉)                +0.19%[+0.02,+0.37]Valued watch time
+                    RL Input                   (Open/Dismissal) and ambient                                                −1.05%[−1.84,−0.26]Opt-outs
+                                               activity𝑉(Visits).                                                          −7.21%[−7.30,−7.11]Sends
+                                                                                                                           +7.67%[+7.34,+7.99]Click-Through Rate
+Homepage            Transfer Learning5 unconditioned heads:                              +0.2–0.5% (Primary:               +0.05%[+0.01,+0.09]Valued watch time
+Phase 1                                        Watch Time Ratio, Save, Like,             click,subscribe,inline            +0.10%[+0.05,+0.16]Shorts engagement
+(Sec. 6.2.1)                                   Subscribe, Inline Playback.               playback,like,save);              −0.24%[−0.42,−0.05]Low quality impressions
+                                                                                         Minor regressions
+                                                                                        (Unrelated:scroll,share)
+Phase 2             Transfer Learning7 heads:Share (uncond.),                            +1–2% (share,download);           +0.05%[+0.00,+0.10]Valued watch time
+(Sec. 6.2.1)                                   Download (cond.), plus5                   ≈−0.5% (like,dislike)             +0.06%[+0.00,+0.12]Shorts engagement
+                                               heads:Save×[Action]                                                         −0.16%[−0.30,−0.03]Low quality impressions
+                                               conditioned.
+Phase 3             RL Input          11 heads:Final refined set of                      N/A; baseline contains            +0.03%[+0.00,+0.07]Home engagement
+(Sec. 6.2.2)                                   unconditioned, conditioned,               MTL changes                       +0.10%[+0.05,+0.16]Shorts engagement
+                                               and cross-task predictions.                                                 −0.64%[−0.86,−0.43]Low quality impressions
+Watch Next          Transfer Learning4 unconditioned variants:                           +0.2–2.6% (Original               +0.19%[+0.15,+0.23]Watch Next Valued
+(Sec. 6.3.1)                                   Continuation, Like, Dislike,              heads)                            Watch Time
+                                               Subscribe.                                +0.25% (CTR),+0.22%               +0.08%[+0.04,+0.12]Valued watch time
+                                                                                        (Bad Watch)                        −0.42%[−0.53,−0.31]Low quality impressions
+
+
+filtered or attenuated by intermediate, variant-specific tower layers,                       not uniformly positive; some existing heads experienced minor
+which are otherwise optimized to discard information irrelevant                              regressions, though these were outweighed by gains in other areas.
+to their specific variant. We plan to conduct further research on                            However, live results demonstrated a net positive impact on user
+optimizing gradient paths for auxiliary heads.                                               experience.
+                                                                                                 First Main Launch:We added five auxiliary heads, uncondi-
+6.2    Homepage                                                                              tioned on click:
+The Homepage serves as the primary landing surface for users                                        •  Watch Time Ratio(uncond.) (A regression head but a deriva-
+initiating their viewing journey. Unlike the Notifications surface,                                    tion similar to Section 2.2.1 applies to model the covariance
+the Homepage has high intent since users have actively decided                                         between the binary click and continuous watch time ratio).
+to open the app. This typically yields cleaner signals and more                                     •Save,Like,Subscribe, andInline Playback(all uncond.).
+statistically significant results in live experiments. The underlying                            There were modest and heterogeneous improvements in the AUC
+multi-task model is also significantly larger with a high number                             scores of existing tasks, and live experiments showed substantial
+of existing heads, which creates a larger combinatorial space of                             improvements in user engagement and quality metrics (Table 2).
+potential task pairs for relationship modeling. Consequently, a                                  Second Main Launch:We added seven passive auxiliary heads.
+challenge is the strategic selection and refinement of the auxiliary                         They included two that reversed the conditioning of existing tasks:
+heads. The model architecture is centered around one prediction of                                  •Share(uncond.).
+critical importance,𝑃(click)           , with numerous heads conditioned on                         •Downloadcond.(existing task was uncond.).
+positive click labels.                                                                       The remainder were five cross-label tasks conditioned on click:
+   We ultimately utilized a combination of the auxiliary head types
+described in Section 2.2, including both unconditioned and cross-                                   •  Save× Action, whereActionis one of:Share,Download,
+label heads.                                                                                           Channel Engagement,Homepage Engagement,Like(all cond.).
+6.2.1    Multi-Task Model Auxiliary Heads.We conducted two pri-                                  Again, there was a modest and heterogeneous AUC impact, and
+mary launches introducing auxiliary heads, followed by a cleanup                             positive shifts in live user metrics (Table 2).
+phase. The auxiliary heads were connected directly to the shared                             6.2.2    Passing Heads to RL Policy Model.Following an iterative
+body, following the architecture in Figure 2. Both launches yielded                          selection process, we finalized a collection of 11 cross-task relation
+significant improvements in user metrics, even when the heads                                heads within the Homepage multi-task user engagement model.
+were initially added as passive tasks (not served) to leverage trans-                            In this phase, we incorporated the predictions from all 11 heads as
+fer learning (Section 3.1). Notably, the transfer learning effect was                        input features to the Homepage’s on-policy reinforcement learning
+
+=== PAGE 8 ===
+                                                                                                                                                             Zhang et al.
+
+(RL) ranking model. The control arm retained these 11 heads in the                                This subset of examples can be small if both𝑋  and𝑌  are
+upstream multi-task user engagement model but suppressed their                                    relatively sparse.
+outputs from the learned ranking model. Since both arms benefited                              •  When existing heads predict𝑋 and𝑌|𝑋    (e.g., when𝑋=
+equally from transfer learning, this design allowed us to isolate the                             click), adding a head for the unconditional prediction of𝑌
+specific utility of the cross-task predictions in providing a richer                              allows the model to train on examples where𝑌  is positive
+representation of user intent, as proposed in Hypothesis 3.2.                                     but𝑋  is not (even if they are rare). This learning signal
+   The final set of 11 heads included:                                                            cannot be replicated by adjusting the loss weight of𝑌|𝑋    , as
+      •  Three  head  variants  with  click  conditioning:Download                                the conditional head does not train on negative𝑋 examples.
+         (cond.),Save(uncond.),Share(uncond.).
+      •Five heads of the formSave×Action(cond.) whereAction                             7.2    Difference Between Crossing Task Labels
+         is one of:Share,Download,Channel Engagement,Homepage                                    and Crossing Existing Task Predictions
+         Engagement,Like.
+      •  Three unconditioned cross-label heads:Save   × Share,Save                      Suppose the policy model consuming the multi-task predictions
+         ×Download,Share×Download(all uncond.).                                         is a neural network capable of functionally approximating feature
+   The live experiment yielded positive results on user engagement                      crosses [10], potentially augmented by a specialized layer such as
+quality, though the magnitude of impact was smaller than the gains                      a Deep Cross Network (DCN) [19]. A frequently asked question
+observed from the initial transfer learning experiments (Table 2).                      is: What is the added value of explicitly predicting the cross-label
+The final refinement and full-scale deployment are in progress.                         probability E[𝑋𝑌]       when E[𝑋]        and E[𝑌]       are already present in the
+                                                                                        policy model’s feature set?
+6.3    Watch Next                                                                           The answer is that while the product E[𝑋]E[𝑌]               can be approxi-
+The Watch Next system recommends content within the video                               mated, E[𝑋]E[𝑌]≠E[𝑋𝑌]                         in general. The motivation for learning
+watch page environment. It leverages the current video as its pri-                      cross-task relationships is precisely this inequality. The difference
+mary signal context and must accommodate diverse user journey                           between the two terms is the covariance, as detailed in Section 2.2.1.
+entry points. A key challenge is quantifying the dynamics between                       The limiting factor is not the sophistication of functional trans-
+Watch Next and other YouTube surfaces such as the Homepage                              formations applied to E[𝑋]        and E[𝑌]      , but rather the availability
+and the Shorts Infinite Player. To address this, impact is measured                     of information in the feature set; the joint distribution inherently
+across all of YouTube instead of just the Watch Next surface. At                        contains greater information than the marginals, as explained in
+the moment, only Phase 1, assessing transfer learning benefits (see                     Section 2.1.
+
+Section 3.1), is complete.
+6.3.1    Addition of Four Auxiliary Non-Serving Heads.The launch                        8    CONCLUSION AND FUTURE WORK
+on the Watch Next sidebar introduced variants based on heads                            We proposed a framework extending multi-task learning to ex-
+previously conditioned on a watch requirement. These heads were                         plicitly model or approximate the joint distribution between tasks,
+connected directly to the shared body, as in Figure 2.                                  moving beyond the standard practice of relying solely on joint
+      •Continuation,Like,Dislike,Subscribe(all uncond.).                                training for implicit feature sharing. We formulated a practical so-
+                                                                                        lution by introducing auxiliary heads to approximate covariance
+   The treatment model yielded consistent offline AUC improve-                          and pairwise joint distributions, demonstrating significant positive
+ments across the original serving heads and translated into signifi-                    impacts on user engagement through large-scale deployments in
+cant live gains (Table 2).                                                              YouTube’s recommender systems.
+                                                                                            Future work can focus on two primary directions. The first is a
+7    DISCUSSION                                                                         principled, automated approach for selecting auxiliary heads, reduc-
+7.1    Contrasting with Scalar Loss Weighting                                           ing the current reliance on empirical trial-and-error. The second is
+A common question is whether similar improvements could be                              a structural evolution toward merging the User Engagement Model
+achieved by increasing the loss weights of specific heads, rather                       and the RL policy into a unified, end-to-end architecture—similar
+than adding an auxiliary task to predict cross-task relationships. In                   to paradigms found in autonomous driving [6]. Such a unification
+response, we compared adding auxiliary heads against duplicating                        would allow the decision policy to access the totality of learned
+existing heads or increasing the loss weights of existing heads, and                    task relationships directly from the latent representation, poten-
+we found no experimental evidence of improvement. Furthermore,                          tially obviating the need for explicit auxiliary heads and inviting
+increasing loss weights creates a fundamentally different learning                      an alternative formulation of learned task relationships.
+
+dynamic than adding cross-task correlation heads:
+      •  When existing heads predict labels𝑋  and𝑌  and the added                       ACKNOWLEDGMENTS
+         head predicts𝑋𝑌 , increasing the loss weight for either𝑋                       We are grateful for the insightful discussions and code reviews
+         or𝑌  uniformly increases the training importance on all                        provided by colleagues not listed as authors, including Shawn An-
+         examples positive for that label. In contrast, adding a head                   drews, Kris Peterson, Yash Vadalia, and Angela Yan. We also extend
+         predicting𝑋𝑌  concentrates the gradient signal specifically                    our thanks to the broader Notifications, Home, and Watch Next
+         on the subset of examples where both tasks are positive.                       teams at YouTube for their support.
+
+=== PAGE 9 ===
+Learned Cross-Task Relationships in Multi-Task Models
+
+REFERENCES                                                                                                      [13]   Bo Liu, Xingchao Liu, Xiaojie Jin, Peter Stone, and Qiang Liu. 2021.  Conflict-
+ [1]   Kaidi Cao, Jiaxuan You, and Jure Leskovec. 2022. Relational Multi-Task Learning:                                Averse Gradient Descent for Multi-task Learning. InAdvances in Neural Infor-
+      Modeling Relations between Data and Tasks. InInternational Conference on                                         mation Processing Systems (NeurIPS ’21), Vol. 34. 1887–1898.
+      Learning Representations (ICLR ’22).                                                                      [14]   Jiaqi Ma, Zhe Zhao, Xinyang Yi, Jilin Chen, Lichan Hong, and Ed H. Chi. 2018.
+ [2]   Rich Caruana. 1993. Multitask Learning: A Knowledge-Based Source of Inductive                                   Modeling Task Relationships in Multi-task Learning with Multi-gate Mixture-
+      Bias. InProceedings of the Tenth International Conference on Machine Learning                                    of-Experts. InProceedings of the 24th ACM SIGKDD International Conference
+      (ICML ’93). Morgan Kaufmann, 41–48.                                                                              on Knowledge Discovery & Data Mining (KDD ’18). ACM, 1930–1939.    https:
+ [3]   Minmin Chen, Alex Beutel, Paul Covington, Sagar Jain, Francois Belletti, and                                    //doi.org/10.1145/3219819.3220007
+      Ed H. Chi. 2019. Top-K Off-Policy Correction for a REINFORCE Recommender                                  [15]   Xiao Ma, Liqin Zhao, Guan Huang, Zhi Wang, Zelin Hu, Xiaoqiang Zhu, and Kun
+      System. InProceedings of the Twelfth ACM International Conference on Web Search                                  Gai. 2018. Entire Space Multi-Task Model: An Effective Approach for Estimating
+      and Data Mining (WSDM ’19). ACM, 456–464.  https://doi.org/10.1145/3289600.                                      Post-Click Conversion Rate. InThe 41st International ACM SIGIR Conference on
+      3290999                                                                                                          Research & Development in Information Retrieval (SIGIR ’18). ACM, 1137–1140.
+ [4]   Zhao Chen, Vijay Badrinarayanan, Chen-Yu Lee, and Andrew Rabinovich. 2018.                                      https://doi.org/10.1145/3209978.3210104
+      GradNorm: Gradient Normalization for Adaptive Loss Balancing in Deep Mul-                                 [16]   Sebastian Ruder. 2017.  An Overview of Multi-Task Learning in Deep Neural
+      titask Networks. InInternational Conference on Machine Learning (ICML ’18).                                      Networks.arXiv preprint arXiv:1706.05098(2017).
+      794–803.                                                                                                  [17]   Richard S. Sutton and Andrew G. Barto. 1998.Reinforcement Learning: An Intro-
+ [5]   Zhao-Min Chen, Xiu-Shen Wei, Peng Wang, and Yanwen Guo. 2019. Multi-Label                                       duction. MIT Press.
+      Image Recognition with Graph Convolutional Networks. InProceedings of the                                 [18]   Hongyan Tang, Junning Liu, Ming Zhao, and Xudong Gong. 2020. Progressive
+      IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR ’19).                                       Layered Extraction (PLE): A Novel Multi-Task Learning (MTL) Model for Per-
+      5177–5186.                                                                                                       sonalized Recommendations. InFourteenth ACM Conference on Recommender
+ [6]   Felipe Codevilla, Matthias Müller, Antonio López, Vladlen Koltun, and Alexey                                    Systems (RecSys ’20). ACM, 269–278.  https://doi.org/10.1145/3383313.3412236
+      Dosovitskiy. 2018. End-to-End Driving via Conditional Imitation Learning. In                              [19]   Ruoxi Wang, Bin Fu, Gang Fu, and Mingliang Wang. 2017. Deep & Cross Network
+      IEEE International Conference on Robotics and Automation (ICRA ’18). 4693–4700.                                  for Ad Click Predictions. InProceedings of the ADKDD’17. ACM, 1–7.   https:
+ [7]   Paul Covington, Jay Adams, and Emre Sargin. 2016.  Deep Neural Networks                                         //doi.org/10.1145/3124749.3124754
+      for YouTube Recommendations. InProceedings of the 10th ACM Conference on                                  [20]   Yi Wu et al. 2024. Learned Ranking Function: From Short-Term Behavior Predic-
+      Recommender Systems (RecSys ’16). ACM, 191–198.    https://doi.org/10.1145/                                      tions to Long-Term User Satisfaction. InProceedings of the 18th ACM Conference
+      2959100.2959190                                                                                                  on Recommender Systems (RecSys ’24). ACM.
+ [8]   Michael Crawshaw. 2020. Multi-Task Learning with Deep Neural Networks: A                                 [21]   Dongbo Xi, Zhen Chen, Peng Yan, Yunyao Zhang, Yongchun Zhu, Fuzhen Zhuang,
+      Survey. arXiv preprint arXiv:2009.09796(2020).                                                                   and Qing He. 2021. Modeling the Sequential Dependence among Users’ Multitask
+ [9]   Will Dabney, Mark Rowland, Marc G. Bellemare, and Rémi Munos. 2018. Distri-                                     Behaviors for Conversion Rate Prediction. InProceedings of the Web Conference
+      butional Reinforcement Learning with Quantile Regression. InProceedings of the                                   2021 (WWW ’21). ACM, 3598–3607.  https://doi.org/10.1145/3442381.3450042
+      AAAI Conference on Artificial Intelligence (AAAI ’18). 2892–2901.                                         [22]   Chih-Kuan Yeh, Wei-Chieh Wu, Wei-Jie Ko, and Yu-Chiang Frank Wang. 2017.
+[10]   Kurt Hornik, Maxwell Stinchcombe, and Halbert White. 1989. Multilayer Feed-                                     Learning Deep Latent Spaces for Multi-Label Classification. InProceedings of the
+      forward Networks Are Universal Approximators.Neural Networks2, 5 (1989),                                  [23]   Tianhe Yu, Saurabh Kumar, Abhishek Gupta, Sergey Levine, Karol Hausman,AAAI Conference on Artificial Intelligence (AAAI ’17). 2838–2844.
+      359–366.                                                                                                         and Chelsea Finn. 2020. Gradient Surgery for Multi-Task Learning. InAdvances
+[11]   Max Jaderberg, Volodymyr Mnih, Wojciech Marian Czarnecki, Tom Schaul,                                           in Neural Information Processing Systems (NeurIPS ’20), Vol. 33. 5824–5836.
+      Jack Z. Leibo, David Silver, and Koray Kavukcuoglu. 2017. Reinforcement Learn-                            [24]   Zhe Zhao, Lichan Hong, Li Wei, Jilin Chen, Nathanael Hurley, Tengfei Song, Peng
+      ing with Unsupervised Auxiliary Tasks. InInternational Conference on Learning                                    Liu, and Ed Chi. 2019. Recommending What Video to Watch Next: A Multitask
+      Representations (ICLR ’17).                                                                                      Ranking System. InProceedings of the 13th ACM Conference on Recommender
+[12]   Alex Kendall and Yarin Gal. 2017. What Uncertainties Do We Need in Bayesian                                     Systems (RecSys ’19). ACM, 43–51.  https://doi.org/10.1145/3298689.3347043
+      Deep Learning for Computer Vision?. InAdvances in Neural Information Process-
+      ing Systems (NeurIPS ’17), Vol. 30. 5574–5584.

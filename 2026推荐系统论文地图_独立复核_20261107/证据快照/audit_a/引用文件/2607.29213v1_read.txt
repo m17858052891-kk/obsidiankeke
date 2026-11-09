@@ -1,0 +1,1349 @@
+
+
+GALA: Generative Aligned Learning for Adaptive Multimodal Representation in the Taobao Shangou Recommender System
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract
+I Introduction
+II Preliminaries
+III Related Work
+IV Methodology
+
+IV-A Framework Overview
+IV-B Domain-Adaptive Cross-Modal Alignment
+
+IV-B1 Domain-Specific Image–Text Alignment
+IV-B2 Query-Shop Alignment with Multi-Loss Optimization
+
+IV-C Generative User Behavior Alignment
+
+IV-C1 Task and Data Construction
+IV-C2 Fusion Prompt Construction
+IV-C3 Output Format and Index Prediction
+IV-C4 Backbone and Trainable Parameters
+IV-C5 SFT Warm-up
+IV-C6 Optimization with GRPO
+IV-C7 GRPO Formulation
+
+IV-D Multimodal Embedding Fusion for RecSys
+
+V Experiment
+
+V-A Datasets
+V-B Baseline Models
+
+V-B1 Compared Representation Methods
+V-B2 Compared Ranking Models
+
+V-C Experiment Settings
+V-D Evaluation Metrics
+
+V-D1 Evaluating Representation Method
+V-D2 Evaluating Ranking Models
+
+V-E Offline Performance
+
+V-E1 Different Representation Learning Strategies
+V-E2 Different Ranking Model Training Strategies
+
+V-F Complexity and Overhead Analysis
+
+V-F1 Sources of additional complexity
+V-F2 Offline training overhead
+V-F3 Offline incremental embedding inference
+V-F4 Online serving overhead
+
+V-G Online Effect
+
+VI Conclusion
+References
+
+ License: arXiv.org perpetual non-exclusive license
+
+arXiv:2607.29213v1 [cs.IR] 31 Jul 2026
+
+GALA: Generative Aligned Learning for Adaptive Multimodal Representation in the Taobao Shangou Recommender SystemThanks: *Corresponding author.
+
+Jiping Liu, Zhongmin Zhang, Zisen Sang*, Zhijia Fang*
+
+Affiliation: Rajax Network Technology (Taobao Shangou of Alibaba)
+Shanghai & Beijing, China
+{ljp178097, zhongminzhang.zzm, zisen.szs, zhijia.fzj}@alibaba-inc.com
+
+Affiliation: 
+
+Tao Ouyang
+
+Affiliation: Central South University
+Changsha, China
+ouyangtao@csu.edu.cn
+
+Affiliation: 
+
+Ma Jiang, Shaopeng Liang, Zeyang Hou, Guodong Cao, Jia Jia
+
+Affiliation: Rajax Network Technology (Taobao Shangou of Alibaba)
+Shanghai & Beijing, China
+{majiang.mj, shaopengliang.lsp, houzeyang.hzy, guodong.cao, jj229618}@alibaba-inc.com
+
+Abstract
+
+Modern recommender systems in food delivery increasingly leverage multimodal signals—including images, text, and user interaction histories—to enhance user experience, yet effective fusion of these heterogeneous modalities remains challenging due to discrepancies in semantics, scale, and update frequency, hindering both the joint modeling of multimodal signals and adaptation to evolving user intent. In mainstream two-stage approaches, the separation between content-semantic pretraining of image–text encoders and behavior-driven ranking models limits alignment between semantic understanding and user behavior patterns. To address these issues, we present GALA, a three-stage pipeline extending existing learning frameworks, whose core innovation lies in an intermediate “generative RL alignment” stage that constructs multimodal pretraining data from user behavior and refines it via conversion-based rewards, effectively bridging the pretraining–fine-tuning gap to align with downstream objectives. Specifically, GALA comprises three tightly coupled stages: first, behavior-aware triplet pretraining on query–image–text pairs from search logs to early capture user intent and content preferences; second, the novel intermediate stage, which refines multimodal embeddings through reward-driven optimization (GRPO) to dynamically align them with user behavior and bridge the pretraining–fine-tuning gap; and finally, integration of multimodal and ID embeddings via adaptive gating with a hybrid loss, preserving multimodal contributions under long-term ID-dominant training. GALA has been deployed in the production environment at Taobao Shangou, serving over 200 million daily active users. Compared with state-of-the-art (SOTA) methods, it delivers consistent offline gains of +0.12/+0.20 AUC along with better PCOC metrics. Large-scale online A/B tests further report a 0.55% increase in order volume, confirming GALA’s effectiveness at industrial scale and its robustness across diverse demand patterns.
+
+Index Terms: 
+Multimodal Representation Learning, Multimodal Data Management, Recommendation Systems, Food Delivery, User Intent Modeling, Reinforcement Learning
+
+I Introduction
+
+Taobao Shangou is a leading food delivery platform that ensures efficient service to its customers. Its recommender system serves hundreds of millions of users, millions of shops, and billions of items, playing a pivotal role in user engagement. As illustrated in Fig. 1, when a user submits a request, the system first retrieves a set of deliverable shops. These candidates undergo a cascaded procedure before a ranked list is presented to the user. Upon clicking on the preferred shops, the user proceeds to place an order, which will be finally delivered to a specified address.
+
+Multimodal features—particularly shop images and textual descriptions—play a critical role in user decision-making within recommender systems. While two shops may offer similar cuisines (e.g., burger restaurants), their visual presentations and menu descriptions often differ substantially, directly influencing user preferences beyond mere dietary alignment. Traditional ID-based ranking models [1, 2, 3, 4, 5, 6], which derive embeddings exclusively from interaction histories, fail to capture these decisive multimodal characteristics. This limitation results in information loss, particularly for new and long-tail shops with sparse interaction data. Consequently, these shops remain inadequately modeled and suffer reduced exposure, ultimately compromising overall recommendation quality and platform performance.
+
+Fig. 1: Taobao Shangou Recommender System Architecture.
+
+In large-scale industrial recommender systems, existing multimodal-enhanced ranking solutions can generally be categorized into two paradigms. End-to-end joint training [7, 8] updates multimodal content encoders and ID/behavioral representations jointly under the ranking objective (e.g., Click-Through Rate (CTR) or Conversion Rate (CVR)), enabling objective-level alignment between representation learning and downstream optimization, often yielding strong offline improvements.
+However, this paradigm is hard to deploy in large-scale production systems. Jointly training/updating large multimodal encoders with ranking models typically requires either per-request multimodal encoding or frequent encoder refresh, both of which conflict with strict millisecond-level latency and high-throughput serving requirements. Moreover, many end-to-end designs rely on cached or memory-bank item representations to reduce online cost [7, 8]; in fast-evolving, extremely long-tailed inventories, such representations are inevitably refreshed with delay, resulting in insufficient coverage for newly added/updated or long-tail candidates. Therefore, while algorithmically appealing, end-to-end approaches are not directly applicable under our constraints. In our production setting, the serving stack follows the standard paradigm of offline embedding computation, online key–value (KV) lookup, lightweight ranking. Under this paradigm, the prevailing solution is the two-stage pipeline [9, 10, 11, 12], where a multimodal encoder is first pretrained on large-scale image–text alignment tasks and used to compute (often frozen) item embeddings offline; these embeddings are then retrieved via online KV lookup and fed into a downstream ranker optimized for behavioral objectives such as CTR/CVR. This paradigm is simple to implement and cost-effective to iterate, but the decoupling between multimodal representation learning and ranking optimization often leads to misalignment, limiting the actual contribution of multimodal features to final ranking performance.
+
+In light of these issues, this work identifies three principal challenges: (i) Objective and Distribution Misalignment. A fundamental discrepancy exists between the static, content-driven distribution of the pretraining phase and the dynamic, behavior-driven objective of the ranking stage. The pretrained encoders produce static, content-oriented embeddings, whereas the ranking model must adapt to evolving user intent. When embeddings are frozen at serving time, they cannot reflect recent interaction data, thus limiting the contribution of multimodal representations to ranking performance. (ii) Domain-Specific Representation Gap. Effective multimodal learning must capture nuanced, domain-specific factors that influence user decisions. In food delivery, for instance, user preferences are highly contextual: key dish components (e.g., meats) often outweigh staples (e.g., rice) in importance, and preferences vary significantly by occasion (e.g., breakfast vs. afternoon tea) or taste profile (e.g., a preference for spicy cuisines). General-purpose multimodal pretraining lacks the targeted adaptation needed to distill these fine-grained, domain-specific features [13, 14, 15, 16]. (iii) Ineffective Fusion in ID-Dominant Architectures. On platforms with extensive historical data, ranking models are typically dominated by long-term ID-based signals (e.g., user, item, shop IDs). Simply incorporating multimodal features into these established models yields limited gains, as the influence of multimodal signals is suppressed by the strong ID-centric baselines. A dedicated fusion mechanism is therefore necessary to ensure multimodal features contribute meaningfully.
+
+Taken together, these challenges highlight the need for a multimodal food recommender system that can couple fine-grained content understanding with dynamic user intent modeling, forming a cognitive feedback loop that adapts to evolving preferences. Therefore, we propose GALA, a three-stage pipeline extending existing learning frameworks, whose core innovation lies in an intermediate “generative RL alignment” stage that constructs multimodal behavior-alignment data from user behavior and refines it via conversion-based rewards (derived from purchase events), thereby bridging the pretraining–fine-tuning gap to align with downstream objectives. Specifically, our GALA comprises: (i) domain-specific pretraining of multimodal encoders to capture culinary characteristics, (ii) generative behavior alignment to iteratively refine multimodal representations through historical interaction signals, and (iii) adaptive fusion of multimodal and ID features through a novel gating mechanism. As a new post-training stage, the generative behavior alignment leverages reinforcement learning to refine image–text embeddings by capturing evolving user preferences. On this basis, the adaptive fusion module combines these frozen, enhanced embeddings with trainable ID embeddings, efficiently balancing contribution trade-off among diverse features at the application stage.
+
+To summarize, our contributions are as follows:
+
+Domain-Adaptive Cross-Modal Alignment: We propose a domain-adaptive cross-modal alignment framework which learns intent-aware representations by optimizing a contrastive loss over query-shop and query-content triplets mined from large-scale search logs, explicitly capturing how subtle content differences shape user preference at the pretraining stage.
+
+Generative User Behavior Alignment: To overcome the static nature of conventional multimodal embeddings, we develop a generative, behavior-aligned refinement procedure, which employs Group Relative Policy Optimization (GRPO) to update embeddings via reward-driven optimization with an auxiliary objective, enriching their expression of personalized intents during the post-training stage.
+
+Multimodal Embedding Fusion for RecSys: Recognizing the dominance of ID features in industry-scale systems, we design a novel adaptive gating mechanism to seamlessly integrate multimodal and ID embeddings at the application stage. Moreover, we design a hybrid loss, a primary loss on the fused representation and an auxiliary loss on the multimodal branch, enabling the model to balance these signals in a data-driven manner.
+
+Our GALA demonstrates superior performance compared to state-of-the-art (SOTA) methods in offline evaluations. Furthermore, online A/B testing on Taobao Shangou platform confirms its practical effectiveness, yielding a statistically significant 0.55% increase in total order volume.
+
+Fig. 2: Overview of the Three-Stage Framework GALA.
+
+II Preliminaries
+
+Before delving into our method, we introduce basic knowledge of the industrial food delivery recommender system: (i) System Objective: Generate personalized and efficient shop ranking lists by learning from massive real-time user–shop interaction data (i.e., labels) and discrete ID-based features (i.e., model inputs). The ranking model optimizes accurate predictions of user preferences from these signals. A high-quality ranking list places shops that users are likely to be interested in the top positions, thereby improving key metrics such as CTR and conversion rate. (ii) Feature Taxonomy: Modern ranking models typically employ three categories: 1) ID-based features describe user profiles, the target shop (to be predicted), and the contextual information; 2) User behavior sequences describe user historical interacted items; 3) Multimodal representation features describe items’ text/visual information. (iii) Model Architecture The standard ID-based ranking model typically adopts an embedding and Multi-Layer Perceptron (MLP) architecture. In this way, categorical ID features are first transformed into dense embeddings via an embedding layer. To capture user interests, a historical behavior modeling module assesses the relevance between the target item’s embedding and the embeddings of the user’s historical interactions. This module generates fixed-length representation vectors by aggregating the target item embedding with the user’s interaction history. These aggregated representations are then concatenated with other ID embeddings to form the input for an MLP. Finally, the MLP processes this combined input to produce the prediction score.
+
+III Related Work
+
+Multimodal Alignment via Vision-Language Pretraining: Recent work leverages vision-language pretraining to align image and text into a unified semantic space. For instance,
+[17] introduced a natural language-supervised framework for cross-modal alignment. [18] developed Chinese CLIP, which is pretrained on 200 million Chinese image–text pairs. [19] proposed ALBEF, combining contrastive alignment with multimodal fusion via co-attention and momentum distillation. More recently, [20] presented GME, a large multimodal embedder using synthetic data and contrastive learning, achieving SOTA on UMRB. While these methods excel at semantic alignment, they generate generic embeddings that are not tailored for recommender systems.
+
+Multimodal Fusion in Recommender Systems: Several studies integrate multimodal features into recommendation pipelines. [14] extracted image regions via Mask-RCNN and fused them with text using co-attention. [9] aligned BEiT-3 embeddings with ID-based collaborative signals. [10] designed a two-phase framework: semantic pretraining followed by industrial deployment via SimTier/MAKE. [21] combined generative pretraining with DLRMs, enabling scalable deployment via simple similarity matching. However, these methods treat multimodal embeddings as static inputs, lacking adaptive fusion mechanisms to dynamically adjust visual and textual feature weights based on user preferences. Moreover, these approaches assume clean, single-image inputs—an unrealistic assumption for real-world food delivery platforms, where dishes often have multiple ambiguous, redundant, or low-quality images.
+Moreover, [7] proposed EM3, which fine-tunes content representations within the ranking model and adopts Low-Rank Adaptation (LoRA) to reduce the training cost of modeling long multimodal user sequences. [8] proposed LEMUR, which trains content and ID representations end-to-end and introduces a memory-bank mechanism to alleviate the computational bottleneck of multimodal sequential modeling. However, fine-tuning or memory-bank based end-to-end designs may suffer from insufficient coverage for newly added/updated and long-tail candidates when representations are refreshed only after training, which can be particularly problematic in fast-evolving, long-tailed inventories.
+
+Discrete Semantic Representations. Discrete semantic IDs have been explored to improve generalization by clustering similar items and enabling code-based generative retrieval in sequential recommendation (e.g., via VQ/RQ-VAE quantization and autoregressive code prediction) [15, 22]. While effective for sequence generation and retrieval, these approaches provide limited fine-grained cross-modal interaction and are less compatible with end-to-end relevance ranking in our industrial setting; thus, they are not the focus of this paper.
+
+IV Methodology
+
+IV-A Framework Overview
+
+As an extension to conventional approaches, we introduce GALA, a domain-adaptive, generatively-aligned framework comprising three stages tailored for food delivery recommendation, as illustrated in Fig. 2:
+
+Stage 1 (Domain-Adaptive Cross-Modal Alignment), GALA constructs domain-specific query–image–text triplets from large-scale user search logs, and uses contrastive learning to align the multimodal embeddings. This early-stage alignment captures user intent signals and builds user-centric content representations grounded in real interaction data.
+
+Stage 2 (Generative User Behavior Alignment), the framework adopts a generative reinforcement learning paradigm—specifically, next-shop prediction—directly on user behavior sequences. Conversion-based rewards drive the continuous optimization of multimodal embeddings, bridging the pretraining–fine-tuning gap and ensuring inherent alignment with downstream business objectives.
+
+Stage 3 (Multimodal Embedding Fusion for RecSys) introduces an adaptive gating mechanism to dynamically balance the contributions of ID-based and multimodal representations. An auxiliary supervision term regulates the gate weights to preserve multimodal effectiveness under long-term ID-dominant training, mitigating performance degradation.
+
+Together, these stages enable GALA to unify multimodal pretraining, behavior-driven alignment, and adaptive fusion in a unified three-stage recommendation pipeline.
+
+IV-B Domain-Adaptive Cross-Modal Alignment
+
+Effective multimodal representations for food delivery recommendations must simultaneously encode domain-specific semantics and user intent patterns. Unlike generic domains, food platforms exhibit two critical characteristics: (i) Highly localized culinary terminology (e.g., “ants climbing trees” refers to pork vermicelli, not literal insects or trees), which generic multimodal models fail to interpret, and (ii) Focused user attention on specific visual/textual attributes during decision-making. To address these issues, we specifically design dual alignments as follows:
+
+IV-B1 Domain-Specific Image–Text Alignment
+
+We first construct a training dataset using domain-specific signals to bridge the semantic gap in food delivery terminology. This dataset enables models to accurately interpret localized dish names and categories—a critical capability where generic models fail to associate colloquial terms (e.g., “ma yi shang shu” [ants climbing trees]) with their actual culinary referents (pork vermicelli). Specifically, positive image–text pairs are derived from structured shop data (e.g., official image–text pairs of dishes/shops), while negative pairs are generated via in-batch negative sampling using Momentum Contrast [23], to mitigate pseudo-negative noise.
+
+In our setting, semantic similarity differences can be naturally represented through users’ positive and negative interactions. When a user’s query in the search scenario leads to a purchase, its semantic correlation with the target shop is markedly stronger compared to non-converted samples. This provides an effective supervision signal for contrastive learning. Accordingly, positive samples are defined as the triplet of (query, image, text) corresponding to the shop where the user ultimately placed the order. Negative samples are taken as other shops within the current mini-batch, serving as potential negatives.
+In practice, we construct the candidate training set by mining user search-to-purchase behaviors, extracting the top-10 queries and the associated top-5 purchased items for each shop (based on transaction logs, with non-primary category items excluded). Each (query, image, text) triplet is thus obtained from these high-confidence interactions, as illustrated in Fig. 3.
+
+Fig. 3: Triplet Data for Domain-Adaptive Cross-Modal Alignment.
+
+Fig. 4: Pretraining Stage of GALA.
+
+Then we employ two encoders: a hierarchical visual encoder for fine-grained visual feature extraction (e.g., dish colors, shop logo) and a textual encoder for semantic information capture (e.g., menu descriptions, promotional texts). To achieve domain-specific alignment, we leverage contrastive learning to maximize similarity between matched image–text pairs (e.g., a burger image and its corresponding “juicy beef burger with lettuce” description) while minimizing similarity for mismatched pairs (e.g., a sushi image paired with an unrelated burger description). This objective ensures domain-consistent visual and textual embeddings. Formally, the contrastive learning based loss function \mathcal{L}_{\text{I2T}} [24] is defined as:
+
+ | 
+ | \mathcal{L}_{\text{I2T}}=-\log\frac{\exp(t\cdot i_{+})/\tau}{\sum_{j=0}^{K}\exp(t\cdot i_{j})/\tau},
+ | 
+ | (1)
+
+where t denotes the text embedding, capturing information from textual descriptions, and i represents the image embedding, encoding visual features. Specifically, i_{+} signifies the positive sample, where the image embedding i_{+} is semantically aligned with the text t, while i_{j} (where j=0,1,\dots,K) are negative samples, which are image embeddings that do not match the text context. This objective maximizes the log-probability of the positive sample i_{+} against a set of negative samples i_{j} under the temperature parameter \tau, thereby learning consistent multimodal representations.
+
+IV-B2 Query-Shop Alignment with Multi-Loss Optimization
+
+After domain alignment, we further align user queries (reflecting intent) with shop multimodal embeddings as shown in Fig. 4. Query-alignment positive pairs are built from user behavior: queries paired with shops users purchased from (stronger relevance). Negatives are selected from in-batch non-purchased candidates, where batches are custom-sampled using domain knowledge (e.g., shop categories, cuisine types) to provide clear supervisory signals for the triplet loss. Thus, the following complementary loss functions should be jointly optimized with weighted contributions to refine shop embeddings for precise intent-aware alignment:
+
+Query-text loss. Aligns query semantics with shop textual embeddings (e.g., matching “spicy” with a shop’s “Sichuan hotpot, numbing-spicy flavor” description) via contrastive learning, enhancing semantic consistency between user intent and textual features;
+
+Query-image loss. Ensures query intent matches shop visual embeddings (e.g., aligning “bright, lively dining environment” with a shop’s colorful, bustling interior images), strengthening consistency between intent and visual features;
+
+Query-fusion loss. Focuses on the fused embedding of a shop (integrating visual and textual features), using contrastive learning to align queries with this comprehensive representation—ensuring user intent matches the holistic impression of the shop.
+
+We employ late fusion—processing modalities separately before integration, since it outperforms intermediate interaction by preserving fine-grained visual details critical for dish recognition (e.g., identifying cilantro in ingredients), consistent with NoteLLM-2 [25]. Additionally, we conduct a comparative analysis: MLP and T5 [26] fusion mechanisms. Formally, the loss function \mathcal{L}_{\text{Q-Align}} is defined as:
+
+ | 
+ | \mathcal{L}_{\text{Q-Align}}=w_{\text{1}}\mathcal{L}_{\text{Q-Text}}+w_{\text{2}}\mathcal{L}_{\text{Q-Image}}+w_{\text{3}}\mathcal{L}_{\text{Q-Fusion}}.
+ | 
+ | (2)
+
+All losses follow the contrastive formulation of \mathcal{L}_{\text{I2T}}, differing only in the aligned representations. The weights w_{\text{1}},w_{\text{2}},w_{\text{3}} balance different modal-alignment losses, adapting the model to downstream tasks. Q stands for the user query, representing the intent or search term input, Text and Image represent the textual and visual embeddings of a shop, respectively. The fused representation, denoted as Fusion, combines these multimodal features to produce a comprehensive shop embedding.
+
+Fig. 5: Post-Training Stage of GALA.
+
+IV-C Generative User Behavior Alignment
+
+Stage 1 produces semantically aligned multimodal shop embeddings.
+As shown in Fig. 5, Stage 2 aligns these embeddings with behavioral objectives by training a LLM decoder to predict the next purchased shop from a retrieved candidate set.
+Given a fusion prompt that contains spatiotemporal context, the user’s historical shop sequence, and deliverable candidate shops (all represented by fused multimodal embeddings), the LLM decoder generates an output token sequence whose final token is an index token indicating the selected shop in the candidate set.
+This generative formulation captures sequential complementarity (e.g., ordering milk tea after spicy hotpot) beyond pure content similarity.
+
+IV-C1 Task and Data Construction
+
+We formulate Stage 2 as next-shop prediction under retrieve-and-rank.
+Each training instance is a tuple (\mathbf{c},\mathcal{S}_{1:t},\mathcal{C},y) mined from logs, where
+\mathbf{c} denotes spatiotemporal context (e.g., time, location),
+\mathcal{S}_{1:t}=[s_{1},\ldots,s_{t}] is the user’s historical shop sequence,
+\mathcal{C}=[c_{1},\ldots,c_{M}] is the deliverable candidate set returned by retrieval module,
+and y\in\{1,\ldots,M\} is the index of the actually purchased shop within \mathcal{C}.
+The base objective is to maximize:
+
+ | 
+ | \max_{\theta}\;\log p_{\theta}\!\left(y\mid\mathbf{c},\mathcal{S}_{1:t},\mathcal{C}\right).
+ | 
+ | (3)
+
+IV-C2 Fusion Prompt Construction
+
+We encode \mathbf{c} as descriptive text tokens and prepend them to the sequence.
+Each shop (in history and candidates) is represented by a placeholder token whose input embedding is replaced by the fused multimodal embedding \mathbf{e}(\cdot) learned in Stage 1.
+The resulting fusion prompt is:
+
+ | 
+ | \mathcal{X}=[\mathbf{c};\mathbf{e}(s_{1});\ldots;\mathbf{e}(s_{t});\mathbf{e}(c_{1});\ldots;\mathbf{e}(c_{M})].
+ | 
+ | (4)
+
+IV-C3 Output Format and Index Prediction
+
+Directly predicting shop IDs is infeasible due to the extremely large and dynamic inventory.
+We instead predict the index within \mathcal{C} using a bounded set of index tokens
+\{\langle\mathrm{index}_{1}\rangle,\ldots,\langle\mathrm{index}_{M_{\max}}\rangle\}, where candidate c_{k} corresponds to \langle\mathrm{index}_{k}\rangle.
+
+Reasoning tokens + index token.
+To improve training stability, we let the LLM decoder generate a short sequence of reasoning tokens before emitting the final index token.
+These reasoning tokens are expected to explain why a candidate shop is chosen given the context and user history:
+
+ | 
+ | o=[\langle\mathrm{think}\rangle,r_{1:L},\langle/\mathrm{think}\rangle,\langle\mathrm{index}_{k}\rangle],
+ | 
+ | (5)
+
+where r_{1:L} are reasoning tokens and \langle\mathrm{index}_{k}\rangle indicates the selected candidate index token.
+
+Index distribution.
+Let \mathbf{h} denote the hidden state used to predict the final index token. We compute:
+
+ | 
+ | p(y=k\mid\mathcal{X})=\mathrm{Softmax}(\mathbf{E}_{\mathrm{idx}}\mathbf{h})_{k},\quad k=1,\ldots,M,
+ | 
+ | (6)
+
+where \mathbf{E}_{\mathrm{idx}}\in\mathbb{R}^{M_{\max}\times d} is a learnable index embedding matrix.
+This design matches industrial retrieve-and-rank pipelines, keeps the output vocabulary bounded, and supports long-tail/new shops as long as their embeddings \mathbf{e}(\cdot) are available.
+
+IV-C4 Backbone and Trainable Parameters
+
+We adopt Qwen2.5-7B-Instruct as the LLM decoder backbone, since it delivers strong performance among lightweight LLMs.
+During Stage 2 training, we update: (i) the full decoder parameters, (ii) the index embedding matrix \mathbf{E}_{\mathrm{idx}}, and (iii) the multimodal shop embeddings \mathbf{e}(\cdot).
+
+IV-C5 SFT Warm-up
+
+Before RL alignment, we warm-start the LLM decoder with supervised fine-tuning (SFT) to ensure the reasoning steps are reasonable and faithful to the ground-truth choice.
+For each logged tuple (\mathbf{c},\mathcal{S}_{1:t},\mathcal{C},y), we prompt a much larger teacher LLM (e.g., Qwen-72B) to generate a short rationale r_{1:L} conditioned on the context and the ground-truth decision (e.g., “it is lunch time and the user has repeatedly ordered from this shop”).
+We obtain 1M synthesized \langle(\mathbf{c},\mathcal{S}_{1:t},\mathcal{C}),r_{1:L},y\rangle samples and fine-tune the LLM decoder to generate the output sequence in Eq. (5), providing a stable and accurate initialization for subsequent GRPO optimization.
+
+IV-C6 Optimization with GRPO
+
+Starting from the SFT checkpoint, we further optimize the LLM decoder with GRPO using conversion-based rewards.
+Compared with vanilla policy gradients, GRPO uses group-based sampling and within-group advantage normalization, which stabilizes learning under sparse binary rewards.
+We additionally apply PPO-style clipping and KL regularization to a reference policy to prevent destructive updates, which is important when jointly updating the decoder and \mathbf{e}(\cdot).
+
+IV-C7 GRPO Formulation
+
+We model Stage 2 as RL: the state is the fusion prompt (context, history, and candidate embeddings), the policy is an autoregressive Transformer, and the final decision is represented by the last index token of the generated output sequence.
+
+State.
+We define the RL state as the fusion prompt:
+
+ | 
+ | s\triangleq\mathcal{X}=[\mathbf{c};\mathbf{e}(s_{1});\ldots;\mathbf{e}(s_{t});\mathbf{e}(c_{1});\ldots;\mathbf{e}(c_{M})].
+ | 
+ | (7)
+
+Action/Output.
+The LLM decoder generates an output token sequence o; its last token is an index token from
+
+ | 
+ | \mathcal{A}=\{\langle\mathrm{index}_{1}\rangle,\ldots,\langle\mathrm{index}_{M}\rangle\},
+ | 
+ | (8)
+
+i.e., \mathrm{last}(o)\in\mathcal{A}.
+
+Policy class.
+The policy \pi_{\theta}(o\mid s) is induced by an autoregressive Transformer decoder (Qwen2.5-7B-Instruct).
+
+Reward.
+We consider the purchased shop (conversion/order) as the positive target. The default reward is binary correctness based on the final index token:
+
+ | 
+ | r(s,o)=\mathbb{I}[\mathrm{last}(o)=\langle\mathrm{index}_{y}\rangle],
+ | 
+ | (9)
+
+i.e., r=1 if the predicted index equals the logged purchased shop, otherwise r=0.
+We apply the same scalar reward to all tokens in the generated trajectory under GRPO, including the reasoning tokens.
+We do not incorporate utility metrics (e.g., order value/ratings) because they require additional weighting (hyperparameter-sensitive and may misalign objectives) and are sparse/noisy in our logs.
+
+GRPO objective.
+For each state s, we sample a group of outputs \{o_{1},o_{2},\ldots,o_{G}\} from the old policy \pi_{\theta_{\text{old}}} and optimize the policy by maximizing:
+
+ | 
+ | \begin{split}&\mathcal{J}_{GRPO}(\theta)=\mathbb{E}\left[s\sim P(S),\{o_{i}\}_{i=1}^{G}\sim\pi_{\theta_{\text{old}}}(O|s)\right]\\
+&\frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_{i}|}\sum_{t=1}^{|o_{i}|}\bigg\{\min\bigg[\frac{\pi_{\theta}(o_{i,t}|s,o_{i,<t})}{\pi_{\theta_{old}}(o_{i,t}|s,o_{i,<t})}\hat{A}_{i,t},\\
+&\text{clip}\left(\frac{\pi_{\theta}(o_{i,t}|s,o_{i,<t})}{\pi_{\theta_{old}}(o_{i,t}|s,o_{i,<t})},1-\varepsilon,1+\varepsilon\right)\hat{A}_{i,t}\bigg]\\
+&-\beta\mathbb{D}_{KL}\left[\pi_{\theta}\parallel\pi_{\mathrm{ref}}\right]\bigg\},\end{split}
+ | 
+ | (10)
+
+where \pi_{\theta} and \pi_{\theta_{\text{old}}} are the current and old policy models, and
+\pi_{\mathrm{ref}} is a fixed reference policy initialized from the supervised fine-tuning (SFT) checkpoint.
+\varepsilon is the clipping hyperparameter and \beta controls KL regularization.
+In our setting, each o_{i} is a short sequence consisting of auxiliary intermediate tokens and a final index token; therefore |o_{i}| is variable and subject to a maximum generation-length constraint.
+
+Advantage computation.
+We use group-relative normalization to reduce variance under sparse rewards:
+
+ | 
+ | \hat{A}_{i,t}=\widetilde{r}_{i}=\frac{r_{i}-\mathrm{mean}(\mathbf{r})}{\mathrm{std}(\mathbf{r})},
+ | 
+ | (11)
+
+where \mathbf{r}=\{r_{1},\ldots,r_{G}\} are rewards of the sampled group for the same state.
+We compute a sequence-level advantage \widetilde{r}_{i} from the terminal reward and broadcast it to all token positions t in o_{i}.
+If \mathrm{std}(\mathbf{r})=0, we set \widetilde{r}_{i}=0.
+
+KL term.
+We regularize the policy with an unbiased, non-negative estimator of the KL divergence between the current policy and the reference policy:
+
+ | 
+ | \begin{split}\mathbb{D}_{\text{KL}}\left[\pi_{\theta}\parallel\pi_{\text{ref}}\right]&=\frac{\pi_{\text{ref}}(o_{i,t}|s,o_{i,<t})}{\pi_{\theta}(o_{i,t}|s,o_{i,<t})}-\log\frac{\pi_{\text{ref}}(o_{i,t}|s,o_{i,<t})}{\pi_{\theta}(o_{i,t}|s,o_{i,<t})}-1.\end{split}
+ | 
+ | (12)
+
+After Stage 2 training, we export the optimized shop embeddings \mathbf{e}(\cdot) and keep them frozen in Stage 3.
+
+Fig. 6: Ranking Model Training Stage of GALA.
+
+IV-D Multimodal Embedding Fusion for RecSys
+
+We first outline standard approaches for incorporating multimodal features in recommender systems. Industrial ranking models typically rely on user sequence modeling for personalization. Thus, pre-trained multimodal representations should be integrated through user sequences and target shops. Major approaches process these multimodal features through dedicated interaction layers, analogous to ID-based feature interactions. For instance, [21] realized multimodal feature interaction by calculating the similarity between user multimodal sequences and target shop multimodal features; [10] performed bucket processing on similarity scores to enhance the generalization ability of multimodal recommendation. In addition, a fixed-cycle warm-up approach is widely adopted to train ranking models in industrial practices. Most ID-based models are trained on multi-year historical data, resulting in stabilized MLP layer parameters that inherently limit multimodal feature utilization. Crucially, the relative contribution of multimodal representations should adapt to shop characteristics (long-tail vs. popular). For instance, long-tail shops’ ID representations often suffer from data sparsity, making their multimodal features comparatively more valuable than those of popular shops. This necessitates an adaptive fusion strategy that dynamically balances ID and multimodal representations to exploit their complementary strengths.
+
+Let the user sequence be denoted as S_{u} and the target shop as I_{t}, with their multimodal counterparts S_{u}^{m} and I_{t}^{m}. As illustrated in Fig. 6, the adaptive fusion module is positioned after both the multimodal and ID-based representation interaction layers, orchestrating their outputs in the downstream ranking model. The workflow consists of three key steps: First, user behavioral sequences and target shop are processed through their respective ID-based and multimodal feature extractors, yielding ID representation vectors h_{id} and multimodal representation vectors h_{m}. These two streams undergo interaction modeling within their modalities—ID-based and multimodal interactions—to capture the respective collaborative and content-driven signals.
+
+To better integrate multimodal information into industrial ranking models, we first design an ID-dependent gating mechanism. This gating network dynamically balances the contributions of ID-based and multimodal representations according to the characteristics of the data, as formulated in Eq. (13), where a gating network—whose input is derived from the ID-based representation h_{id}—computes a dynamic fusion weight g via a sigmoid-activated linear transformation, and the final fused representation h_{f} is computed as a weighted combination of two modalities. Formally, we have:
+
+ | 
+ | \begin{split}&h_{id}=f_{id}(S_{u},I_{t}),h_{m}=f_{m}(S_{u}^{m},I_{t}^{m}),\\
+&g=\sigma(W_{g}\cdot h_{id}+b_{g}),h_{f}=g\cdot h_{id}+(1-g)\cdot h_{m},\end{split}
+ | 
+ | (13)
+
+where \sigma denotes the sigmoid activation function, W_{g} and b_{g} are trainable parameters, f_{id} is the ID feature interaction function, and f_{m} is the multimodal feature interaction function. This design enables adaptive weighting between ID-based and multimodal signals based on data characteristics: for data-rich “head” shops with reliable ID embeddings, the gating mechanism prioritizes ID representations, whereas for “long-tail” or cold-start shops, it shifts emphasis toward multimodal features to mitigate behavioral sparsity. The fused representation is then used as input for the main recommender model, and the primary training objective \mathcal{L}_{main} is defined as the standard cross-entropy loss for click/conversion prediction as Eq. (14). However, due to the long-term accumulation of ID-based features and the stronger learning signals they provide during training, the gating network tends to over-rely on the ID branch. This imbalance leads to gating collapse, where the multimodal pathway is effectively ignored and the advantages of multimodal features are not fully exploited.
+
+ | 
+ | \mathcal{L}_{\mathrm{main}}=-\frac{1}{N}\sum_{i=1}^{N}\left[y_{i}\log(p_{i}^{main})+(1-y_{i})\log(1-p_{i}^{main})\right],
+ | 
+ | (14)
+
+where N is the number of samples in the batch, y_{i}\in\{0,1\} represents the ground-truth label (click/conversion) for the i-th user, and p_{i}^{main} is the predicted probability of click/conversion generated by the recommendation main MLP model for the i-th sample, defined as p_{i}^{main}=MLP(h_{i}^{f}).
+
+To mitigate this problem, we introduce an auxiliary loss \mathcal{L}_{aux} as Eq. (15), which is computed from the concatenated multimodal h_{m} and ID-based h_{id} representations (with gradients stopped on the ID branch), directly supervising the multimodal pathway to predict user click/conversion labels. This design ensures gradient flow through the multimodal branch, even when the main loss favors the ID features.
+
+ | 
+ | \mathcal{L}_{aux}=-\frac{1}{N}\sum_{i=1}^{N}\left[y_{i}\log(p_{i}^{aux})+(1-y_{i})\log(1-p_{i}^{aux})\right],
+ | 
+ | (15)
+
+where p_{i}^{aux} is the predicted probability of click/conversion generated by the recommendation auxiliary MLP model for the i-th sample, defined as p_{i}^{aux}=MLP([\;h_{i}^{m};\ \mathrm{sg}(h_{i}^{id})\;]). Thus, the overall training objective \mathcal{L}_{rec} can be defined as:
+
+ | 
+ | \mathcal{L}_{rec}=\mathcal{L}_{main}+\lambda\cdot\mathcal{L}_{aux},
+ | 
+ | (16)
+
+where \lambda is a key hyperparameter controlling the weight of the auxiliary loss, discussed in the following experiment.
+
+V Experiment
+
+V-A Datasets
+
+Our experiments are conducted on Taobao Shangou proprietary logs. Our proposed three-stage pipeline requires a specific combination of signals to be evaluated end-to-end: (i) search logs linking user queries to clicked/converted shops/items for Stage 1 query–image–text alignment, (ii) user interaction sequences for Stage 2 next-shop modeling and RL-based refinement, and (iii) recommendation/ranking logs containing exposure behavior together with click/conversion outcomes for Stage 3 ranking/fusion training and evaluation. These signals are standard in real-world industrial search and recommendation systems and can be readily collected in practice.
+
+Specifically, we construct four datasets corresponding to the three stages: for Stage 1, we use (i) 8M verified image–text pairs from merchant uploaded shop/item content (after removing non-core categories), and (ii) 14M query–image–text triplets mined from search-to-purchase logs; for Stage 2, we use (iii) 900M user interaction sequences collected over 3 months; we further sample \sim7M high-quality sequences per week for GRPO training; for Stage 3, we use (iv) 42B ranking instances constructed from recommendation logs for offline/online evaluation (2-month training window with next-day testing).
+
+Although we cannot release the raw data due to user privacy and business constraints, we provide more details on the dataset schema, construction/filtering, rules and temporal train/validation/test splits in Table  I.
+
+TABLE I: Dataset construction summary for the three-stage pipeline.
+
+ | 
+
+Stage
+
+ | 
+
+Inputs / Features
+
+ | 
+
+Labels (pos/neg)
+
+ | 
+
+Split & Filters
+
+ | 
+
+Stage 1
+
+ | 
+
+Per shop: top-10 queries; top-5 purchased items; logo and item images; title/category/desc.
+
+ | 
+
+Pos: (q, img, txt) from search\rightarrowpurchase.
+Neg: in-batch negatives (MoCo-style).
+
+ | 
+
+Random 8:2 train/test.
+Filter: exclude non-primary categories (e.g., staples/tableware).
+
+ | 
+
+Stage 2
+
+ | 
+
+User history; spatiotemporal context; deliverable candidate set.
+
+ | 
+
+Pos: purchased shop in deliverable set.
+Neg: other deliverable, non-purchased shops.
+
+ | 
+
+Train: past 3 months exposure/click/order logs.
+Test: next-day logs.
+
+ | 
+
+Stage 3
+
+ | 
+
+ID features (IDs, context, behavior seq, etc.) and frozen MM embeddings.
+
+ | 
+
+Pos: exposed shops with click/order.
+Neg: exposed shops without click/order.
+
+ | 
+
+Train: past 2 months ranking logs.
+Test: next-day logs.
+
+V-B Baseline Models
+
+V-B1 Compared Representation Methods
+
+For multimodal representation learning, we compare against strong and widely adopted vision–language pretraining approaches: ALBEF [19], which combines contrastive alignment with multimodal fusion through co-attention and momentum distillation; CNCLIP [18], a Chinese CLIP-style model pretrained on large-scale Chinese image–text corpora; GME [20], a large multimodal embedder trained with contrastive learning and synthetic data, reporting strong performance on universal multimodal retrieval benchmarks. These methods represent SOTA generic cross-modal alignment. They serve as natural comparators to evaluate whether GALA’s domain-adaptive alignment (Stage 1) and behavior-driven post-training (Stage 2) can produce embeddings that better match recommendation intents.
+
+V-B2 Compared Ranking Models
+
+Our baseline choices are driven by the production deployment constraint in Taobao Shangou: the online shop ranker must satisfy strict millisecond-level latency and high-throughput serving. Therefore, the system follows the standard industrial paradigm of offline multimodal embedding computation, online KV lookup, a lightweight ranker, i.e., frozen-embedding deployment at serving time. Under this setting, the most relevant comparisons are (i) how multimodal representations are injected/fused into the ranker given frozen embeddings, and (ii) how the quality of the frozen multimodal embeddings affects ranking when using the same fusion mechanism.
+
+Although end-to-end multimodal rankers that jointly update encoders with ranking objectives are a strong algorithmic alternative, they are difficult to deploy under our production constraints. In particular, such methods often require per-request multimodal encoding or frequent encoder refresh, which is prohibitive under strict millisecond-level latency. Moreover, many recent end-to-end designs rely on cached/memory-bank item representations to reduce cost, which introduces a long-tail coverage issue that is particularly severe in our fast-evolving shop inventory (Fig. 7(a)). As shown in Fig. 7(b), even under a relaxed criterion (“at least one conversion observed”), aggregating training data from the past k days (k{=}1 to 60) covers at most \sim80% of t{+}1 candidate shops, leaving a non-trivial fraction without up-to-date representations. In contrast, our frozen-embedding pipeline supports daily offline incremental inference for newly added/updated shops and achieves near-complete coverage (99.975% in our measurements) while meeting online latency constraints. Therefore, we focus on deployable baselines under the frozen-embedding serving assumption.
+
+SOTA ways of injecting multimodal representations into the ranker. We compare representative and deployable multimodal ranking/fusion methods that operate on frozen embeddings:
+
+• 
+
+MMREC: a typical two-stage approach that directly concatenates/injects multimodal content embeddings into the ranking model for CTR/CVR prediction.
+
+• 
+
+SimTier: incorporates multimodal signals via similarity computation (e.g., user–item/content similarity features and subsequent processing), and feeds these similarity-based features into the ranker.
+
+• 
+
+AlignRec: a two-stage alignment-based method that first performs content normalization/alignment (e.g., image–text alignment) and then uses contrastive alignment between multimodal and ID representations before integrating them into the ranker.
+
+• 
+
+LUM: a three-stage design that first aligns image–text content, then performs generative multimodal user-sequence modeling to obtain a frozen user multimodal preference representation, which is finally injected into the ranker.
+
+These baselines cover major industrially feasible fusion paradigms (direct injection, similarity-based features, representation alignment, and generative user modeling) under the same frozen-embedding serving assumption.
+
+Ablations on multimodal representations under our adaptive fusion framework. To isolate the impact of multimodal representation quality, we further conduct ablations by combining different content embeddings with our proposed adaptive fusion of ID and content representations:
+
+• 
+
+GALA-gme_emb: uses frozen multimodal embeddings extracted from an industry SOTA multimodal foundation model (GME) and applies our adaptive ID–content fusion in the ranker. This tests the effect of a strong off-the-shelf embedder under the same fusion module.
+
+• 
+
+GALA-image_emb / GALA-text_emb: use the single-modality image-only or text-only embeddings trained by our representation learning pipeline, combined with the same adaptive fusion module, to quantify each modality’s contribution.
+
+• 
+
+GALA: uses our learned multimodal fused content embedding together with the adaptive fusion module, representing the full model.
+
+(a) 
+
+(b) 
+
+Fig. 7: Shop distribution and coverage.
+(a) Shops are bucketed by their occurrence counts in two months of training data; the shop ratio per bucket shows a pronounced long-tail distribution.
+(b) Coverage of next-day (t{+}1) candidate shops by training data aggregated over the past k days (t{-}1 to t{-}60); coverage increases with more history and plateaus at \sim 80\%.
+
+V-C Experiment Settings
+
+We implement Domain-Adaptive Cross-Modal Embedding Alignment based on the GME framework, utilizing its unified joint encoder as the backbone. Final shop and item representations are obtained from the output embedding of the last token. For cross-modal representation learning, we systematically compare two fusion strategies: (i) a baseline multi-layer perceptron (MLP), and (ii) a T5-style cross-attention fusion module that explicitly captures bidirectional cross-modal interactions.
+
+All experiments are conducted with a global batch size of 24,576 (using 24 gradient accumulation steps and a per-device batch size of 8). Optimization settings include a base learning rate of 2\times 10^{-5}, weight decay of 0.1, and a learning rate schedule with 0.05 linear warmup followed by cosine decay. The contrastive loss for image-to-text alignment follows Eq. (1), where the temperature parameter \tau is fixed at 2.0 throughout training. The overall training objective combines three loss components as in Eq. (2), with weighting coefficients set to w_{1}=0.3, w_{2}=0.3, and w_{3}=0.4.
+
+For the next-shop prediction stage, the learning rate is set to 5\times 10^{-5}. We adopt GRPO with clipping (\epsilon=0.2) and KL regularization (\beta=0.001) for stability, and cap the policy model’s maximum generation length at 2048 tokens. The ranking hyperparameter \lambda is set to 0.01, which empirically facilitates effective cross-modal interactions between visual features and textual descriptors.
+
+V-D Evaluation Metrics
+
+V-D1 Evaluating Representation Method
+
+We systematically assess embedding quality with three retrieval tasks: 1) Item Intention Task: Retrieves items for queries with explicit names (e.g., “burgers”), testing fine-grained semantic capture; 2) Shop Intention Task: Identifies correct shops from brand-specific queries (e.g., “KFC”), evaluating brand and establishment-level understanding; 3) Composite Intention Task: Handles queries combining brand and item (e.g., “KFC burgers”), requiring multi-level semantic integration.
+We use Recall@K as the evaluation metric. Recall@K is defined as:
+
+ | 
+ | \mathrm{Recall@}K=\dfrac{\left|\mathrm{Top}\text{-}K\cap\mathcal{R}\right|}{\left|\mathcal{R}\right|},
+ | 
+ | (17)
+
+where \mathcal{R} is the set of ground-truth relevant entities per query. Positive samples are derived from user search queries that led to actual purchases, as captured in production logs. We compute the Recall@K for K\in\{1,5,10,20\} and use their average as final evaluation metrics to reflect different retrieval depths.
+
+V-D2 Evaluating Ranking Models
+
+We evaluate ranking performance using AUC [27] and PCOC [28].
+AUC is the probability that a randomly sampled positive instance is ranked above a randomly sampled negative one.
+PCOC is defined as
+
+ | 
+ | \mathrm{PCOC}=\frac{\mathbb{E}[\hat{p}]}{\mathbb{E}[y]},
+ | 
+ | (18)
+
+where the expectation is taken over the evaluation set, \hat{p} is the predicted CTR/CVR, and y\in\{0,1\} is the click/conversion label (optimal \approx 1; <1 underestimates and >1 overestimates).
+
+V-E Offline Performance
+
+V-E1 Different Representation Learning Strategies
+
+In this subsection, we evaluate GALA from two perspectives: (i) quantitative comparison on recall performance against SOTA embedding models, and (ii) qualitative visualization of its two-stage alignment (Stage 1–2) to illustrate how multimodal representations evolve.
+
+TABLE II: Average Recall@K Scores Across Retrieval Tasks
+
+ | Model
+ | Dim
+ | Item
+ | Shop
+ | Comp
+ | Overall
+
+ | ALBEF
+ | 128
+ | 0.724
+ | 0.107
+ | 0.791
+ | 0.541
+
+ | CNCLIP
+ | 768
+ | 0.691
+ | 0.471
+ | 0.782
+ | 0.648
+
+ | GME
+ | 1536
+ | 0.788
+ | 0.869
+ | 0.841
+ | 0.843
+
+ | GALA (MLP)
+ | 128
+ | 0.841
+ | 0.877
+ | 0.851
+ | 0.856
+
+ | GALA (T5)
+ | 128
+ | 0.844
+ | 0.887
+ | 0.848
+ | 0.860
+
+ | GALA (T5+GRPO)
+ | 128
+ | 0.866
+ | 0.896
+ | 0.868
+ | 0.877
+
+Performance Comparison of Different Representation Learning: Table II presents the retrieval performance across diverse search intentions. For brevity, the full results use abbreviated names: “Item”, “Shop”, and “Comp” denote Item Intention, Shop Intention, and Composite Intention retrieval tasks, respectively. Model variants of GALA are shortened: “(MLP)” stands for MLP-fusion, “(T5)” for T5-fusion, and “(T5+GRPO)” includes GRPO optimization. Dimensions (Dim) are included in parentheses. Our framework consistently outperforms existing approaches, with the T5-Fusion+GRPO variant establishing new SOTA results (Recall@K = 0.877), achieving a 3.4% absolute improvement over the strongest baseline (GME). Notably, these advancements are achieved while maintaining compact 128-dimensional embeddings (vs. 1536D in GME), demonstrating the efficiency of our fusion mechanism. The GRPO module in GALA contributes large gains (+1.7% over T5-Fusion, +2.1% over MLP-Fusion), validating its effectiveness in multimodal alignment. It is worth noting that GME is evaluated using its released configuration with a dimensionality of 1536, without any modification. In contrast, GALA adopts a compact 128-dimensional embedding, which is more suitable for production deployment environments by reducing latency, memory footprint, and overall serving cost.
+
+Analysis of baselines reveals critical limitations: ALBEF shows severe imbalance (0.107 recall for shop intention), while CNCLIP’s high-dimensional design yields suboptimal performance (0.471). These underscore the importance of intention-aware fusion strategies in retrieval tasks.
+
+Fig. 8: t-SNE visualization of multimodal feature distributions before and after Stage 1 Domain-Adaptive Alignment.
+
+(a) Before training: multimodal features (Text, Text+Image, Image) occupy distinct and disjoint regions in the embedding space.
+
+(b) After training: features from different modalities exhibit significant overlap, indicating improved cross-modal coherence.
+
+(a) Attention for query keyword: “Pancake”.
+
+(b) Attention for query keyword: “Clay Pot”.
+
+(c) Attention for query keyword: “Pear Soup”.
+
+(d) Attention for query keyword: “Cup”.
+
+Fig. 9: Visualization of model attention under different query keywords.
+Each panel overlays the attention heatmap on the original image,
+highlighting query-specific semantic focus regions.
+
+Analysis of Domain-Adaptive Alignment. Following Stage 1 domain-adaptive alignment, the t-SNE visualization (Fig. 8) reveals that multimodal features—originally residing in disjoint vector spaces—are now closely integrated. Specifically, image and text embeddings, which initially formed distinct clusters, exhibit substantial overlap after alignment, indicating significantly enhanced cross-modal coherence. Moreover, attention response analysis under diverse query inputs (Fig. 9) demonstrates that the model dynamically shifts its attention focus to the most relevant modality-specific regions as query semantics evolve, reflecting improved sensitivity to user intent during retrieval.
+
+(a) Original image
+
+(b) GME attention visualization
+
+(c) GALA(T5) attention visualization
+
+(d) GALA(T5+GRPO) attention visualization
+
+Fig. 10: Comparison of attention maps under different methods for the given query ”qia luo noodles”. The visualization shows that GALA variants progressively enhance focus on query-relevant regions compared to the baseline. Notably, the multimodal representations produced by GALA (T5+GRPO) more faithfully capture the key content areas aligned with the user’s core attentional focus.
+
+Analysis of Generative User-Behavior Alignment. In Stage 2, generative alignment grounded in historical user behavior logs further refines cross-modal interactions. Post-training attention heatmaps (Fig. 10) show that GALA variants progressively concentrate attention on query-relevant regions, outperforming the baseline. Notably, the multimodal representations generated by GALA (T5+GRPO) more accurately capture key content areas that align with users’ core attentional focus. Together, these visualization results validate GALA’s dual capability: achieving seamless integration of cross-modal embedding spaces and enabling intent-aware attention modulation.
+
+V-E2 Different Ranking Model Training Strategies
+
+We evaluate GALA through comprehensive experiments to: (i) benchmark ranking against SOTA baselines, (ii) quantify each modality’s contribution via ablations, and (iii) analyze sensitivity to key hyperparameters and the efficacy of adaptive fusion.
+
+TABLE III: Ranking Performance of Different Methods
+
+ | Model
+ | AUC
+ | PCOC
+
+ | CTR
+ | CVR
+ | CTR
+ | CVR
+
+ | MMREC
+ | 0.7242
+ | 0.8158
+ | 1.0435
+ | 1.0832
+
+ | SimTier
+ | 0.7237
+ | 0.8155
+ | 1.0338
+ | 1.0649
+
+ | AlignRec
+ | 0.7243
+ | 0.8162
+ | 1.0321
+ | 1.0521
+
+ | LUM
+ | 0.7251
+ | 0.8171
+ | 1.0302
+ | 1.0625
+
+ | GALA-gme_emb
+ | 0.7251
+ | 0.8165
+ | 1.0388
+ | 1.1027
+
+ | GALA-image_emb
+ | 0.7250
+ | 0.8167
+ | 1.0442
+ | 1.0982
+
+ | GALA-text_emb
+ | 0.7253
+ | 0.8168
+ | 1.0484
+ | 1.0912
+
+ | GALA
+ | 0.7263
+ | 0.8193
+ | 1.0212
+ | 1.0276
+
+Performance Comparison of Different Ranking Models. Table III presents a comparative evaluation of GALA against mainstream ranking models (MMREC, SimTier, AlignRec, LUM) and its ablated variants (with different modal components removed). The key findings are: 1) GALA achieves the best performance across all metrics—CTR-AUC (0.7263), CVR-AUC (0.8193), CTR-PCOC (1.0212), and CVR-PCOC (1.0276)—verifying its dual advantages in ranking and prediction accuracies. 2) Importance of multimodal fusion: the ablated GALA variants11
+ 1
+
+ GALA-gme_emb replaces Fusion_emb with the GME backbone’s output embedding (gme_emb); GALA-image_emb uses only image modality features (image_emb); and GALA-text_emb employs only text modality features (text_emb). consistently underperform the complete model, demonstrating the complementary value of each modality component. For example, after removing text embeddings (text_emb), CVR-PCOC moves further away from 1.
+
+TABLE IV: Ranking Performance Across Different Shop Stratifications
+
+ | Shop Stratification
+ | CTR AUC
+ | CVR AUC
+ | CTR PCOC
+ | CVR PCOC
+
+ | Online Base
+ | GALA
+ | Online Base
+ | GALA
+ | Online Base
+ | GALA
+ | Online Base
+ | GALA
+
+ | L6
+ | 0.7230
+ | 0.7243
+ | 0.8140
+ | 0.8140
+ | 1.1132
+ | 1.0958
+ | 1.2024
+ | 1.1754
+
+ | L5
+ | 0.7234
+ | 0.7258
+ | 0.8239
+ | 0.8271
+ | 1.1072
+ | 1.0886
+ | 1.1891
+ | 1.1600
+
+ | L4
+ | 0.7302
+ | 0.7316
+ | 0.8302
+ | 0.8333
+ | 1.0904
+ | 1.0711
+ | 1.1704
+ | 1.1352
+
+ | L3
+ | 0.7410
+ | 0.7434
+ | 0.8349
+ | 0.8349
+ | 1.0695
+ | 1.0481
+ | 1.1340
+ | 1.0919
+
+ | L2
+ | 0.7545
+ | 0.7567
+ | 0.8382
+ | 0.8377
+ | 1.0530
+ | 1.0299
+ | 1.1005
+ | 1.0520
+
+ | L1
+ | 0.7706
+ | 0.7739
+ | 0.8379
+ | 0.8401
+ | 1.0354
+ | 1.0096
+ | 1.0560
+ | 1.0007
+
+ | Overall
+ | 0.7240
+ | 0.7263
+ | 0.8156
+ | 0.8193
+ | 1.0409
+ | 1.0212
+ | 1.0608
+ | 1.0276
+
+Ranking Performance Across Different Shop Stratifications. Table IV compares the performance of GALA with the online baseline model by shop stratification (L1 to L6, where L1 is usually tail shops and L6 is head shops). The results show: Performance improvement across all stratifications: GALA is comprehensively superior to the baseline in overall metrics, with CTR-AUC increasing by 0.0023, CVR-AUC increasing by 0.0037, CTR-PCOC optimized from 1.0409 to 1.0212 (closer to 1), and CVR-PCOC optimized from 1.0608 to 1.0276, verifying its adaptability to all shops.
+
+TABLE V: Ranking Performance Across Different Auxiliary Loss Weights
+
+ | 
+ | AUC
+ | PCOC
+
+ | 
+ | CTR
+ | CVR
+ | CTR
+ | CVR
+
+ | \lambda=0.01
+ | 0.7263
+ | 0.8193
+ | 1.0212
+ | 1.0276
+
+ | \lambda=0.1
+ | 0.7261
+ | 0.8187
+ | 1.0245
+ | 1.0400
+
+ | \lambda=1
+ | 0.7150
+ | 0.8102
+ | 1.0196
+ | 1.0484
+
+Hyperparameter Analysis. Table V reveals two key findings: 1) GALA achieves the best performance across all metrics when \lambda=0.01; 2) As \lambda increases (0.01→0.1→1), the AUC metric decreases significantly (e.g., CVR-AUC drops from 0.8193 to 0.8102), and the PCOC also deviates (CVR-PCOC rises from 1.0276 to 1.0484). This demonstrates the need for careful balance in auxiliary loss weighting, since excessive \lambda values induce optimization conflicts between the primary ranking objective and auxiliary tasks.
+
+Analysis of Multimodal Adaptive Weights. Fig. 11 shows the adaptive weight distribution of multimodal embeddings in GALA, revealing the following conclusions: From head L6 to tail L1, the contribution weight of multimodal representations gradually increases. That is, for popular IDs (with rich data and sufficient training), the model assigns higher weights to ID representations, and the contribution of multimodal representations is relatively reduced; In the scenario of medium and long-tail IDs (with limited training data), the model increases the weight proportion of multimodal representations to make up for the deficiency of ID representations. This adaptive mechanism enables dynamic optimization of representation fusion based on input data characteristics. In other words, GALA can adaptively allocate modal weights based on the input data, thereby enhancing the model’s multimodal information utilization efficiency.
+
+Fig. 11: Contributions of Multimodal/ID Gate Weights Across Different Shop Stratifications.
+
+Fig. 12: Offline Training and Offline Deployment of GALA.
+
+V-F Complexity and Overhead Analysis
+
+We quantify the incremental overhead introduced by GALA along three axes: (i) offline training cost, (ii) offline incremental embedding inference cost, and (iii) online serving cost (latency/throughput/memory).
+
+V-F1 Sources of additional complexity
+
+Compared with the baseline multimodal ranker, GALA introduces: (i) two additional offline stages (Stage 1 representation pretraining; Stage 2 GRPO-based behavior alignment); (ii) daily incremental embedding inference for newly added/updated content; (iii) an online KV lookup to fetch frozen multimodal embeddings and fuse them with existing ranking features.
+
+V-F2 Offline training overhead
+
+GALA shifts most complexity offline. The frequency and sample size of incremental training are different in different training stages offline. Stage 1 representation pretraining is executed weekly on \sim5M query–image–text pairs and takes \sim18 hours. Stage 2 GRPO-based behavior alignment is also executed weekly on \sim7M user behavior sequences and takes \sim24 hours. Stage 3 fine-tunes the ranking model daily on \sim0.7B samples and takes \sim3 hours. In Stage 3, the multimodal embeddings from Stages 1–2 are used as fixed (frozen) representations and are not updated, leading to an additional training overhead of \sim10% compared with the baseline multimodal ranker.
+
+V-F3 Offline incremental embedding inference
+
+For newly added/updated content, we perform daily incremental embedding inference for \sim150K images and \sim76K texts, with an end-to-end inference time of \sim30 minutes.
+
+V-F4 Online serving overhead
+
+During online inference, the pretrained multimodal embeddings are stored in a KV table, where the key is the shop identifier
+and the value is its multimodal representation. For each candidate shop, the ranker retrieves the corresponding multimodal embedding via KV lookup and fuses it with user/shop/context features to estimate CTR/CVR scores. We benchmark online inference on a production-like machine (96 CPU cores and PPU610), reporting the average over two machines to reduce variance; throughput is measured under a 55% online accelerator safe-utilization cap. Under this setting, GALA increases the P99 ranking latency from 15.9 ms to 17.6 ms (i.e., +1.7 ms), which is within our production latency budget, with negligible impact on serving throughput and memory usage.
+
+V-G Online Effect
+
+Since November 2024, GALA has been incorporated into the shop recommender system at Taobao Shangou.
+We conduct a randomized traffic-split online A/B test and compute statistical significance based on day-level uplifts to avoid overstating significance under massive user counts. Most notably, the order volume increases by +0.55% (95% CI: [0.342%, 0.756%], p<0.01), demonstrating a statistically significant business gain. Meanwhile, GALA improves shop exposure width by 0.5% overall, with larger gains during peak dining hours (morning +1.78%, evening +1.05%), indicating increased visibility for long-tail shops and improved recommendation novelty.
+
+VI Conclusion
+
+In this paper, we present GALA, a framework designed to learn adaptive multimodal representations for complex food delivery platforms. GALA addresses the mismatch between static content-aligned embeddings and dynamic behavioral goals (CTR/CVR) by introducing a generative reinforcement learning (RL) alignment stage. In this stage, we construct a multimodal behavior-alignment dataset from historical user interactions and optimize it directly with conversion-based rewards. This ensures the pretraining distribution is inherently aligned with the downstream ranking objective. The GALA framework is built on two core components to maximize alignment efficacy: (i) Stage 1 leverages query–image–text triplets extracted from search logs to inject user intent early into the training pipeline, narrowing the semantic gap prior to RL-based optimization; and (ii) an adaptive gating mechanism with auxiliary supervision is employed to preserve informative multimodal signals under ID-dominated training regimes. Through this design, GALA learns fine-grained content representations that remain semantically consistent across modalities, capture dynamic user intents via GRPO-optimized behavior modeling, and enable robust feature integration through adaptive fusion of multimodal and ID-based representations. Comprehensive offline experiments demonstrate that GALA consistently outperforms strong baselines in retrieval and ranking performance, while online A/B testing on Taobao Shangou platform confirms its practical impact, with deployment leading to a 0.55% increase in purchase volume. These results validate that the proposed generative alignment framework effectively bridges the gap between content-level pretraining and behavior-driven downstream objectives, offering a deployable solution for real-world multimodal recommendation scenarios. We plan to explore deployable end-to-end training under long-tail coverage constraints. A key direction is to explicitly identify long-tail shops (e.g., by exposure/conversion frequency and content freshness) and design differentiated representation and optimization strategies for tail vs. head shops. For head shops with abundant interactions, we will prioritize behavior-driven optimization that fine-tunes their multimodal representations with stronger ranking/RL signals to capture subtle preference shifts. For long-tail shops with sparse behavior, we will adopt a coverage-oriented multimodal strategy that relies more on content supervision and robustness to missing/low-quality modalities, together with freshness-aware mechanisms (e.g., staleness modeling and fallback embeddings) to guarantee reliable representations at serving time. Such a differentiated multimodal optimization scheme for head vs. tail shops can better balance effectiveness and production constraints without sacrificing long-tail coverage.
+
+AI-Generated Content Acknowledgement
+
+No AI-generated content was used in the creation of this manuscript.
+
+References
+
+[1]
+G. Zhou, N. Mou, Y. Fan, Q. Pi, W. Bian, C. Zhou, X. Zhu, and K. Gai (2019)
+
+Deep interest evolution network for click-through rate prediction.
+
+In Proceedings of the Thirty-Third AAAI Conference on Artificial Intelligence and Thirty-First Innovative Applications of Artificial Intelligence Conference and Ninth AAAI Symposium on Educational Advances in Artificial Intelligence,
+
+AAAI’19/IAAI’19/EAAI’19.
+
+External Links: ISBN 978-1-57735-809-1,
+Link,
+Document
+
+Cited by: §I.
+
+[2]
+S. Patil, K. Raut, P. Palsodkar, T. Singh, Y. Dubey, and R. Umate (2022)
+
+Click prediction learning for effective advertising.
+
+In 2022 International Conference on Emerging Trends in Engineering and Medical Sciences (ICETEMS),
+
+Vol. , pp. 283–288.
+
+External Links: Document
+
+Cited by: §I.
+
+[3]
+S. Lin, Y. Yu, X. Ji, T. Zhou, H. He, Z. Sang, J. Jia, G. Cao, and N. Hu (2022)
+
+Spatiotemporal-enhanced network for click-through rate prediction in location-based services.
+
+arXiv preprint arXiv:2209.09427.
+
+Cited by: §I.
+
+[4]
+G. Jiang, X. Li, R. Jing, R. Zhao, X. Ni, G. Cao, and N. Hu (2023)
+
+CSPM: a contrastive spatiotemporal preference model for ctr prediction in on-demand food delivery services.
+
+In Proceedings of the 32nd ACM International Conference on Information and Knowledge Management,
+
+CIKM ’23, New York, NY, USA, pp. 3978–3982.
+
+External Links: ISBN 9798400701245,
+Link,
+Document
+
+Cited by: §I.
+
+[5]
+Z. Jiang, C. Chen, H. Feng, Y. Yang, J. Liu, J. Zhang, J. Jia, and N. Hu (2025)
+
+Pre-train and fine-tune: recommenders as large models.
+
+In Companion Proceedings of the ACM on Web Conference 2025,
+
+WWW ’25, New York, NY, USA, pp. 267–276.
+
+External Links: ISBN 9798400713316,
+Link,
+Document
+
+Cited by: §I.
+
+[6]
+Y. Li, H. Du, Y. Ni, P. Zhao, Q. Guo, F. Yuan, and X. Zhou (2024)
+
+Multi-modality is all you need for transferable recommender systems.
+
+In 2024 IEEE 40th International Conference on Data Engineering (ICDE),
+
+Vol. , pp. 5008–5021.
+
+External Links: Document
+
+Cited by: §I.
+
+[7]
+X. Deng, L. Xu, X. Li, J. Yu, E. Xue, Z. Wang, D. Zhang, Z. Liu, G. Zhou, Y. Song, N. Mou, S. Jiang, and H. Li (2024)
+
+End-to-end training of multimodal model and ranking model.
+
+External Links: 2404.06078,
+Link
+
+Cited by: §I,
+§III.
+
+[8]
+X. Han, H. Chen, Q. Lin, J. Gao, X. Ren, L. Zhu, Z. Ye, S. Wu, X. Xie, X. Gan, B. Wei, P. Xu, Z. Wang, Y. Zheng, J. Lin, D. Wu, and J. Ge (2025)
+
+LEMUR: large scale end-to-end multimodal recommendation.
+
+External Links: 2511.10962,
+Link
+
+Cited by: §I,
+§III.
+
+[9]
+Y. Liu, K. Zhang, X. Ren, Y. Huang, J. Jin, Y. Qin, R. Su, R. Xu, Y. Yu, and W. Zhang (2024)
+
+AlignRec: aligning and training in multimodal recommendations.
+
+In Proceedings of the 33rd ACM International Conference on Information
+and Knowledge Management, CIKM 2024, Boise, ID, USA, October 21-25,
+2024, E. Serra and F. Spezzano (Eds.),
+
+pp. 1503–1512.
+
+External Links: Link,
+Document
+
+Cited by: §I,
+§III.
+
+[10]
+X. Sheng, F. Yang, L. Gong, B. Wang, Z. Chan, Y. Zhang, Y. Cheng, Y. Zhu, T. Ge, H. Zhu, Y. Jiang, J. Xu, and B. Zheng (2024)
+
+Enhancing taobao display advertising with multimodal representations: challenges, approaches and insights.
+
+In Proceedings of the 33rd ACM International Conference on Information
+and Knowledge Management, CIKM 2024, Boise, ID, USA, October 21-25,
+2024, E. Serra and F. Spezzano (Eds.),
+
+pp. 4858–4865.
+
+External Links: Link,
+Document
+
+Cited by: §I,
+§III,
+§IV-D.
+
+[11]
+M. Wang, X. Ke, X. Xu, L. Chen, Y. Gao, P. Huang, and R. Zhu (2024)
+
+MUST: an effective and scalable framework for multimodal search of target modality.
+
+In 2024 IEEE 40th International Conference on Data Engineering (ICDE),
+
+Vol. , pp. 4747–4759.
+
+External Links: Document
+
+Cited by: §I.
+
+[12]
+T. Li, X. Yang, Y. Ke, B. Wang, Y. Liu, and J. Xu (2024)
+
+Alleviating the inconsistency of multimodal data in cross-modal retrieval.
+
+In 2024 IEEE 40th International Conference on Data Engineering (ICDE),
+
+Vol. , pp. 4643–4656.
+
+External Links: Document
+
+Cited by: §I.
+
+[13]
+A. van den Oord, O. Vinyals, and K. Kavukcuoglu (2017)
+
+Neural discrete representation learning.
+
+In Proceedings of the 31st International Conference on Neural Information Processing Systems,
+
+NIPS’17, Red Hook, NY, USA, pp. 6309–6318.
+
+External Links: ISBN 9781510860964
+
+Cited by: §I.
+
+[14]
+C. Wu, F. Wu, T. Qi, and Y. Huang (2021)
+
+MM-rec: multimodal news recommendation.
+
+CoRR abs/2104.07407.
+
+External Links: Link,
+2104.07407
+
+Cited by: §I,
+§III.
+
+[15]
+S. Rajput, N. Mehta, A. Singh, R. H. Keshavan, T. Vu, L. Heldt, L. Hong, Y. Tay, V. Q. Tran, J. Samost, M. Kula, E. H. Chi, and M. Sathiamoorthy (2023)
+
+Recommender systems with generative retrieval.
+
+In Advances in Neural Information Processing Systems 36: Annual Conference
+on Neural Information Processing Systems 2023, NeurIPS 2023, New Orleans,
+LA, USA, December 10 - 16, 2023, A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine (Eds.),
+
+External Links: Link
+
+Cited by: §I,
+§III.
+
+[16]
+J. Chen, L. Chi, B. Peng, and Z. Yuan (2024)
+
+HLLM: enhancing sequential recommendations via hierarchical large language models for item and user modeling.
+
+CoRR abs/2409.12740.
+
+External Links: Link,
+Document,
+2409.12740
+
+Cited by: §I.
+
+[17]
+A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark, G. Krueger, and I. Sutskever (2021)
+
+Learning transferable visual models from natural language supervision.
+
+In Proceedings of the 38th International Conference on Machine Learning,
+ICML 2021, 18-24 July 2021, Virtual Event, M. Meila and T. Zhang (Eds.),
+
+Proceedings of Machine Learning Research, Vol. 139, pp. 8748–8763.
+
+External Links: Link
+
+Cited by: §III.
+
+[18]
+A. Yang, J. Pan, J. Lin, R. Men, Y. Zhang, J. Zhou, and C. Zhou (2022)
+
+Chinese CLIP: contrastive vision-language pretraining in chinese.
+
+CoRR abs/2211.01335.
+
+External Links: Link,
+Document,
+2211.01335
+
+Cited by: §III,
+§V-B1.
+
+[19]
+J. Li, R. R. Selvaraju, A. Gotmare, S. R. Joty, C. Xiong, and S. C. Hoi (2021)
+
+Align before fuse: vision and language representation learning with momentum distillation.
+
+In Advances in Neural Information Processing Systems 34: Annual Conference
+on Neural Information Processing Systems 2021, NeurIPS 2021, December
+6-14, 2021, virtual, M. Ranzato, A. Beygelzimer, Y. N. Dauphin, P. Liang, and J. W. Vaughan (Eds.),
+
+pp. 9694–9705.
+
+External Links: Link
+
+Cited by: §III,
+§V-B1.
+
+[20]
+X. Zhang, Y. Zhang, W. Xie, M. Li, Z. Dai, D. Long, P. Xie, M. Zhang, W. Li, and M. Zhang (2024)
+
+GME: improving universal multimodal retrieval by multimodal llms.
+
+CoRR abs/2412.16855.
+
+External Links: Link,
+Document,
+2412.16855
+
+Cited by: §III,
+§V-B1.
+
+[21]
+B. Yan, S. Liu, Z. Zeng, Z. Wang, Y. Zhang, Y. Yuan, L. Liu, J. Liu, D. Wang, W. Su, P. Wang, J. Xu, and B. Zheng (2025)
+
+Unlocking scaling law in industrial recommendation systems with a three-step paradigm based large user model.
+
+CoRR abs/2502.08309.
+
+External Links: Link,
+Document,
+2502.08309
+
+Cited by: §III,
+§IV-D.
+
+[22]
+B. Zheng, Y. Hou, H. Lu, Y. Chen, W. X. Zhao, M. Chen, and J. Wen (2024)
+
+Adapting large language models by integrating collaborative semantics for recommendation.
+
+In 40th IEEE International Conference on Data Engineering, ICDE 2024,
+Utrecht, The Netherlands, May 13-16, 2024,
+
+pp. 1435–1448.
+
+External Links: Link,
+Document
+
+Cited by: §III.
+
+[23]
+K. He, H. Fan, Y. Wu, S. Xie, and R. B. Girshick (2020)
+
+Momentum contrast for unsupervised visual representation learning.
+
+In 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition,
+CVPR 2020, Seattle, WA, USA, June 13-19, 2020,
+
+pp. 9726–9735.
+
+External Links: Link,
+Document
+
+Cited by: §IV-B1.
+
+[24]
+A. van den Oord, Y. Li, and O. Vinyals (2018)
+
+Representation learning with contrastive predictive coding.
+
+CoRR abs/1807.03748.
+
+External Links: Link,
+1807.03748
+
+Cited by: §IV-B1.
+
+[25]
+C. Zhang, H. Zhang, S. Wu, D. Wu, T. Xu, X. Zhao, Y. Gao, Y. Hu, and E. Chen (2025)
+
+NoteLLM-2: multimodal large representation models for recommendation.
+
+In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery
+and Data Mining, V.1, KDD 2025, Toronto, ON, Canada, August 3-7,
+2025, Y. Sun, F. Chierichetti, H. W. Lauw, C. Perlich, W. H. Tok, and A. Tomkins (Eds.),
+
+pp. 2815–2826.
+
+External Links: Link,
+Document
+
+Cited by: §IV-B2.
+
+[26]
+C. Raffel, N. Shazeer, A. Roberts, K. Lee, S. Narang, M. Matena, Y. Zhou, W. Li, and P. J. Liu (2020)
+
+Exploring the limits of transfer learning with a unified text-to-text transformer.
+
+J. Mach. Learn. Res. 21, pp. 140:1–140:67.
+
+External Links: Link
+
+Cited by: §IV-B2.
+
+[27]
+A. P. Bradley (1997)
+
+The use of the area under the ROC curve in the evaluation of machine learning algorithms.
+
+Pattern Recognit. 30 (7), pp. 1145–1159.
+
+External Links: Link,
+Document
+
+Cited by: §V-D2.
+
+[28]
+X. He, J. Pan, O. Jin, T. Xu, B. Liu, T. Xu, Y. Shi, A. Atallah, R. Herbrich, S. Bowers, and J. Q. Candela (2014)
+
+Practical lessons from predicting clicks on ads at facebook.
+
+In Proceedings of the Eighth International Workshop on Data Mining for Online Advertising,
+
+ADKDD’14, New York, NY, USA, pp. 1–9.
+
+External Links: ISBN 9781450329996,
+Link,
+Document
+
+Cited by: §V-D2.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

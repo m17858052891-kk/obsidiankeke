@@ -1,0 +1,742 @@
+
+
+From Head to Tail: Asymmetric Knowledge Transfer in Long-tail Recommendation with Generative Semantic IDs
+
+Report GitHub Issue
+
+ ×
+
+ Title:
+
+Content selection saved. Describe the issue below:
+
+ Description:
+
+ Submit without GitHub
+ Submit in GitHub
+
+ arXiv is now an independent nonprofit!
+ Learn more
+ ×
+
+ Back to arXiv
+
+ Why HTML?
+
+ Report Issue
+
+ Back to Abstract
+
+ Download PDF
+
+Abstract.
+1 Introduction
+2 Problem Formulation
+3 Methodology
+
+3.1 Semantic Clusters Generation
+
+3.1.1 Representation Extraction
+3.1.2 Cluster Generation
+
+3.2 Semantic Cluster-based Feature Fusion
+
+3.2.1 Cluster-Guided Adaptive Embedding
+3.2.2 Hierarchical Feature Aggregation
+3.2.3 Adaptive Feature Fusion
+
+4 Experiments
+
+4.1 Experimental Setup
+
+4.1.1 Dataset and Metrics
+4.1.2 Implementation Details
+4.1.3 Baselines
+
+4.2 Overall Performance
+4.3 Ablation Study
+4.4 Online A/B Testing
+
+5 Conclusion
+References
+
+ License: arXiv.org perpetual non-exclusive license
+
+arXiv:2605.23310v1 [cs.IR] 22 May 2026
+
+From Head to Tail: Asymmetric Knowledge Transfer in Long-tail Recommendation with Generative Semantic IDs
+
+DOI: XXXXXXX.XXXXXXXConference: Make sure to enter the correct
+conference title from your rights confirmation email; June 03–05,
+2018; Woodstock, NYISBN: 978-1-4503-XXXX-X/2018/06CCS: Information systems Content ranking
+
+Chenyi Yan1,
+Ruocong Tang1,
+Xing Fang1,
+Yang Huang1,
+He Guo2,
+Jing Wang1
+
+Affiliation: 
+1Alibaba Group, Hangzhou, China
+2Beijing University, Beijing, China
+{yanchenyi.ycy, tangruocong.trc, fangxing.fx, hy234680, jing.wangj1}@taobao.com, 
+2401210268@stu.pku.edu.cn
+
+2018
+
+Abstract.
+
+Long-tail recommendation in real-world e-commerce platforms remains challenging due to severe data imbalance. Existing methods often struggle to combine content-based multimodal features with collaborative signals. Many of these methods also ignore an important asymmetry in knowledge transfer between head and tail IDs: noisy signals from tail IDs can hurt representation learning for head IDs. This paper presents AKT-Rec, a framework for Asymmetric Knowledge Transfer in long-tail Recommendation that uses LLM-generated semantic IDs. AKT-Rec uses Multimodal LLMs (MLLMs) with supervised fine-tuning to align content representations with collaborative information for both items and users, producing semantic representations. It then discretizes these representations into semantic IDs with a Residual-Quantized VAE (RQ-VAE), which yields semantic clusters of similar entities. AKT-Rec has two main components: (1) Cluster-Guided Adaptive Embedding, which decomposes each ID representation into a cluster-level embedding that captures shared semantics and an individual embedding. Through an asymmetric contrastive objective and an activity-aware gating mechanism, this module directs knowledge transfer from head to tail IDs. (2) Hierarchical Feature Aggregation, which builds parallel feature views and adaptively fuses them to optimize predictions for samples with varying activity levels. Extensive experiments on a large-scale industrial dataset and online A/B testing on the Alibaba Tmall platform demonstrate the effectiveness of AKT-Rec. AKT-Rec improves offline performance by 0.35% in AUC and 1.53% in GAUC, outperforming several competitive baselines. In online A/B testing, AKT-Rec achieves a 2.76% increase in CTR and a 3.47% increase in GMV, validating its utility in real-world production environments.
+
+Keywords: 
+Recommendation System, Multi-Modal, Large Language Model, Semantic ID
+
+1. Introduction
+
+With the rapid expansion of e-commerce platforms, the scale of candidate item pools and user populations in recommender systems is growing at an unprecedented rate. However, this growth has also intensified the long-tail issue caused by imbalanced data distributions: a small fraction of popular (head) items receive most exposures, and a relatively small group of highly active users accounts for a large share of observed interests (Dai et al., 2021; Jangid and Kumar, 2025; Li et al., 2017). Such skewed distributions can severely impairs the performance of recommender systems, making it difficult to learn reliable representations for the many tail items and to capture the diverse preferences of tail users.
+Although long-tail recommendation has been extensively studied over the past decade, existing methods still exhibit notable limitations.
+Graph-based models represent collaborative signals with graph structures (e.g., user-item interaction graphs) and use Graph Convolutional Networks (GCNs) to propagate information to tail nodes (Luo et al., 2023; Volkovs et al., 2017; Cui et al., 2019; Zhao et al., 2023; Wei et al., 2023). However, these methods are constrained by the inherent data sparsity of long-tail items in real-world scenarios and rely on manually specified graph construction rules, which often introduce redundant or noisy edges.
+Sample augmentation models generate synthetic pseudo-interactions for tail items to narrow the distribution gap between tail and head items (Qin et al., 2024; Liu et al., 2020). Nevertheless, these synthetic samples inevitably can distort the underlying data distribution, and their quality is hard to control, often leading to suboptimal performance.
+More recently, motivated by progress in Large Language Models (LLMs), several studies use LLMs to extract rich content features for items to replace or augment collaborative signals, thereby facilitating the modeling of long-tail items(Jia et al., 2025; Sheng et al., 2024a; Baek et al., 2024; Wei et al., 2024; Du et al., 2024). In practice, these content features are often underutilized in models still dominated by collaborative signals, leading to limited gains. Moreover, many of these approaches focus on tail IDs in isolation while overlooking the potential negative impact on head items. Head items can be accurately modeled using abundant interaction data, and this rich data can be leveraged to support the representation learning of similar long-tail IDs.
+
+In this paper, to address the aforementioned challenges, we propose AKT-Rec a long-tail recommendation framework based on LLM-generated semantic IDs. It integrates multi-modal and collaborative features and enables asymmetric knowledge transfer from head to tail users/items. As illustrated in Figure 1, the recommendation pipeline is organized into two stages.
+In the first stage, AKT-Rec employs a Multimodal Large Language Model (MLLM) to extract item and user representations based on item-to-item co-occurrence relationships. A Residual-Quantized Variational Autoencoder (RQ-VAE) then clusters items and users separately to produce their corresponding semantic IDs. The quantization procedure is configured to yield a high collision rate such that each semantic ID is shared by multiple similar items or users.
+In the second stage, each item or user is represented by two embeddings: a cluster embedding that encodes the shared semantics within a cluster and an individual embedding that captures ID-specific information. We introduce an activity-aware asymmetric InfoNCE objective to transfer knowledge from head IDs to tail IDs. Moreover, we design a loss function to encourage disentanglement between the two embeddings and to reduce redundant information. Finally, we design a feature aggregation module for the semantic clusters and employ an additional fusion network to integrate these cluster-level features with traditional item/user features.
+
+Our contributions are summarized as follows:
+
+• 
+
+We propose AKT-Rec, a novel LLM-based framework for long-tail recommendation. It leverages semantic clusters to transfer knowledge from head IDs to tail IDs while ensuring that the representation learning of head items is not adversely affected by tail items, thereby mitigating the long-tail problem in recommender systems.
+
+• 
+
+We introduce an adaptive, activity-aware embedding mechanism that assigns each ID both a cluster representation and an individual representation, and dynamically adjusts the balance between them. Furthermore, we develop a semantic cluster-aware sequential aggregation module that enables efficient and accurate information aggregation.
+
+• 
+
+We conduct extensive experiments on a large-scale industrial dataset. The proposed AKT-Rec achieves a significant improvement in online A/B testing in our production environment, demonstrating its effectiveness and reliability.
+
+Figure 1. The Overall architecture of AKT-Rec
+
+2. Problem Formulation
+
+We formulate the long-tail recommendation task as a Click-Through Rate (CTR) prediction problem over user–item interaction data exhibiting long-tail distributions, including both long-tail users and long-tail items. Let \mathcal{U} denote the set of users and \mathcal{I} denote the set of items. For any user u\in\mathcal{U} and item i\in\mathcal{I}, we define the interaction label
+
+ | 
+ | y_{u,i}=\begin{cases}1,&\text{if user }u\text{ clicks item }i,\\
+0,&\text{otherwise}.\end{cases}
+ | 
+
+We assume that both user activity levels and item popularity follow long-tail distributions. Specifically, the interaction frequency of user u and item i are defined as
+
+ | 
+ | f(u)=\sum_{i\in\mathcal{I}}y_{u,i},\quad i=\sum_{u\in\mathcal{U}}y_{u,i},
+ | 
+
+and both f(u) and i exhibit a heavy-tailed distribution.
+
+Our goal is to leverage the rich interaction histories from head users and items to improve CTR prediction accuracy on long-tail users and items, while preserving the prediction accuracy for head users and items.
+
+3. Methodology
+
+3.1. Semantic Clusters Generation
+
+3.1.1. Representation Extraction
+
+To generate high-quality representations, we design a two-stage extraction paradigm that first produces item embeddings and subsequently derives user embeddings by integrating historical behaviors with attributes. We employ a pre-trained MLLM (e.g.  (Zhang et al., 2024)) to extract item representations. The prompt includes the item image, the textual description, and statistical features such as N-day click-through rates (CTR), conversion rates (CVR), and add-to-cart rates. These features are quantized into discrete levels for model understanding. To incorporate collaborative signals, we identify frequently co-occurring item pairs \langle i_{1},i_{2}\rangle and utilize contrastive learning to align their representations via the InfoNCE loss:
+
+ | (1)
+ | 
+ | \mathcal{L}_{i}=-\frac{1}{N}\sum_{i=1}^{N}\log\frac{\exp(\mathbf{z}_{i}\cdot\mathbf{z}_{i}^{+}/\tau)}{\exp(\mathbf{z}_{i}\cdot\mathbf{z}_{i}^{+}/\tau)+\sum_{j=1}^{K}\exp(\mathbf{z}_{i}\cdot\mathbf{z}_{j}^{-}/\tau)}
+ | 
+
+where N denotes the batch size, K represents the number of negative samples, \mathbf{z}_{i} is the embedding of the i-th sample, \mathbf{z}_{i}^{+} is the corresponding positive embedding, \mathbf{z}_{j}^{-} are negative embeddings, and \tau is the temperature hyperparameter.
+
+Subsequently, another LLM generates user semantic representations from interaction history and profiles, following the supervised approach in  (Jiang et al., 2025). The prompt incorporates user attributes and chronological interaction sequences (e.g., clicks within 30 days) with categorical and statistical data. The model generates an interest token to capture the user’s future preferences and predicts the corresponding item category. We fine-tune the LLM using user profiles, historical click sequences, and ground-truth items from traditional CTR task samples. The objective \mathcal{L}_{u} is formulated as:
+
+ | (2)
+ | 
+ | \mathcal{L}_{u}=-\text{sim}(\hat{\mathbf{e}}_{t},\mathbf{e}_{t})-\left[y_{c}\log(\hat{y}_{c})+(1-y_{c})\log(1-\hat{y}_{c})\right]
+ | 
+
+where \hat{\mathbf{e}}_{t} is the hidden vector of the interest token serving as the user semantic representation, \hat{y}_{c} is the predicted category, \mathbf{e}_{t} and y_{c} represent the clicked item’s semantic representation and its category, and \text{sim}(\cdot) denotes cosine similarity.
+
+3.1.2. Cluster Generation
+
+We use a RQ-VAE to quantize semantic representations into discrete identifiers, forming a coarse-to-fine hierarchical structure. Given an encoder E, a decoder D, and a residual r_{0} initialized as input x, the quantization process involves N codebook layers of size M with vectors \{e_{i}\}_{i=1}^{M}. Identifiers are derived iteratively:
+
+ | (3)
+ | 
+ | id_{k}=\text{argmin}_{i}||r_{k-1}-e_{i}||^{2},\quad r_{k}=r_{k-1}-e_{id_{k}},\quad 1\leq k\leq N
+ | 
+
+For any representation, the N-layer RQ-VAE generates a sequence (id_{1},id_{2},\dots,id_{N}) via nearest neighbor search, which forms the final hierarchical semantic ID. We calibrate the layers and codebook size so a single ID can represent multiple similar items, facilitating semantic cluster formation.
+
+3.2. Semantic Cluster-based Feature Fusion
+
+We design a decoupled module at both the embedding and feature levels to preserve information at different granularities and facilitate asymmetric knowledge transfer from head to tail items.
+
+3.2.1. Cluster-Guided Adaptive Embedding
+
+We introduce a semantic cluster-guided adaptive embedding mechanism that decomposes the representation of each ID into two components: a cluster embedding \mathbf{c}_{i}\in\mathbf{R}^{m} and an individual embedding \mathbf{d}_{i}\in\mathbf{R}^{m}. We align cluster embeddings of IDs within the same semantic cluster with contrastive learning. To control the knowledge transfer between head and tail IDs, we use an asymmetric InfoNCE objective
+
+ | (4)
+ | 
+ | \mathcal{L}_{\text{trans}}=\lambda_{1}\mathcal{L}_{\text{info}}(\mathbf{c}_{i}^{\text{head}},sg(\mathbf{c}_{i}^{\text{tail}}))+\lambda_{2}\mathcal{L}_{\text{info}}(\mathbf{c}_{i}^{\text{tail}},sg(\mathbf{c}_{i}^{\text{head}}))
+ | 
+
+where \mathcal{L}_{\text{info}}(x,y) denotes the InfoNCE loss using y as the positive sample, \mathbf{c}_{i}^{\text{head}} and \mathbf{c}_{i}^{\text{tail}} represent the cluster embeddings of head and tail IDs respectively, and sg(\cdot) denotes the stop-gradient operation. Normally, we set \lambda_{1}<\lambda_{2} to ensure that knowledge predominantly transfers from head to tail items. To avoid information redundancy between \mathbf{c}_{i} and \mathbf{d}_{i} which could lead to optimization collapse, we introduce a soft orthogonality regularizer to encourage the encoding of complementary information:
+
+ | (5)
+ | 
+ | \mathcal{L}_{\text{ortho}}=\left(\frac{\mathbf{c}_{i}^{\top}\mathbf{d}_{i}}{\|\mathbf{c}_{i}\|_{2}\cdot\|\mathbf{d}_{i}\|_{2}}\right)^{2}
+ | 
+
+The final representation for a user or item is an adaptive fusion of these two embeddings based on activity features
+
+ | (6)
+ | 
+ | r_{i}=\mathcal{G}_{1}(\mathbf{f}_{i}^{\text{act}}),\ \mathbf{e}_{i}=r_{i}\cdot\mathbf{c}_{i}+(1-r_{i})\cdot\mathbf{d}_{i}
+ | 
+
+where \mathbf{f}_{i}^{\text{act}} represent the activity features of the ID and \mathcal{G}_{1} is a feedforward neural network and \mathbf{e}_{i} denotes the fused embedding.
+
+3.2.2. Hierarchical Feature Aggregation
+
+To exploit the hierarchical structure of semantic clusters, we construct two parallel views at different feature levels: the instance level and the cluster level.
+
+The instance level focuses on the fine-grained context of specific users and items during an interaction. Features at this level include the individual embeddings \mathbf{e}_{i} and \mathbf{u}_{i}, along with attributes and statistical features represented as embeddings. We define the user and item feature vectors as follows
+
+ | (7)
+ | 
+ | \mathbf{H}_{u}=[\mathbf{u}_{\text{attr}};\mathbf{u}_{\text{stats}};\mathbf{u}_{i}],\ \mathbf{H}_{i}=[\mathbf{i}_{\text{attr}},\mathbf{i}_{\text{stats}},\mathbf{e}_{i}]
+ | 
+
+The user interaction history \mathbf{s}_{u}=[\mathbf{h}_{0},\mathbf{h}_{1},\cdots,\mathbf{h}_{L}] is encoded with the candidate item \mathbf{e}_{i} using target-aware attention (Zhou et al., 2018)
+
+ | (8)
+ | 
+ | \mathbf{S}_{u,i}=\sum_{j=1}^{L}\alpha_{i,j}\mathbf{h}_{j},\ \alpha_{i,j}=\frac{\exp(\mathbf{e}_{i}\mathbf{h}_{j}^{T})}{\sum_{k=1}^{L}\exp(\mathbf{e}_{i}\mathbf{h}_{k}^{T})},
+ | 
+
+These components are concatenated to form the instance-level representation \mathbf{H}_{\text{inst}}, ensuring prediction precision through maximum granularity.
+
+The cluster level captures the representative context of the user cluster G(u) and the item cluster G(i). We compute cluster-level features by averaging the instance features within each cluster
+
+ | (9)
+ | 
+ | \mathbf{H}_{G(u)}=\frac{\sum_{{u^{\prime}}\in G(u)}(\mathbf{H}_{u^{\prime}})}{\|{G(u)}\|},\ \mathbf{H}_{G(i)}=\frac{\sum_{{i^{\prime}}\in G(i)}(\mathbf{H}_{i^{\prime}})}{\|{G(i)}\|}
+ | 
+
+aggregating behaviors from all users in a cluster leads to sequences that are too long for the latency constraints of online serving. Following (Pi et al., 2020), we therefore use a hard retrieval strategy based on the top-level semantic ID to fetch behaviors that are most relevant to the candidate item. A target attention mechanism is then applied to this cluster-level sequence to generate \mathbf{S}_{G(u),i}. These features are concatenated into the cluster-level representation \mathbf{H}_{\text{clust}}.
+
+3.2.3. Adaptive Feature Fusion
+
+Rather than simple concatenation, we employ a gating network based on joint user-item activity to adaptively balance the contributions of the two hierarchical views. Given user activity features \mathbf{f}_{user}^{\text{act}}, item activity features \mathbf{f}_{item}^{\text{act}}, and cross-features \mathbf{f}_{cross}^{\text{act}}, the fusion weight is calculated as
+
+ | (10)
+ | 
+ | \alpha=\mathcal{G}_{2}([\mathbf{f}_{user}^{\text{act}};\mathbf{f}_{item}^{\text{act}};\mathbf{f}_{cross}^{\text{act}}])
+ | 
+
+where \mathcal{G}_{2} is a feedforward neural network. The final feature input is formulated as \mathbf{f}=\alpha\cdot\mathbf{H}_{\text{clust}}+(1-\alpha)\cdot\mathbf{H}_{\text{inst}}. This combined feature \mathbf{f} is then fed into the ranking network \mathcal{F}, such as a multilayer perceptron network or a multi-gate mixture-of-experts model (Ma et al., 2018) to predict click preference.
+
+ | (11)
+ | 
+ | \hat{y}=\mathcal{F}(\mathbf{f}),\ \mathcal{L}_{\text{main}}=-\left[y\log(\hat{y})+(1-y)\log(1-\hat{y})\right]
+ | 
+
+where y is the click label. The CTR model is trained by minimizing the final loss
+
+ | (12)
+ | 
+ | \mathcal{L}_{\mathrm{ctr}}=\mathcal{L}_{\text{main}}+\mathcal{L}_{\text{trans}}+\lambda\mathcal{L}_{\text{ortho}}
+ | 
+
+where \lambda is a hyperparameter controlling the strength of this regularization term.
+
+Table 1. The experiment results of AKT-Rec and baselines. Best results are in bold.
+
+ | 
+ | Total
+ | Head
+ | Tail
+
+ | Model
+ | AUC
+ | GAUC
+ | AUC
+ | GAUC
+ | AUC
+ | GAUC
+
+ | Online base
+ | 0.7510
+ | 0.6385
+ | 0.7528
+ | 0.6477
+ | 0.7485
+ | 0.6137
+
+ | SaviorRec
+ | 0.7521
+ | 0.6455
+ | 0.7534
+ | 0.6516
+ | 0.7507
+ | 0.6347
+
+ | TailNet
+ | 0.7491
+ | 0.6370
+ | 0.7509
+ | 0.6453
+ | 0.7479
+ | 0.6448
+
+ | POSO
+ | 0.7518
+ | 0.6412
+ | 0.7520
+ | 0.6472
+ | 0.7497
+ | 0.6321
+
+ | SimTier
+ | 0.7515
+ | 0.6398
+ | 0.7529
+ | 0.6481
+ | 0.7496
+ | 0.6279
+
+ | AKT-Rec
+ | 0.7536
+ | 0.6483
+ | 0.7543
+ | 0.6528
+ | 0.7522
+ | 0.6397
+
+4. Experiments
+
+4.1. Experimental Setup
+
+4.1.1. Dataset and Metrics
+
+We evaluate the proposed framework on an industrial dataset collected from the Tmall mobile application. The dataset contains two months of click logs from June 2025 to August 2025, covering 36 million users and about 300 million items. We use the last five days as the test set and the remaining days as the training set. We define long-tail users as users with fewer than five interactions in the training set, which accounts for 85.58% of users. We define long-tail items as items exposed fewer than ten times in the training set, which accounts for 95.8% of items. We define long-tail samples as samples where either the user or the target item is a long-tail ID, which accounts for 22.4% of samples. Following prior work, we report Area Under the ROC Curve (AUC) and Group AUC (GAUC) for offline evaluation. For online A/B testing, we report Clicks, CTR, Click-Through Conversion Rate (CTCVR), and Gross Merchandise Value (GMV).
+
+4.1.2. Implementation Details
+
+We build a co-occurrence database from co-occurrence signals on the Tmall platform and compute item features from the training set for MLLM prompts. We use GME-Qwen2-VL-7B (Zhang et al., 2024) to encode item multi-modal content into semantic representations. For user semantic representations, we fine-tune Qwen3-30B-A3B (Team, 2025) with supervision and extract user representations. For user/items semantic IDs, we use RQ-VAE with three codebooks of size 128/256.
+
+4.1.3. Baselines
+
+We compare AKT-Rec with strong baselines, including multimodal cold-start methods such as SaviorRec (Yao et al., 2025) and SimTier (Sheng et al., 2024b), and non-multimodal methods like POSO (Dai et al., 2021), TailNet (Liu and Zheng, 2020), and our online base model.
+
+4.2. Overall Performance
+
+As shown in Table 1, AKT-Rec achieves consistently higher AUC and GAUC than all baselines across different user activity levels. The gains are most pronounced on long-tail samples. Compared with the online base model, AKT-Rec improves AUC by 0.346% and GAUC improves by 1.53%. On head samples, AKT-Rec still maintains an advantage, which indicates that the method improves long-tail modeling without sacrificing accuracy on head IDs.
+
+4.3. Ablation Study
+
+Table 2. Ablation study of AKT-Rec
+
+ | Model
+ | Full
+ | Head
+ | Tail
+
+ | AUC
+ | GAUC
+ | AUC
+ | GAUC
+ | AUC
+ | GAUC
+
+ | w/o individual emb.
+ | -0.46%
+ | -0.92%
+ | -0.67%
+ | -0.93%
+ | -0.42%
+ | -0.44%
+
+ | w/o cluster emb.
+ | -0.19%
+ | -0.82%
+ | -0.03%
+ | -0.17%
+ | -0.44%
+ | -1.20%
+
+ | w/o CGAE gate
+ | -0.13%
+ | -0.50%
+ | -0.26%
+ | -0.22%
+ | -0.07%
+ | -0.12%
+
+ | w/o instance-level feature
+ | -1.14%
+ | -1.55%
+ | -1.38%
+ | -1.81%
+ | -0.83%
+ | -1.21%
+
+ | w/o cluster-level feature
+ | -0.17%
+ | -0.34%
+ | -0.12%
+ | -0.21%
+ | -0.26%
+ | -0.63%
+
+ | w/o HFA gate
+ | -0.13%
+ | -0.30%
+ | -0.31%
+ | -0.55%
+ | -0.11%
+ | -0.23%
+
+We conducted comprehensive ablation studies to assess their respective contributions as detailed in Table 2.
+Removing the individual embedding and representing user and item IDs only with the shared cluster embedding reduces overall AUC by
+0.46% and GAUC by
+0.92%, which confirms the necessity of the individual component in AKT-Rec. Conversely, removing the cluster embedding yields a clear performance drop, with a larger degradation on tail samples, suggesting that tail IDs benefit disproportionately from cluster-level knowledge. Replacing the activity-based gate in CGAE with a simple average further decreases AUC by 0.13% and GAUC by 0.5%. Removing instance-level features triggers a sharp decline in AUC (1.14%) and GAUC (1.55%), particularly for head samples, which confirms the necessity of individual behavioral sequences. In contrast, omitting cluster-level features leads to a 0.17% AUC and 0.34% GAUC drop, with tail samples exhibiting higher sensitivity to this information. Finally, replacing the HFA activity gate with a fixed average (\alpha=0.5) degrades performance, demonstrating that adaptive fusion weights are critical to maximize information utility across both head and tail IDs.
+
+4.4. Online A/B Testing
+
+We conduct a two-week online A/B test on the Tmall platform, where both the experimental and control groups are allocated 10% of the online traffic. Table 3 summarizes the performance gains. Specifically, AKT-Rec yields improvements of 2.73% in clicks, 2.76% in CTR, 1.7% in CTCVR, and 3.47% in GMV. These results demonstrate the effectiveness of AKT-Rec in addressing long-tail distribution challenges within industrial recommendation scenarios.
+
+Table 3. The online A/B test results of AKT-Rec
+
+ | Online Metrics
+ | Clicks
+ | CTR
+ | CTCVR
+ | GMV
+
+ | Gain(%)
+ | +2.73%
+ | +2.76%
+ | +1.7%
+ | +3.47%
+
+5. Conclusion
+
+This paper presents AKT-Rec, a long-tail recommendation framework built on generative semantic IDs. AKT-Rec uses LLMs to extract semantic representations for items and users, and applies a RQ-VAE to discretize these representations into semantic IDs, which naturally form semantic clusters. Within the feature fusion module, Cluster-Guided Adaptive Embedding and Hierarchical Feature Aggregation enable asymmetric knowledge transfer from head to tail IDs. Extensive offline and online experiments on large-scale datasets demonstrate that AKT-Rec consistently outperforms all baselines and significantly enhances recommendation performance in real-world industrial scenarios.
+
+References
+
+Baek et al. (2024)
+J. Baek, N. Chandrasekaran, S. Cucerzan, A. Herring, and S. K. Jauhar
+
+Knowledge-augmented large language models for personalized contextual query suggestion.
+
+In Proceedings of the ACM Web Conference 2024,
+
+pp. 3355–3366.
+
+Cited by: §1.
+
+Cui et al. (2019)
+Y. Cui, M. Jia, T. Lin, Y. Song, and S. Belongie
+
+Class-balanced loss based on effective number of samples.
+
+In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition,
+
+pp. 9268–9277.
+
+Cited by: §1.
+
+Dai et al. (2021)
+S. Dai, H. Lin, Z. Zhao, J. Lin, H. Wu, Z. Wang, S. Yang, and J. Liu
+
+POSO: personalized cold start modules for large-scale recommender systems.
+
+arXiv preprint arXiv:2108.04690.
+
+Cited by: §1,
+§4.1.3.
+
+Du et al. (2024)
+Y. Du, D. Luo, R. Yan, X. Wang, H. Liu, H. Zhu, Y. Song, and J. Zhang
+
+Enhancing job recommendation through llm-based generative adversarial networks.
+
+In Proceedings of the AAAI conference on artificial intelligence,
+
+Vol. 38, pp. 8363–8371.
+
+Cited by: §1.
+
+Jangid and Kumar (2025)
+M. Jangid and R. Kumar
+
+Deep learning approaches to address cold start and long tail challenges in recommendation systems: a systematic review.
+
+Multimedia Tools and Applications 84 (5), pp. 2293–2325.
+
+Cited by: §1.
+
+Jia et al. (2025)
+J. Jia, Y. Wang, Y. Li, H. Chen, X. Bai, Z. Liu, J. Liang, Q. Chen, H. Li, P. Jiang, et al.
+
+LEARN: knowledge adaptation from large language model to recommendation for practical industrial application.
+
+In Proceedings of the AAAI Conference on Artificial Intelligence,
+
+Vol. 39, pp. 11861–11869.
+
+Cited by: §1.
+
+Jiang et al. (2025)
+J. Jiang, Y. Huang, B. Liu, X. Kong, X. Li, Z. Xu, H. Zhu, J. Xu, and B. Zheng
+
+Large language model as universal retriever in industrial-scale recommender system.
+
+arXiv preprint arXiv:2502.03041.
+
+Cited by: §3.1.1.
+
+Li et al. (2017)
+J. Li, K. Lu, Z. Huang, and H. T. Shen
+
+Two birds one stone: on both cold-start and long-tail recommendation.
+
+In Proceedings of the 25th ACM international conference on Multimedia,
+
+pp. 898–906.
+
+Cited by: §1.
+
+Liu et al. (2020)
+J. Liu, Y. Sun, C. Han, Z. Dou, and W. Li
+
+Deep representation learning on long-tailed data: a learnable embedding augmentation perspective.
+
+In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition,
+
+pp. 2970–2979.
+
+Cited by: §1.
+
+Liu and Zheng (2020)
+S. Liu and Y. Zheng
+
+Long-tail session-based recommendation.
+
+In Proceedings of the 14th ACM conference on recommender systems,
+
+pp. 509–514.
+
+Cited by: §4.1.3.
+
+Luo et al. (2023)
+S. Luo, C. Ma, Y. Xiao, and L. Song
+
+Improving long-tail item recommendation with graph augmentation.
+
+In Proceedings of the 32nd ACM international conference on information and knowledge management,
+
+pp. 1707–1716.
+
+Cited by: §1.
+
+Ma et al. (2018)
+J. Ma, Z. Zhao, X. Yi, J. Chen, L. Hong, and E. H. Chi
+
+Modeling task relationships in multi-task learning with multi-gate mixture-of-experts.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1930–1939.
+
+Cited by: §3.2.3.
+
+Pi et al. (2020)
+Q. Pi, G. Zhou, Y. Zhang, Z. Wang, L. Ren, Y. Fan, X. Zhu, and K. Gai
+
+Search-based user interest modeling with lifelong sequential behavior data for click-through rate prediction.
+
+In Proceedings of the 29th ACM International Conference on Information & Knowledge Management,
+
+pp. 2685–2692.
+
+Cited by: §3.2.2.
+
+Qin et al. (2024)
+B. Qin, Z. Huang, X. Tian, Y. Chen, and W. Wang
+
+GACRec: generative adversarial contrastive learning for improved long-tail item recommendation.
+
+Knowledge-Based Systems 300, pp. 112146.
+
+Cited by: §1.
+
+Sheng et al. (2024a)
+L. Sheng, A. Zhang, Y. Zhang, Y. Chen, X. Wang, and T. Chua
+
+Language models encode collaborative signals in recommendation.
+
+Cited by: §1.
+
+Sheng et al. (2024b)
+X. Sheng, F. Yang, L. Gong, B. Wang, Z. Chan, Y. Zhang, Y. Cheng, Y. Zhu, T. Ge, H. Zhu, et al.
+
+Enhancing taobao display advertising with multimodal representations: challenges, approaches and insights.
+
+In Proceedings of the 33rd ACM International Conference on Information and Knowledge Management,
+
+pp. 4858–4865.
+
+Cited by: §4.1.3.
+
+Team (2025)
+Q. Team
+
+Qwen3 technical report.
+
+External Links: 2505.09388,
+Link
+
+Cited by: §4.1.2.
+
+Volkovs et al. (2017)
+M. Volkovs, G. Yu, and T. Poutanen
+
+Dropoutnet: addressing cold start in recommender systems.
+
+Advances in neural information processing systems 30.
+
+Cited by: §1.
+
+Wei et al. (2023)
+C. Wei, J. Liang, D. Liu, Z. Dai, M. Li, and F. Wang
+
+Meta graph learning for long-tail recommendation.
+
+In Proceedings of the 29th ACM SIGKDD conference on knowledge discovery and data mining,
+
+pp. 2512–2522.
+
+Cited by: §1.
+
+Wei et al. (2024)
+W. Wei, X. Ren, J. Tang, Q. Wang, L. Su, S. Cheng, J. Wang, D. Yin, and C. Huang
+
+Llmrec: large language models with graph augmentation for recommendation.
+
+In Proceedings of the 17th ACM international conference on web search and data mining,
+
+pp. 806–815.
+
+Cited by: §1.
+
+Yao et al. (2025)
+Y. Yao, Z. Li, S. Xiao, B. Du, J. Zhu, J. Zheng, X. Kong, and Y. Jiang
+
+Saviorrec: semantic-behavior alignment for cold-start recommendation.
+
+arXiv preprint arXiv:2508.01375.
+
+Cited by: §4.1.3.
+
+Zhang et al. (2024)
+X. Zhang, Y. Zhang, W. Xie, M. Li, Z. Dai, D. Long, P. Xie, M. Zhang, W. Li, and M. Zhang
+
+GME: improving universal multimodal retrieval by multimodal llms.
+
+External Links: 2412.16855,
+Link
+
+Cited by: §3.1.1,
+§4.1.2.
+
+Zhao et al. (2023)
+Q. Zhao, Z. Wu, Z. Zhang, and J. Zhou
+
+Long-tail augmented graph contrastive learning for recommendation.
+
+In Joint European Conference on Machine Learning and Knowledge Discovery in Databases,
+
+pp. 387–403.
+
+Cited by: §1.
+
+Zhou et al. (2018)
+G. Zhou, X. Zhu, C. Song, Y. Fan, H. Zhu, X. Ma, Y. Yan, J. Jin, H. Li, and K. Gai
+
+Deep interest network for click-through rate prediction.
+
+In Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining,
+
+pp. 1059–1068.
+
+Cited by: §3.2.2.
+
+Presenter Bio
+
+Chenyi Yan is an Algorithm Engineer at Alibaba Group, where he develops core recommendation algorithms for the homepage of the Tmall App. His current research focus lies at the intersection of large language models and recommender systems, specifically overcoming long-tail recommendation challenges in large-scale e-commerce scenarios. Chenyi Yan is dedicated to translating cutting-edge AI research into scalable, real-world solutions that significantly enhance personalized user experiences and drive business growth.
+
+ Experimental support, please
+ view the build logs
+ for errors. Generated by
+
+ L
+ A
+ T
+ E
+
+ xml
+
+ .
+
+Instructions for reporting errors
+
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below:
+
+ Click the "Report Issue" (
+
+ ) button, located in the page header.
+
+Tip: You can select the relevant text first, to include it in your report.
+
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all.
+
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+
+ We gratefully acknowledge support from
+ our major funders,
+ member institutions, ,
+ and all contributors.
+
+ About
+ ·
+ Help
+ ·
+ Contact
+ ·
+ Subscribe
+ ·
+ Copyright
+ ·
+ Privacy
+ ·
+ Accessibility
+ ·
+ Operational Status (opens in new tab)
+
+ Major funding support from
+

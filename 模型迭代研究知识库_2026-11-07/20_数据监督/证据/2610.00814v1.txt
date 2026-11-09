@@ -1,0 +1,1665 @@
+
+=== PAGE 1 ===
+TRAINING-AWARETARGETCOVERAGE FOR
+SYNTHETICDATASELECTION
+Yang Ba1, Michelle V . Mancenido2 & Rong Pan1
+1School of Computing and Augmented Intelligence, Arizona State University
+2School of Mathematical and Natural Sciences, Arizona State University
+{yangba,mmanceni,Rong.Pan}@asu.edu
+ABSTRACT
+Synthetic data are increasingly used to scale LLM training, yet more synthetic
+data do not necessarily produce better models. Useful synthetic data must add
+information relevant to the target task without introducing errors that offset their
+benefit, and the value of an example can change as the training set grows. We
+develop a linear theory that characterizes this tradeoff and determines where syn-
+thetic data are useful, how much should be added, and the marginal value of adding
+one example to an existing set. The analysis shows the conditions when input
+coverage alone is sufficient and when synthetic errors must also be considered.
+Guided by these results, we introduceTraining-Aware Target Coverage(TATC), a
+synthetic data selection method for LLM fine-tuning. TATC identifies candidates
+whose training effects are beneficial to the target task and selects among them
+to expand coverage of target-relevant directions not already represented by the
+available data. Experiments on text and image data verify the linear theory. With
+mathematical reasoning tasks, TATC selects synthetic solutions for fine-tuning
+Qwen2.5-Math-1.5B-Instruct and outperforms alternative synthetic-data selection
+methods on GSM8K across selection budgets. In summary, we provide a principled
+approach to synthetic data selection by quantifying and maximizing its value to the
+target task. The code is available at https://github.com/YangBa78/Training-Aware-
+Target-Coverage-for-Synthetic-Data-Selection.
+1 INTRODUCTION
+Synthetic data have become an integral part of large language model training, spanning multiple stages
+of the training pipeline, from pretraining and instruction tuning to reasoning distillation and model
+evaluation (Gunasekar et al., 2023; Wang et al., 2023b; Zelikman et al., 2022). Models can generate
+large volumes of synthetic data, such as mathematical solutions, code, instructions, critiques, and
+preference feedback, with little additional human annotation, making it a scalable way to construct
+training data. This scalability, however, does not imply that more synthetic data are always better.
+The value of synthetic examples can differ substantially: adding redundant examples may provide
+little new information, while examples containing errors can actively harm downstream model
+performance; these effects can become particularly consequential as synthetic data are incorporated
+at larger scales or reused across generations of models (Shumailov et al., 2024; Alemohammad et al.,
+2024; Yi et al., 2026). The central question is therefore no longer simply how to generate more
+synthetic data, butwhich synthetic examples are useful for training, and how many of them should be
+incorporated into the training dataset?
+Existing approaches to synthetic data selection emphasize complementary properties of training
+examples. Quality-based methods filter generated responses using correctness or verification signals
+and model-based quality estimates (Chen et al., 2024; Liu et al., 2024), while diversity-based
+methods favor collections that span distinct regions of representation or model-induced gradient
+space (Friedman & Dieng, 2023; Jung et al., 2025). Other approaches select examples by matching
+the synthetic and target distributions or by optimizing information-based design objectives (Ash
+et al., 2021; Rezaei et al., 2026). A separate line of work estimates training utility more directly
+through gradient similarity or influence on a target objective (Xia et al., 2024; Fan et al., 2026). These
+perspectives capture different aspects of useful synthetic data, but they do not by themselves answer
+Preprint. Under review.
+arXiv:2610.00814v1  [cs.LG]  30 Sep 2026
+
+=== PAGE 2 ===
+the question regarding a synthetic example’s contribution to the existing training set and its impact
+on the target task. A synthetic input may be able to add information in an underrepresented area of
+data distribution, but its generated response may introduce a harmful training effect at the same time.
+Conversely, an example with a favorable training effect may add little information if its local area is
+already well represented by the real data or previously selected synthetic examples. This motivates us
+to develop a synthetic data selection method that jointly considers each example’s training effect and
+its marginal information contribution.
+We first develop a linear theory to understand when and how much synthetic data are beneficial for
+learning. Rather than treating each synthetic example as having merely an intrinsic value, the theory
+characterizes the value of a selected synthetic set through the tradeoff between the information it
+adds and the training errors it introduces. This perspective reveals three key properties of synthetic
+data selection. First, value isdirectional: synthetic data are most useful when they add information
+in directions that matter for the target task but are insufficiently represented by the existing data.
+Second, value depends onamount: along a given direction, the useful amount of synthetic data can
+be zero, finite, or continue to increase, depending on the balance between additional information and
+error. Third, value ismarginal: the benefit of adding a candidate depends on what the real data and
+previously selected synthetic examples already provide. Together, these results explain why neither
+data quality nor coverage alone is sufficient to determine which synthetic examples, or how many of
+them, should be used. We experiment on text and image data to validate these predictions: accounting
+for synthetic error distinguishes beneficial examples from harmful examples, while the theory also
+identifies the amount of synthetic data that can be most useful.
+Guided by these results, we introduceTraining-Aware Target Coverage (TATC), a practical method
+for synthetic data selection in LLM fine-tuning. TATC asks two complementary questions for each
+candidate: whether training on the synthetic example is expected to benefit the target task, and
+whether its input adds information in target-relevant directions that are not yet well represented.
+Using a small labeled real probe set, TATC first retains candidates with beneficial training effects and
+then selects those that provide complementary target coverage. Coverage is evaluated relative to the
+real data and previously selected synthetic examples, allowing selection to adapt as the training set
+grows rather than scoring each candidate in isolation. We evaluate TATC by fine-tuning Qwen2.5-
+Math-1.5B-Instruct (Yang et al., 2024) with synthetic mathematical solutions and evaluating on
+GSM8K (Cobbe et al., 2021). Our approach improves exact-match accuracy over both the real data
+checkpoint and other competing selection methods across a range of selection budgets.
+Our contributions can be summarized below:
+• We develop a theoretical framework for characterizing the value of synthetic data, showing
+how downstream benefit depends jointly on the information added by synthetic inputs and
+the errors they introduce. The analysis showswheresynthetic data are useful across feature
+directions,how muchdata should be added, andwhythe value of each additional example
+depends on the existing training dataset.
+• Guided by this theory, we introduceTraining-Aware Target Coverage (TATC), a synthetic
+data selection method in LLM fine-tuning. TATC identifies examples with beneficial
+training effects and selects candidates that provide complementary coverage of target-
+relevant directions, updating their value as the selected set grows.
+• We empirically validate the proposed theory on text and image data and show that TATC
+outperforms existing synthetic data selection methods on GSM8K mathematical reasoning.
+2 RELATEDWORK
+Synthetic inputs and generated response error.Recent pipelines construct synthetic training data
+through rationale distillation, instruction evolution, mathematical problem synthesis, error-driven
+generation, and diversified instruction generation (Hsieh et al., 2023; Xu et al., 2024; Yu et al.,
+2024; Wang et al., 2023a; Li et al., 2024; Xu et al., 2025; Ge et al., 2024); synthetic augmentation
+has also been studied for calibration and generalization (Ba et al., 2024). Recursive synthetic
+training can amplify model errors (Shumailov et al., 2024; Alemohammad et al., 2024), while
+verification can mitigate degradation when generated responses can be checked (Yi et al., 2026).
+High-dimensional regression analyses identify covariance shift as a factor in synthetic-data utility
+2
+
+=== PAGE 3 ===
+and motivate covariance matching (Rezaei et al., 2026). We study selection from a candidate pool of
+LLM-generated input-response pairs, jointly accounting for input information, systematic response
+error, and excess response noise.
+Quality and validation-guided data selection.AlpaGasus filters instruction data using model-
+based quality scores (Chen et al., 2024), while DEITA combines complexity, quality, and diversity (Liu
+et al., 2024). GLISTER selects subsets for a held-out validation objective (Killamsetty et al., 2021),
+and RHO-LOSS prioritizes examples by reducible loss (Mindermann et al., 2022). Our setting instead
+separates the predicted training effect of a complete example from the set-dependent target coverage
+of its features.
+Diversity and experimental design.The Vendi Score measures set diversity through the spectrum
+of a similarity matrix (Friedman & Dieng, 2023); G-Vendi applies the same idea to model-induced
+gradients for synthetic reasoning data generation (Jung et al., 2025). These methods reward dispersion
+within a set. In contrast, experimental design targets reductions in estimation error; BAIT makes
+a Fisher inverse-trace criterion practical for neural active learning (Ash et al., 2021). Our target
+coverage term follows this design principle and is evaluated as an ablation rather than a new objective.
+Unlike active learning, however, synthetic data selection observes a generated response rather than
+acquiring a trusted label after selecting an input. Because that response can be systematically wrong,
+its value must also depend on response error.
+Gradient and influence selection.Influence functions and Data Shapley scores quantify the
+contribution of individual training examples (Koh & Liang, 2017; Ghorbani & Zou, 2019). LESS
+uses optimizer-aware gradient similarity for targeted instruction tuning (Xia et al., 2024), while
+OptimSyn uses estimated training influence to guide synthetic-data generation (Fan et al., 2026).
+SPICE combines a Fisher-information objective with gradient conflict to select informative and
+compatible instruction data (Chang et al., 2026). Our analysis instead asks how input information
+and generated-response error jointly determine the marginal value of adding a synthetic example to
+the existing training set.
+3 DOWNSTREAMRISKTHEORY INSYNTHETICDATASELECTION
+3.1 RISK OFTRAINING WITHSYNTHETICDATA
+We study when synthetic data improve downstream performance by accounting for both the infor-
+mation provided by synthetic inputs and errors in their labels. Let ϕ(X)∈R d denote a feature
+representation of input X, let Y denote the corresponding label, and consider a linear downstream
+modelf θ(X) =ϕ(X) ⊤θ,θ∈R d.We assume that there exists a true parameterθ ⋆ ∈R d such that
+E[Y|X] =ϕ(X) ⊤θ⋆.
+For the real and synthetic samples, let {(xr,i, yr,i)}n
+i=1,{(x s,j, ys,j)}m
+j=1, denote their feature-label
+pairs, where xr,i,x s,j ∈R d are obtained from the representation ϕ defined above (i.e., x=ϕ(X) ).
+Let
+Xr = [xr,1, . . . ,xr,n]⊤ ∈R n×d,X s = [xs,1, . . . ,xs,m]⊤ ∈R m×d
+be feature matrices. We model their labels as
+yr =X rθ⋆ +ε r,y s =X sθ⋆ +d s +ε s,
+where ds ∈R m represents systematic error in the synthetic labels. Conditional on the feature
+matrices, εr and εs are independent noises with zero means and covariancesΩr and Ωs, respectively.
+We estimateθfrom the combined real and synthetic data by least squares:
+bθs = arg min
+θ∈Rd
+1
+2 ∥Xrθ−y r∥2
+2 + 1
+2 ∥Xsθ−y s∥2
+2
+
+.
+We evaluate the fitted model on a downstream distribution Ptest and define its second moment
+matrix as Q:=E X∼P test
+
+ϕ(X)ϕ(X) ⊤
+⪰0. We define the expected squared error relative to the
+3
+
+=== PAGE 4 ===
+(a) Synthetic set value
+real-data
+coverage
+added target-relevant
+information
++ target-relevant information
+- random label noise
+- systematic label error
+(S) = Ginfo − Cnoise − Cbias
+0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0
+relative synthetic information μi
+0.0
+0.2
+0.4
+0.6
+directional contribution to (S)
+(b) Which direction/how much?
+μ ⋆
+i
+low error: unbounded optimum
+moderate error: finite optimum
+high error: zero optimum
+(c) Synthetic candidate marginal value
+Δj(S) = (S ∪ {j}) − (S)
+coverage of
+current set S
+already covered
+target-relevant
+direction
+low label error
+high label error
+candidate value depends on coverage relative to S
+and label error
+⟶ ⟶
+Synthetic-data value balances target-relevant information against label error.
+Figure 1:Risk and value of synthetic data.The theory in one view. (a) A synthetic set is valuable
+when target-relevant input information outweighs random label noise and systematic label error. (b)
+This tradeoff determines whether the optimal amount along a direction is zero, finite, or unbounded.
+(c) Candidate value depends on both input coverage relative to the current set and label error.
+conditional mean onP test as thedownstream risk:
+RQ(bθs) :=E X∼P test
+
+ϕ(X) ⊤(bθs −θ ⋆)
+2
+= (bθs −θ ⋆)⊤Q(bθs −θ ⋆).
+To characterize the downstream risk, define
+A=X ⊤
+r Xr +X ⊤
+s Xs,u=X ⊤
+s ds,N=X ⊤
+r ΩrXr +X ⊤
+s ΩsXs.
+Here, A is the feature Gram matrix, u represents the contribution of systematic label error, and N
+represents the contribution of random label noise.
+Proposition 1(Downstream risk decomposition).Assume that A is nonsingular. Conditional on
+(Xr,X s), under the noise assumptions above,
+E
+h
+RQ(bθs)|X r,X s
+i
+= (A −1u)⊤Q(A−1u)| {z }
+bias from systematic label error
++ tr
+ 
+QA−1N A−1
+| {z }
+variance from label noise
+(1)
+Proposition 1 gives a fundamental decomposition used throughout this analysis. Synthetic inputs
+affect downstream risk through the information matrix A, while errors in synthetic labels affect the
+risk through both systematic error and random variation. Thus, the benefit of adding synthetic data
+cannot be decided by input coverage alone. See proof in Appendix A.1.
+3.2 VALUE OFSYNTHETICDATA
+We now move from analyzing a given synthetic dataset to selecting examples from a synthetic
+candidate pool. Let Ps ={(x j, yj)}N
+j=1 denote the candidate pool, and let S⊆ {1, . . . , N} index
+a selected synthetic subset. We treat S as fixed with respect to the realized label noise and use
+XS,y S,d S, and ΩS for the corresponding quantities restricted to S. We define the value of S as the
+reduction in expected downstream risk relative to training on the real data alone:
+V(S) :=E[R Q(bθr)|X r]−E[R Q(bθS)|X r,X S].
+Thus, V(S)>0 means that adding S improves expected downstream performance. To separate the
+sources of this added value, we consider isotropic label noise,
+Ωr =σ 2I,Ω S = (σ2 +τ 2)I,
+whereτ 2 ≥0is the excess random noise in the synthetic labels. Let
+Ar =X ⊤
+r Xr ≻0,A S =X ⊤
+S XS,A=A r +A S
+4
+
+=== PAGE 5 ===
+Corollary 2(Value of a selected synthetic set).Under the specifications above,
+V(S) =σ 2 tr[Q(A−1
+r −A −1)]| {z }
+Ginfo(S)
+−τ 2 tr(QA−1ASA−1)| {z }
+Cnoise(S)
+−(A −1X ⊤
+S dS)⊤Q(A−1X ⊤
+S dS)| {z }
+Cbias(S)
+.
+(2)
+Equation (2) expresses the value of a selected synthetic set as a tradeoff between the information
+provided by its inputs and errors in its labels. Ginfo(S) measures the information relevant to the
+downstream task that is added beyond the real data, Cnoise(S) is the downstream cost of excess
+random label noise, and Cbias(S) is the downstream cost induced by systematic error in the synthetic
+labels. Thus, adding S improves downstream performance when its information gain exceeds the
+two error terms. Figure 1 summarizes this tradeoff and the directional and candidate-level results
+developed below. See Appendix A.2 for the proof.
+Which directions are useful?To understand where the value in Equation (2) comes from, we
+compare the information provided by the selected synthetic inputs with what was already provided
+by the real data. By spectral analysis, define
+A−1/2
+r ASA−1/2
+r =Rdiag(µ 1, . . . , µd)R⊤,D=A −1/2
+r QA−1/2
+r ,
+where R= [r 1, . . . ,rd] is orthogonal. Let wi =r ⊤
+i Dri. The eigenvalue µi ≥0 measures the
+synthetic information added along direction ri relative to the real data, while wi ≥0 measures the
+downstream relevance of that direction.
+Proposition 3(Directional value of synthetic information).Assume Ar ≻0 . The information gain
+and excess noise terms in Corollary 2 decompose as
+Ginfo(S) =σ 2
+dX
+i=1
+wi
+µi
+1 +µ i
+, C noise(S) =τ 2
+dX
+i=1
+wi
+µi
+(1 +µ i)2 .
+These decompositions hold without further assumptions. If, in addition, the systematic label error
+has the form dS =X Sδ,δ∈R d, and R⊤DR is diagonal, define η=R ⊤A1/2
+r δ. Then the full set
+value decomposes across directions:
+V(S) =
+dX
+i=1
+wi
+"
+σ2 µi
+1 +µ i
+−τ 2 µi
+(1 +µ i)2 −η 2
+i
+ µi
+1 +µ i
+2#
+.(3)
+Equation (3) simplifies the tradeoff for the set in Equation (2) direction by direction. Each direction
+contributes according to the information added by the synthetic input, its downstream relevance, and
+the random and systematic errors in the synthetic label.
+Corollary 4(Beneficial directions).Under the conditions of Proposition 3, a direction withµ i >0
+andw i >0contributes positively toV(S)if and only if
+η2
+i < σ 2 + σ2 −τ 2
+µi
+.
+Thus, a direction relevant to the downstream task is not necessarily beneficial. Its information gain
+must be sufficient to offset the random and systematic errors associated with the synthetic labels. See
+Appendix A.4 for the proof.
+Corollary 5(Optimal amount of synthetic information).Under the conditions of Proposition 3, let
+wi >0. If
+σ2 > τ 2,2η 2
+i > σ 2 +τ 2,
+the directional contribution is maximized at
+µ⋆
+i = σ2 −τ 2
+2η2
+i −σ 2 −τ 2 .(4)
+Otherwise, the optimum lies at a boundary: µ⋆
+i = 0 when σ2 < τ 2 and η2
+i ≥σ 2, and the supremum
+is approached as µi → ∞ in the complementary nondegenerate regime. Equality and degenerate
+cases are given in Appendix A.5.
+5
+
+=== PAGE 6 ===
+Corollary 5 shows that more synthetic information is not always beneficial: the optimal amount
+along a direction can be zero, finite, or unbounded. Equation (4) varies µi while keeping wi and ηi
+unchanged, and therefore characterizes the optimal amount along a given direction rather than which
+synthetic examples should be selected.
+The directional analysis above assumes that the synthetic label error can be assessed. This requirement
+cannot generally be met in directions that are not covered by the real data. It also assumes Ar ≻0 ,
+so the real data identify every modeled direction. We next consider the complementary case in which
+a downstream-relevant direction is not covered by the real training data.
+Proposition 6(When synthetic label error is not identifiable).Let v∈R d satisfy Xrv=0,X Sv̸=
+0,v ⊤Qv>0. Without additional labeled information identifying v⊤θ⋆, the observations cannot
+distinguish(θ ⋆,d S)from(θ ⋆ +cv,d S −cX Sv).
+Thus, when a downstream-relevant direction is absent from the real training data, synthetic labels
+alone cannot distinguish target signal from systematic label error. Additional labeled real data
+covering such directions can resolve this ambiguity; Section 4 uses a real probe set for this purpose.
+3.3 MARGINALVALUE OF ASYNTHETICEXAMPLE
+The value in Equation (2) determines whether a selected synthetic set is beneficial as a whole. We
+now return to the general risk formulation and ask how this value changes when one candidate is
+added to the current setS. For a synthetic candidatej /∈S, define
+∆j(S) :=V(S∪ {j})− V(S).
+Thus, ∆j(S)>0 means that adding candidate j further reduces expected downstream risk. Let
+(A,u,N) denote the information, error, and noise quantities defined before Proposition 1, now
+formed from the real data and selected set S. Let xj, δj, and ωj denote the candidate’s feature vector,
+systematic label error, and random label noise variance, respectively, with its noise independent of
+the real and selected-sample noises. Define
+b=A −1u,p j =A −1xj, c j = 1 +x ⊤
+j pj, e j =δ j −x ⊤
+j b, q j =p ⊤
+j Qpj.
+Here, b is the bias induced by the selected set, ej is the candidate’s systematic error relative to that
+bias, andq j measures the downstream relevance of its induced direction.
+Theorem 7(Conditional marginal value).The marginal value of candidatejis
+∆j(S) = 2p⊤
+j QA−1N pj
+cj
+− qj(p⊤
+j N pj +ω j)
+c2
+j
+− 2ejb⊤Qpj
+cj
+− e2
+j qj
+c2
+j
+.
+(5)
+The first two terms describe the change in the variance component of downstream risk, while the last
+two describe the impact of systematic label error and its interaction with the bias already induced by
+S. Therefore, the value of a candidate is conditional on the selected set: the same candidate can have
+different marginal value depending on the examples already included.
+A useful special case isolates the contribution of input coverage. If Ωr =Ω S =σ 2I,b=0, δ j =
+0, ωj =σ 2,then
+∆j(S) = σ2qj
+cj
+.(6)
+The more general specializations with systematic label error or excess random noise are given in
+Appendix A.7. Equation (6) isolates the coverage relevant to the downstream task that is contributed
+by the candidate input. Theorem 7 shows that this coverage term is sufficient only when labels are
+clean; more generally, candidate value also depends on label error and its interaction with the current
+bias. This insight motivates the development of TATC in Section 4.
+Figure 2 tests two implications of the linear theory using semi-synthetic constructions that keep
+candidate inputs real while changing their labels. This lets us examine label error without changing
+6
+
+=== PAGE 7 ===
+10 5
+Coverage-only marginal 2qj/cj
+0.02
+0.01
+0.00
+0.01
+0.02
+0.03
+0.04
+0.05
+Observed risk reduction after refitting
+AUROC = .519
+Coverage-only marginal
+beneficial harmful
+0.010
+ 0.005
+0.000 0.005 0.010
+Complete marginal prediction j(S)
+0.010
+0.005
+0.000
+0.005
+0.010
+r = 1.0
+sign agreement = 99.167%
+AUROC = 1.0
+Complete marginal
+0 1 2 4 6 8
+Pseudo-labeled-to-real amount m/nr
+pseudo-label acc. .889
+pseudo-label acc. .836
+pseudo-label acc. .604
+probe 7 | test 8
+probe 0.9 | test 0.95
+probe 0 | test 0
+(b) Real-probe estimate predicts useful amount
+amounts within 1% of test optimum
+amount predicted from real probe
+test-optimal amount
+input-only choice
+(a) Real text inputs + controlled targets
+Figure 2:Candidate value and synthetic-data amount with real inputs and controlled targets.
+(a)Candidate-level test on SetFit/subj. Coverage alone does not distinguish beneficial from harmful
+candidates, whereas the complete marginal closely predicts the risk reduction from explicit refitting.
+(b)Amount selection with ResNet-50 features on CIFAR-10. The amount predicted from a labeled
+real probe closely tracks the test-optimal amount and decreases as pseudo-label reliability falls, while
+the input-only rule selects the full candidate pool. Gray segments indicate amounts within 1% of the
+test minimum.
+input information, which would change simultaneously if both inputs and labels were generated.
+In panel (a), controlled label errors are assigned to SetFit/subj texts (Pang & Lee, 2004); coverage
+alone fails to distinguish beneficial from harmful candidates, whereas the complete marginal closely
+predicts the risk reduction observed after refitting with each candidate. In panel (b), the same CIFAR-
+10 (Krizhevsky, 2009) candidate images receive labels from models with different error levels; the
+probe-estimated useful amount closely tracks the test optimum as label error increases, while the
+input-only criterion selects the full candidate pool. Together, these tests show that changing labels
+alone can change both which examples are useful and how much data should be used. Section 4
+extends this distinction to nonlinear fine-tuning; details are in Appendix B.
+4 TRAINING-AWARETARGETCOVERAGE INSUPERVISEDFINE-TUNING
+In this section, we translate the linear analysis in Section 3 into a practical synthetic-data selection
+method for nonlinear models. The theory shows that input coverage alone is insufficient because
+synthetic responses can introduce error. Using LLM fine-tuning as a concrete setting, we combine
+target coverage with a local estimate of each complete synthetic example’s training effect.
+We start from a model checkpoint θ0 obtained by fine-tuning on real data. Let Dsyn ={(x j, yj)}N
+j=1
+denote the synthetic candidate pool. Let ϕθ0(x)∈R p denote the representation of input x extracted
+at θ0, and write ϕj =ϕ θ0(xj). We use the real training set Dr together with a disjoint real probe
+set Dq. The real training set determines the checkpoint and initial representation geometry, while
+the probe set provides target-task inputs and labels for measuring downstream relevance and the
+predicted effect of synthetic examples.
+Target coverage.We first measure which representation directions are covered by the real training
+data and which directions occur in the labeled probe set. Using the representations defined above, let
+bA0 =ρI+
+X
+x∈Dr
+ϕθ0(x)ϕθ0(x)⊤, bQ= 1
+|Dq|
+X
+x∈Dq
+ϕθ0(x)ϕθ0(x)⊤.
+Here, ρ >0 ensures numerical stability of the empirical Gram matrix. For a selected set of candidate
+indicesS⊆ {1, . . . , N}, define
+bAS = bA0 +
+X
+j∈S
+ϕjϕ⊤
+j .
+7
+
+=== PAGE 8 ===
+For a candidatej /∈S, its marginal coverage gain is
+aj(S) = ϕ⊤
+j bA−1
+S bQbA−1
+S ϕj
+1 +ϕ ⊤
+j bA−1
+S ϕj
+.
+By Sherman–Morrison,a j(S)is exactly the reduction intr( bQbA−1
+S )from addingx j, which we call
+itstarget coverage. It measures how much candidate input xj adds coverage in directions represented
+by the real probe set but not already covered by the existing training data. Because aj(S) depends
+only onx j, it does not account for the effect of its synthetic responsey j.
+Predicted local training effect.Input coverage alone does not determine whether a synthetic
+example is useful: two candidates with similarly informative inputs can induce different parameter
+updates because their synthetic responses differ. We estimate this effect by predicting how the
+candidate’s optimizer update changes loss on the real probe.
+For a synthetic sample ( xj, yj), let ∆θj denote the difference between the AdamW parameter
+displacements obtained using the candidate gradient and a zero gradient, both computed from the
+same checkpoint θ0 and saved optimizer state (Loshchilov & Hutter, 2019). The construction is
+detailed in Appendix D.2. Let gq and Hq denote the gradient and a local curvature approximation of
+the loss on the probe setDq, evaluated at the same checkpoint. In our implementation,Hq is a diagonal
+empirical-Fisher approximation (Kunstner et al., 2019). A second-order Taylor approximation gives
+hj =−g ⊤
+q ∆θj − 1
+2∆θ⊤
+j Hq∆θj.(7)
+A larger hj indicates a larger predicted reduction in loss on the real probe. Unlike aj(S), hj depends
+on the complete synthetic example through its induced parameter update. It therefore provides a
+fixed-checkpoint score for the response-dependent effect induced by the candidate’s local optimizer
+update; this effect is absent from the coverage criterion.
+Training Aware Target Coverage (TATC).The two quantities play complementary roles in
+Algorithm 1: hj ranks candidates by their predicted local training effect, while aj(S) selects among
+them based on the additional target coverage ofx j given the examples already selected.
+Algorithm 1: Training-Aware Target Coverage
+Require: Synthetic candidates {(xj, yj)}N
+j=1, predicted lo-
+cal training effects {hj}N
+j=1, budget B, expansion factor
+κ
+1:S 0 ←∅; rank candidates by decreasingh j
+2:fors= 1, . . . , Bdo
+3:E s ← top min{κs, N} candidates by hj, excluding
+Ss−1
+4:j s ←arg max j∈Es aj(Ss−1)
+5:S s ←S s−1 ∪ {js}
+6:end for
+Ensure:Selected synthetic setS B
+Given a synthetic-data budget B, TATC
+starts from S0 =∅ and adds one candi-
+date at a time. At step s, it considers the
+min{κs, N} highest-ranked candidates un-
+der hj, excluding selected examples, and
+selects the one with the largest coverage
+gain aj(Ss−1). Thus, the shortlist expands
+with s, while the coverage score changes
+with the selected set. We use κ= 2 in all
+experiments. The procedure stops after B
+selections and returns SB for subsequent
+fine-tuning. Implementation details are pro-
+vided in Appendix D.3.
+Relation to the linear theory and scope.
+TATC carries the theory’s distinction between input information and response error into nonlinear
+fine-tuning: aj(S) measures target-weighted prediction-variance reduction, while hj evaluates the
+local training effect of the complete example on a labeled real probe. Note that the two scores
+are not on a common scale: hj defines the shortlist and aj(S) selects within it. Thus, we provide
+a fixed-checkpoint approximation, where hj is computed once at θ0 and aj(S) changes with the
+selected set. See details in Appendix D.1.
+5 EXPERIMENTS
+Experimental setup.We evaluate Qwen2.5-Math-1.5B-Instruct on GSM8K. A LoRA adapter (Hu
+et al., 2022) with rank 16 is trained for two epochs on 2,048 real examples, producing one checkpoint
+8
+
+=== PAGE 9 ===
+80 82 84 86 88
+GSM8K holdout exact match (%)
+NLL
+Random
+BAIT
+G-Vendi
+Embedding Vendi
+TATC (Coverage)
+Covariance match
+LESS
+OptimSyn
+TATC (ours)
+real only(a) Budget 128
+64 128 256 512
+Synthetic data budget
+70.0
+72.5
+75.0
+77.5
+80.0
+82.5
+85.0
+87.5
+GSM8K holdout exact match (%)
+real only
+(b) Varying budget
+Random
+NLL
+OptimSyn
+TATC (Coverage)
+TATC (ours)
+Figure 3:(a)Exact match at B= 128 on the GSM8K holdout. The dashed line marks the checkpoint
+trained on real data.(b)Exact match across selection budgets. Each method selects nested subsets,
+with each subset trained independently from the same checkpoint. Error bars show one standard
+deviation over three independent training runs.
+θ0 shared by every method. A disjoint set of 512 labeled real examples serves as the target probe, and
+a further 1,024 examples form the holdout set used only for evaluation. The candidate pool contains
+N= 4,096 deduplicated trajectories from OpenR1-Math-220k (Hugging Face, 2025), with at most
+one trajectory per source problem; 65% of the responses are verified as correct. Each selected subset
+is trained for one epoch fromθ 0 with an effective batch size of 16.
+For TATC, we average the hidden states from the final transformer layer over prompt tokens to obtain
+1,536-dimensional representations, then reduce them to 64 dimensions using principal component
+analysis (PCA) fitted on the 2,048 real-training examples. The same projection is applied to the real
+probe and synthetic candidates.
+Setup and baselines.We evaluate synthetic data selection at budget B∈ {64,128,256,512} ,
+fine-tuning each selected subset from the same checkpoint and evaluating exact match on the GSM8K
+holdout. Baselines include Random, negative log-likelihood (NLL), Embedding Vendi (Friedman
+& Dieng, 2023), G-Vendi (Jung et al., 2025), LESS (Xia et al., 2024), OptimSyn (Fan et al., 2026),
+Covariance Matching (Rezaei et al., 2026), and BAIT (Ash et al., 2021). We additionally include a
+variant of TATC that removes the training-effect component, TATC (Coverage), serving as an ablation
+to test whether target coverage alone is sufficient. Baseline implementations and further TATC details
+are provided in Appendices C and D.
+Results.At B= 128 , TATC achieves 87.34% exact match accuracy, exceeding the strongest
+competitor, OptimSyn (86.07%), and the TATC (Coverage) ablation (85.19%); the 2.15-point ablation
+gap demonstrates the added value of the training-effect component (Figure 3a). This advantage over
+coverage alone persists across larger budgets and reaches 2.99 points at B= 512 . TATC is higher
+than OptimSyn at budgets 64, 128, and 256; at 512, their means are effectively tied within run-to-run
+variation (Figure 3b). These results show that the benefit of the training-aware component emerges
+beyond the smallest budget and persists as more synthetic data are selected, while the gap between
+TATC and influence-based selection varies across budgets.
+6 CONCLUSION
+This work provides a novel perspective in understanding the value of synthetic data: the usefulness of
+an additional data point is not merely an intrinsic distribution property of this data point, but also
+depends on what the learner already has and what additional information this example can contribute.
+The linear model analysis makes this dependence explicit, showing that the same synthetic data can be
+valuable, redundant, or even harmful depending on the information and errors already present. This
+9
+
+=== PAGE 10 ===
+perspective also clarifies why continuously increasing the amount of synthetic data will eventually
+provide diminishing benefit, or even become detrimental.
+Our findings also provide a practical basis for moving from understanding synthetic data to selecting
+data for LLM fine-tuning. TATC follows this insight by considering both how an example affects
+training and how it complements the data already available. Our experiments demonstrate its
+effectiveness for selecting synthetic mathematical reasoning data. More broadly, synthetic data
+pipelines should move beyond evaluating examples in isolation and consider their values in the
+context of the existing data and the downstream tasks for which they are used.
+AI USESTATEMENT
+Generative AI tools assisted with manuscript drafting and editing, literature organization, code
+development and debugging, and preparation of figures and tables. They were also used to review
+the exposition of theoretical arguments and experimental methodology. The authors independently
+checked the mathematical derivations, cited sources, experimental code and results. Generative AI
+output was not treated as evidence or independent validation, and the authors take responsibility for
+the final content.
+ETHICSSTATEMENT
+This work uses public mathematical reasoning and standard classification datasets and released model
+weights, and involves no human subjects or intentionally collected private or personally identifying
+data. Generated responses may contain systematic errors, and the proposed selection method does
+not replace factual verification, safety evaluation, or appropriate data governance. Our experiments
+do not establish the suitability of the method for high-stakes or safety-critical applications.
+REFERENCES
+Sina Alemohammad, Josue Casco-Rodriguez, Lorenzo Luzi, Ahmed Imtiaz Humayun, Hossein
+Babaei, Daniel LeJeune, Ali Siahkoohi, and Richard G. Baraniuk. Self-consuming generative
+models go MAD. InInternational Conference on Learning Representations, 2024.
+Jordan T. Ash, Surbhi Goel, Akshay Krishnamurthy, and Sham Kakade. Gone fishing: Neural
+active learning with fisher embeddings. InAdvances in Neural Information Processing Systems,
+volume 34, pp. 8927–8939, 2021.
+Yang Ba, Michelle V . Mancenido, and Rong Pan. Fill in the gaps: Model calibration and gen-
+eralization with synthetic data. InProceedings of the 2024 Conference on Empirical Methods
+in Natural Language Processing, pp. 17211–17225. Association for Computational Linguistics,
+2024. doi: 10.18653/v1/2024.emnlp-main.955. URL https://aclanthology.org/2024.
+emnlp-main.955/.
+Powei Chang, Jinpeng Zhang, Bowen Chen, Chenyu Wang, Chenlu Guo, Yixing Zhang, Yukang
+Gao, JianXiang Xiang, Yue Gao, Chaoqun Sun, Yiyi Chen, and Dongying Kong. SPICE: Sub-
+modular penalized information–conflict selection for efficient large language model training. In
+International Conference on Learning Representations, 2026.
+Lichang Chen, Shiyang Li, Jun Yan, Hai Wang, Kalpa Gunaratna, Vikas Yadav, Zheng Tang,
+Vijay Srinivasan, Tianyi Zhou, Heng Huang, and Hongxia Jin. AlpaGasus: Training a better
+alpaca with fewer data. InInternational Conference on Learning Representations, 2024. URL
+https://openreview.net/forum?id=FdVXgSJhvz.
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser,
+Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John
+Schulman. Training verifiers to solve math word problems.arXiv preprint arXiv:2110.14168,
+2021.
+10
+
+=== PAGE 11 ===
+Zhiting Fan, Ruizhe Chen, Tianxiang Hu, Ru Peng, Zenan Huang, Haokai Xu, Yixin Chen, Jian Wu,
+Junbo Zhao, and Zuozhu Liu. OptimSyn: Influence-guided rubrics optimization for synthetic data
+generation. InInternational Conference on Learning Representations, 2026.
+Dan Friedman and Adji Bousso Dieng. The Vendi Score: A diversity evaluation metric for machine
+learning.Transactions on Machine Learning Research, 2023.
+Tao Ge, Xin Chan, Xiaoyang Wang, Dian Yu, Haitao Mi, and Dong Yu. Scaling synthetic data
+creation with 1,000,000,000 personas.arXiv preprint arXiv:2406.20094, 2024. URL https:
+//arxiv.org/abs/2406.20094.
+Amirata Ghorbani and James Zou. Data shapley: Equitable valuation of data for machine learning. In
+Proceedings of the 36th International Conference on Machine Learning, volume 97 ofProceedings
+of Machine Learning Research, pp. 2242–2251, 2019. URL https://proceedings.mlr.
+press/v97/ghorbani19c.html.
+Suriya Gunasekar, Yi Zhang, Jyoti Aneja, Caio C´esar Teodoro Mendes, Allie Del Giorno, Sivakanth
+Gopi, Mojan Javaheripi, Piero Kauffmann, Gustavo de Rosa, Olli Saarikivi, Adil Salim, Shital
+Shah, Harkirat Singh Behl, Xin Wang, S ´ebastien Bubeck, Ronen Eldan, Adam Tauman Kalai,
+Yin Tat Lee, and Yuanzhi Li. Textbooks are all you need.arXiv preprint arXiv:2306.11644, 2023.
+URLhttps://arxiv.org/abs/2306.11644.
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image
+recognition. InProceedings of the IEEE Conference on Computer Vision and Pattern Recognition,
+pp. 770–778, 2016. doi: 10.1109/CVPR.2016.90.
+Cheng-Yu Hsieh, Chun-Liang Li, Chih-kuan Yeh, Hootan Nakhost, Yasuhisa Fujii, Alex Ratner,
+Ranjay Krishna, Chen-Yu Lee, and Tomas Pfister. Distilling step-by-step! outperforming larger
+language models with less training data and smaller model sizes. InFindings of the Association for
+Computational Linguistics: ACL 2023, pp. 8003–8017. Association for Computational Linguistics,
+2023. doi: 10.18653/v1/2023.findings-acl.507. URL https://aclanthology.org/2023.
+findings-acl.507/.
+Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang,
+and Weizhu Chen. LoRA: Low-rank adaptation of large language models. InInternational
+Conference on Learning Representations, 2022.
+Hugging Face. Open r1: A fully open reproduction of DeepSeek-R1, January 2025. URL https:
+//github.com/huggingface/open-r1.
+Jaehun Jung, Seungju Han, Ximing Lu, Skyler Hallinan, David Acuna, Shrimai Prabhumoye, Mostofa
+Patwary, Mohammad Shoeybi, Bryan Catanzaro, and Yejin Choi. Prismatic synthesis: Gradient-
+based data diversification boosts generalization in LLM reasoning. InAdvances in Neural Informa-
+tion Processing Systems, volume 38, 2025. doi: 10.52202/085713-3032.
+Krishnateja Killamsetty, Durga Sivasubramanian, Ganesh Ramakrishnan, and Rishabh Iyer. GLIS-
+TER: Generalization based data subset selection for efficient and robust learning. InProceed-
+ings of the AAAI Conference on Artificial Intelligence, volume 35, pp. 8110–8118, 2021. doi:
+10.1609/aaai.v35i9.16988.
+Pang Wei Koh and Percy Liang. Understanding black-box predictions via influence functions. In
+Proceedings of the 34th International Conference on Machine Learning, volume 70 ofProceedings
+of Machine Learning Research, pp. 1885–1894, 2017.
+Alex Krizhevsky. Learning multiple layers of features from tiny images. Technical re-
+port, University of Toronto, 2009. URL https://www.cs.toronto.edu/˜kriz/
+learning-features-2009-TR.pdf.
+Frederik Kunstner, Lukas Balles, and Philipp Hennig. Limitations of the empirical fisher approx-
+imation for natural gradient descent. InAdvances in Neural Information Processing Systems,
+volume 32, 2019.
+11
+
+=== PAGE 12 ===
+Haoran Li, Qingxiu Dong, Zhengyang Tang, Chaojun Wang, Xingxing Zhang, Haoyang Huang,
+Shaohan Huang, Xiaolong Huang, Zeqiang Huang, Dongdong Zhang, Yuxian Gu, Xin Cheng,
+Xun Wang, Si-Qing Chen, Li Dong, Wei Lu, Zhifang Sui, Benyou Wang, Wai Lam, and Furu Wei.
+Synthetic data (almost) from scratch: Generalized instruction tuning for language models.arXiv
+preprint arXiv:2402.13064, 2024. URLhttps://arxiv.org/abs/2402.13064.
+Wei Liu, Weihao Zeng, Keqing He, Yong Jiang, and Junxian He. What makes good data for
+alignment? a comprehensive study of automatic data selection in instruction tuning. InInternational
+Conference on Learning Representations, 2024. URL https://openreview.net/forum?
+id=BTKAeLqLMw.
+Ilya Loshchilov and Frank Hutter. Decoupled weight decay regularization. InInternational Confer-
+ence on Learning Representations, 2019. URL https://openreview.net/forum?id=
+Bkg6RiCqY7.
+S¨oren Mindermann, Jan M. Brauner, Muhammed T. Razzak, Mrinank Sharma, Andreas Kirsch,
+Winnie Xu, Benedikt H¨oltgen, Aidan N. Gomez, Adrien Morisot, Sebastian Farquhar, and Yarin Gal.
+Prioritized training on points that are learnable, worth learning, and not yet learnt. InProceedings
+of the 39th International Conference on Machine Learning, volume 162 ofProceedings of Machine
+Learning Research, pp. 15630–15649, 2022. URL https://proceedings.mlr.press/
+v162/mindermann22a.html.
+Bo Pang and Lillian Lee. A sentimental education: Sentiment analysis using subjectivity summariza-
+tion based on minimum cuts. InProceedings of the 42nd Annual Meeting of the Association for
+Computational Linguistics (ACL-04), pp. 271–278, 2004. doi: 10.3115/1218955.1218990. URL
+https://aclanthology.org/P04-1035/.
+Parham Rezaei, Filip Kova ˇcevi´c, Francesco Locatello, and Marco Mondelli. High-dimensional
+analysis of synthetic data selection. InInternational Conference on Learning Representations,
+2026.
+Ilia Shumailov, Zakhar Shumaylov, Yiren Zhao, Nicolas Papernot, Ross Anderson, and Yarin Gal. Ai
+models collapse when trained on recursively generated data.Nature, 631:755–759, 2024.
+Ruida Wang, Wangchunshu Zhou, and Mrinmaya Sachan. Let’s synthesize step by step: Iterative
+dataset synthesis with large language models by extrapolating errors from small models. In
+Findings of the Association for Computational Linguistics: EMNLP 2023, pp. 11817–11831.
+Association for Computational Linguistics, 2023a. doi: 10.18653/v1/2023.findings-emnlp.791.
+URLhttps://aclanthology.org/2023.findings-emnlp.791/.
+Yizhong Wang, Yeganeh Kordi, Swaroop Mishra, Alisa Liu, Noah A. Smith, Daniel Khashabi, and
+Hannaneh Hajishirzi. Self-instruct: Aligning language models with self-generated instructions. In
+Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume
+1: Long Papers), pp. 13484–13508. Association for Computational Linguistics, 2023b. doi:
+10.18653/v1/2023.acl-long.754. URL https://aclanthology.org/2023.acl-long.
+754/.
+Mengzhou Xia, Sadhika Malladi, Suchin Gururangan, Sanjeev Arora, and Danqi Chen. LESS:
+Selecting influential data for targeted instruction tuning. InProceedings of the 41st International
+Conference on Machine Learning, volume 235 ofProceedings of Machine Learning Research, pp.
+54104–54132, 2024.
+Can Xu, Qingfeng Sun, Kai Zheng, Xiubo Geng, Pu Zhao, Jiazhan Feng, Chongyang Tao, Qingwei
+Lin, and Daxin Jiang. WizardLM: Empowering large pre-trained language models to follow
+complex instructions. InInternational Conference on Learning Representations, 2024. URL
+https://openreview.net/forum?id=CfXh93NDgH.
+Zhangchen Xu, Fengqing Jiang, Luyao Niu, Yuntian Deng, Radha Poovendran, Yejin Choi, and
+Bill Yuchen Lin. Magpie: Alignment data synthesis from scratch by prompting aligned LLMs
+with nothing. InInternational Conference on Learning Representations, 2025. URL https:
+//openreview.net/forum?id=Pnk7vMbznK.
+12
+
+=== PAGE 13 ===
+An Yang, Beichen Zhang, Binyuan Hui, Bofei Gao, Bowen Yu, Chengpeng Li, Dayiheng Liu,
+Jianhong Tu, Jingren Zhou, Junyang Lin, Keming Lu, Mingfeng Xue, Runji Lin, Tianyu Liu,
+Xingzhang Ren, and Zhenru Zhang. Qwen2.5-Math technical report: Toward mathematical
+expert model via self-improvement.arXiv preprint arXiv:2409.12122, 2024. URL https:
+//arxiv.org/abs/2409.12122.
+Bingji Yi, Qiyuan Liu, Yuwei Cheng, and Haifeng Xu. Escaping model collapse via synthetic data
+verification: Near-term improvements and long-term convergence. InInternational Conference on
+Learning Representations, 2026.
+Longhui Yu, Weisen Jiang, Han Shi, Jincheng Yu, Zhengying Liu, Yu Zhang, James T. Kwok,
+Zhenguo Li, Adrian Weller, and Weiyang Liu. MetaMath: Bootstrap your own mathematical
+questions for large language models. InInternational Conference on Learning Representations,
+2024. URLhttps://openreview.net/forum?id=N8N0hgNDRt.
+Eric Zelikman, Yuhuai Wu, Jesse Mu, and Noah D. Goodman. STaR: Bootstrapping reasoning
+with reasoning. InAdvances in Neural Information Processing Systems, volume 35, 2022. doi:
+10.52202/068431-1126.
+A MATHEMATICALPROOFS INLINEARTHEORY
+Let Xr ∈R n×d and Xs ∈R m×d be the real and synthetic feature matrices. All feature and noise
+variables have finite second moments. The label model is
+yr =X rθ⋆ +ε r,y s =X sθ⋆ +d s +ε s,
+where, conditional on the feature matrices,
+E[εr] =0,E[ε s] =0,Cov(ε r) =Ω r,Cov(ε s) =Ω s,Cov(ε r,ε s) =0.
+The systematic label error ds is nonrandom. Selected synthetic subsets and candidate indices are
+fixed, or chosen independently of the realized noise innovations; expectations below are conditional
+on the relevant feature matrices. The least-squares estimator and downstream second-moment matrix
+are
+bθs = arg min
+θ
+ 1
+2 ∥Xrθ−y r∥2
+2 + 1
+2 ∥Xsθ−y s∥2
+2
+	
+,
+Q=E X∼P test[ϕ(X)ϕ(X) ⊤]⪰0.
+For any parameter estimatebθ, its downstream risk is
+RQ(bθ) =∥ bθ−θ ⋆∥2
+Q := (bθ−θ ⋆)⊤Q(bθ−θ ⋆).
+Finally, define
+A=X ⊤
+r Xr +X ⊤
+s Xs,u=X ⊤
+s ds,N=X ⊤
+r ΩrXr +X ⊤
+s ΩsXs.
+A.1 PROOF OFPROPOSITION1
+Because A is nonsingular, the normal equations for the least-squares problem above have the unique
+solution
+bθs =A −1(X ⊤
+r yr +X ⊤
+s ys)
+=θ ⋆ +A −1u+A −1(X ⊤
+r εr +X ⊤
+s εs).
+Writeb=A −1uandz=A −1(X ⊤
+r εr +X ⊤
+s εs).The conditional noise assumptions give
+E[z|X r,X s] =0,Cov(z|X r,X s) =A −1N A−1.
+Substituting bθs −θ ⋆ =b+z into the downstream-risk definition and taking the conditional
+expectation yields
+E[RQ(bθs)|X r,X s] =b ⊤Qb+ 2b ⊤QE[z|X r,X s] +E[z ⊤Qz|X r,X s]
+=b ⊤Qb+ tr(QCov(z|X r,X s))
+= (A−1u)⊤Q(A−1u) + tr(QA−1N A−1).
+The cross term vanishes because E[z|X r,X s] =0 , and the last equality uses E[z⊤Qz|
+Xr,X s] = tr(QCov(z|X r,X s)) for a conditionally zero-mean vector. This proves Equation (1).
+□
+13
+
+=== PAGE 14 ===
+A.2 PROOF OFCOROLLARY2
+For a selected setS, write
+Ar =X ⊤
+r Xr,A S =X ⊤
+S XS,A=A r +A S.
+Under Ωr =σ 2I and ΩS = (σ2 +τ 2)I, the noise matrix in the downstream-risk decomposition
+becomes
+N=σ 2Ar + (σ2 +τ 2)AS =σ 2A+τ 2AS.
+The real-only estimator is unbiased and, becauseA r ≻0, its conditional risk is
+E[RQ(bθr)|X r,X S] =σ 2 tr(QA−1
+r ).
+Proposition 1, the expression forNabove, andu=X ⊤
+S dS give the selected-set risk
+E[RQ(bθS)|X r,X S] = (A−1X ⊤
+S dS)⊤Q(A−1X ⊤
+S dS)
++σ 2 tr(QA−1) +τ 2 tr(QA−1ASA−1).
+Subtracting the selected-set risk from the real-only risk gives Equation (2).□
+A.3 PROOF OFPROPOSITION3
+Let
+B=A −1/2
+r ASA−1/2
+r =RM R ⊤,M= diag(µ 1, . . . , µd),D=A −1/2
+r QA−1/2
+r .
+Then
+A=A 1/2
+r (I+B)A 1/2
+r ,A −1 =A −1/2
+r (I+B) −1A−1/2
+r .
+Using cyclic invariance of the trace,
+tr[Q(A−1
+r −A −1)] = tr
+
+D{I−(I+B) −1}
+
+= tr
+"
+R⊤DRdiag
+ µi
+1 +µ i
+d
+i=1
+#
+=
+dX
+i=1
+(r⊤
+i Dri) µi
+1 +µ i
+.
+Thus the information term equalsσ 2P
+i wiµi/(1 +µ i), wherew i =r ⊤
+i Dri.
+The excess-noise term is handled in the same basis:
+tr(QA−1ASA−1) = tr
+
+D(I+B) −1B(I+B) −1
+=
+dX
+i=1
+wi
+µi
+(1 +µ i)2 .
+These two trace decompositions require no alignment between D and B, because the matrices
+multiplyingR ⊤DRare diagonal and a trace uses only its diagonal.
+It remains to evaluate systematic error. Supposed S =X Sδand defineη=R ⊤A1/2
+r δ. Then
+A−1X ⊤
+S dS =A −1ASδ
+=A −1/2
+r Rdiag
+ µi
+1 +µ i
+d
+i=1
+η.
+LetT= diag(µ i/(1 +µ i)). The squaredQ-norm of this vector is
+η⊤T R⊤DRT η.
+WhenR ⊤DRis diagonal, itsi-th diagonal entry isw i, so this expression reduces to
+dX
+i=1
+wiη2
+i
+ µi
+1 +µ i
+2
+.
+Combining the information, excess-noise, and systematic-error expressions in Corollary 2 proves
+Equation (3).□
+14
+
+=== PAGE 15 ===
+A.4 PROOF OFCOROLLARY4
+Forµ i >0andw i >0, the sign of thei-th contribution in Equation (3) is the sign of
+σ2 µi
+1 +µ i
+−τ 2 µi
+(1 +µ i)2 −η 2
+i
+µ2
+i
+(1 +µ i)2 .
+Multiplying by the positive quantity (1 +µ i)2/µi shows that this contribution is positive exactly
+when
+σ2(1 +µ i)−τ 2 −η 2
+i µi >0.
+Rearranging and dividing byµ i >0gives
+η2
+i < σ 2 + σ2 −τ 2
+µi
+,
+which proves the corollary.□
+A.5 PROOF OFCOROLLARY5
+Hold wi and ηi unchanged while varying µi ≥0 . For wi >0 , it is enough to maximize the bracketed
+contribution
+f(µ) =σ 2 µ
+1 +µ −τ 2 µ
+(1 +µ) 2 −η 2
+i
+ µ
+1 +µ
+2
+.
+Direct differentiation gives
+f ′(µ) = (σ2 −τ 2) +µ(σ 2 +τ 2 −2η 2
+i )
+(1 +µ) 3 .
+The denominator is positive. If σ2 > τ 2 and 2η2
+i > σ 2 +τ 2, the numerator starts positive and
+decreases linearly, crossing zero once at
+µ⋆
+i = σ2 −τ 2
+2η2
+i −σ 2 −τ 2 .
+Consequently, f increases before this point and decreases after it, so the point is the unique global
+maximizer on[0,∞).
+For the remaining cases, write s=σ 2, t=τ 2, and r=η 2
+i . Equivalently, f(µ) =µ[(s−t) +µ(s−
+r)]/(1 +µ) 2, with f(0) = 0 and limµ→∞ f(µ) =s−r . If s < t and r≥s , or if s=t and r > s ,
+this numerator is strictly negative for µ >0 , so zero is the unique maximizer. If s=t=r , then
+f≡0 . If s > t and 2r≤s+t , the derivative above is positive for every finiteµ, so the supremum
+is approached at infinity. If s≤t and r < s , the derivative is positive for µ >0 when s=t ;
+when s < t , it changes once from negative to positive, after which f increases to the positive limit
+s−r . Thus this case also has no finite maximizer. These conclusions concern the actual directional
+contribution when wi >0 ; if wi = 0 , that contribution is identically zero and every amount is
+optimal.□
+A.6 PROOF OFPROPOSITION6
+Take a direction v satisfying the conditions in the proposition. For any scalar c, define a second
+parameterization
+eθ⋆ =θ ⋆ +cv, edS =d S −cX Sv.
+The real conditional mean is unchanged because
+Xreθ⋆ =X rθ⋆ +cX rv=X rθ⋆.
+The synthetic conditional mean is also unchanged:
+XSeθ⋆ + edS =X S(θ⋆ +cv) +d S −cX Sv=X Sθ⋆ +d S.
+The noise laws are identical, so the two parameterizations induce exactly the same distribution for all
+observed real and synthetic labels. Nevertheless, they assign different target conditional means in
+directionv, which matters downstream becausev ⊤Qv>0.
+15
+
+=== PAGE 16 ===
+For completeness, an admissible one-direction instance shows that this ambiguity can reverse the sign
+of synthetic-data value. Take the model space to be the span of v, let Xrv=0 , XSv̸=0 , and set
+both noise covariances to zero. Define the real-only estimate by the Moore–Penrose, or equivalently
+minimum-norm, rule; its coefficient in this unobserved direction is zero. Since the scalar selected-set
+Gram matrix is positive, the selected-set least-squares estimate is unique. Give the observed synthetic
+label the conditional meanaX Sv, witha̸= 0. The two observationally equivalent worlds are
+W+ :θ ⋆ =av,d S =0,
+W− :θ ⋆ =−av,d S = 2aXSv.
+They have the same real and synthetic conditional means. Omitting common orthogonal components
+and random-noise terms, the real-only and selected-set risks in W+ are respectively a2v⊤Qv and
+zero, so the value is positive. In W−, the corresponding risks are a2v⊤Qv and 4a2v⊤Qv, so the
+value is−3a 2v⊤Qv<0. No statistic of the observed data can know which world generated them.
+The sign-reversal construction is existential and uses the additional conditions—a declared minimum-
+norm real-only rule, a nonsingular combined Gram matrix in the one-direction instance, and zero
+random noise—that make V(S) unambiguous. The observational-equivalence result itself needs
+none of these extra conditions. Observational equivalence alone does not assert a sign reversal
+for every fixed observed distribution. The proposition is complementary to the directional value
+results, which assume Ar ≻0 ; it is not an application of Equation (2) with an ordinary inverse.
+Its information-theoretic conclusion is that without labeled real evidence in a downstream-relevant
+direction, target signal and systematic label error cannot be separated, and admissible worlds can
+assign opposite signs to value.□
+A.7 PROOF OFTHEOREM7
+The scalar variance ωj in the theorem represents a fresh, conditionally zero-mean noise innovation.
+Formally, the rank-one update below requires this innovation to be uncorrelated, conditional on all
+feature matrices, with the real and already selected label noises. It also requires A to be positive
+definite, which makesc j >0. If a candidate noise is correlated with existing noises, the augmented
+Ncontains cross-covariance terms and Equation (5) needs corresponding additional terms.
+For the real data together with the current selected setS, let
+b=A −1u,p j =A −1xj, c j = 1 +x ⊤
+j pj, e j =δ j −x ⊤
+j b, q j =p ⊤
+j Qpj.
+Adding candidatejchanges the three sufficient statistics to
+A+ =A+x jx⊤
+j ,u + =u+x jδj,N + =N+ω jxjx⊤
+j .
+The Sherman–Morrison identity gives
+A−1
++ =A −1 − pjp⊤
+j
+cj
+,A −1
++ xj = pj
+cj
+.
+UsingA −1u=bandp ⊤
+j u=x ⊤
+j b, the new bias vector is
+b+ =A −1
++ u+
+=
+ 
+A−1 − pjp⊤
+j
+cj
+!
+(u+x jδj)
+=b+ δj −x ⊤
+j b
+cj
+pj =b+ ej
+cj
+pj.
+Hence the reduction in the squared-bias component of risk is
+b⊤Qb−b ⊤
++Qb+ =− 2ejb⊤Qpj
+cj
+− e2
+j qj
+c2
+j
+.
+For the variance component, first expand the contribution from the existing noise matrix. Substituting
+the Sherman–Morrison update and using cyclic invariance of the trace gives
+tr(QA−1N A−1)−tr(QA −1
++ N A−1
++ )
+= 2p⊤
+j QA−1N pj
+cj
+− qjp⊤
+j N pj
+c2
+j
+.
+16
+
+=== PAGE 17 ===
+The candidate’s own random-noise contribution to the new risk is
+ωj tr(QA−1
++ xjx⊤
+j A−1
++ ) = ωjqj
+c2
+j
+.
+Because marginal value is old risk minus new risk, adding the squared-bias change and the two
+variance changes above proves Equation (5).
+To verify the clean homoscedastic specialization in Equation (6), suppose N=σ 2A, b=0 , δj = 0,
+andω j =σ 2. Then
+p⊤
+j QA−1N pj =σ 2qj,p ⊤
+j N pj =σ 2x⊤
+j A−1xj =σ 2(cj −1).
+Substitution into Equation (5) leaves
+∆j(S) = 2σ2qj
+cj
+− σ2qj(cj −1 + 1)
+c2
+j
+= σ2qj
+cj
+.
+Thus the stated coverage marginal follows exactly.
+More general specializations.Retain N=σ 2A and b=0 , so that ej =δ j, but now let the
+candidate’s systematic errorδj and noise variance ωj be arbitrary rather than zero and σ2 respectively.
+As computed above,
+p⊤
+j QA−1N pj =σ 2qj,p ⊤
+j N pj =σ 2(cj −1).
+Substituting into Equation (5), the two variance terms combine as
+2σ2qj
+cj
+− qj
+ 
+σ2(cj −1) +ω j
+
+c2
+j
+= qj
+ 
+σ2cj +σ 2 −ω j
+
+c2
+j
+,
+and the two bias terms reduce to −δ2
+j qj/c2
+j since b=0 . Adding the two gives the general specializa-
+tion
+∆j(S) = qj
+c2
+j
+
+σ2cj +σ 2 −ω j −δ 2
+j
+
+.
+Three cases follow by substitution. A candidate carrying only systematic error (ωj =σ 2) contributes
+qj
+c2
+j
+(σ2cj −δ 2
+j ); a candidate carrying only the excess noise of Corollary 2 (δj = 0, ω j =σ 2 +τ 2)
+contributes qj
+c2
+j
+(σ2cj −τ 2); and a candidate carrying both ( δj ̸= 0, ω j =σ 2 +τ 2) contributes
+qj
+c2
+j
+(σ2cj −τ 2 −δ 2
+j ), mirroring the information-gain/noise-cost/bias-cost tradeoff of Corollary 2 at
+the level of a single candidate. Setting δj = 0 and ωj =σ 2 in the first case recovers Equation (6). □
+B CONTROLLEDTESTS OF THELINEARTHEORY
+Figure 2 uses fixed representations of real text and image inputs paired with controlled targets.
+Panel (a) compares the exact rank-one marginal with before–after least-squares fits under shared
+existing-data noise and fresh candidate noise. Panel (b) uses labeled probe data to select a pseudo-
+labeled-to-real ratio and compares that choice with the held-out test optimum.
+In both panels,realidentifies the source of an input, whereassyntheticidentifies its training target.
+Panel (a) assigns controlled scalar targets to real text inputs; panel (b) assigns labels predicted by a
+separate linear model to real images. Qwen2.5 and ResNet-50 provide frozen representations, and all
+downstream models are ordinary least squares. Holding the candidate inputs fixed allows label error
+to change without also changing the information provided by the inputs.
+B.1 CANDIDATE VALUE IN TEXT DATA
+Data and representation.We use the 8,000-example training portion of the SetFit/subj
+subjectivity-classification dataset. Qwen2.5-0.5B is frozen and used only as a feature extractor: each
+text is truncated to 96 tokens, the final-layer hidden states of its nonpadding tokens are averaged, and
+the resulting representation has 896 coordinates.
+17
+
+=== PAGE 18 ===
+For each of three random partitions, examples are assigned without replacement to the five disjoint
+roles in Table 1. PCA is fitted only on Drep, retains 64 components, and is applied unchanged to
+every other role; an appended intercept givesx∈R 65.
+Table 1: Data partitions for the text experiment.
+Partition Examples Role
+Drep 1,500 Fit PCA and the reference linear target
+Dcal 500 Estimate the residual variance scale
+Dr 1,200 Define the real training information
+Dq 1,000 Estimate the target moment bQ
+Ps 3,800 Supply candidate inputs
+We map the binary labels to y± = 2y−1 , fit the reference linear target bθ⋆ on Drep, and use its
+residual MSE on the disjoint Dcal set to definebσ2. This scale includes both residual variation and
+linear approximation error. Observed labels in the candidate pool are not used as candidate targets.
+Controlled target construction.The 1,200 real inputs are always present. We sample a current set
+S of size 32,64,128,256,512, or 768, together with one candidate j /∈S, from the 3,800-input pool.
+The real training targets followy r =X rbθ⋆ +ε r, with zero-mean variancebσ2.
+To construct systematic label error, we set the intercept coordinate ofbθ⋆ to zero and normalize the
+resulting directiongso thatg ⊤bQg= 1. Fora∈ {0.5,1,2,4,8}, define
+γ=a
+√
+bσ2g, δ j =x ⊤
+j γ.
+Removing the intercept and normalizing under bQ makes the systematic error feature-dependent,
+task-relevant, and comparable across partitions. The two matched contexts use
+d(−)
+S =−X Sγ,u − =−A Sγ,d (+)
+S = +XSγ,u + = +ASγ.
+Their controlled training targets are y(±)
+S =X Sbθ⋆ +d (±)
+S +ε S and yj =x ⊤
+j bθ⋆ +δ j +ξ j. A
+matched pair has the same Xr,X S,x j, δj, and therefore the same coverage score; only the sign of
+the error accumulated in S changes. The candidate can therefore cancel existing bias in the minus
+context and reinforce it in the plus context, directly varyinge j =δ j −x ⊤
+j A−1uin Theorem 7.
+The matched contexts use the same random-noise variance (τ2 = 0), so their difference comes only
+from systematic label error. For each partition, set size, and error magnitude, we sample four input
+sets and evaluate both signs, yielding 360 matched pairs.
+Evaluation and results.For each context, the input-only comparator is the clean coverage marginal
+scov(j|S) =bσ 2 p⊤
+j bQpj
+1 +x ⊤
+j pj
+,p j =A −1xj,
+and the error-aware score is Equation (5). Independently of either score, we solve the least-squares
+model before and after adding j, using shared existing-data noise and fresh candidate noise, and
+record the reduction in bQ-weighted risk. Each context averages 3,000 independent label-noise trials.
+Coverage alone barely distinguishes beneficial from harmful candidates, whereas the complete
+marginal predicts both the sign and magnitude of the observed risk reduction (Table 2).
+Table 2: Agreement with observed risk reductions in the text experiment.
+Score Metric Value
+Coverage AUROC 0.519
+Complete marginal AUROC 0.99
+Complete marginal Correlation 0.99
+Complete marginal Sign agreement 99.2%
+18
+
+=== PAGE 19 ===
+B.2 SYNTHETIC-DATA AMOUNT IN IMAGE DATA
+Data and representation.We use CIFAR-10 images (Krizhevsky, 2009) represented by frozen
+ResNet-50 penultimate-layer features (He et al., 2016). Images are resized to 224×224 , normalized
+with ImageNet channel statistics, and passed through an ImageNet-1K-V2 pretrained ResNet-50,
+producing 2,048-dimensional features.
+For each of four random partitions, the 50,000 training images are assigned without replacement to
+Dr (3,000 real-training images), Dq (3,000 labeled probe images), Dg (12,000 images used to fit label
+models), Ps (24,000 candidate images), and 8,000 unused images. The official 10,000-image test
+split remains separate. PCA is fitted only on Dr, retains 128 components, and is applied unchanged
+to Dq, Dg,P s, and the test set. At each amount, an unregularized multiclass least-squares model is
+fitted jointly to the real and pseudo-labeled examples.
+Pseudo-label reliability.Each label model assigns its argmax class as a deterministic pseudo-label.
+We vary reliability using five models fitted onDg: three use all 12,000 labeled examples or the first
+400 or 150 examples, and two use all 12,000 examples after removing four or 12 task-relevant PCA
+coordinates. Figure 2(b) displays the model fitted on all examples, the model fitted on 400 examples,
+and the model with 12 coordinates removed. No candidate or test labels are used to fit these models.
+For the coordinate-removed condition, directions are ranked by explained variance weighted by their
+reference-classifier coefficients, concentrating errors in task-relevant directions. Conditional on the
+fitted model, pseudo-labels are deterministic, so their errors enter the systematic-error term rather
+than adding random label noise.
+For each pseudo-label model, the downstream model is fitted at pseudo-labeled-to-real ratios
+0,0.05,0.10,0.20,0.40,0.80,1.00,1.50,2.00,3.00,4.00,6.00,8.00.
+All conditions use the same candidate order, and larger amounts extend smaller subsets. The black
+cross in Figure 2(b) marks the test-MSE-minimizing grid point, and the gray interval contains ratios
+within 1% of that minimum. The test split is used only for this retrospective reference.
+Probe-based risk estimate.The labeled probe set is divided into two disjoint halves. Let bβa and
+bβb be 128-by-10 least-squares class-score models fitted to the two 1,500-example halves. The target
+moment bQ uses all 3,000 probe inputs, andbσ2 is the average per-coordinate residual MSE with the
+n/(n−d)correction, wheren= 1,500andd= 128. For a proposed pseudo-labeled set, define
+BS =X ⊤
+S YS,U a =B S −A Sbβa,U b =B S −A Sbβb.
+WithA=A r +A S, the estimated systematic-error contribution is
+bRbias = max
+n
+0,tr
+h
+(A−1Ua)⊤bQ(A−1Ub)
+io
+,
+and the random-noise contribution is
+bRvar = 10bσ2 tr(bQA−1ArA−1).
+The cross product avoids the positive inflation from squaring a single noisy probe estimate; truncation
+enforces nonnegativity. The variance term assumes isotropic residual variation in the trusted real
+labels; deterministic pseudo-labels add no conditional random-noise covariance. We select the ratio
+minimizing bRbias + bRvar. Dropping the bias term gives the input-only comparator, which selects the
+full 24,000-candidate pool.
+Amount-selection results.The probe estimate tracks the decrease in useful data amount as label
+reliability falls (Table 3). Across all five conditions, predicted and test-optimal amounts have the
+same ordering (Kendall τ= 1.00 ), and every prediction across the four partitions falls within the 1%
+test-optimal plateau. For the most reliable label model, the test optimum on the evaluated grid occurs
+at the largest ratio.
+19
+
+=== PAGE 20 ===
+Table 3: Mean label accuracy and ratios of synthetic to real data for the three conditions in Figure 2(b).
+Label model Label accuracy Predicted ratio Test optimum ratio
+12,000 training examples 0.889 7.0 8.0
+400 training examples 0.836 0.90 0.95
+12 coordinates removed 0.604 0 0
+This experiment evaluates amount selection when multiple feature directions contribute, complement-
+ing the characterization of a single direction in Corollary 5.
+C BASELINEIMPLEMENTATIONS
+C.1 REPRESENTATIONS AND SCORES USED BY THE SELECTORS
+Prompt features.For every real, probe, and candidate prompt, we average the 1,536-dimensional
+final-layer hidden states across prompt tokens to obtain one prompt representation. Principal-
+component analysis is fitted on the real-training representations and projects all partitions to 64
+dimensions. The same projection is used by Embedding Vendi, Covariance Matching, TATC (Cover-
+age), and the coverage stage of TATC.
+Gradient features.For every complete example, we compute the gradient of the response loss
+with respect to the trainable LoRA parameters. To make per-example storage and matrix operations
+feasible, the gradient is mapped by a signed CountSketch to 512 dimensions and then projected to 64
+dimensions by principal-component analysis fitted on the real-training gradients. G-Vendi and BAIT
+use these projected gradient features. LESS uses the 512-dimensional sketched gradients before PCA.
+Quality score.Candidate negative log-likelihood is the mean token loss of its response under the
+checkpoint trained on real data, excluding prompt tokens. Lower values indicate responses that the
+checkpoint considers more likely.
+C.2 SELECTION RULES
+Random.Random samples candidate indices uniformly without replacement.
+NLL.NLL sorts candidates by increasing response negative log-likelihood and returns the first B.
+Embedding Vendi.Let zj be the unit-normalized prompt feature. For a nonempty set S, the Vendi
+score is
+VS(S) = exp
+"
+−
+X
+k
+λk logλ k
+#
+,{λ k}k = eig
+
+ 1
+|S|
+X
+j∈S
+zjz⊤
+j
+
+ ,
+where zero eigenvalues make zero contribution. A farthest-first traversal initializes a set of sizeB. We
+then run 32 one-swap rounds; each round tests 256 proposed replacements and accepts the proposal
+with the largest positive Vendi-score improvement.
+G-Vendi.G-Vendi applies the same objective and swap procedure to unit-normalized projected
+LoRA-gradient features. It replaces prompt representations with candidate-induced training gradients
+while retaining the same set optimization.
+LESS.Let gj be the candidate gradient feature and let gq be the mean gradient on the labeled real
+probe set. The score is
+sLESS(j) = g⊤
+j gq
+∥gj∥2∥gq∥2
+.
+Candidates are ranked by this target-gradient alignment score at the shared checkpoint.
+20
+
+=== PAGE 21 ===
+OptimSyn.For the fixed candidate pool, we adapt OptimSyn’s optimizer-aware influence score.
+For each candidate, we form the AdamW update difference ∆θj described in Appendix D.2 and
+score its first-order effect on the real probe:
+sOptimSyn(j) =− g⊤
+q ∆θj
+∥∆θj∥2
+.
+Covariance Matching.Normalize every prompt feature to unit Euclidean norm and define the
+real-training second moment
+Cr = 1
+|Dr|
+X
+x∈Dr
+zxz⊤
+x .
+Starting from an empty set, the method greedily adds the candidate that minimizes
+
+1
+|S|+ 1
+ X
+i∈S
+ziz⊤
+i +z jz⊤
+j
+!
+−C r
+
+2
+F
+.
+This baseline matches the second moment of the real-training inputs and does not use labeled probe
+responses.
+BAIT.BAIT operates on the 64-dimensional projected gradient features. It initializes its infor-
+mation matrix with the real-training gradients and uses the candidate gradient distribution as the
+A-optimal target. A diagonal stabilizer equal to 10−3 times the average information-matrix diagonal
+is added before inversion. Following the forward–backward construction, BAIT greedily grows to
+2B candidates and then removes examples until B remain, choosing each addition or removal by its
+A-optimal trace change.
+TATC (Coverage).This ablation initializes bA0 and bQ exactly as TATC but removes the training-
+effect filter. At every step it searches the full remaining pool and adds
+arg max
+j /∈S
+ϕ⊤
+j bA−1
+S bQbA−1
+S ϕj
+1 +ϕ ⊤
+j bA−1
+S ϕj
+.
+It isolates the contribution of the response-aware training-effect component beyond target coverage.
+D IMPLEMENTATION OFTATCINSUPERVISEDFINE-TUNING
+D.1 FROM THELINEARANALYSIS TOTATC
+The linear results motivate two components of selection: the target coverage added by a candidate
+input and the training score of its complete prompt and response. TATC computes both at a checkpoint
+trained on real data. It ranks candidates using a quadratic score of their update differences and updates
+coverage as examples are selected.
+For each prompt, we average the hidden states from the model’s final transformer layer over prompt
+tokens to obtain a 1,536-dimensional representation. PCA is fitted only to the 2,048 real-training
+representations and then applied, without refitting, to the probe, holdout, and candidate prompts. Let
+ϕj ∈R 64 be the resulting candidate feature and define
+bA0 =ρI+
+X
+x∈Dr
+ϕ(x)ϕ(x)⊤,
+bQ= 1
+|Dq|
+X
+x∈Dq
+ϕ(x)ϕ(x)⊤,
+bAS = bA0 +
+X
+i∈S
+ϕiϕ⊤
+i .
+The numerical stabilizer is
+ρ= 10 −3 tr(P
+x∈Dr ϕ(x)ϕ(x)⊤)
+64 .
+21
+
+=== PAGE 22 ===
+The target coverage gain
+aj(S) = ϕ⊤
+j bA−1
+S bQbA−1
+S ϕj
+1 +ϕ ⊤
+j bA−1
+S ϕj
+is exactly the Sherman–Morrison decrease in tr(bQbA−1
+S ) within the fixed prompt representation. This
+algebraic identity is exact; using the criterion as a proxy for downstream performance after LLM
+fine-tuning is an experimental-design approximation.
+The quadratic training score is
+hj =−g ⊤
+q ∆θj − 1
+2∆θ⊤
+j Hq∆θj,
+In Equation (7), ∆θj =U j −U ∅ is the difference between the candidate and zero gradient AdamW
+displacements from the same checkpoint and saved optimizer state. The probe gradient gq measures
+alignment with decreasing loss, while the diagonal matrix Hq supplies a quadratic penalty on
+displacement. The score provides a fixed ranking for the expanding shortlist. Appendix D.2 defines
+the quadratic model and its computation.
+Table 4 summarizes the correspondence and its limitations.
+Table 4: Correspondence between the linear analysis and TATC.
+Linear quantity or
+role
+TATC quantity Status Correct interpretation
+Real information
+Ar
+bA0 Approximation Summarizes prompt directions
+already represented by real data;
+ρIis numerical stabilization.
+Target momentQ bQSample estimate Estimates target relevance only in
+the checkpoint prompt
+representation.
+Selected
+informationA S
+P
+i∈S ϕiϕ⊤
+i Exact in
+representation
+Each selected input adds a
+rank-one prompt-feature
+contribution.
+Clean coverage
+marginalq j/cj
+aj(S)Exact in
+representation
+Exact decrease in the
+downstream-weighted
+inverse-trace criterion.
+Systematic label
+error(d S,u)
+Response-dependent
+gradient and AdamW
+update
+Approximation For squared loss, response error
+changes the gradient by
+−(x⊤δ)x; in an LLM the full
+response changes a nonlinear
+gradient.
+Exact marginal
+value∆ j(S)
+Quadratic training scoreh j Surrogate Ranks update differences using a
+quadratic model of probe loss at
+the shared checkpoint.
+Residual interaction
+ej with current bias
+No explicit scalar
+counterpart
+Omitted interaction The response score is computed
+once, while set dependence
+enters througha j(S).
+D.2 QUADRATIC TRAINING SCORE
+Let gj be the per-example gradient of the response-token loss and let beff = 16 be the effective
+batch size used to scale the candidate gradient. We insert gj/beff into the saved AdamW state after
+fine-tuning on real data. For coordinate k, with saved moments (m0,k, v0,k), the candidate and
+zero-gradient counterfactual moments are
+mj,k =β 1m0,k + (1−β 1)gj,k/beff, v j,k =β 2v0,k + (1−β 2)(gj,k/beff)2,
+m∅,k =β 1m0,k, v ∅,k =β 2v0,k.
+After the usual AdamW bias corrections, let
+Uk(m, v) =−α bmk√bvk +ϵ −αλθ 0,k
+22
+
+=== PAGE 23 ===
+denote the full parameter displacement at θ0, where α is the learning rate and λ is the weight
+decay coefficient. Let Uj and U∅ collect these coordinatewise updates under the candidate and
+zero-gradient moments. Their difference is
+∆θj,k =U k(mj, vj)−U k(m∅, v∅).
+The common weight decay displacement −αλθ0 cancels in ∆θj. The saved optimizer moments still
+affect this difference through the adaptive updates.
+We compute the probe statistics using batches of four examples. Let {Bb}M
+b=1 partition the probe
+examples across all scoring workers, let nb =|B b|, and let ℓb(θ) be the model’s response token loss
+for batchB b. Setw b =n b/|Dq|and define
+Lq(θ) =
+MX
+b=1
+wbℓb(θ),g q,b =∇ θℓb(θ0),
+gq =
+MX
+b=1
+wbgq,b,[H q]kk =
+MX
+b=1
+wb[gq,b]2
+k.
+The implementation squares each batch gradient before averaging across batches. We use the resulting
+positive semidefinite diagonal matrix as a curvature surrogate in the scoring model (Kunstner et al.,
+2019).
+For a displacementdfromθ 0, define the quadratic model
+eLq(d) =L q(θ0) +g ⊤
+q d+ 1
+2 d⊤Hqd.
+Evaluating this model along the update difference gives
+hj =eLq(0)− eLq(∆θj)
+=−g ⊤
+q ∆θj − 1
+2∆θ⊤
+j Hq∆θj.
+The first term measures alignment of the update difference with decreasing probe loss. The second is
+a nonnegative penalty on displacement, since Hq ⪰0 . The quadratic model scores θ0 + ∆θj; the
+full AdamW step reachesθ 0 +U j. The proposition below bounds the loss change along∆θ j.
+Both probe statistics and candidate update differences are computed once at the shared checkpoint.
+Each candidate therefore has one fixed score during selection. The implementation accumulates
+both terms directly from the update difference and the probe statistics. CountSketch is used only for
+gradient features stored for the baselines.
+Local justification of the score.The displacement ∆θj used for scoring is the update difference
+defined above. The following result relates the score in Equation (7) to the change in probe loss along
+this displacement and separates the error in the curvature matrix from the Taylor remainder.
+Proposition 8(Local loss approximation).Suppose Lq is twice continuously differentiable in a
+neighborhood of the segment from θ0 to θ0 + ∆θj, and its Hessian is M-Lipschitz there in spectral
+norm. Let
+H∗ =∇ 2Lq(θ0), ϵ H =∥H ∗ −H q∥2,
+and useg q =∇L q(θ0)in the scoreh j. Then
+|Lq(θ0)−L q(θ0 + ∆θj)−h j| ≤ ϵH
+2 ∥∆θj∥2
+2 + M
+6 ∥∆θj∥3
+2.(8)
+In particular, the displacement reduces probe loss wheneverhj exceeds the bound in Equation (8).
+Proof.Writed= ∆θ j. Taylor’s theorem with a Lipschitz Hessian gives
+Lq(θ0 +d) =L q(θ0) +g ⊤
+q d+ 1
+2 d⊤H∗d+R(d),|R(d)| ≤ M
+6 ∥d∥3
+2.
+Subtracting the definition ofh j from the loss reduction yields
+Lq(θ0)−L q(θ0 +d)−h j =− 1
+2 d⊤(H∗ −H q)d−R(d).
+The bound follows from|d ⊤(H∗ −H q)d| ≤ϵ H ∥d∥2
+2.
+The quadratic model therefore gives a local scoring rule whose accuracy depends on both the
+displacement size and the curvature approximation. The first term in the bound measures the error
+from the curvature surrogate supplied by the batch gradient construction; the cubic term controls the
+Taylor remainder.
+23
+
+=== PAGE 24 ===
+D.3 SEQUENTIALTATCSELECTION
+We implement Algorithm 1 withκ= 2 and update bA−1
+S after each selection using Sherman–Morrison:
+bA−1
+S∪{j} = bA−1
+S −
+bA−1
+S ϕjϕ⊤
+j bA−1
+S
+1 +ϕ ⊤
+j bA−1
+S ϕj
+.
+One run produces an ordering whose prefixes are the selected sets for every budget. Each prefix
+is then trained independently from the same checkpoint trained on real data and the same saved
+optimizer state; training does not continue from the preceding budget.
+D.4 GSM8KPROTOCOL
+Data.The task is GSM8K mathematical reasoning with Qwen2.5-Math-1.5B-Instruct. The disjoint
+real partitions contain 2,048 examples used to train the shared checkpoint, 512 labeled examples
+for the target probe, and 1,024 examples for the holdout set. The synthetic pool contains 4,096
+OpenR1-Math-220k trajectories after deduplication to at most one trajectory per source problem. Of
+these trajectories, 2,662 pass the provided verifier and 1,434 do not; TATC never uses verifier status.
+Model and training.LoRA adapters are attached to the attention q, k, v, o projections and the MLP
+gate, up, and down projections. Rank is 16, scaling is 32, and adapter dropout is zero. Fine-tuning on
+real data uses two epochs, learning rate 2×10 −4, AdamW weight decay .01, sequence length 2,304,
+and effective batch size 16. Every selected subset is trained for one epoch with the same learning
+rate, weight decay, effective batch size, and initial model and optimizer state. We evaluate budgets
+B∈ {64,128,256,512} using nested prefixes of the selected ordering. Results are the mean and
+standard deviation over three independent training repetitions.
+Evaluation.Exact match is computed after extracting the final numeric answer. Outputs that do not
+terminate within the generation allowance count as incorrect. The B= 128 comparison allows 1,536
+generated tokens, whereas the budget sweep allows 3,072; absolute exact-match values are therefore
+not comparable across panels.
+24
