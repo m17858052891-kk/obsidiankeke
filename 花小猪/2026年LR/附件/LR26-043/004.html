@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>割平面 Level Bundle 求解器可视化演示</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #100f0c;
+      --bg-2: #16140f;
+      --panel: #1c1914;
+      --panel-2: #241f18;
+      --line: #3d362b;
+      --line-2: #534938;
+      --text: #f3ead8;
+      --muted: #b5a993;
+      --faint: #a29680;
+      --oxide: #d2662c;
+      --oxide-dim: #8a3d16;
+      --patina: #2a9a92;
+      --patina-dim: #1a5f5b;
+      --gilt: #d4b056;
+      --gilt-dim: #8a7328;
+      --wine: #c43b4b;
+      --ink: #7b93ff;
+      --paper: #efe6d4;
+      --good: #3d9a58;
+      --null: #7a7366;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+    body {
+      font-family: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", sans-serif;
+      line-height: 1.5;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    .wrap { max-width: 1640px; margin: 0 auto; padding: 22px 24px 48px; }
+    a { color: var(--gilt); text-underline-offset: 3px; }
+    :focus-visible { outline: 2px solid var(--gilt); outline-offset: 4px; }
+    #solver-demo { scroll-margin-top: 20px; }
+    header.hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      color: var(--gilt);
+      letter-spacing: 0.16em;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: "Noto Serif SC", "Songti SC", serif;
+      font-weight: 600;
+      font-size: clamp(28px, 3.4vw, 42px);
+      line-height: 1.15;
+      margin: 6px 0 8px;
+    }
+    .lead { color: var(--muted); max-width: 720px; margin: 0; }
+    .hero-note {
+      width: min(360px, 100%);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #221c14, #18150f);
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .hero-note strong { color: var(--gilt); font-weight: 600; }
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 16px 0 18px;
+    }
+    .pipe {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 10px 12px 12px;
+      min-height: 72px;
+      position: relative;
+    }
+    .pipe.active {
+      border-color: var(--gilt);
+      box-shadow: inset 0 0 0 1px rgba(212, 176, 86, 0.25);
+    }
+    .pipe .k { color: var(--gilt); font-size: 11px; letter-spacing: 0.08em; }
+    .pipe .t { font-size: 13px; margin-top: 4px; }
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 320px;
+      grid-template-areas: "params stage story";
+      gap: 12px;
+      align-items: start;
+    }
+    .card {
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .card h2, .card h3 {
+      font-family: "Noto Serif SC", "Songti SC", serif;
+      font-weight: 600;
+      margin: 0;
+    }
+    .card h2 { font-size: 20px; line-height: 1.4; }
+    .params { grid-area: params; }
+    .stage { grid-area: stage; }
+    .story { grid-area: story; }
+    .card-h {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 4px 10px;
+      padding: 12px 14px 0;
+    }
+    .card-h .sub { color: var(--faint); font-size: 12px; }
+    .params .card-h, .stage .card-h { flex-direction: column; align-items: flex-start; }
+    .pad { padding: 12px 14px 14px; }
+    .glossary { margin-bottom: 24px; }
+    .glossary > summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      cursor: pointer;
+      list-style: none;
+    }
+    .glossary > summary::-webkit-details-marker { display: none; }
+    .glossary > summary::before { content: "+"; color: var(--gilt); font-size: 22px; }
+    .glossary[open] > summary::before { content: "−"; }
+    .glossary > summary .sub { margin-left: auto; color: var(--muted); font-size: 12px; }
+    .glossary-intro { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+    .glossary-intro a { display: inline-block; margin-left: 12px; }
+    .glossary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+    .glossary table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+    .glossary caption { padding: 0 0 10px; text-align: left; color: var(--gilt); font-size: 14px; font-weight: 600; }
+    .glossary .symbol-col { width: 30%; }
+    .glossary th, .glossary td { padding: 9px 10px; border: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+    .glossary thead th { background: var(--panel-2); color: var(--muted); text-align: left; font-weight: 500; }
+    .glossary tbody th { text-align: left; color: var(--paper); font-weight: 400; }
+    .glossary td { color: var(--muted); }
+    .glossary .katex { font-size: 1em; }
+    .glossary-symbol { display: inline-block; max-width: 100%; margin-right: 5px; }
+    .params .group { margin-bottom: 14px; }
+    .params .label {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 4px 8px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .params .label b { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--oxide);
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip, .preset {
+      border: 1px solid var(--line-2);
+      background: var(--panel-2);
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .chip.on, .preset.on {
+      border-color: var(--gilt);
+      color: var(--gilt);
+      background: #2a2416;
+    }
+    .preset { width: 100%; text-align: left; }
+    .meters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .meter {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+    }
+    .meter .n {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 18px;
+      color: var(--paper);
+    }
+    .meter .l { color: var(--faint); font-size: 11px; }
+    .story-title {
+      font-family: "Noto Serif SC", serif;
+      font-size: 22px;
+      margin: 0 0 8px;
+    }
+    .story-body { color: var(--muted); font-size: 14px; min-height: 72px; }
+    .formula-box {
+      margin-top: 10px;
+      background: #140f0b;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      overflow-x: auto;
+    }
+    .formula-box .katex { font-size: 1.05em; color: var(--paper); }
+    .formula-box .katex-display { margin: 4px 0; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+    .formula-box .katex-display > .katex { text-align: left; }
+    .formula-note { color: var(--faint); font-size: 12px; margin-top: 6px; }
+    .stage {
+      position: relative;
+      background:
+        radial-gradient(1200px 400px at 20% 0%, rgba(210, 102, 44, 0.08), transparent 50%),
+        var(--panel);
+    }
+    .view3d {
+      position: relative;
+      width: 100%;
+      height: clamp(420px, 56vh, 600px);
+      background: #0a0907;
+    }
+    .view3d canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    .view3d canvas:active { cursor: grabbing; }
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding: 8px 14px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .toggles label { cursor: pointer; user-select: none; }
+    .toggles input { accent-color: var(--gilt); margin-right: 4px; }
+    .readout {
+      position: absolute;
+      z-index: 3;
+      right: 14px;
+      top: 12px;
+      background: rgba(12, 11, 9, 0.78);
+      border: 1px solid var(--line);
+      color: var(--paper);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 11px;
+      padding: 6px 8px;
+      pointer-events: none;
+      min-width: 168px;
+      max-width: calc(100% - 28px);
+    }
+    .story-title.serious { color: #7dcea0; }
+    .story-title.nullstep { color: #c4b8a0; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding: 8px 14px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+    .playbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 14px 14px;
+      border-top: 1px solid var(--line);
+    }
+    .playbar button {
+      background: var(--panel-2);
+      border: 1px solid var(--line-2);
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    .playbar button.primary {
+      background: var(--oxide);
+      border-color: var(--oxide);
+      color: #fff8ee;
+    }
+    .playbar .step-label {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .oracles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .bubble {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      padding: 8px;
+    }
+    .bubble h4 { margin: 0 0 6px; font-size: 13px; }
+    .bubble .meta { color: var(--faint); font-size: 11px; margin-bottom: 6px; }
+    .act {
+      position: relative;
+      margin-bottom: 5px;
+      padding: 4px 6px;
+      background: #16130e;
+      border: 1px solid #2b261d;
+      font-size: 11px;
+    }
+    .act.win { border-color: var(--patina); box-shadow: inset 0 0 0 1px rgba(42, 154, 146, 0.35); }
+    .act .bar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: rgba(210, 102, 44, 0.18);
+      width: 0;
+      transition: width 0.35s ease;
+    }
+    .act .row { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; }
+    .gap-track {
+      height: 10px;
+      background: #2a241b;
+      border: 1px solid var(--line);
+      position: relative;
+      margin: 8px 0 4px;
+    }
+    .gap-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0;
+      background: linear-gradient(90deg, var(--patina), var(--gilt));
+    }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border: 1px solid var(--line-2);
+      color: var(--gilt);
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    .tiny { color: var(--faint); font-size: 12px; }
+    .output {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--paper);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .output:empty { display: none; }
+    @media (max-width: 1399px) {
+      .layout { grid-template-columns: 260px minmax(0, 1fr); grid-template-areas: "params stage" "params story"; }
+      .story .meters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .story-body { min-height: 0; }
+    }
+    @media (max-width: 960px) {
+      .wrap { padding: 16px 18px 36px; }
+      header.hero { grid-template-columns: 1fr; }
+      .hero-note { width: 100%; }
+      .glossary-grid { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "params" "stage" "story"; }
+      .params .pad { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+      .params .group { margin-bottom: 0; }
+      .params .group:first-child { grid-column: 1 / -1; }
+      #presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 12px 12px 28px; }
+      .glossary > summary { padding: 12px; gap: 8px; }
+      .glossary > summary .sub { font-size: 11px; }
+      .glossary .symbol-col { width: 34%; }
+      .glossary th, .glossary td { padding: 8px; font-size: 12px; }
+      .glossary-intro a { display: block; margin: 8px 0 0; }
+      .card h2 { font-size: 18px; }
+      .card-h { padding: 12px 12px 0; }
+      .pad { padding: 12px; }
+      .params .pad { grid-template-columns: minmax(0, 1fr); }
+      #presets { grid-template-columns: minmax(0, 1fr); }
+      .story .meters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .oracles { grid-template-columns: minmax(0, 1fr); }
+      .view3d { height: 360px; }
+      .readout { right: 10px; top: 10px; font-size: 10px; }
+      .playbar { gap: 6px; padding: 10px 12px 12px; }
+      .playbar button { padding: 8px 10px; font-size: 13px; }
+      .playbar .step-label { flex-basis: 100%; text-align: right; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <details class="card glossary" open>
+      <summary><h2>符号解释表</h2><span class="sub">点击展开 / 收起</span></summary>
+      <div class="pad">
+        <p class="glossary-intro">按「业务输入 → 约束残差 → 对偶求值 → 割平面迭代」查阅。下标 $c$ 表示补贴率，$r$ 表示幸运水位；带 $\tilde{\ }$ 的量表示已归一化。<a href="#solver-demo">直接进入演示 ↓</a></p>
+        <div class="glossary-grid">
+          <table>
+            <caption>01 · 业务输入与动作</caption>
+            <colgroup><col class="symbol-col" /><col /></colgroup>
+            <thead><tr><th scope="col">符号</th><th scope="col">含义</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">$i$、$j$</th><td>$i$ 是冒泡编号，$j$ 是该冒泡的候选动作编号；本例有 4 个冒泡，每个有 4 个动作。</td></tr>
+              <tr><th scope="row">$bcr_{ij}$</th><td>冒泡 $i$ 选择动作 $j$ 后的预测完单概率，也是本例要最大化的收益系数。</td></tr>
+              <tr><th scope="row">$cost_{ij}$</th><td>动作的完单条件特价 C 补金额；乘以 $bcr_{ij}$ 后得到预期补贴额。</td></tr>
+              <tr><th scope="row">$\widehat{gmv}_{ij}$</th><td>动作的完单条件假 GMV，用作补贴率分母；对应示例数据的 gmv 字段。帽号用于区分该业务口径。</td></tr>
+              <tr><th scope="row"><span class="glossary-symbol">$P^u_{ij}$</span><span class="glossary-symbol">$P^l_{ij}$</span></th><td>动作级特价 / 幸运最终实付金额；上标 $u$、$l$ 区分特价与幸运，不是幂次。金额采用同一单位。</td></tr>
+              <tr><th scope="row">$I_i$</th><td>冒泡是否具备幸运展现能力的指示量：1 表示具备，0 表示不具备。切到「无幸运」时全部置 0。</td></tr>
+              <tr><th scope="row">$\alpha$、$\beta$</th><td>补贴率上限、幸运水位下限。计算时均为 0～1 的比例；例如界面 3pp 对应 $\alpha=0.03$，93% 对应 $\beta=0.93$。</td></tr>
+              <tr><th scope="row">pp / 动作标签</th><td>pp 表示百分点；「特82·幸82·k4」表示特价 8.2 折、幸运 8.2 折、默勾数量 4。「不展现」表示该动作不展现幸运；标签里的 k 与搜索维度下标无关。</td></tr>
+            </tbody>
+          </table>
+          <table>
+            <caption>02 · 约束与归一化</caption>
+            <colgroup><col class="symbol-col" /><col /></colgroup>
+            <thead><tr><th scope="col">符号</th><th scope="col">含义</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">$c_{ij}$</th><td>单动作补贴率残差：$bcr_{ij}(cost_{ij}-\alpha\widehat{gmv}_{ij})$。正值表示占用补贴预算，负值表示提供余量。</td></tr>
+              <tr><th scope="row">$r_{ij}$</th><td>单动作水位残差：$I_i(\beta P^u_{ij}-P^l_{ij})$。正值表示水位不足；$I_i=0$ 时为 0。</td></tr>
+              <tr><th scope="row">$S^c$、$S^r$</th><td>补贴率 / 水位的参考尺度。从每个冒泡的最大完单参考动作，分别汇总预期假 GMV 与有幸运冒泡的特价实付。一次求解中保持固定；无幸运时 $S^r$ 置 1 防止除零。</td></tr>
+              <tr><th scope="row"><span class="glossary-symbol">$\tilde c_{ij}$</span><span class="glossary-symbol">$\tilde r_{ij}$</span></th><td>归一化后的单动作残差：$\tilde c_{ij}=c_{ij}/S^c$，$\tilde r_{ij}=r_{ij}/S^r$。求解器用它们计算罚分。</td></tr>
+              <tr><th scope="row">$\Gamma^c$、$\Gamma^r$</th><td>组内所有选中动作的补贴率 / 水位残差之和。两项都 $\le 0$ 才满足组级约束；不要求每个动作的残差都非正。</td></tr>
+              <tr><th scope="row">$\tilde\Gamma(\mu)$</th><td>当前乘子选出的归一化组残差向量，分量为 $\Gamma^c/S^c$、$\Gamma^r/S^r$。输出中的 Γ̃ 指同一向量，$-\tilde\Gamma$ 是对偶函数的一张次梯度。</td></tr>
+              <tr><th scope="row">$\rho$</th><td>选中动作的预期总补贴额 / 预期总假 GMV，即回放补贴率；与上限 $\alpha$ 比较。</td></tr>
+              <tr><th scope="row">选中水位</th><td>有幸运冒泡选中动作的幸运实付之和 / 特价实付之和，即 $\sum_i I_iP^l_{ij}/\sum_i I_iP^u_{ij}$；与下限 $\beta$ 比较。无幸运时显示「—」。</td></tr>
+            </tbody>
+          </table>
+          <table>
+            <caption>03 · 乘子、打分与输出</caption>
+            <colgroup><col class="symbol-col" /><col /></colgroup>
+            <thead><tr><th scope="col">符号</th><th scope="col">含义</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">$\mu$、$\mu_c$、$\mu_r$</th><td>归一化坐标下的非负乘子向量及其补贴率 / 水位分量。三维图的两个水平轴；乘子越大，对对应正残差的扣分越重。</td></tr>
+              <tr><th scope="row">$\lambda_c$、$\lambda_r$</th><td>原始残差坐标下的乘子，$\lambda_c=\mu_c/S^c$、$\lambda_r=\mu_r/S^r$。无幸运时 $\mu_r=\lambda_r=0$。</td></tr>
+              <tr><th scope="row">score</th><td>单动作拉格朗日分数：$bcr_{ij}-\mu_c\tilde c_{ij}-\mu_r\tilde r_{ij}$。下方动作卡中的橙条展示分数高低。</td></tr>
+              <tr><th scope="row">$j_i^*(\mu)$</th><td>给定乘子后，冒泡 $i$ 得分最高的动作编号。$\arg\max_j$ 返回使分数最大的动作，$\max_j$ 返回该最大分数。</td></tr>
+              <tr><th scope="row">$X$、$X(0)$</th><td>选中动作的预期完单数之和 $\sum_i bcr_{i,j_i^*}$；$X(0)$ 是零乘子时的值，此时只按完单概率选动作。</td></tr>
+              <tr><th scope="row">$D(\mu)$、$D(0)$</th><td>对偶值，即每个冒泡最大 score 的总和。外层最小化 $D$；图中是凸、分段线性的曲面。零乘子时 $D(0)=X(0)$。</td></tr>
+              <tr><th scope="row">$D_{\mathrm{best}}$</th><td>截至当前已评估点中的最低对偶值，是盒内对偶最小值的当前上界。与割模型的下界 $LB$ 一起计算 gap。</td></tr>
+              <tr><th scope="row"><span class="glossary-symbol">$\mu^*$、$\lambda^*$</span><span class="glossary-symbol">$D^*$</span></th><td>停机时返回的最好乘子、换算后的原始乘子，以及该点对偶值。此处星号标记返回结果；若达到迭代上限，应结合 gap 判断求解精度。</td></tr>
+            </tbody>
+          </table>
+          <table>
+            <caption>04 · 割平面与停机判据</caption>
+            <colgroup><col class="symbol-col" /><col /></colgroup>
+            <thead><tr><th scope="col">符号</th><th scope="col">含义</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">$q$、$\mu^{(q)}$</th><td>割的求值记录编号，以及生成该割的乘子点；括号上标表示编号，不是幂次。</td></tr>
+              <tr><th scope="row">$D_q$、$\tilde\Gamma_q$</th><td>$D(\mu^{(q)})$ 与 $\tilde\Gamma(\mu^{(q)})$ 的简写；与求值点一起确定一张支撑平面。上标 $\top$ 表示转置，向量相乘为内积。</td></tr>
+              <tr><th scope="row">割 / 下包络</th><td>割是在求值点贴住 $D$、处处不高于 $D$ 的平面。页面所称「下包络」是所有割逐点取最大值形成的下界模型。</td></tr>
+              <tr><th scope="row">$K$、$t$</th><td>$K$ 是当前割数；$t$ 是主问题中的辅助高度变量，约束它不低于每张割，再最小化它。</td></tr>
+              <tr><th scope="row">$B$、$B_k$、$\mu_k$</th><td>$B$ 是搜索盒各维上界组成的向量；$k$ 表示活动约束维度，$B_k$ 是该维上界，$0\le\mu_k\le B_k$。「括盒 / 扩盒」就是确定 / 增大这些上界。</td></tr>
+              <tr><th scope="row">$LB$</th><td>割模型在当前搜索盒 $[0,B]$ 内的最小值，是盒内对偶最小值的下界。盒子变化时，需要重新求主问题。</td></tr>
+              <tr><th scope="row">level、$\kappa$</th><td>试探点的目标高度与插值系数：$\mathrm{level}=LB+\kappa(D_{\mathrm{best}}-LB)$。默认 $\kappa=0.5$；图中的金色水面与业务「幸运水位」含义不同。</td></tr>
+              <tr><th scope="row">$L^\infty$ / 中心</th><td>中心是投影参照点；$L^\infty$ 距离取各坐标差绝对值的最大值。试探点在割模型不超过 level 的区域内，按该距离离中心最近。</td></tr>
+              <tr><th scope="row">gap、$\varepsilon$</th><td>相对 gap 为 $(D_{\mathrm{best}}-LB)/\max(1,|D_{\mathrm{best}}|)$，用于判断对偶求解收敛，默认门槛 $2\times10^{-5}$。$\varepsilon=10^{-6}$ 是残差判断容差；二者用途不同。</td></tr>
+              <tr><th scope="row">serious / null step</th><td>实际下降为中心对偶值减试探点对偶值；预测下降为中心对偶值减 level（最低取 0）。实际下降达到预测的 10% 时更新中心，否则保持中心；两种情况都会加割。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <header class="hero" id="solver-demo">
+      <div>
+        <div class="eyebrow">对偶优化 · 割平面算法</div>
+        <h1>用割平面逼近对偶函数</h1>
+        <p class="lead">
+          把 $D(\mu)$ 看成三维里的凸天花板：横轴 $\mu_c$、进深 $\mu_r$、高度是对偶值。
+          每评估一个乘子，就从下方顶起一张支撑平面。下包络的最低点是 $LB$，金色水平面是 level，
+          下一个割平面（Cutting Plane）选在离中心最近、又够得着这层水面的位置。拖动画布可旋转、滚轮缩放。
+        </p>
+      </div>
+      <aside class="hero-note">
+        全量实验里割平面 Level Bundle 是默认落表路线。小样本（40 条 trace）<strong>7 轮、11 次对偶求值</strong>就收到 $gap=1.04\times 10^{-7}$。
+        下面用 4 个冒泡的可计算实例，按同一套规则当场求解。
+      </aside>
+    </header>
+
+    <div class="pipeline" id="pipeline">
+      <div class="pipe" data-phase="B1"><div class="k">阶段 1</div><div class="t">检查可解、括盒、两张零点初始割</div></div>
+      <div class="pipe" data-phase="B2"><div class="k">阶段 2</div><div class="t">主问题 → level → 试探点 → 加割</div></div>
+      <div class="pipe" data-phase="B3"><div class="k">阶段 3</div><div class="t">相对 gap 停机，盒内下界证书</div></div>
+      <div class="pipe" data-phase="B4"><div class="k">阶段 4</div><div class="t">输出 $\mu^*$、$D^*$、$LB$、$\lambda^*$</div></div>
+    </div>
+
+    <div class="layout">
+      <section class="card params">
+        <div class="card-h">
+          <h2>参数选择</h2>
+          <span class="sub">改这里会重算残差并重拍求解胶片</span>
+        </div>
+        <div class="pad">
+          <div class="group">
+            <div class="label"><span>教学预设</span></div>
+            <div class="chips" id="presets"></div>
+          </div>
+          <div class="group">
+            <div class="label"><span>补贴率上限 $\alpha$</span><b id="alphaVal">3.0 pp</b></div>
+            <input id="alpha" type="range" min="1" max="8" step="0.1" value="3" />
+            <div class="tiny">$c_{ij}=bcr_{ij}(cost_{ij}-\alpha\,\widehat{gmv}_{ij})$。越大越松，乘子 $\mu_c$ 往往更小。</div>
+          </div>
+          <div class="group">
+            <div class="label"><span>水位下限 $\beta$</span><b id="betaVal">93.0%</b></div>
+            <input id="beta" type="range" min="0.85" max="0.98" step="0.002" value="0.93" />
+            <div class="tiny">$r_{ij}=I_i(\beta P^u_{ij}-P^l_{ij})$。在常规 3/5pp 参数下 $\lambda_r^*=0$；把 $\beta$ 拧紧才能看见水位乘子抬头。</div>
+          </div>
+          <div class="group">
+            <div class="label"><span>约束形态</span></div>
+            <div class="chips">
+              <button class="chip on" data-mode="lucky" id="modeLucky">有幸运 · 二维 $(\mu_c,\mu_r)$</button>
+              <button class="chip" data-mode="nolucky" id="modeNoLucky">无幸运 · 一维 $\mu_c$</button>
+            </div>
+          </div>
+          <div class="group">
+            <div class="label"><span>level 插值 $\kappa$</span><b id="kappaVal">0.50</b></div>
+            <input id="kappa" type="range" min="0.2" max="0.8" step="0.05" value="0.5" />
+            <div class="tiny">$\mathrm{level}=LB+\kappa(D_{\mathrm{best}}-LB)$。默认推荐取值 $0.5$。</div>
+          </div>
+          <div class="group">
+            <div class="label"><span>停机相对 gap</span><b id="gapVal">2e-5</b></div>
+            <input id="gapTol" type="range" min="1" max="40" step="1" value="1" />
+            <div class="tiny">滑块 $1$ 对应标准容差门槛 $2\times 10^{-5}$；往右放松，方便看清前几个割平面（Cutting Plane）。</div>
+          </div>
+          <div class="group">
+            <div class="label"><span>最多迭代</span><b id="iterVal">45</b></div>
+            <input id="maxIter" type="range" min="4" max="45" step="1" value="45" />
+          </div>
+          <div class="group">
+            <div class="label"><span>播放速度</span><b id="speedVal">1.0×</b></div>
+            <input id="speed" type="range" min="0.4" max="4" step="0.2" value="1" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card stage">
+        <div class="card-h">
+          <h2>三维对偶空间 $(\mu_c,\mu_r,D)$</h2>
+          <span class="sub">拖拽旋转 · 滚轮缩放 · 播放时会跟着最新的割平面（Cutting Plane）走</span>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="togD" checked />天花板 $D$</label>
+          <label><input type="checkbox" id="togCuts" checked />割平面</label>
+          <label><input type="checkbox" id="togEnv" checked />下包络</label>
+          <label><input type="checkbox" id="togLevel" checked />level 水面</label>
+          <label><input type="checkbox" id="togSpin" />慢旋</label>
+        </div>
+        <div class="view3d" id="view3d">
+          <div class="readout" id="readout">把指针移到天花板上看 $D$ 与割模型</div>
+        </div>
+        <div class="legend">
+          <span><i class="swatch" style="background:#d2662c"></i>真实对偶 $D$（越低越好）</span>
+          <span><i class="swatch" style="background:#2a9a92"></i>割 / 下包络 / $LB$</span>
+          <span><i class="swatch" style="background:#d4b056"></i>level 水面</span>
+          <span><i class="swatch" style="background:#7b93ff"></i>中心</span>
+          <span><i class="swatch" style="background:#3d9a58"></i>试探点</span>
+          <span><i class="swatch" style="background:#c43b4b"></i>当前最好</span>
+        </div>
+        <div class="playbar">
+          <button class="primary" id="btnPlay">播放</button>
+          <button id="btnStep">前进一步</button>
+          <button id="btnBack">后退</button>
+          <button id="btnReset">重来</button>
+          <button id="btnCam">重置视角</button>
+          <span class="step-label" id="stepLabel">0 / 0</span>
+        </div>
+      </section>
+
+      <section class="card story">
+        <div class="card-h"><h2>这一步</h2><span class="sub" id="phaseTag">阶段 1</span></div>
+        <div class="pad">
+          <div class="meters">
+            <div class="meter"><div class="l">$D_{\mathrm{best}}$</div><div class="n" id="mDual">—</div></div>
+            <div class="meter"><div class="l">盒内 $LB$</div><div class="n" id="mLb">—</div></div>
+            <div class="meter"><div class="l">相对 gap</div><div class="n" id="mGap">—</div></div>
+            <div class="meter"><div class="l">割数 $K$</div><div class="n" id="mCuts">—</div></div>
+          </div>
+          <div class="gap-track"><div class="gap-fill" id="gapFill"></div></div>
+          <h3 class="story-title" id="storyTitle">准备开拍</h3>
+          <div class="story-body" id="storyBody">先选左侧参数，然后按播放。求解器会从 $\mu=0$ 括盒独立冷启动，并放两张零点割。</div>
+          <div class="formula-box">
+            <div id="formulaMain"></div>
+            <div class="formula-note" id="formulaNote"></div>
+          </div>
+          <div class="tiny" style="margin-top:10px">serious step：实际下降 $\ge 10\%$ 预测下降则搬中心；否则只加割，叫 null step。</div>
+          <pre class="output" id="outputBox"></pre>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:12px">
+      <div class="card-h">
+        <h2>原问题与内层动作评估器</h2>
+        <span class="sub">组内 $\max\sum bcr$，同时 $\Gamma^c\le 0$、$\Gamma^r\le 0$；外层只搜 $\mu$</span>
+      </div>
+      <div class="pad">
+        <div class="tiny" style="margin-bottom:10px">
+          这 4 个冒泡是缩小后的可计算实例，残差计算规则与尺度 $S^c,S^r$ 保持全局一致。
+          给定当前 $\mu$，下面每张卡片独立选分数最高的动作；橙条是分数相对高低，青框是赢家。
+        </div>
+        <div class="oracles" id="oracles"></div>
+      </div>
+    </section>
+  </div>
+  <script>
+  const RAW = [
+    {
+      name: "冒泡 1", city: "城 A", date: "周五", I: 1,
+      actions: [
+        { tag: "特82·幸82·k4", bcr: 0.84, cost: 260, gmv: 3200, Pu: 2624, Pl: 2290 },
+        { tag: "特88·幸88·k3", bcr: 0.76, cost: 150, gmv: 3300, Pu: 2904, Pl: 2680 },
+        { tag: "特94·幸91·k3", bcr: 0.68, cost: 70,  gmv: 3400, Pu: 3196, Pl: 3094 },
+        { tag: "特100·不展现·k2", bcr: 0.55, cost: 8, gmv: 3500, Pu: 3500, Pl: 0 }
+      ]
+    },
+    {
+      name: "冒泡 2", city: "城 A", date: "周末", I: 1,
+      actions: [
+        { tag: "特82·幸85·k5", bcr: 0.88, cost: 240, gmv: 2800, Pu: 2296, Pl: 2040 },
+        { tag: "特91·幸91·k4", bcr: 0.79, cost: 110, gmv: 2900, Pu: 2639, Pl: 2490 },
+        { tag: "特97·幸94·k3", bcr: 0.71, cost: 40,  gmv: 3000, Pu: 2910, Pl: 2820 },
+        { tag: "特100·不展现·k2", bcr: 0.60, cost: 5, gmv: 3050, Pu: 3050, Pl: 0 }
+      ]
+    },
+    {
+      name: "冒泡 3", city: "城 B", date: "周一至四", I: 1,
+      actions: [
+        { tag: "特85·幸82·k4", bcr: 0.81, cost: 200, gmv: 4100, Pu: 3485, Pl: 3110 },
+        { tag: "特91·幸88·k3", bcr: 0.73, cost: 120, gmv: 4200, Pu: 3822, Pl: 3610 },
+        { tag: "特97·幸94·k3", bcr: 0.64, cost: 35,  gmv: 4300, Pu: 4171, Pl: 4042 },
+        { tag: "特100·不展现·k1", bcr: 0.52, cost: 0, gmv: 4400, Pu: 4400, Pl: 0 }
+      ]
+    },
+    {
+      name: "冒泡 4", city: "城 C", date: "无幸运", I: 0,
+      actions: [
+        { tag: "特82·不展现·k3", bcr: 0.77, cost: 180, gmv: 2500, Pu: 2050, Pl: 0 },
+        { tag: "特91·不展现·k3", bcr: 0.69, cost: 80,  gmv: 2600, Pu: 2366, Pl: 0 },
+        { tag: "特97·不展现·k2", bcr: 0.61, cost: 20,  gmv: 2650, Pu: 2570, Pl: 0 },
+        { tag: "特100·不展现·k2", bcr: 0.50, cost: 0, gmv: 2700, Pu: 2700, Pl: 0 }
+      ]
+    }
+  ];
+
+  const F = {
+    score: String.raw`\begin{aligned}j_i^*(\mu)&=\arg\max_j\bigl(bcr_{ij}\\&\quad-\mu_c\tilde c_{ij}-\mu_r\tilde r_{ij}\bigr)\end{aligned}`,
+    dual: String.raw`\begin{aligned}D(\mu)&=\sum_i\max_j\bigl(bcr_{ij}\\&\quad-\mu_c\tilde c_{ij}-\mu_r\tilde r_{ij}\bigr)\end{aligned}`,
+    residual: String.raw`\begin{aligned}c_{ij}&=bcr_{ij}(cost_{ij}\\&\qquad-\alpha\widehat{gmv}_{ij})\\r_{ij}&=I_i(\beta P_{ij}^u-P_{ij}^l)\end{aligned}`,
+    box: String.raw`\begin{aligned}B_k&=\max\bigl(1,D(0)\bigr)\\0&\le\mu_k\le B_k\end{aligned}`,
+    cut: String.raw`\begin{aligned}D(\mu)&\ge D(\mu^{(q)})\\&\quad+\tilde\Gamma(\mu^{(q)})^\top(\mu^{(q)}-\mu)\end{aligned}`,
+    master: String.raw`\begin{aligned}LB&=\min_{\mu,t}\,t\\\mathrm{s.t.}\quad t&\ge D_q+\tilde\Gamma_q^\top(\mu^{(q)}-\mu)\\\mu&\in[0,B]\end{aligned}`,
+    level: String.raw`\begin{aligned}\mathrm{level}&=LB\\&\quad+\kappa(D_{\mathrm{best}}-LB)\end{aligned}`,
+    gap: String.raw`\mathrm{gap}=\frac{D_{\mathrm{best}}-LB}{\max(1,|D_{\mathrm{best}}|)}`,
+    lambda: String.raw`\begin{aligned}\lambda_c^*&=\mu_c^*/S^c\\\lambda_r^*&=\mu_r^*/S^r\end{aligned}`
+  };
+
+  const PRESETS = [
+    { id: "report", name: "基准预设：α=3pp，β=93%", alpha: 3, beta: 0.93, lucky: true, kappa: 0.5, gapIdx: 1, maxIter: 45 },
+    { id: "loose", name: "更松补贴：α=5pp", alpha: 5, beta: 0.93, lucky: true, kappa: 0.5, gapIdx: 1, maxIter: 45 },
+    { id: "tight", name: "拧紧水位：β=96%", alpha: 3, beta: 0.96, lucky: true, kappa: 0.5, gapIdx: 1, maxIter: 45 },
+    { id: "1d", name: "无幸运一维", alpha: 3, beta: 0.93, lucky: false, kappa: 0.5, gapIdx: 1, maxIter: 45 },
+    { id: "teach", name: "教学快看：放松 gap", alpha: 3, beta: 0.93, lucky: true, kappa: 0.5, gapIdx: 18, maxIter: 12 }
+  ];
+
+  const state = {
+    lucky: true,
+    film: [],
+    idx: 0,
+    playing: false,
+    timer: null,
+    heat: null,
+    view: [2, 2]
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function fmt(x, d = 4) {
+    if (!Number.isFinite(x)) return "—";
+    const a = Math.abs(x);
+    if (a !== 0 && (a < 1e-3 || a >= 1e4)) return x.toExponential(3);
+    return x.toFixed(d);
+  }
+  function gapTolFromSlider(v) { return 2e-5 * Number(v); }
+  function tex(el, src) {
+    if (!el) return;
+    try { katex.render(src, el, { throwOnError: false, displayMode: true }); }
+    catch { el.textContent = src; }
+  }
+  function texInline(node) {
+    if (!node) return;
+    const html = node.innerHTML;
+    if (!html.includes("$")) return;
+    node.innerHTML = html.replace(/\$([^$]+)\$/g, (_, m) => {
+      const span = document.createElement("span");
+      try { katex.render(m, span, { throwOnError: false, displayMode: false }); }
+      catch { span.textContent = m; }
+      return span.outerHTML;
+    });
+  }
+  function texInlineWalk(root) {
+    root.querySelectorAll("p, .lead, .hero-note, .tiny, .sub, .story-body, .story-title, .pipe .t, h2, .meter .l, .readout, .toggles label, .label span, .chip, .legend span, .glossary tbody th, .glossary td").forEach((node) => {
+      if (node.dataset.texed) return;
+      texInline(node);
+      node.dataset.texed = "1";
+    });
+  }
+
+  function clonePoint(p) {
+    return {
+      mu: p.mu.slice(),
+      dual: p.dual,
+      objective: p.objective,
+      residual: p.residual.slice(),
+      choices: p.choices.slice(),
+      detail: p.detail,
+      rho: p.rho,
+      water: p.water
+    };
+  }
+
+  function buildProblem(alpha, beta, lucky) {
+    const rows = RAW.map((b) => {
+      const useI = lucky ? b.I : 0;
+      return {
+        ...b,
+        I: useI,
+        actions: b.actions.map((a) => ({
+          ...a,
+          c: a.bcr * (a.cost - alpha * a.gmv),
+          r: useI * (beta * a.Pu - a.Pl)
+        }))
+      };
+    });
+
+    function pickRef(b) {
+      let j = 0, best = -Infinity, key = [Infinity, Infinity];
+      b.actions.forEach((a, i) => {
+        const better = a.bcr > best + 1e-15 ||
+          (Math.abs(a.bcr - best) <= 1e-15 && (a.c < key[0] || (a.c === key[0] && a.r < key[1])));
+        if (better) { best = a.bcr; key = [a.c, a.r]; j = i; }
+      });
+      return j;
+    }
+    const refs = rows.map(pickRef);
+    let Sc = 0, Sr = 0;
+    rows.forEach((b, i) => {
+      const a = b.actions[refs[i]];
+      Sc += a.bcr * a.gmv;
+      if (b.I) Sr += a.Pu;
+    });
+    if (Sr <= 0) Sr = 1;
+    return { rows, refs, Sc, Sr, alpha, beta, lucky: lucky && rows.some((b) => b.I) };
+  }
+
+  function evaluate(prob, mu) {
+    const muC = mu[0];
+    const muR = prob.lucky ? mu[1] : 0;
+    let D = 0, X = 0, Gc = 0, Gr = 0, cost = 0, gmv = 0, Pu = 0, Pl = 0;
+    const choices = [];
+    const detail = [];
+    for (const b of prob.rows) {
+      let bestJ = 0, bestScore = -Infinity, bestKey = [Infinity, Infinity];
+      const scores = [];
+      b.actions.forEach((a, j) => {
+        const ct = a.c / prob.Sc;
+        const rt = prob.lucky ? a.r / prob.Sr : 0;
+        const score = a.bcr - muC * ct - muR * rt;
+        scores.push({ score, ct, rt });
+        const better = score > bestScore + 1e-15 ||
+          (Math.abs(score - bestScore) <= 1e-15 && (ct < bestKey[0] || (ct === bestKey[0] && rt < bestKey[1])));
+        if (better) { bestScore = score; bestKey = [ct, rt]; bestJ = j; }
+      });
+      const a = b.actions[bestJ];
+      D += bestScore;
+      X += a.bcr;
+      Gc += a.c / prob.Sc;
+      Gr += prob.lucky ? a.r / prob.Sr : 0;
+      cost += a.bcr * a.cost;
+      gmv += a.bcr * a.gmv;
+      if (b.I) { Pu += a.Pu; Pl += a.Pl; }
+      choices.push(bestJ);
+      detail.push({ scores, bestJ });
+    }
+    return {
+      mu: [muC, muR],
+      dual: D,
+      objective: X,
+      residual: [Gc, Gr],
+      choices,
+      detail,
+      rho: gmv > 0 ? cost / gmv : 0,
+      water: Pu > 0 ? Pl / Pu : NaN
+    };
+  }
+
+  function prefer(a, b) {
+    if (b.dual < a.dual - 1e-9) return b;
+    if (Math.abs(b.dual - a.dual) <= 1e-9) {
+      if (b.mu[0] < a.mu[0] - 1e-15 || (Math.abs(b.mu[0] - a.mu[0]) <= 1e-15 && b.mu[1] < a.mu[1])) return b;
+    }
+    return a;
+  }
+
+  function envelopeAt(mu, cuts) {
+    let m = -Infinity;
+    for (const cut of cuts) {
+      const val = cut.dual + cut.res[0] * (cut.mu[0] - mu[0]) + cut.res[1] * (cut.mu[1] - mu[1]);
+      if (val > m) m = val;
+    }
+    return m;
+  }
+
+  function det3(A) {
+    return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1])
+      - A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0])
+      + A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
+  }
+  function solve3(A, b) {
+    const D = det3(A);
+    if (Math.abs(D) < 1e-12) return null;
+    const swap = (j) => A.map((row, i) => row.map((v, k) => (k === j ? b[i] : v)));
+    return [det3(swap(0)) / D, det3(swap(1)) / D, det3(swap(2)) / D];
+  }
+  function cutIntercept(c) {
+    return c.dual + c.res[0] * c.mu[0] + c.res[1] * c.mu[1];
+  }
+  function master(cuts, box, lucky) {
+    const eqs = lucky
+      ? [{ A: [1, 0, 0], b: 0 }, { A: [1, 0, 0], b: box[0] }, { A: [0, 1, 0], b: 0 }, { A: [0, 1, 0], b: box[1] }]
+      : [{ A: [1, 0, 0], b: 0 }, { A: [1, 0, 0], b: box[0] }, { A: [0, 1, 0], b: 0 }];
+    cuts.forEach((c) => eqs.push({ A: [c.res[0], c.res[1], 1], b: cutIntercept(c) }));
+    let best = Infinity, bestMu = [0, 0];
+    const n = eqs.length;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        for (let k = j + 1; k < n; k++) {
+          const x = solve3([eqs[i].A, eqs[j].A, eqs[k].A], [eqs[i].b, eqs[j].b, eqs[k].b]);
+          if (!x || !x.every(Number.isFinite)) continue;
+          const mu = [x[0], lucky ? x[1] : 0], t = x[2];
+          if (mu[0] < -1e-7 || mu[0] > box[0] + 1e-7) continue;
+          if (lucky && (mu[1] < -1e-7 || mu[1] > box[1] + 1e-7)) continue;
+          if (!lucky && Math.abs(x[1]) > 1e-6) continue;
+          if (cuts.some((c) => t + 1e-7 < envelopeAt(mu, [c]))) continue;
+          if (t < best - 1e-12 || (Math.abs(t - best) <= 1e-12 && (mu[0] < bestMu[0] || (mu[0] === bestMu[0] && mu[1] < bestMu[1])))) {
+            best = t;
+            bestMu = mu;
+          }
+        }
+      }
+    }
+    if (!Number.isFinite(best)) return { lb: envelopeAt([0, 0], cuts), mu: [0, 0] };
+    return { lb: best, mu: bestMu };
+  }
+
+  function project(cuts, box, center, level, lucky) {
+    let bestD = Infinity, bestMu = null;
+    const n = lucky ? 140 : 320;
+    for (let i = 0; i <= n; i++) {
+      const mc = (i / n) * box[0];
+      const jr = lucky ? n : 0;
+      for (let j = 0; j <= jr; j++) {
+        const mr = lucky ? (j / n) * box[1] : 0;
+        if (envelopeAt([mc, mr], cuts) <= level + 1e-8) {
+          const d = Math.max(Math.abs(mc - center[0]), Math.abs(mr - center[1]));
+          if (d < bestD - 1e-12) { bestD = d; bestMu = [mc, mr]; }
+        }
+      }
+    }
+    return bestMu;
+  }
+
+  function makeCut(p) {
+    return { mu: p.mu.slice(), dual: p.dual, res: p.residual.slice() };
+  }
+
+  function snapshot(extra, live) {
+    return {
+      phase: extra.phase,
+      title: extra.title,
+      body: extra.body,
+      formula: extra.formula,
+      note: extra.note || "",
+      anim: extra.anim || "none",
+      kind: extra.kind || "",
+      cuts: live.cuts.map((c) => ({ mu: c.mu.slice(), dual: c.dual, res: c.res.slice() })),
+      box: live.box.slice(),
+      best: clonePoint(live.best),
+      center: live.center.slice(),
+      trial: live.trial ? clonePoint(live.trial) : null,
+      lbMu: live.lbMu ? live.lbMu.slice() : null,
+      lb: live.lb,
+      level: live.level,
+      gap: live.gap,
+      lastEval: live.lastEval ? clonePoint(live.lastEval) : null,
+      output: extra.output || "",
+      iteration: live.iteration || 0
+    };
+  }
+
+  function buildFilm(cfg) {
+    const alpha = cfg.alpha / 100;
+    const prob = buildProblem(alpha, cfg.beta, cfg.lucky);
+    const film = [];
+    const live = {
+      cuts: [],
+      box: [1, 1],
+      best: null,
+      center: [0, 0],
+      trial: null,
+      lbMu: null,
+      lb: -Infinity,
+      level: null,
+      gap: Infinity,
+      lastEval: null,
+      iteration: 0
+    };
+    const push = (extra) => film.push(snapshot(extra, live));
+
+    const minC = prob.rows.reduce((s, b) => s + Math.min(...b.actions.map((a) => a.c)), 0);
+    live.lastEval = evaluate(prob, [0, 0]);
+    live.best = clonePoint(live.lastEval);
+    if (minC > 1e-6) {
+      push({
+        phase: "B1", title: "补贴率不可行",
+        body: "每个冒泡都选 $c$ 最小的动作后，组级残差仍大于 $\\varepsilon$。这组直接判不可行，不再搜乘子。",
+        formula: "residual", note: "对应阶段 1 第一步：检查最小残差是否可行。",
+        output: `min_c 组残差 = ${fmt(minC)}`
+      });
+      return { film, prob };
+    }
+
+    push({
+      phase: "B1", title: "零乘子：先只看完单",
+      body: "先在 $\\mu=0$ 评估。每个冒泡选 $bcr$ 最大的动作，得到 $D(0)=X(0)$。此时补贴和水位通常都被踩破，所以后面要用乘子把分数压下去。",
+      formula: "score", note: "内层基于当前乘子执行 $\\arg\\max$ 选择动作。",
+      anim: "oracle", kind: "eval0"
+    });
+
+    const active = [true, prob.lucky];
+    const box = [0, 0];
+    const D0 = live.lastEval.dual;
+    for (let k = 0; k < 2; k++) box[k] = active[k] ? Math.max(1, D0) : 0;
+    live.box = box.slice();
+    push({
+      phase: "B1", title: "先框住搜索盒",
+      body: `活动维的初始上界取 $\\max(1,D(0))=${fmt(Math.max(1, D0), 3)}$。若零点残差仍超容差，就沿该轴最多倍增 60 次，最后再把活动维上界乘 2。`,
+      formula: "box", note: "$D(0)$ 等于 $X(0)$，倍增确定搜索盒上界。"
+    });
+
+    for (let k = 0; k < 2; k++) {
+      if (!active[k]) continue;
+      if (live.lastEval.residual[k] <= 1e-6) continue;
+      for (let t = 0; t < 60; t++) {
+        const mu = [0, 0];
+        mu[k] = box[k];
+        live.lastEval = evaluate(prob, mu);
+        if (live.lastEval.residual[k] <= 1e-6) break;
+        box[k] *= 2;
+        live.box = box.slice();
+        push({
+          phase: "B1", title: `第 ${k === 0 ? "补贴率" : "水位"} 维还没括住`,
+          body: `轴上 $\\mu=${fmt(mu[k], 3)}$ 的残差仍为正，把该维上界倍增到 ${fmt(box[k], 3)}。`,
+          formula: "box", anim: "oracle"
+        });
+      }
+    }
+    for (let k = 0; k < 2; k++) if (active[k]) box[k] *= 2;
+    live.box = box.slice();
+
+    const zero = evaluate(prob, [0, 0]);
+    live.lastEval = zero;
+    live.best = clonePoint(zero);
+    live.cuts = [makeCut(zero), makeCut(evaluate(prob, [0, 0]))];
+    live.center = live.best.mu.slice();
+    push({
+      phase: "B1", title: "两张零点初始割",
+      body: "从原点冷启动，放两张相同的零点割。每张割是 $D$ 在该点的支撑超平面，斜率是 $-\\tilde\\Gamma$。",
+      formula: "cut",
+      note: "对齐 standalone 冷启动割平面初始化。",
+      output: `盒 = [${fmt(box[0], 3)}, ${fmt(box[1], 3)}]\nS^c = ${fmt(prob.Sc, 1)}　S^r = ${fmt(prob.Sr, 1)}`
+    });
+
+    let center = live.best.mu.slice();
+    let centerDual = live.best.dual;
+    let converged = false;
+    let completed = 0;
+    for (let it = 1; it <= cfg.maxIter; it++) {
+      completed = it;
+      live.iteration = it;
+      let { lb, mu: lbMu } = master(live.cuts, box, prob.lucky);
+      live.lb = lb;
+      live.lbMu = lbMu;
+      live.level = null;
+      live.trial = null;
+      let gap = (live.best.dual - lb) / Math.max(1, Math.abs(live.best.dual));
+      live.gap = gap;
+      push({
+        phase: "B2", title: `第 ${it} 轮：解主问题`,
+        body: "在整个搜索盒上求所有割的下包络最低点，不另加信赖域。这个最低点就是当前盒内下界 $LB$。",
+        formula: "master",
+        kind: "master"
+      });
+      if (gap <= cfg.gapTol) {
+        converged = true;
+        push({
+          phase: "B3", title: "相对 gap 已经够小",
+          body: `当前 $\\mathrm{gap}=${fmt(gap, 6)}\\le ${cfg.gapTol.toExponential(0)}$，停止加割。`,
+          formula: "gap"
+        });
+        break;
+      }
+      const hit = [lbMu[0] >= 0.995 * box[0], prob.lucky && lbMu[1] >= 0.995 * box[1]];
+      if (hit[0] || hit[1]) {
+        if (hit[0]) box[0] *= 2;
+        if (hit[1]) box[1] *= 2;
+        live.box = box.slice();
+        ({ lb, mu: lbMu } = master(live.cuts, box, prob.lucky));
+        live.lb = lb;
+        live.lbMu = lbMu;
+        push({
+          phase: "B2", title: "下界点贴边，扩盒",
+          body: "主问题给出的下界点顶到某维上界的 $99.5\\%$，把该维乘 2，再解一次主问题。",
+          formula: "box"
+        });
+      }
+      const level = lb + cfg.kappa * (live.best.dual - lb);
+      live.level = level;
+      push({
+        phase: "B2", title: "在上下界之间放一层水面",
+        body: `$\\mathrm{level}$ 取 $LB$ 与 $D_{\\mathrm{best}}$ 的中点（可调 $\\kappa$）。下一个割平面（Cutting Plane）试探点不直接取最低点，而是选在离中心最近、又够得着这层水面的点。`,
+        formula: "level"
+      });
+      let trialMu = project(live.cuts, box, center, level, prob.lucky);
+      if (!trialMu) trialMu = lbMu;
+      const trial = evaluate(prob, trialMu);
+      live.trial = clonePoint(trial);
+      live.lastEval = trial;
+      push({
+        phase: "B2", title: `试探点 $\\mu=(${fmt(trialMu[0], 3)},\\ ${fmt(trialMu[1], 3)})$`,
+        body: "在割模型值不超过 level 的区域内，找与当前中心的 $L^\\infty$ 距离最小的点，然后做一次真实内层 $\\arg\\max$。",
+        formula: "score",
+        anim: "oracle",
+        kind: "trial"
+      });
+      live.cuts.push(makeCut(trial));
+      const predicted = Math.max(0, centerDual - level);
+      const actual = centerDual - trial.dual;
+      const serious = actual >= 0.1 * predicted;
+      if (serious) {
+        center = trial.mu.slice();
+        centerDual = trial.dual;
+      }
+      live.center = center.slice();
+      live.best = prefer(live.best, trial);
+      live.gap = (live.best.dual - live.lb) / Math.max(1, Math.abs(live.best.dual));
+      push({
+        phase: "B2",
+        title: serious ? "serious step：搬中心" : "null step：只加割",
+        body: serious
+          ? `实际下降 ${fmt(actual, 4)} ≥ 10% × 预测下降 ${fmt(predicted, 4)}，把中心搬到试探点。`
+          : `实际下降 ${fmt(actual, 4)} 不到预测的 10%，中心不动，只把这张新割留下。`,
+        formula: "cut",
+        kind: serious ? "serious" : "null",
+        note: `割数 K = ${live.cuts.length}`
+      });
+    }
+
+    const last = master(live.cuts, box, prob.lucky);
+    live.lb = last.lb;
+    live.lbMu = last.mu;
+    live.gap = (live.best.dual - live.lb) / Math.max(1, Math.abs(live.best.dual));
+    live.lastEval = evaluate(prob, live.best.mu);
+    live.best = clonePoint(live.lastEval);
+    const lamC = live.best.mu[0] / prob.Sc;
+    const lamR = live.best.mu[1] / prob.Sr;
+    push({
+      phase: "B4",
+      title: "输出乘子、下界和选中动作",
+      body: "停机后再解一次主问题，并在最好乘子点回放逐冒泡选动作。线上按 $\\lambda^*$ 重新执行同一套 $\\arg\\max$ 即得选定动作。",
+      formula: "lambda",
+      anim: "oracle",
+      output: [
+        `stop = ${converged ? "RELATIVE_GAP" : "ITERATION_LIMIT"}　迭代 ${completed}`,
+        `μ*  = (${fmt(live.best.mu[0], 6)}, ${fmt(live.best.mu[1], 6)})`,
+        `λ*  = (${fmt(lamC, 8)}, ${fmt(lamR, 8)})`,
+        `D*  = ${fmt(live.best.dual, 6)}`,
+        `LB  = ${fmt(live.lb, 6)}`,
+        `gap = ${fmt(live.gap, 8)}`,
+        `X   = ${fmt(live.best.objective, 4)}`,
+        `ρ   = ${(live.best.rho * 100).toFixed(3)}%`,
+        `选中水位 = ${Number.isFinite(live.best.water) ? (live.best.water * 100).toFixed(3) + "%" : "—"}`,
+        `Γ̃  = (${fmt(live.best.residual[0], 6)}, ${fmt(live.best.residual[1], 6)})`,
+        `线性残差 ${live.best.residual[0] <= 1e-6 && live.best.residual[1] <= 1e-6 ? "可行" : "仍有正分量（角点 argmax 只取一张次梯度）"}`
+      ].join("\n")
+    });
+    return { film, prob };
+  }
+
+  const WORLD = { size: 10, height: 5.2 };
+
+  function buildHeat(prob, view) {
+    const n = 72;
+    const grid = new Float64Array((n + 1) * (n + 1));
+    let lo = Infinity, hi = -Infinity;
+    for (let j = 0; j <= n; j++) {
+      const mr = (j / n) * view[1];
+      for (let i = 0; i <= n; i++) {
+        const mc = (i / n) * view[0];
+        const d = evaluate(prob, [mc, mr]).dual;
+        grid[j * (n + 1) + i] = d;
+        if (d < lo) lo = d;
+        if (d > hi) hi = d;
+      }
+    }
+    return { n, grid, lo, hi, view: view.slice() };
+  }
+
+  function colorD(t) {
+    const stops = [[26, 18, 12], [138, 61, 22], [210, 102, 44], [232, 213, 181]];
+    const x = Math.min(1, Math.max(0, t)) * (stops.length - 1);
+    const i = Math.min(stops.length - 2, Math.floor(x));
+    const f = x - i;
+    const a = stops[i], b = stops[i + 1];
+    return `rgb(${a[0] + (b[0] - a[0]) * f | 0},${a[1] + (b[1] - a[1]) * f | 0},${a[2] + (b[2] - a[2]) * f | 0})`;
+  }
+
+  function wx(mc) { return (mc / Math.max(state.view[0], 1e-9)) * WORLD.size; }
+  function wz(mr) { return (mr / Math.max(state.view[1], 1e-9)) * WORLD.size; }
+  function wy(val) {
+    const lo = state.range.lo, hi = state.range.hi;
+    return ((val - lo) / Math.max(1e-9, hi - lo)) * WORLD.height;
+  }
+  function rgb01(t) {
+    const stops = [[26, 18, 12], [138, 61, 22], [210, 102, 44], [232, 213, 181]];
+    const x = Math.min(1, Math.max(0, t)) * (stops.length - 1);
+    const i = Math.min(stops.length - 2, Math.floor(x));
+    const f = x - i;
+    const a = stops[i], b = stops[i + 1];
+    return [(a[0] + (b[0] - a[0]) * f) / 255, (a[1] + (b[1] - a[1]) * f) / 255, (a[2] + (b[2] - a[2]) * f) / 255];
+  }
+  function disposeObj(obj) {
+    obj.traverse((ch) => {
+      if (ch.geometry) ch.geometry.dispose();
+      const mats = ch.material ? (Array.isArray(ch.material) ? ch.material : [ch.material]) : [];
+      mats.forEach((m) => {
+        if (m.map) m.map.dispose();
+        m.dispose();
+      });
+    });
+  }
+  function clearGroup(g) {
+    while (g.children.length) {
+      const ch = g.children.pop();
+      disposeObj(ch);
+    }
+  }
+  function makeLabel(text, color) {
+    const c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 64;
+    const g = c.getContext("2d");
+    g.clearRect(0, 0, 256, 64);
+    g.font = "600 34px PingFang SC, Noto Sans SC, sans-serif";
+    g.fillStyle = color;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(text, 128, 32);
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+    s.scale.set(1.7, 0.42, 1);
+    return s;
+  }
+  function heightGeometry(fn, nx, nz, colorFn) {
+    const positions = [];
+    const colors = [];
+    const indices = [];
+    for (let j = 0; j <= nz; j++) {
+      for (let i = 0; i <= nx; i++) {
+        const u = i / nx, v = j / nz;
+        const val = fn(u * state.view[0], v * state.view[1]);
+        positions.push(u * WORLD.size, wy(val), v * WORLD.size);
+        const col = colorFn(val, u, v);
+        colors.push(col[0], col[1], col[2]);
+      }
+    }
+    for (let j = 0; j < nz; j++) {
+      for (let i = 0; i < nx; i++) {
+        const a = j * (nx + 1) + i;
+        const b = a + 1;
+        const c = a + nx + 1;
+        const d = c + 1;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
+  }
+  function addStem(group, x, y, z, color, label) {
+    const ball = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 18, 14),
+      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.4, roughness: 0.35 })
+    );
+    ball.position.set(x, y, z);
+    group.add(ball);
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 0, z), new THREE.Vector3(x, y, z)]),
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.75 })
+    );
+    group.add(line);
+    const lab = makeLabel(label, "#efe6d4");
+    lab.position.set(x, y + 0.32, z);
+    group.add(lab);
+  }
+  function attachOrbit(camera, dom, target) {
+    const orb = {
+      rotX: 0.52,
+      rotY: 0.78,
+      dist: 21,
+      target,
+      autoRotate: false,
+      dragging: false,
+      lastX: 0,
+      lastY: 0,
+      apply() {
+        const { rotX, rotY, dist } = orb;
+        camera.position.set(
+          target.x + dist * Math.sin(rotY) * Math.cos(rotX),
+          target.y + dist * Math.sin(rotX),
+          target.z + dist * Math.cos(rotY) * Math.cos(rotX)
+        );
+        camera.lookAt(target);
+      },
+      update() {
+        if (orb.autoRotate && !orb.dragging) orb.rotY += 0.004;
+        orb.apply();
+      },
+      reset() {
+        orb.rotX = 0.52;
+        orb.rotY = 0.78;
+        orb.dist = 21;
+        target.set(WORLD.size * 0.46, WORLD.height * 0.42, WORLD.size * 0.42);
+        orb.apply();
+      }
+    };
+    dom.addEventListener("pointerdown", (e) => {
+      orb.dragging = true;
+      orb.lastX = e.clientX;
+      orb.lastY = e.clientY;
+      dom.setPointerCapture(e.pointerId);
+    });
+    dom.addEventListener("pointerup", () => { orb.dragging = false; });
+    dom.addEventListener("pointermove", (e) => {
+      if (!orb.dragging) return;
+      orb.rotY -= (e.clientX - orb.lastX) * 0.005;
+      orb.rotX = Math.min(1.15, Math.max(0.12, orb.rotX + (e.clientY - orb.lastY) * 0.005));
+      orb.lastX = e.clientX;
+      orb.lastY = e.clientY;
+    });
+    dom.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      orb.dist = Math.min(32, Math.max(5.5, orb.dist * (1 + e.deltaY * 0.0012)));
+    }, { passive: false });
+    orb.apply();
+    return orb;
+  }
+  function defaultCamera() {
+    if (state.three) state.three.controls.reset();
+  }
+  function resize3D() {
+    const t = state.three;
+    if (!t) return;
+    const w = t.host.clientWidth, h = t.host.clientHeight;
+    if (w < 8 || h < 8) return;
+    t.camera.aspect = w / h;
+    t.camera.zoom = Math.min(1, w / h);
+    t.camera.updateProjectionMatrix();
+    t.renderer.setSize(w, h, false);
+  }
+  function init3D() {
+    if (typeof THREE === "undefined") {
+      $("view3d").insertAdjacentHTML("beforeend", "<div class='pad'>未能加载 Three.js，三维场景无法启动。</div>");
+      return;
+    }
+    const host = $("view3d");
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x0a0907, 1);
+    host.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0a0907, 22, 42);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.08, 80);
+    const controls = attachOrbit(
+      camera,
+      renderer.domElement,
+      new THREE.Vector3(WORLD.size * 0.46, WORLD.height * 0.42, WORLD.size * 0.42)
+    );
+    scene.add(new THREE.AmbientLight(0x6d6456, 0.55));
+    const hemi = new THREE.HemisphereLight(0xefe6d4, 0x1a120c, 0.7);
+    scene.add(hemi);
+    const key = new THREE.DirectionalLight(0xffd7a8, 0.95);
+    key.position.set(8, 14, 6);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0x2a9a92, 0.35);
+    fill.position.set(-10, 6, -8);
+    scene.add(fill);
+    const staticG = new THREE.Group();
+    const dyn = new THREE.Group();
+    scene.add(staticG);
+    scene.add(dyn);
+    state.three = {
+      renderer, scene, camera, controls, host,
+      staticG, dyn,
+      dual: null,
+      raycaster: new THREE.Raycaster(),
+      pointer: new THREE.Vector2()
+    };
+    defaultCamera();
+    resize3D();
+    renderer.domElement.addEventListener("pointermove", (ev) => {
+      const t = state.three;
+      const r = renderer.domElement.getBoundingClientRect();
+      t.pointer.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+      t.pointer.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+      if (!t.dual || !state.snap || !state.prob) return;
+      t.raycaster.setFromCamera(t.pointer, t.camera);
+      const hit = t.raycaster.intersectObject(t.dual, false)[0];
+      if (!hit) return;
+      const mc = (hit.point.x / WORLD.size) * state.view[0];
+      const mr = (hit.point.z / WORLD.size) * state.view[1];
+      const d = evaluate(state.prob, [mc, mr]).dual;
+      const env = state.snap.cuts.length ? envelopeAt([mc, mr], state.snap.cuts) : NaN;
+      $("readout").innerHTML = `μ=(${fmt(mc, 3)}, ${fmt(mr, 3)})<br>D=${fmt(d, 4)}<br>割模型=${Number.isFinite(env) ? fmt(env, 4) : "—"}`;
+    });
+    const loop = () => {
+      requestAnimationFrame(loop);
+      const t = state.three;
+      t.controls.autoRotate = state.playing || ($("togSpin") && $("togSpin").checked);
+      t.controls.update();
+      t.renderer.render(t.scene, t.camera);
+    };
+    loop();
+    new ResizeObserver(resize3D).observe(host);
+  }
+  function updateRange(snap) {
+    let lo = state.heat.lo, hi = state.heat.hi;
+    if (snap.cuts.length) {
+      for (let i = 0; i <= 10; i++) {
+        for (let j = 0; j <= 10; j++) {
+          const e = envelopeAt([(i / 10) * state.view[0], (j / 10) * state.view[1]], snap.cuts);
+          lo = Math.min(lo, e);
+          hi = Math.max(hi, e);
+        }
+      }
+    }
+    if (snap.level != null) { lo = Math.min(lo, snap.level); hi = Math.max(hi, snap.level); }
+    if (Number.isFinite(snap.lb) && snap.lb > -1e12) lo = Math.min(lo, snap.lb);
+    const pad = Math.max(0.04, (hi - lo) * 0.14);
+    state.range = { lo: lo - pad * 0.4, hi: hi + pad };
+  }
+  function rebuildStatic() {
+    const t = state.three;
+    if (!t) return;
+    clearGroup(t.staticG);
+    const axis = new THREE.Group();
+    const mkLine = (a, b, color) => new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([a, b]),
+      new THREE.LineBasicMaterial({ color })
+    );
+    axis.add(mkLine(new THREE.Vector3(0, 0, 0), new THREE.Vector3(WORLD.size, 0, 0), 0xd2662c));
+    axis.add(mkLine(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, WORLD.size), 0x2a9a92));
+    axis.add(mkLine(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, WORLD.height, 0), 0xd4b056));
+    const lx = makeLabel("μ_c", "#d2662c"); lx.position.set(WORLD.size + 0.3, 0.15, 0); axis.add(lx);
+    const lz = makeLabel("μ_r", "#2a9a92"); lz.position.set(0, 0.15, WORLD.size + 0.3); axis.add(lz);
+    const ly = makeLabel("D(μ)", "#d4b056"); ly.position.set(0, WORLD.height + 0.25, 0); axis.add(ly);
+    t.staticG.add(axis);
+    const grid = new THREE.GridHelper(WORLD.size, 10, 0x3d362b, 0x2a241b);
+    grid.position.set(WORLD.size / 2, 0.001, WORLD.size / 2);
+    t.staticG.add(grid);
+    const heat = state.heat;
+    const dualGeo = heightGeometry(
+      (mc, mr) => evaluate(state.prob, [mc, mr]).dual,
+      36,
+      36,
+      (val) => rgb01((val - heat.lo) / Math.max(1e-9, heat.hi - heat.lo))
+    );
+    const dual = new THREE.Mesh(
+      dualGeo,
+      new THREE.MeshPhongMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide,
+        shininess: 18,
+        transparent: true,
+        opacity: 0.92,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1
+      })
+    );
+    dual.visible = !$("togD") || $("togD").checked;
+    t.staticG.add(dual);
+    t.dual = dual;
+    const wire = new THREE.LineSegments(
+      new THREE.WireframeGeometry(dualGeo),
+      new THREE.LineBasicMaterial({ color: 0xe8d5b5, transparent: true, opacity: 0.12 })
+    );
+    wire.visible = dual.visible;
+    t.staticG.add(wire);
+    t.dualWire = wire;
+  }
+  function update3D(snap) {
+    const t = state.three;
+    if (!t || !state.heat) return;
+    updateRange(snap);
+    const key = state.view.join(",") + "|" + state.heat.lo + "|" + state.prob.lucky;
+    if (t.staticKey !== key) {
+      rebuildStatic();
+      t.staticKey = key;
+    }
+    if (t.dual) t.dual.visible = $("togD").checked;
+    if (t.dualWire) t.dualWire.visible = $("togD").checked;
+    clearGroup(t.dyn);
+    if ($("togEnv").checked && snap.cuts.length) {
+      const envGeo = heightGeometry(
+        (mc, mr) => envelopeAt([mc, mr], snap.cuts),
+        28,
+        28,
+        () => [42 / 255, 154 / 255, 146 / 255]
+      );
+      t.dyn.add(new THREE.Mesh(
+        envGeo,
+        new THREE.MeshPhongMaterial({
+          color: 0x2a9a92,
+          transparent: true,
+          opacity: 0.38,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        })
+      ));
+    }
+    if ($("togCuts").checked) {
+      snap.cuts.forEach((cut, idx) => {
+        const corners = [[0, 0], [state.view[0], 0], [state.view[0], state.view[1]], [0, state.view[1]]];
+        const pos = [];
+        corners.forEach(([mc, mr]) => {
+          const val = cut.dual + cut.res[0] * (cut.mu[0] - mc) + cut.res[1] * (cut.mu[1] - mr);
+          pos.push(wx(mc), wy(val), wz(mr));
+        });
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+        geo.setIndex([0, 1, 2, 0, 2, 3]);
+        geo.computeVertexNormals();
+        const newest = idx === snap.cuts.length - 1;
+        t.dyn.add(new THREE.Mesh(
+          geo,
+          new THREE.MeshStandardMaterial({
+            color: newest ? 0x7dcea0 : 0x2a9a92,
+            emissive: newest ? 0x1f6f6a : 0x000000,
+            emissiveIntensity: newest ? 0.25 : 0,
+            transparent: true,
+            opacity: newest ? 0.42 : 0.18,
+            side: THREE.DoubleSide,
+            depthWrite: false
+          })
+        ));
+        t.dyn.add(new THREE.LineLoop(
+          new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(pos[0], pos[1], pos[2]),
+            new THREE.Vector3(pos[3], pos[4], pos[5]),
+            new THREE.Vector3(pos[6], pos[7], pos[8]),
+            new THREE.Vector3(pos[9], pos[10], pos[11])
+          ]),
+          new THREE.LineBasicMaterial({ color: newest ? 0xb6f0df : 0x2a9a92, transparent: true, opacity: 0.85 })
+        ));
+      });
+    }
+    const bx = wx(Math.min(snap.box[0], state.view[0]));
+    const bz = wz(Math.max(state.prob.lucky ? Math.min(snap.box[1], state.view[1]) : state.view[1] * 0.04, 0.08));
+    const boxPts = [
+      new THREE.Vector3(0, 0, 0), new THREE.Vector3(bx, 0, 0),
+      new THREE.Vector3(bx, 0, 0), new THREE.Vector3(bx, 0, bz),
+      new THREE.Vector3(bx, 0, bz), new THREE.Vector3(0, 0, bz),
+      new THREE.Vector3(0, 0, bz), new THREE.Vector3(0, 0, 0)
+    ];
+    [0, bx].forEach((x) => [0, bz].forEach((z) => {
+      boxPts.push(new THREE.Vector3(x, 0, z), new THREE.Vector3(x, WORLD.height, z));
+    }));
+    t.dyn.add(new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(boxPts),
+      new THREE.LineBasicMaterial({ color: 0xd4b056, transparent: true, opacity: 0.55 })
+    ));
+    if ($("togLevel").checked && snap.level != null) {
+      const y = wy(snap.level);
+      const geo = new THREE.PlaneGeometry(bx, bz);
+      geo.rotateX(-Math.PI / 2);
+      const mesh = new THREE.Mesh(
+        geo,
+        new THREE.MeshStandardMaterial({
+          color: 0xd4b056,
+          emissive: 0x8a7328,
+          emissiveIntensity: 0.2,
+          transparent: true,
+          opacity: 0.28,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        })
+      );
+      mesh.position.set(bx / 2, y, bz / 2);
+      t.dyn.add(mesh);
+    }
+    if (snap.cuts.length) {
+      const path = snap.cuts.map((c) => new THREE.Vector3(wx(c.mu[0]), wy(c.dual), wz(c.mu[1])));
+      if (path.length > 1) {
+        t.dyn.add(new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(path),
+          new THREE.LineDashedMaterial({ color: 0xefe6d4, dashSize: 0.18, gapSize: 0.1, transparent: true, opacity: 0.45 })
+        ));
+        t.dyn.children[t.dyn.children.length - 1].computeLineDistances?.();
+      }
+    }
+    if (Number.isFinite(snap.lb) && snap.lbMu && snap.lb > -1e12) {
+      const x = wx(snap.lbMu[0]), z = wz(snap.lbMu[1]);
+      const y0 = wy(snap.lb), y1 = wy(snap.best.dual);
+      addStem(t.dyn, x, y0, z, 0x2a9a92, "LB");
+      t.dyn.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, y0, z), new THREE.Vector3(x, y1, z)]),
+        new THREE.LineBasicMaterial({ color: 0xc43b4b, transparent: true, opacity: 0.85 })
+      ));
+    }
+    addStem(t.dyn, wx(snap.center[0]), wy(evaluate(state.prob, snap.center).dual), wz(snap.center[1]), 0x7b93ff, "中心");
+    if (snap.trial) {
+      const tm = snap.trial.mu;
+      addStem(t.dyn, wx(tm[0]), wy(snap.trial.dual), wz(tm[1]), 0x3d9a58, "试探");
+      t.dyn.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(wx(snap.center[0]), 0.02, wz(snap.center[1])),
+          new THREE.Vector3(wx(tm[0]), 0.02, wz(tm[1]))
+        ]),
+        new THREE.LineBasicMaterial({ color: 0x3d9a58 })
+      ));
+    }
+    addStem(t.dyn, wx(snap.best.mu[0]), wy(snap.best.dual), wz(snap.best.mu[1]), 0xc43b4b, "最好");
+    if (state.playing || snap.kind === "trial" || snap.kind === "master") {
+      const look = snap.trial
+        ? new THREE.Vector3(wx(snap.trial.mu[0]), wy(snap.trial.dual), wz(snap.trial.mu[1]))
+        : new THREE.Vector3(wx(snap.best.mu[0]), wy(snap.best.dual), wz(snap.best.mu[1]));
+      t.controls.target.lerp(look, 0.18);
+    }
+  }
+
+  function renderOracles(prob, point) {
+    const root = $("oracles");
+    root.innerHTML = "";
+    prob.rows.forEach((b, i) => {
+      const el = document.createElement("div");
+      el.className = "bubble";
+      const win = point ? point.choices[i] : -1;
+      const scores = point ? point.detail[i].scores.map((s) => s.score) : b.actions.map((a) => a.bcr);
+      const lo = Math.min(...scores), hi = Math.max(...scores);
+      el.innerHTML = `<h4>${b.name} · ${b.city} · ${b.date}</h4>
+        <div class="meta">I=${b.I}　${b.I ? "水位残差生效" : "只受补贴率"}</div>` +
+        b.actions.map((a, j) => {
+          const t = hi === lo ? 0.5 : (scores[j] - lo) / (hi - lo);
+          return `<div class="act ${j === win ? "win" : ""}">
+            <div class="bar" data-w="${(20 + 80 * t).toFixed(1)}" style="width:0"></div>
+            <div class="row"><span>${a.tag}</span><span>bcr ${a.bcr.toFixed(2)}　score ${fmt(scores[j], 3)}</span></div>
+          </div>`;
+        }).join("");
+      root.appendChild(el);
+    });
+    requestAnimationFrame(() => {
+      root.querySelectorAll(".bar").forEach((bar) => { bar.style.width = bar.dataset.w + "%"; });
+    });
+  }
+
+  function show(i) {
+    const film = state.film;
+    if (!film.length) return;
+    state.idx = Math.max(0, Math.min(i, film.length - 1));
+    const snap = film[state.idx];
+    state.snap = snap;
+    const vr = state.prob.lucky ? Math.max(snap.box[1] * 1.05, 1e-6) : Math.max(snap.box[0] * 0.28, 0.8);
+    state.view = [Math.max(snap.box[0] * 1.05, 1e-6), vr];
+    if (!state.heat || Math.abs(state.heat.view[0] - state.view[0]) > 1e-6 || Math.abs(state.heat.view[1] - state.view[1]) > 1e-6) {
+      state.heat = buildHeat(state.prob, state.view);
+    }
+    document.querySelectorAll(".pipe").forEach((p) => p.classList.toggle("active", p.dataset.phase === snap.phase));
+    $("phaseTag").textContent = snap.phase.replace("B", "阶段 ") + (snap.iteration ? ` · 第 ${snap.iteration} 轮` : "");
+    $("storyTitle").className = "story-title" + (snap.kind === "serious" ? " serious" : snap.kind === "null" ? " nullstep" : "");
+    $("storyTitle").innerHTML = snap.title;
+    $("storyBody").innerHTML = snap.body;
+    texInline($("storyTitle"));
+    texInline($("storyBody"));
+    tex($("formulaMain"), F[snap.formula] || F.score);
+    $("formulaNote").textContent = snap.note || "";
+    texInline($("formulaNote"));
+    $("mDual").textContent = fmt(snap.best.dual, 4);
+    $("mLb").textContent = Number.isFinite(snap.lb) && snap.lb > -1e20 ? fmt(snap.lb, 4) : "—";
+    $("mGap").textContent = Number.isFinite(snap.gap) && snap.gap < 1e8 ? fmt(snap.gap, 6) : "—";
+    $("mCuts").textContent = String(snap.cuts.length);
+    const g = Number.isFinite(snap.gap) ? Math.max(0, Math.min(1, 1 - snap.gap / 0.05)) : 0;
+    $("gapFill").style.width = `${(g * 100).toFixed(1)}%`;
+    $("outputBox").textContent = snap.output || "";
+    $("stepLabel").textContent = `${state.idx + 1} / ${film.length}`;
+    renderOracles(state.prob, snap.lastEval || snap.best);
+    update3D(snap);
+    texInlineWalk(document);
+  }
+
+  function rebuild() {
+    stopPlay();
+    const cfg = {
+      alpha: Number($("alpha").value),
+      beta: Number($("beta").value),
+      lucky: state.lucky,
+      kappa: Number($("kappa").value),
+      gapTol: gapTolFromSlider($("gapTol").value),
+      maxIter: Number($("maxIter").value)
+    };
+    $("alphaVal").textContent = cfg.alpha.toFixed(1) + " pp";
+    $("betaVal").textContent = (cfg.beta * 100).toFixed(1) + "%";
+    $("kappaVal").textContent = cfg.kappa.toFixed(2);
+    $("gapVal").textContent = cfg.gapTol.toExponential(0);
+    $("iterVal").textContent = String(cfg.maxIter);
+    $("speedVal").textContent = Number($("speed").value).toFixed(1) + "×";
+    $("modeLucky").classList.toggle("on", cfg.lucky);
+    $("modeNoLucky").classList.toggle("on", !cfg.lucky);
+    const built = buildFilm(cfg);
+    state.film = built.film;
+    state.prob = built.prob;
+    state.heat = null;
+    show(0);
+  }
+
+  function stopPlay() {
+    state.playing = false;
+    $("btnPlay").textContent = "播放";
+    if (state.timer) { clearTimeout(state.timer); state.timer = null; }
+  }
+  function play() {
+    if (state.playing) { stopPlay(); return; }
+    state.playing = true;
+    $("btnPlay").textContent = "暂停";
+    const tick = () => {
+      if (!state.playing) return;
+      if (state.idx >= state.film.length - 1) { stopPlay(); return; }
+      show(state.idx + 1);
+      state.timer = setTimeout(tick, 900 / Number($("speed").value));
+    };
+    tick();
+  }
+
+  function applyPreset(p) {
+    $("alpha").value = p.alpha;
+    $("beta").value = p.beta;
+    $("kappa").value = p.kappa;
+    $("gapTol").value = p.gapIdx;
+    $("maxIter").value = p.maxIter;
+    state.lucky = p.lucky;
+    document.querySelectorAll("#presets .preset").forEach((el) => el.classList.toggle("on", el.dataset.id === p.id));
+    rebuild();
+  }
+
+  function init() {
+    texInlineWalk(document);
+    const box = $("presets");
+    PRESETS.forEach((p) => {
+      const b = document.createElement("button");
+      b.className = "preset" + (p.id === "report" ? " on" : "");
+      b.dataset.id = p.id;
+      b.textContent = p.name;
+      b.onclick = () => applyPreset(p);
+      box.appendChild(b);
+    });
+    ["alpha", "beta", "kappa", "gapTol", "maxIter"].forEach((id) => $(id).addEventListener("input", rebuild));
+    $("speed").addEventListener("input", () => { $("speedVal").textContent = Number($("speed").value).toFixed(1) + "×"; });
+    $("modeLucky").onclick = () => { state.lucky = true; rebuild(); };
+    $("modeNoLucky").onclick = () => { state.lucky = false; rebuild(); };
+    $("btnPlay").onclick = play;
+    $("btnStep").onclick = () => { stopPlay(); show(state.idx + 1); };
+    $("btnBack").onclick = () => { stopPlay(); show(state.idx - 1); };
+    $("btnReset").onclick = () => { stopPlay(); show(0); };
+    $("btnCam").onclick = () => { if (state.three) defaultCamera(); };
+    ["togD", "togCuts", "togEnv", "togLevel"].forEach((id) => {
+      $(id).addEventListener("change", () => { if (state.snap) update3D(state.snap); });
+    });
+    init3D();
+    rebuild();
+  }
+  init();
+  </script>
+</body>
+</html>

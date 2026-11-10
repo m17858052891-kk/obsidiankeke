@@ -1,0 +1,29 @@
+Apollo：<http://ab.intra.hongyibo.com.cn/abtest/v3/exp/251666>
+
+实验城市：
+
+青岛市、大连市、重庆市、长沙市、太原市、厦门市、绵阳市、秦皇岛市、温州市、舟山市、云浮市、江门市、杭州市、呼和浩特市、佛山市、柳州市、赣州市、泉州市、晋中市、河源市、石家庄市、济南市
+
+实验流量：40% VS 20% VS 40
+
+望岳：[https://ddp.intra.xiaojukeji.com/requirement/story/R-KF-393864?backUrl=/requirement/list?filterDirId=2200](https://ddp.intra.xiaojukeji.com/requirement/story/R-KF-393864?backUrl=/requirement/list?filterDirId=2200)
+
+实验配置：分单侧与PK侧实验组同时放量，对照组老策略
+
+- treatment_group:
+
+服务名称：花小猪PK完单率模型4 (==pk_hxz_finish_rate_4==) 
+
+模型版本：[pk_lr_explained_model_v2_v1](https://ether.intra.hongyibo.com.cn/model/10192?userModelId=15078)
+
+- ~~treatment_group:实验组~~ 
+
+~~服务名称：花小猪PK完单率模型3 (pk_hxz_finish_rate_3)~~ 
+
+~~模型版本：pk_lr_explained_model_v1~~
+
+- **==control_group==**：对照组  
+
+服务名称：花小猪PK完单率模型2 (pk_hxz_finish_rate_2) 
+
+模型版本：[pk_xgb_reason_v1](https://ether.intra.hongyibo.com.cn/model/9972?userModelId=14484)

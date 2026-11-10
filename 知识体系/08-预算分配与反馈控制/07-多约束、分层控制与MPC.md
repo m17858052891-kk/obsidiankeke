@@ -122,4 +122,4 @@ MPC 的“显式有约束”指求解的预测轨迹受到约束。模型错误�
 
 **问：MPC 与 RL 的区别只是有没有神经网络吗？** 不是。MPC 主要在线求解有限窗口规划，RL 主要从交互或日志中学习策略/价值；两者均可用神经网络、也可互相结合。
 
-参考：[Rawlings、Mayne 与 Diehl，Model Predictive Control](https://sites.engineering.ucsb.edu/~jbraw/mpc/)。论文联系：[[自动出价论文精读/04_GRM：怎样显式、可靠地满足预算与 CPA 约束？|GRM]]；长期策略学习：[[知识体系/05-强化学习/06-CMDP：预算约束与原始对偶学习|CMDP]]。
+参考：[Rawlings、Mayne 与 Diehl，Model Predictive Control](https://sites.engineering.ucsb.edu/~jbraw/mpc/)。论文联系：[[04_GRM：怎样显式、可靠地满足预算与 CPA 约束？|GRM]]；长期策略学习：[[知识体系/05-强化学习/06-CMDP：预算约束与原始对偶学习|CMDP]]。

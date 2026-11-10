@@ -1,0 +1,23 @@
+> PRD:[Cooper](https://cooper.didichuxing.com/docs/document/2200741697193)
+
+> 实验结论：
+
+> 效率指标上，小猪端CR显著+0.17PP，自营竞争成交率不显著-0.04PP，宏鹄竞争成交率不显著+0.06PP，API竞争成交率显著+0.46PP
+
+> 收益链路上，小猪端应答率显著+0.2PP，应答后乘客取消率(不含改派)不显著+0.03PP，小猪端应答时长-3.08%，符合收益链路
+
+> 实验结果：
+
+> ![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/8fUeqWT7eVkp80BV/%E5%9B%BE%E7%89%87.png?accessToken=eyJhbGciOiJIUzI1NiIsImtpZCI6ImRlZmF1bHQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3MDU5MjEwMjIsImZpbGVHVUlEIjoiSWdseTlFRGJ3UEp0MUtwNiIsImlhdCI6MTcwNTkyMDQyMiwiaXNzIjoidXBsb2FkZXJfYWNjZXNzX3Jlc291cmNlIiwidXNlcklkIjoxMDAwMDAyODk0NH0.YYXMnojiNIgw40lDkJ3_5_wa2FyFBOrruUH9ucX08NY)
+
+ 
+
+放量计划：
+
+| 日期 <br> | 放量 <br> |
+| --- | --- |
+| 1.23 <br> | 全国30%流量 <br> |
+| 1.25 <br> | 全国60%流量 <br> |
+| 1.29 <br> | 全国90%流量 <br> |
+
+放量到90%后停止放量，留10%的分组收集模型训练数据&作为长期对照组。

@@ -1,0 +1,206 @@
+# 一、线上策略现状
+
+线上PK动态窗口策略：策略组流量90%，空白组10%
+
+- 第1个司机举手开始计时，有司机举手时预测是否为Top1司机（阈值0.95），若是则与当前胜者（如有）比较PK分数，分数高者提前胜出
+
+其他影响PK窗口时长的策略：
+
+- 当单独勾选小猪自营运力时，举手司机可能会立即胜出，不受PK动态窗口策略的影响
+
+- 当Top1司机为提前举手或是滴滴司机时，PK动态窗口策略不适用，即不会提前胜出
+
+# 二、数据分析
+
+统计周期：2024-09-02～2024-09-08
+
+```PlainText
+with tb as 
+(
+    select distinct
+        a.order_id,
+        a.round_num,
+        a.driver_id,
+        is_win,
+        case when hands_up_driver_num = 1 then 'only' else 'both' end hands_up,
+        begin_time,
+        hands_up_time,
+        win_time,
+        case when unix_timestamp(win_time) - unix_timestamp(begin_time) <= 4 then unix_timestamp(win_time) - unix_timestamp(begin_time) else 9 end window_time,
+        case when cast(split(replace(replace(predict_value, '[', ''), ']', ''), ',')[3] as double) >= 0.95 then 1 else 0 end is_top1,
+        predict_value,
+        is_only_hxz,
+        win_scence
+    from 
+    (
+        select distinct
+            order_id,
+            round_num,
+            driverid driver_id,
+            hands_up_driver_num,
+            case when driverid = win_driverid then 1 else 0 end is_win,
+            from_unixtime(cast(win_time as bigint)) win_time
+        from
+            kflower_marketplace.kflower_allmatch_pk_round_info
+        where
+            dt between '${begin_date}' and '${end_date}'
+            and channelid = 3
+            and ether_output_value <> 0
+            and int(is_valid) = 1
+    ) a
+    join
+    (
+        select
+            order_id,
+            round_num,
+            driver_id,
+            begin_time,
+            hands_up_time
+        from
+        (
+            select distinct
+                order_id,
+                round_num,
+                driver_id,
+                server_time hands_up_time,
+                min(server_time) over(partition by order_id, round_num) begin_time,
+                row_number() over(partition by order_id, round_num, driver_id order by server_time) rn
+            from
+                kflower_dw.dwd_kf_trd_order_strivetender_di
+            where
+                dt between '${begin_date}' and '${end_date}'
+                and pk_type = 15
+        ) t
+        where rn = 1
+    ) b on a.order_id = b.order_id and a.round_num = b.round_num and a.driver_id = b.driver_id
+    join 
+    (
+        select distinct
+            cast(param['order_id'] as bigint) order_id,
+            cast(param['roundnum'] as bigint) round_num,
+            cast(param['driver_id'] as bigint) driver_id,
+            cast(param['is_only_hxz'] as bigint) is_only_hxz,
+            split(split(param['predict_value'], ':')[1], '}')[0] predict_value
+        from
+            kflower_strategy.ods_log_pk_hxz_deep_dri_pas_model
+        where
+            concat_ws('-',year,month,day) between '${begin_date}' and '${end_date}' 
+    ) c on a.order_id = c.order_id and a.round_num = c.round_num and a.driver_id = c.driver_id
+    join 
+    (
+        select distinct
+            shiftleft(shiftright(cast(orderid as bigint), 46)&262143, 32)+(cast(orderid as bigint)&4294967295) order_id,
+            cast(round_num as bigint) round_num,
+            cast(driverid as bigint) driver_id,
+            cast(win_scence as bigint) win_scence
+        from kflower_ods.ods_log_kflower_g_order_dusepk_auction
+        where concat_ws('-', year, month, day) between '${begin_date}' and '${end_date}' 
+        and cast(cityid as bigint) < 1000
+        and process_order_status_ok = 'true'
+        and process_winner_ok = 'true'
+        and action = 'auction_time'
+    ) d on a.order_id = d.order_id and a.round_num = d.round_num and a.driver_id = d.driver_id
+)
+
+
+select
+    is_top1,
+    hands_up,
+    window_time,
+    -- win_scence,
+    count(*) cnt
+from
+    tb
+where
+    is_win = 1
+group by 
+    is_top1,
+    hands_up,
+    window_time
+    -- win_scence
+order by 
+    is_top1,
+    hands_up desc,
+    window_time
+    -- win_scence
+;
+```
+
+## 1、时间窗口分布
+
+在胜出司机中，统计线上PK时间窗口的分布情况（0、1、2、3、>4秒）
+
+- 线上PK动态窗口策略存在10%空白组，而这部分人无法取出，会影响4秒胜出司机的比例
+
+- 举手时间和胜出时间的落表字段仅精确到秒钟，计算的时间窗口长度存在1秒左右的误差
+
+| 是否胜出 <br> | 是否Top1 <br> | 举手类型 <br> | 比例 <br> | 时间长度 <br> | 子比例 <br> | 描述 <br> |
+| --- | --- | --- | --- | --- | --- | --- |
+| 胜出司机 <br> | 非Top1 <br> | only <br> | 24.94% <br> | 0 <br> | 20.96% <br> | 单勾小猪自营运力立即胜出 <br> |
+| 1 <br> | 0.08% <br> | 推测为时间窗口统计误差 <br> |
+| 2 <br> | 0.00% <br> | only举手不可能中途胜出 <br> |
+| 3 <br> | 0.00% <br> |
+| 4 <br> | 78.87% <br> | 非Top1，未触发PK动态窗口策略，4秒胜出 <br> |
+| &gt;4 <br> | 0.08% <br> | 由于网络抖动等原因导致的时间窗口延长 <br> |
+| both <br> | 44.94% <br> | 0 <br> | 0.54% <br> | 非Top1，但后举手的司机为Top1，触发PK动态窗口策略，先举手司机PK分数高，提前胜出 <br> |
+| 1 <br> | 0.22% <br> |
+| 2 <br> | 0.09% <br> |
+| 3 <br> | 0.04% <br> |
+| 4 <br> | 98.69% <br> | 非Top1，未触发PK动态窗口策略，4秒胜出 <br> |
+| &gt;4 <br> | 0.42% <br> | 由于网络抖动等原因导致的时间窗口延长 <br> |
+| Top1 <br> | only <br> | 25.24% <br> | 0 <br> | 60.71% <br> | Top1，触发PK动态窗口策略，提前胜出 OR 单勾小猪自营运力立即胜出 <br> |
+| 1 <br> | 0.21% <br> | 推测为时间窗口统计误差 <br> |
+| 2 <br> | 0.00% <br> | only举手不可能中途胜出 <br> |
+| 3 <br> | 0.00% <br> |
+| 4 <br> | 39.04% <br> | Top1，但属于提前举手或滴滴司机，不受PK动态窗口策略的影响，正常胜出 <br> |
+| &gt;4 <br> | 0.04% <br> | 由于网络抖动等原因导致的时间窗口延长 <br> |
+| both <br> | 4.88% <br> | 0 <br> | 67.93% <br> | Top1，触发PK动态窗口策略，提前胜出 <br> |
+| 1 <br> | 2.15% <br> |
+| 2 <br> | 0.40% <br> |
+| 3 <br> | 0.23% <br> |
+| 4 <br> | 28.54% <br> | Top1，但属于提前举手或滴滴司机，不受PK动态窗口策略的影响，正常胜出 <br> |
+| &gt;4 <br> | 0.75% <br> | 由于网络抖动等原因导致的时间窗口延长 <br> |
+
+## 2、提前胜出情况
+
+在胜出司机中，统计PK动态窗口策略导致的胜出情况（正常胜出、提前胜出）
+
+- 单独勾选小猪自营运力导致的立即胜出，仍标记为正常胜出
+
+目前约有17%的PK受到动态窗口策略影响而提前胜出
+
+| 是否胜出 <br> | 是否Top1 <br> | 举手类型 <br> | 比例 <br> | 胜出类型 <br> | 比例 <br> | 描述 <br> |
+| --- | --- | --- | --- | --- | --- | --- |
+| 胜出司机 <br> | 非Top1 <br> | only <br> | 24.94% <br> | 正常胜出 <br> | 24.94% <br> | 非Top1，未触发PK动态窗口策略，正常胜出 <br> |
+| 提前胜出 <br> | 0.00% <br> | 非Top1，无法提前胜出 <br> |
+| both <br> | 44.94% <br> | 正常胜出 <br> | 44.69% <br> | 非Top1，未触发PK动态窗口策略，正常胜出 <br> |
+| 提前胜出 <br> | 0.25% <br> | 非Top1，但后举手的司机为Top1，触发PK动态窗口策略，先举手司机PK分数高，提前胜出 <br> |
+| Top1 <br> | only <br> | 25.24% <br> | 正常胜出 <br> | 11.87% <br> | Top1，但属于提前举手或滴滴司机，不受PK动态窗口策略的影响，正常胜出 <br> |
+| 提前胜出 <br> | 13.37% <br> | Top1，触发PK动态窗口策略，提前胜出 <br> |
+| both <br> | 4.88% <br> | 正常胜出 <br> | 1.47% <br> | Top1，但属于提前举手或滴滴司机，不受PK动态窗口策略的影响，正常胜出 <br> |
+| 提前胜出 <br> | 3.41% <br> | Top1，触发PK动态窗口策略，提前胜出 <br> |
+
+# 三、乘客取消预测分析
+
+训练多任务学习模型V9，在司机为top1且司机没有取消的样本上，卡不同的乘客取消概率阈值
+
+- 在不同阈值下，预测为乘客取消的样本比例和真实被乘客取消的样本比例在趋势上基本吻合
+
+- 随着阈值增加，预测乘客取消的样本量迅速衰减，说明模型认为只有少数样本会被乘客取消
+
+![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/17267357340625918e28b524929cceb033df391360252/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075925Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=b613615349b0469c47c9337acfd916a508e54548c07e6c304d3e47f2b66999ec)  
+
+# 四、标签缺失问题
+
+乘客履约标签和司机履约标签难以干净分离，在举手样本空间中，若用1表示履约、0表示取消，则有
+
+| 是否举手 <br> | 是否胜出 <br> | 最终履约 <br> | 司机履约 <br> | 乘客履约 <br> | 是否top1 <br> |
+| --- | --- | --- | --- | --- | --- |
+| 举手样本 <br> | 胜出样本 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> |
+| 0 <br> | 0 <br> | null (0,1) <br> | 1 <br> |
+| 0 <br> | null (0,1) <br> | 0 <br> | 1 <br> |
+| 未胜出样本 <br> | null (0,1) <br> | null (0,1) <br> | null (0,1) <br> | 0 <br> |
+
+如果能推测胜出样本中司机履约和乘客履约的缺失标签，则司乘履约对包含(1,1), (0,1), (1,0), (0,0)共4种情况
+
+那么，就能够获得互斥的分类标签(履约, 仅司机取消, 仅乘客取消, 司乘均取消)，从而进行多分类建模

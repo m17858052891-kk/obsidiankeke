@@ -1,0 +1,245 @@
+# 一、项目背景
+
+## 1.1、聚合PK策略
+
+```flowchart
+{"type": "flowchart", "sourceId": "MjIwMTY2Nzc0NjY4NQ", "version": "3", "fileUrl": "https://s3-ep-inter.didistatic.com/didoc2-upload-file-prod/flowchart/svg/MjIwMTY2Nzc0NjY4NQ/3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075921Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=6fd79ca0929bfc79a3d316e88309a6537691edf1eaf64d3c573d7bbdec2ac45a"}
+```
+
+- A点为订单第一次被抢，**第一个司机举手**，订单设置为抢单中，进行N秒定时；
+
+- A1点为第二个司机举手，将举手司机与订单当前胜者根据分数进行比较，得分高的司机继续作为此订单的当前胜者；
+
+- B点为**N秒定时到达**，选出最优司机，作为该订单的最终胜者；
+
+- Top1点为Top1司机举手，立刻发起最终决策，选出最终胜者
+
+**聚合PK策略：**
+
+比较一个时间窗口内所有举手的司机，根据分数选出最优司机，作为该订单的最终胜者。其中的时间窗口从第一个运力举手时间T0开始计时，定时T0+Ns停止。小猪端线上PK时间N=4。
+
+> Q1：项目收益空间？
+>
+> A1：线上接近70%的订单是only举手订单(只有一个司机举手)，80%的订单的胜出司机是第一个举手的司机，也即司乘在多数场景下是可以在第0秒的时候停止PK，节省4s的PK流程时间。
+
+项目收益空间具体数据
+数据周期：20231101-20231130
+
+| weekOfDate <br> | 周一 <br> | 周二 <br> | 周三 <br> | 周四 <br> | 周五 <br> | 周六 <br> | 周日 <br> |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| only订单占比(去重) <br> | 63.4% <br> | 61.1% <br> | 60.7% <br> | 61.3% <br> | 66.4% <br> | 66.5% <br> | 68.1% <br> |
+
+**动态PK时间：**
+
+**Top1司机出现时立刻发起最终决策**，与当前胜者PK，选出最终胜者。通过将最优停止问题抽象为对Top1司机的判断，去缩短PK流程时间。
+
+> Q2：为什么不卡PK履约率模型打分阈值?
+
+> A2：这里有两个原因。① 供需场景对最优停止问题的影响和司乘履约的影响区别很大，例如高峰期时only举手多，每个司机都可能是Top1司机，但是司乘间履约率差别可能很大。② Top1司机的预测空间是全部举手样本，但是履约模型的训练模型是全部胜出样本，本身存在sample selection bias。SSB在Top1司机的预测是比较好解决的。
+
+> 
+
+> Q3：为什么Top1司机出现时不立刻胜出而是需要与当前胜者决策？
+
+> A3：PK打分不仅仅是司乘履约打分，还有司机倾斜的影响。出于降低对线上司乘生态影响的考虑，Top1司机出现时需要与当前胜者PK，比较PK打分，而不是直接胜出。
+
+## 1.2、前期离线收益测算
+
+项目收益在于
+
+① 能够缩短PK流程时间，进而缩短**本单应答时间**，减少乘客的应答前取消率；
+
+② PK流程加快后，司机运力流转加快，从而缩短**其他订单的应答时间**，从而带来大盘CR的提升。
+
+运力流转只能通过实验判断，**本单应答时间缩短的收益**测算逻辑如下：
+
+通过离线[模型实验](http://ether.intra.hongyibo.com.cn/labs/11590)测算线上真实数据，模型输出大于阈值时，计算
+
+① 当前的最优运力 与 真实线上最优运力的 PK打分值差（真实胜出打分-当前运力打分）
+
+② 当前最优运力 与 真实线上最优运力的 胜出时间时间差 （真实胜出时间戳 - 当前运力时间戳）
+
+③ PK打分差值代表可能的胜出后履约率下降；PK胜出时间差值代表可能的应答前取消率下降
+
+测算结果如下
+
+<u>结论：使用模型后，PK打分-4.55分，对应应答后取消率+0.035PP；订单应答时长预计-2.87秒，对应应答前取消率-0.20PP，考虑应答 => 完单漏斗，大盘CR收益在+0.1PP以上。</u>
+
+### 1.2.1、 乘客发单后等待时长对乘客应答前取消率的影响
+
+**30秒内每增加应答前等待时长1秒，累计应答前取消率下降0.06%**
+
+乘客发单后等待时长对乘客应答前取消率的影响口径
+```PlainText
+select
+case when cancel_type = 1 then cancel_dur else '-999' end as cancel_dur,
+count(distinct order_id) as order_num
+from
+kflower_dw.dwd_kf_trd_order_base_di
+where
+dt between '2023-07-01' and '2023-08-20'
+and product_1level not in (3,4)
+and is_td_call = 1
+group by
+case when cancel_type = 1 then cancel_dur else '-999' end;
+```
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/yhdeboET2yc9vlzO/%E5%9B%BE%E7%89%87.png)
+
+### 1.2.2、 PK打分对于DO 胜出后完单率的影响
+
+**PK打分每增加1分，对应DO对胜出后完单率增加 0.007%**
+
+司机PK得分对应答后取消率的影响口径：
+```PlainText
+select
+floor(pk_value/100)*100 as pk_value_group,
+count(distinct order_id) as all_num,
+count(distinct if(finish_flag = 1, order_id, null)) as fin_num,
+count(distinct if(finish_flag = 1, order_id, null))/count(distinct order_id) as cancel_after_answer_ratio
+from
+(
+select
+order_id,
+max(is_td_finish_flag) as finish_flag,
+max(abs(win_pkvalue)) pk_value
+from
+kflower_marketplace.kflower_allmatch_pk_round_info
+where
+dt between '2023-07-01' and '2023-08-20'
+and is_td_answer_flag = 1
+and dis_or_ether_group = 'ether_group'
+and abs(ether_output_value) = abs(win_pkvalue)
+group by
+order_id
+) t
+group by
+floor(pk_value/100)*100
+order by pk_value_group;
+```
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/WRaYMNTwsoQ2MWnn/%E5%9B%BE%E7%89%87.png)
+
+# 二、迭代过程
+
+前期收益空间探索实验
+**实验周期**
+
+- 2月3日\~2月9日，共7天
+
+**实验城市**
+
+- 小猪端：宁波、厦门、聊城、绵阳、眉山、黄冈、毕节、拉萨
+
+- PBD：广州、成都、贵阳、保定、南阳、衡阳、攀枝花、榆林
+
+**分流方式**
+
+- orderid分流
+
+注：策略影响的订单是进入PK的订单，但评估的数据均为**<u>大盘数据</u>**
+
+小猪端
+
+- 无论是3s组还是5s组，相比于对照组，均有CR的提升，但变化较小、不显著；拆分应答率及取消率，变化均不显著
+
+- 按运力渠道下钻：3s组，自营CR上升、三方CR下降；5s组，自营CR下降、三方CR上升
+
+- **综上：延长小猪端PK时间，对整体CR增益不显著，但稍有利于三方份额提升**
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/VD4NgAVEf9gf9tMR/image.png)
+
+*注：三方不含滴滴；CR为竞争口径；自营、三方、滴滴CR均为各自完单/呼单，不可相加；显著性水平5%*
+
+## 2.1、网络建模
+
+| 模型对比 <br> | Top1司机建模 <br> | 司乘履约建模 <br> |
+| --- | --- | --- |
+| 正样本 <br> | 经过4s的PK流程后的Top1司机， <br>如果只有一个司机举手，该司机一定为Top1司机 <br> | 胜出后履约的样本 <br> |
+| 负样本 <br> | 经过4s的PK流程后的非Top1司机 <br> | 胜出后没有履约的样本 <br> |
+| 训练空间 <br> | 全部举手样本，**每轮PK可能有多个样本** <br> | 全部胜出样本，**每轮PK只会有一个样本** <br> |
+| 预测空间 <br> | 全部举手样本 <br> | 全部举手样本 <br> |
+
+网络架构如下：
+
+```flowchart
+{"type": "flowchart", "sourceId": "MjIwMTY3NzMzODYxMA", "version": "3", "fileUrl": "https://s3-ep-inter.didistatic.com/didoc2-upload-file-prod/flowchart/svg/MjIwMTY3NzMzODYxMA/3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075921Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=be374647061044c668a42541b6498730fc5eb4e639d3fea06adb8cf13f54b4a2"}
+```
+
+## 2.2、V1版本：建模目标为【4s内PK胜出的司机】
+
+**V1定义Top1司机为： 在N=4s的一轮PK中最终胜出的司机，也即PK打分最高的司机**
+
+### 2.2.1、PID实验结果
+
+实验周期：2023-11-16 - 2023-11-22
+
+实验城市：243,302,54,118,283,45,155,149,189,2,18,20,44,307,61,59,48,141,37,246,187,235,117,51,287,310,285,281,260,360
+
+实验方式：PID分流 对照组：实验组1 阈值0.9 ： 实验组2 阈值0.95 = 90%：5%：5%
+
+实验结论：
+
+	- 实验的整体收益来自于 应答率和应答后司乘取消率的转换。采用模型对PK时间进行提前停止，可见实验组相对对照组在应答率上都有一定程度的提升，实验组1+0.31PP，实验组2+0.35PP；但是相对的由于提前结束PK流程，导致应答后司乘取消率上升，实验组1+0.33PP，实验组2+0.21PP
+
+	- 在实验组1 阈值=0.9的情况下，由于准出标准较轻，应答后司乘取消率上升更高；大盘CR总体-0.12PP；而在实验组2 阈值=0.95的情况下，提高了阈值，应答后司乘取消率仅上升0.21PP，大盘CR +0.16PP
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/9fyaXCp2ygEyazpE/%E5%9B%BE%E7%89%87.png)
+
+### 2.2.2、时间片实验结果
+
+实验周期： 2023.12.14 - 2023.12.27
+
+实验城市：遵义市(44)，常州市(45)，廊坊市(46)，沧州市(59)，南昌市(38)，银川市(49)，漳州市(142)，北京市(1)，柳州市(134)，海口市(83)，宁波市(20)，辽阳市(75)，齐齐哈尔市(65)，台州市(87)
+
+实验组：动态PK时间
+
+对照组：固定4s PK时间
+
+实验结论：
+
+	- 从效率指标上，小猪端整体成交率 不显著+0.05PP，自营竞争成交率不显著变化，宏鹄成交率不显著-0.02PP
+
+	- 从收益链路上，应答率不显著+0.28PP，应答后司乘取消率显著+0.35PP，实验效果符合实验收益链路。
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/TvhAigZAg8ouNSXK/%E5%9B%BE%E7%89%87.png)
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/ANd21OTIQFksKUNh/%E5%9B%BE%E7%89%87.png)
+
+## 2.3、V2版本：建模目标为【4s内预估接驾时长最短的司机】
+
+考虑
+
+① PK胜出司机为模型产出，样本标签依赖于另一个模型的预测结果，不便于后续单独优化迭代；
+
+② PK胜出司机存在倾斜影响，不一定是真正优质司机，且倾斜策略波动较大，模型学习倾斜策略难度较大；
+
+③ ETP最短的司机，乘客应答取消率相对更低，有助于降低对应答后取消的影响。
+
+V2版本将建模目标迭代【4s内ETP最短的司机】
+
+> Q4：为什么是ETP最短，而不是其他指标？
+
+> A4：排除不可抗力(如乘客同行朋友已打到车)，乘客接驾后决策是否取消的主要原因在 接驾时长、接驾距离。考虑到交通情况，接驾距离没有接驾时长能反映真实情况。
+
+### 2.3.1、时间片实验结果
+
+实验周期： 2023.01.05 - 2023.01.18
+
+实验城市：遵义市(44)，常州市(45)，廊坊市(46)，沧州市(59)，南昌市(38)，银川市(49)，漳州市(142)，北京市(1)，柳州市(134)，海口市(83)，宁波市(20)，辽阳市(75)，齐齐哈尔市(65)，台州市(87)
+
+实验结论：
+
+	- 效率指标上，小猪端CR显著+0.17PP，自营竞争成交率不显著-0.04PP，宏鹄竞争成交率不显著+0.06PP，API竞争成交率显著+0.46PP
+
+	- 收益链路上，小猪端应答率显著+0.2PP，应答后乘客取消率(不含改派)不显著+0.03PP，小猪端应答时长-3.08%，符合收益链路
+
+实验结果：
+
+![](https://cooper.didichuxing.com/cooper_gateway/cn/shimo-images/8fUeqWT7eVkp80BV/%E5%9B%BE%E7%89%87.png)
+
+# 三、后续规划
+
+① **阈值threthold** : 目前动态时间模型阈值并没有进行最优化选择，只是偏保守的选择一个较高的值 threthold = 0.95，存在一定优化空间；
+
+② **最长PK窗口N**：目前动态时间模型是在N=4s的背景下进行的时间优化，后续可以延长N，在能够寻找到更优运力的场景下延长PK时间。

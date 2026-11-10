@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>交易效率方向介绍｜新人版</title>
+  <style>
+    :root{
+      --ink:#172033;--muted:#657287;--paper:#f3f7f7;--card:#fff;--line:#dbe4e6;
+      --teal:#087f78;--teal-soft:#e2f5f1;--cyan:#1d91b5;--cyan-soft:#e8f6fb;
+      --orange:#ed7b35;--orange-soft:#fff0e6;--purple:#6957c7;--purple-soft:#efedff;
+      --green:#16885f;--green-soft:#e8f7f0;--red:#c94747;--red-soft:#fff0ef;
+      --shadow:0 18px 50px rgba(28,55,65,.09);--radius:24px;--max:1180px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-snap-type:y proximity}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;line-height:1.6}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.28;background-image:radial-gradient(#9fb5b7 .7px,transparent .7px);background-size:22px 22px;z-index:-1}
+    .progress{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--teal),#52c7bd);z-index:100}
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(calc(100% - 28px),var(--max));z-index:80;display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(255,255,255,.9);backdrop-filter:blur(16px);border:1px solid rgba(219,228,230,.94);border-radius:18px;box-shadow:0 8px 28px rgba(23,32,51,.08)}
+    nav .brand{font-weight:900;padding:0 10px;white-space:nowrap;color:var(--teal)}
+    nav .links{display:flex;gap:3px;overflow:auto;scrollbar-width:none}
+    nav a{text-decoration:none;color:var(--muted);font-size:13px;white-space:nowrap;padding:7px 10px;border-radius:10px}
+    nav a:hover,nav a.active{background:var(--teal-soft);color:#05645e}
+    .slide{min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;padding:100px 24px 72px;position:relative;overflow:hidden}
+    .wrap{width:min(100%,var(--max));margin:auto}.eyebrow{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:900;margin-bottom:12px}
+    h1,h2,h3,p{margin-top:0}h1{font-size:clamp(46px,6.5vw,84px);line-height:1.03;letter-spacing:-.055em;margin-bottom:22px}h1 em{font-style:normal;color:var(--teal)}
+    h2{font-size:clamp(34px,4.5vw,58px);line-height:1.1;letter-spacing:-.04em;margin-bottom:14px}h3{font-size:20px;margin-bottom:8px}.lead{font-size:clamp(18px,2vw,25px);color:var(--muted);max-width:920px}.small{font-size:13px;color:var(--muted)}
+    .hero{background:radial-gradient(circle at 82% 18%,#d8f3ef 0,transparent 28%),radial-gradient(circle at 12% 82%,#dceef7 0,transparent 27%)}
+    .hero-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:54px;align-items:center}.hero h1{font-size:clamp(45px,5.6vw,74px)}
+    .positioning{background:rgba(255,255,255,.93);border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:22px;padding:22px 25px;box-shadow:var(--shadow);font-size:clamp(17px,1.55vw,22px);font-weight:680}.positioning b{color:var(--teal)}
+    .agenda{display:grid;gap:10px}.agenda-item{display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:18px;padding:14px 17px;box-shadow:0 7px 20px rgba(23,32,51,.05)}
+    .agenda-no{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--teal-soft);color:var(--teal);font-weight:900}.agenda-item b{display:block}.agenda-item span{display:block;font-size:13px;color:var(--muted)}
+    .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}.chip{background:white;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:800}.chip.plan{background:var(--orange-soft);color:#a94c18;border-color:#ffd2b7}
+    .grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);padding:23px;box-shadow:0 8px 24px rgba(23,32,51,.05)}.card p:last-child{margin-bottom:0}.card.teal{border-top:5px solid var(--teal)}.card.orange{border-top:5px solid var(--orange)}.card.purple{border-top:5px solid var(--purple)}.card.green{border-top:5px solid var(--green)}
+    .note{border-left:4px solid var(--teal);background:var(--teal-soft);padding:14px 18px;border-radius:0 14px 14px 0;color:#075d58;margin-top:18px}.warning{border-left-color:var(--orange);background:var(--orange-soft);color:#7c3a15}
+    .journey{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-top:38px;position:relative}.journey:before{content:"";height:3px;background:linear-gradient(90deg,var(--teal),var(--cyan),var(--orange));position:absolute;left:6%;right:6%;top:29px}.stop{position:relative;text-align:center;z-index:1}.stop .dot{width:58px;height:58px;border-radius:18px;margin:0 auto 12px;display:grid;place-items:center;font-size:22px;background:white;border:2px solid var(--line);box-shadow:0 6px 16px rgba(23,32,51,.1)}.stop strong{display:block;font-size:14px}.stop span{font-size:12px;color:var(--muted)}
+    .decision-board{margin-top:28px;background:white;border:1px solid var(--line);border-radius:28px;padding:24px;box-shadow:var(--shadow)}
+    .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:13px}.stage{position:relative;background:#f7fafb;border:1px solid var(--line);border-radius:20px;padding:18px;min-height:180px}.stage:not(:last-child):after{content:"→";position:absolute;right:-18px;top:44%;z-index:3;color:var(--teal);font-size:24px;font-weight:900}.stage .no{font-size:12px;color:var(--teal);font-weight:900;letter-spacing:.08em}.stage h3{font-size:18px;margin:5px 0 10px}.stage ul{padding-left:18px;margin:0;color:var(--muted);font-size:13px}.stage li{margin:5px 0}
+    .north-star{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:28px}.formula{background:var(--ink);color:#fff;border-radius:26px;padding:28px;box-shadow:var(--shadow)}.formula .big{font-size:clamp(26px,3.2vw,43px);font-weight:900;line-height:1.25}.formula em{font-style:normal;color:#76ddd2}.formula p{color:#cbd3df;margin-top:16px}.guardrails{display:grid;gap:12px}.guard{background:white;border:1px solid var(--line);border-radius:18px;padding:17px 19px;display:flex;gap:13px}.guard .icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--teal-soft);color:var(--teal);font-weight:900;flex:0 0 auto}.guard b{display:block}.guard span{display:block;color:var(--muted);font-size:13px}
+    .portfolio{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}.workstream{background:white;border:1px solid var(--line);border-radius:24px;padding:22px;position:relative;overflow:hidden}.workstream:before{content:"";position:absolute;left:0;top:0;width:100%;height:5px;background:var(--teal)}.workstream:nth-child(2):before{background:var(--cyan)}.workstream:nth-child(3):before{background:var(--purple)}.workstream:nth-child(4):before{background:var(--orange)}.workstream:nth-child(5):before{background:var(--green)}.workstream:nth-child(6):before{background:var(--red)}
+    .workstream .id{font-size:12px;font-weight:900;color:var(--muted);letter-spacing:.1em}.workstream h3{font-size:23px;margin:7px 0}.workstream .question{font-weight:800;margin-bottom:10px}.workstream ul{padding-left:18px;color:var(--muted);font-size:14px;margin-bottom:0}.workstream li{margin:5px 0}.badge{display:inline-block;font-size:11px;font-weight:900;border-radius:999px;padding:4px 8px;background:var(--orange-soft);color:#a94c18;margin-top:12px}
+    .project-detail{display:grid;grid-template-columns:.82fr 1.18fr;gap:18px;margin-top:28px}.project-index{background:var(--ink);color:#fff;border-radius:26px;padding:27px}.project-index .num{font-size:70px;line-height:1;font-weight:950;color:#72d8cf}.project-index h3{font-size:28px;margin-top:18px}.project-index p{color:#cbd3df}.project-body{background:white;border:1px solid var(--line);border-radius:26px;padding:26px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}.flow-item{background:#f4f8f9;border:1px solid var(--line);border-radius:16px;padding:15px;position:relative}.flow-item:not(:last-child):after{content:"›";position:absolute;right:-9px;top:31%;z-index:2;color:var(--teal);font-size:26px;font-weight:900}.flow-item b{display:block;font-size:14px}.flow-item span{display:block;color:var(--muted);font-size:12px;margin-top:4px}.metric-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}.metric{border-radius:16px;padding:14px;text-align:center;background:var(--teal-soft);color:#075d58;font-weight:800}.metric:nth-child(2){background:var(--cyan-soft);color:#1c6680}.metric:nth-child(3){background:var(--orange-soft);color:#8f431b}.metric:nth-child(4){background:var(--purple-soft);color:#5142a7}.metric span{display:block;font-size:11px;font-weight:600;margin-top:2px}
+    .overlap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}.domain{background:white;border:1px solid var(--line);border-radius:26px;padding:26px}.domain.eff{border-top:6px solid var(--teal)}.domain.eco{border-top:6px solid var(--orange)}.domain h3{font-size:27px}.domain ul{padding-left:19px;color:var(--muted)}.shared{grid-column:1/-1;background:var(--ink);color:white;border-radius:24px;padding:22px}.shared h3{color:#7ee0d6}.shared-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.shared-grid div{border:1px solid #3b465b;border-radius:15px;padding:13px;color:#d4dae3;font-size:13px}
+    .evidence{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}.level{background:white;border:1px solid var(--line);border-radius:22px;padding:20px;position:relative}.level .label{font-size:11px;font-weight:900;letter-spacing:.12em;color:var(--muted)}.level h3{margin:7px 0}.level p{color:var(--muted);font-size:14px}.level:before{content:"";position:absolute;left:0;top:0;width:100%;height:5px;background:#aab5c2}.level:nth-child(2):before{background:var(--purple)}.level:nth-child(3):before{background:var(--orange)}.level:nth-child(4):before{background:var(--green)}
+    .route{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}.day{background:white;border:1px solid var(--line);border-radius:22px;padding:22px}.day b{display:block;color:var(--teal);font-size:13px;letter-spacing:.08em}.day strong{display:block;font-size:22px;margin:5px 0}.day ul{padding-left:18px;color:var(--muted);font-size:14px}
+    .closing{background:var(--ink);color:white;text-align:center}.closing h2{font-size:clamp(40px,5.4vw,70px);max-width:1000px;margin:0 auto 20px}.closing h2 em{font-style:normal;color:#72d8cf}.closing .lead{color:#bdc6d2;margin:0 auto}.closing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px;text-align:left}.closing-card{border:1px solid #3d485c;border-radius:20px;padding:18px;background:rgba(255,255,255,.045)}.closing-card b{display:block;color:#72d8cf;font-size:19px}.closing-card span{display:block;color:#bdc6d2;font-size:13px;margin-top:6px}.closing .foot{margin-top:24px;color:#8995a6;font-size:12px}
+    .strategy-head{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:stretch;margin-top:22px}.strategy-code{border-radius:24px;padding:22px;background:var(--ink);color:#fff}.strategy-code .index{font-size:54px;line-height:1;font-weight:950;color:#72d8cf}.strategy-code b{display:block;font-size:20px;margin-top:14px}.strategy-code span{display:block;color:#bdc6d2;font-size:12px;margin-top:7px}.strategy-thesis{background:white;border:1px solid var(--line);border-radius:24px;padding:23px}.strategy-thesis h3{font-size:25px}.strategy-thesis p{color:var(--muted);margin-bottom:0}
+    .algo-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:20px}.algo-step{position:relative;background:white;border:1px solid var(--line);border-radius:19px;padding:17px;min-height:170px}.algo-step:not(:last-child):after{content:"→";position:absolute;right:-18px;top:44%;z-index:4;color:var(--teal);font-size:24px;font-weight:900}.algo-step .step-no{font-size:11px;letter-spacing:.1em;color:var(--teal);font-weight:900}.algo-step h3{font-size:17px;margin:6px 0 9px}.algo-step ul{margin:0;padding-left:17px;color:var(--muted);font-size:12px}.algo-step li{margin:4px 0}.algo-step.action{background:var(--teal-soft);border-color:#acdcd6}.algo-step.risk{background:var(--orange-soft);border-color:#ffd0b3}
+    .contract{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.contract-panel{background:white;border:1px solid var(--line);border-radius:20px;padding:19px}.contract-panel h3{font-size:18px}.contract-panel dl{display:grid;grid-template-columns:88px 1fr;gap:7px 10px;margin:0;font-size:13px}.contract-panel dt{font-weight:900;color:var(--teal)}.contract-panel dd{margin:0;color:var(--muted)}
+    .formula-box{margin-top:16px;background:var(--ink);color:white;border-radius:20px;padding:18px 20px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.formula-box strong{color:#72d8cf}.formula-box small{display:block;color:#bdc6d2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;margin-top:8px}.formula-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.formula-mini{background:#222c40;border:1px solid #3c485e;border-radius:13px;padding:12px;font-size:12px}.formula-mini b{display:block;color:#72d8cf;margin-bottom:4px}
+    .metric-row{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-top:15px}.metric-pill{background:white;border:1px solid var(--line);border-radius:14px;padding:11px;text-align:center;font-size:12px;font-weight:800}.metric-pill span{display:block;color:var(--muted);font-size:10px;font-weight:600;margin-top:2px}.evidence-bar{display:flex;align-items:flex-start;gap:12px;margin-top:15px;padding:13px 15px;border-radius:15px;background:var(--orange-soft);color:#783a19;font-size:13px}.evidence-bar b{white-space:nowrap}.branch{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.branch div{border:1px solid var(--line);background:#f7fafb;border-radius:14px;padding:12px}.branch b{display:block;font-size:13px}.branch span{font-size:11px;color:var(--muted)}
+    @media(max-width:900px){.hero-grid,.north-star,.project-detail,.overlap,.strategy-head{grid-template-columns:1fr}.g3,.g4,.portfolio,.evidence,.route,.closing-grid{grid-template-columns:1fr 1fr}.pipeline,.algo-flow{grid-template-columns:1fr}.stage:not(:last-child):after,.algo-step:not(:last-child):after{content:"↓";right:50%;top:auto;bottom:-23px}.journey{grid-template-columns:repeat(4,1fr);row-gap:24px}.journey:before{display:none}.flow{grid-template-columns:1fr 1fr}.shared-grid{grid-template-columns:1fr 1fr}.metric-row{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:600px){nav .brand{display:none}.slide{padding:92px 16px 55px}.g2,.g3,.g4,.portfolio,.evidence,.route,.closing-grid,.metric-strip,.flow,.contract,.formula-grid,.branch,.metric-row{grid-template-columns:1fr}.journey{grid-template-columns:repeat(2,1fr)}.shared-grid{grid-template-columns:1fr}}
+    #projects,#evidence{display:none}
+    @media print{nav,.progress{display:none}.slide{min-height:auto;page-break-after:always;padding:48px 30px}.card,.workstream,.project-body,.domain{box-shadow:none}}
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <nav aria-label="页面导航">
+    <div class="brand">交易效率 · 新人导览</div>
+    <div class="links">
+      <a href="#home">首页</a><a href="#system">业务链路</a><a href="#portfolio">26年工作</a><a href="#recall">召回</a><a href="#matching">匹配</a><a href="#pk">PK</a><a href="#change-car">换车</a><a href="#predispatch">预分单</a><a href="#upgrade">升舱</a><a href="#modeling">建模</a><a href="#solver">求解</a><a href="#stack">技术栈</a><a href="#evaluation">评估</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="slide hero" id="home">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="eyebrow">Trading Efficiency · Onboarding 2026</div>
+          <h1>交易效率<br><em>方向介绍</em></h1>
+          <div class="positioning"><b>方向定位：</b>在履约与体验约束下，把有限的需求、运力和交易机会做更好的匹配与选择，让更多订单以更短等待、更合理接驾和更低取消完成交易。</div>
+          <div class="chips"><span class="chip plan">2026 规划视角</span><span class="chip">新人版</span><span class="chip">基于 LLM Wiki</span></div>
+        </div>
+        <div class="agenda">
+          <div class="agenda-item"><span class="agenda-no">01</span><div><b>业务与 2026 工作地图</b><span>方向目标、核心矛盾、六个工作面及生态协同边界</span></div></div>
+          <div class="agenda-item"><span class="agenda-no">02</span><div><b>六条核心策略链</b><span>召回、匹配、PK、换车、预分单与升舱如何协同</span></div></div>
+          <div class="agenda-item"><span class="agenda-no">03</span><div><b>具体建模方式</b><span>样本、标签、特征、模型结构、损失与校准</span></div></div>
+          <div class="agenda-item"><span class="agenda-no">04</span><div><b>求解与在线决策</b><span>Dinkelbach、拉格朗日、Sobol/TPE、GS/KM 与兜底</span></div></div>
+          <div class="agenda-item"><span class="agenda-no">05</span><div><b>工程技术栈与实验</b><span>Hive/DUFE、训练部署、Apollo、回放诊断与监控</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="system">
+      <div class="wrap">
+        <div class="eyebrow">01 · 交易系统</div>
+        <h2>一笔订单，要经过哪些关键选择？</h2>
+        <p class="lead">交易效率不是一个孤立模型，而是一串相互影响的决策。上游扩大候选，可能提升应答；下游却可能带来更远接驾或更高取消。</p>
+        <div class="journey">
+          <div class="stop"><div class="dot">📣</div><strong>呼叫与分发</strong><span>需求进入哪些平台与商家</span></div>
+          <div class="stop"><div class="dot">🔎</div><strong>召回</strong><span>哪些司机有资格参与</span></div>
+          <div class="stop"><div class="dot">🧩</div><strong>商家匹配</strong><span>订单与司机如何组合</span></div>
+          <div class="stop"><div class="dot">⚖️</div><strong>平台 PK</strong><span>跨商家方案谁胜出</span></div>
+          <div class="stop"><div class="dot">📲</div><strong>播单与应答</strong><span>司机是否接受交易</span></div>
+          <div class="stop"><div class="dot">🚕</div><strong>接驾</strong><span>距离、时长与取消风险</span></div>
+          <div class="stop"><div class="dot">✅</div><strong>完单</strong><span>体验、价值与长期留存</span></div>
+        </div>
+        <div class="decision-board">
+          <div class="pipeline">
+            <div class="stage"><span class="no">DECISION 01</span><h3>分发范围</h3><ul><li>盒子与品类</li><li>平台与商家</li><li>流量倾斜</li></ul></div>
+            <div class="stage"><span class="no">DECISION 02</span><h3>候选集合</h3><ul><li>距离与时间</li><li>供需与价值</li><li>取消模型过滤</li></ul></div>
+            <div class="stage"><span class="no">DECISION 03</span><h3>匹配与模式</h3><ul><li>GS / DO 组合</li><li>全指派 / 半指派 / 抢单</li><li>Hold 与扩播</li></ul></div>
+            <div class="stage"><span class="no">DECISION 04</span><h3>平台选择</h3><ul><li>履约约束</li><li>接驾距离</li><li>订单与司机价值</li></ul></div>
+            <div class="stage"><span class="no">DECISION 05</span><h3>失败回路</h3><ul><li>重播与连环派</li><li>改派与换车</li><li>取消判责</li></ul></div>
+          </div>
+        </div>
+        <div class="note"><b>新人先记住：</b>召回决定“谁能参与”，商家匹配决定“内部怎么组合”，平台 PK 决定“跨商家选谁”；司机被选中后，交易仍可能在应答、接驾或取消环节失败并回流。</div>
+      </div>
+    </section>
+
+    <section class="slide" id="goal">
+      <div class="wrap">
+        <div class="eyebrow">02 · 方向目标</div>
+        <h2>交易效率，不等于只把成交率做高</h2>
+        <p class="lead">2026 方向强调在完单和成交不负向的前提下，联合优化乘客等待、司机接驾与取消风险，并把局部规则逐步收敛为可解释、可维护的统一决策。</p>
+        <div class="north-star">
+          <div class="formula">
+            <div class="big">在履约约束下，<br><em>最小化无效等待与接驾成本</em></div>
+            <p>把“谁参与、谁匹配、谁胜出、用什么模式触达”放到同一条证据链中评估，而不是各环节分别追求局部最优。</p>
+          </div>
+          <div class="guardrails">
+            <div class="guard"><span class="icon">乘</span><div><b>乘客体验</b><span>ETP、等待、接驾距离、乘客取消与极端差体验</span></div></div>
+            <div class="guard"><span class="icon">司</span><div><b>司机体验</b><span>接驾时长、应答后取消、交易机会与模式自由度</span></div></div>
+            <div class="guard"><span class="icon">商</span><div><b>商家效率</b><span>候选质量、匹配效率、完单和运力挤占</span></div></div>
+            <div class="guard"><span class="icon">平</span><div><b>平台约束</b><span>大盘 CR / 完单、稳定性、成本与长期健康</span></div></div>
+          </div>
+        </div>
+        <div class="note warning"><b>证据提示：</b>本页描述的是方向目标与 2026 规划口径，不代表所有目标已经通过实验或上线验收。</div>
+      </div>
+    </section>
+
+    <section class="slide" id="portfolio">
+      <div class="wrap">
+        <div class="eyebrow">03 · 2026 工作地图</div>
+        <h2>六个工作面，串起“价值 → 候选 → 匹配 → 选择 → 体验 → 治理”</h2>
+        <p class="lead">下面是新人理解 2026 工作的推荐分组。它们来自方向规划和已收录项目材料，具体里程碑与当前线上状态仍以项目证据为准。</p>
+        <div class="portfolio">
+          <article class="workstream"><span class="id">WORKSTREAM 01</span><h3>交易价值统一</h3><div class="question">不同环节如何用同一种“价值语言”做决策？</div><ul><li>统一订单、司机与交易方案的价值表达</li><li>串联分发、召回、模式选择和 PK</li><li>补齐 CBA、DO 价值与日志评估链路</li></ul><span class="badge">规划 / 方案证据</span></article>
+          <article class="workstream"><span class="id">WORKSTREAM 02</span><h3>召回与自动化分单</h3><div class="question">如何让候选更充分，同时控制取消和接驾风险？</div><ul><li>召回 V2.1 配置与模型收拢</li><li>动态半径、扩播、连环派、Hold 联动</li><li>从局部规则走向自动化决策</li></ul><span class="badge">需求 / 历史实验并存</span></article>
+          <article class="workstream"><span class="id">WORKSTREAM 03</span><h3>匹配联合决策</h3><div class="question">派单模式、匹配与一播多能否一起优化？</div><ul><li>联合全指派、半指派与抢单</li><li>GS / DO 组合与竞争胜率</li><li>交易规则与策略解法收敛</li></ul><span class="badge">规划 / 历史蓝图</span></article>
+          <article class="workstream"><span class="id">WORKSTREAM 04</span><h3>PK 优化</h3><div class="question">跨商家选择怎样兼顾履约与接驾？</div><ul><li>约束履约率、最小化接驾距离</li><li>履约模型升级与动态窗口</li><li>长时取消、诱导取消和倾斜兼容</li></ul><span class="badge">BRD / 实验源流</span></article>
+          <article class="workstream"><span class="id">WORKSTREAM 05</span><h3>乘客交易与体验价值</h3><div class="question">如何把等待、换车和升舱转成可决策价值？</div><ul><li>聚合应答预期与补勾建议</li><li>换车、升舱和乘客侧透传</li><li>差体验对留存的因果归因</li></ul><span class="badge">需求 / 方法选型</span></article>
+          <article class="workstream"><span class="id">WORKSTREAM 06</span><h3>链路治理与可运营性</h3><div class="question">复杂规则如何可追溯、可回滚、可诊断？</div><ul><li>取消与应答并发治理</li><li>模型日志、配置和熔断护栏</li><li>指标口径、版本与实验闭环</li></ul><span class="badge">P0 需求 / 工程合同</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="projects">
+      <div class="wrap">
+        <div class="eyebrow">04 · 重点项目详解</div>
+        <h2>三个主决策面：候选、匹配、PK</h2>
+        <p class="lead">这是交易效率最核心的技术主线。三个环节必须一起看，否则上游收益可能被下游取消、接驾或运力挤占抵消。</p>
+        <div class="project-detail">
+          <aside class="project-index"><div class="num">01</div><h3>召回与自动化分单</h3><p>从固定半径和分散规则，走向按供需、价值、等待和取消风险动态产生候选与动作。</p></aside>
+          <div class="project-body"><h3>新人理解框架</h3><div class="flow"><div class="flow-item"><b>看环境</b><span>时空供需、里程、订单价值、等待</span></div><div class="flow-item"><b>扩候选</b><span>动态半径、扩播与连环派</span></div><div class="flow-item"><b>控风险</b><span>司乘取消、接驾时间与流失模型</span></div><div class="flow-item"><b>选动作</b><span>Hold、模式、阈值与兜底</span></div></div><div class="metric-strip"><div class="metric">应答<span>候选是否充分</span></div><div class="metric">取消<span>交易是否稳定</span></div><div class="metric">接驾<span>体验与成本</span></div><div class="metric">完单<span>最终价值</span></div></div><div class="note warning"><b>当前边界：</b>全自动化分单仍是研究蓝图；召回 V2.1 有需求设计和历史实验源流，但不能据此认定 2026 已完成收拢或上线。</div></div>
+        </div>
+        <div class="project-detail">
+          <aside class="project-index"><div class="num">02</div><h3>匹配联合决策</h3><p>不再把派单模式、GS 匹配、一播多和订单价值当作互不相关的局部规则。</p></aside>
+          <div class="project-body"><h3>联合的对象</h3><div class="flow"><div class="flow-item"><b>价值</b><span>订单、司机与方案价值</span></div><div class="flow-item"><b>模式</b><span>全指派、半指派、抢单</span></div><div class="flow-item"><b>匹配</b><span>D 选 O、O 反选 D、GS</span></div><div class="flow-item"><b>机会</b><span>一播多、TopSpeed、司机倾斜</span></div></div><div class="metric-strip"><div class="metric">竞争胜率<span>方案能否胜出</span></div><div class="metric">司机 TSH<span>机会与体验</span></div><div class="metric">人均完单<span>效率结果</span></div><div class="metric">模式自由度<span>体验约束</span></div></div><div class="note warning"><b>当前边界：</b>方向规划提出 Q1 明确目标约束、Q2 联合方案、Q3 风险红线；这些是历史计划，不是实际完成记录。</div></div>
+        </div>
+        <div class="project-detail">
+          <aside class="project-index"><div class="num">03</div><h3>PK 优化</h3><p>从“谁履约概率高”进一步走向“履约不降的前提下，谁的接驾与综合价值更优”。</p></aside>
+          <div class="project-body"><h3>核心决策</h3><div class="flow"><div class="flow-item"><b>输入候选</b><span>各商家输出的订单—司机方案</span></div><div class="flow-item"><b>估计履约</b><span>取消、完单与多任务模型</span></div><div class="flow-item"><b>加入代价</b><span>接驾距离、等待、价值与倾斜</span></div><div class="flow-item"><b>护栏与选择</b><span>λ、熔断、动态窗口和最终胜者</span></div></div><div class="formula" style="margin-top:18px;padding:20px"><div class="big" style="font-size:28px">候选得分 ≈ <em>履约价值</em> − 接驾代价 / λ</div><p style="margin-bottom:0">公式用于帮助新人理解目标方向；实际模型、参数和线上配置以评审与生产证据为准。</p></div><div class="note warning"><b>当前边界：</b>2026 BRD 给出目标、公式与实验拆解，但缺实验结果、上线回执和生产配置，不能写成已经生效。</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="overlap">
+      <div class="wrap">
+        <div class="eyebrow">05 · 与交易生态的重合与分工</div>
+        <h2>同一条交易链路，两种互补的问题视角</h2>
+        <p class="lead">两个方向会同时关注取消、接驾、机会和 PK，但切入点不同。新人不需要硬切边界，更重要的是先判断问题的主矛盾和主责决策点。</p>
+        <div class="overlap">
+          <article class="domain eff"><h3>交易效率</h3><p><b>核心问题：</b>有限需求和运力如何更高效地形成交易？</p><ul><li>候选是否充分、匹配是否合理、PK 是否最优</li><li>价值、模式、召回和选择能否统一决策</li><li>在 CR / 完单约束下优化等待、接驾和取消</li><li>规则、模型和配置如何自动化、可运营</li></ul></article>
+          <article class="domain eco"><h3>交易生态</h3><p><b>核心问题：</b>平均指标背后是否存在结构性失衡与极端差体验？</p><ul><li>司机长期无单、极端接驾与高风险取消</li><li>个体机会、商家竞争与流量公平</li><li>事前避险、事中补救和事后治理</li><li>责任认定、申诉和风险标签回流</li></ul></article>
+          <div class="shared"><h3>共同决策区：需要联合看</h3><div class="shared-grid"><div><b>召回与过滤</b><br>候选充分性 vs. 极端风险</div><div><b>PK 与倾斜</b><br>整体效率 vs. 机会公平</div><div><b>取消与换车</b><br>交易成功 vs. 差体验补救</div><div><b>指标与实验</b><br>平均收益 vs. 尾部异质性</div></div></div>
+        </div>
+        <div class="note"><b>判断口诀：</b>如果主问题是“系统怎样选得更好”，优先从交易效率进入；如果主问题是“谁在平均数里持续受损”，优先从交易生态进入；同时涉及两者时，以联合指标和正交实验拆解。</div>
+      </div>
+    </section>
+
+    <section class="slide" id="evidence">
+      <div class="wrap">
+        <div class="eyebrow">06 · 如何读项目状态</div>
+        <h2>看到数字和路线图，先问它属于哪一层证据</h2>
+        <p class="lead">新人最容易犯的错，是把规划目标写成已交付，把离线指标写成线上收益，把历史放量写成当前配置。</p>
+        <div class="evidence">
+          <article class="level"><span class="label">LEVEL 1</span><h3>规划 / 方案</h3><p>说明要解决什么、准备怎么做、预计收益多少。不能证明已经实施。</p></article>
+          <article class="level"><span class="label">LEVEL 2</span><h3>离线 / 回放</h3><p>说明模型或规则在历史样本上的表现。不能直接推出线上交易收益。</p></article>
+          <article class="level"><span class="label">LEVEL 3</span><h3>线上实验</h3><p>说明特定时间、城市、流量和版本下的因果观察。需核对显著性与护栏。</p></article>
+          <article class="level"><span class="label">LEVEL 4</span><h3>生产事实</h3><p>需要上线回执、配置、版本、覆盖范围和回滚记录，且具有明确时效。</p></article>
+        </div>
+        <div class="grid g3" style="margin-top:18px">
+          <div class="card teal"><h3>读一个项目</h3><p class="small">问题 → 决策点 → 输入与动作 → 主指标与护栏 → 实验 → 当前版本。</p></div>
+          <div class="card orange"><h3>读一个收益</h3><p class="small">样本 → 分流 → 时间 → 显著性 → 异质性 → 挤占 → 长期影响。</p></div>
+          <div class="card purple"><h3>读一个状态</h3><p class="small">需求稿、实验记录、放量计划和生产回执必须分开核对。</p></div>
+        </div>
+        <div class="note warning"><b>本导览的口径：</b>2026 工作以方向规划、BRD、需求和历史证据链为主；除非明确写有上线证据，否则均不代表当前线上状态。</div>
+      </div>
+    </section>
+
+    <section class="slide" id="route">
+      <div class="wrap">
+        <div class="eyebrow">07 · 新人四步入门</div>
+        <h2>先理解系统，再进入具体项目</h2>
+        <div class="route">
+          <div class="day"><b>STEP 01</b><strong>画出交易链路</strong><ul><li>呼叫、召回、匹配、PK</li><li>播单、应答、接驾、完单</li><li>标出失败与回流点</li></ul></div>
+          <div class="day"><b>STEP 02</b><strong>统一术语口径</strong><ul><li>DO、GS、PK、Hold</li><li>全指派、半指派、抢单</li><li>ETP、CR、取消与接驾</li></ul></div>
+          <div class="day"><b>STEP 03</b><strong>选一个主线深读</strong><ul><li>召回与自动化分单</li><li>匹配联合决策</li><li>PK 与价值统一</li></ul></div>
+          <div class="day"><b>STEP 04</b><strong>沿证据链核对</strong><ul><li>方案和模型版本</li><li>离线与线上实验</li><li>放量、配置和当前事实</li></ul></div>
+        </div>
+        <div class="grid g2" style="margin-top:18px">
+          <div class="card"><h3>新人第一周建议</h3><p>先能解释“一个订单为什么进入某个商家、为什么召回这些司机、为什么这个 DO 胜出、失败后怎样回流”，再讨论局部模型细节。</p></div>
+          <div class="card"><h3>带着三个问题看文档</h3><p>决策发生在哪里？优化目标和护栏是什么？现在掌握的是方案、实验，还是已核验的生产事实？</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="recall">
+      <div class="wrap">
+        <div class="eyebrow">02 · Recall Strategy</div><h2>召回：先构造可交易的 OD 候选，再决定播、等还是过滤</h2>
+        <div class="strategy-head"><div class="strategy-code"><div class="index">01</div><b>召回策略</b><span>候选生成 + 风险过滤 + 动作选择</span></div><div class="strategy-thesis"><h3>核心不是“半径内全召回”</h3><p>先用在线状态、听单能力、品类与场景约束生成司机集合，再结合距离/ETA、供需、订单价值、竞争胜率、应答后取消 CAA、应答前流失 OCR，逐个判断 OD 应进入 GS、走 TopSpeed，还是本轮 Hold。</p></div></div>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>资格粗筛</h3><ul><li>在线、可听单、未占用</li><li>城市/品类/商家能力</li><li>黑名单、特殊场景</li><li>基础 EDA / ETA 上限</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>动态扩候选</h3><ul><li>中心格 + 邻格供需</li><li>订单等待时长</li><li>订单价值与流失风险</li><li>连环派/非连环派配置</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 3</span><h3>模型打分</h3><ul><li>竞争胜率 P(win)</li><li>统一取消 CAA</li><li>本轮流失 OCR</li><li>下一轮 E(finish)</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 4</span><h3>动作决策</h3><ul><li>GS：进入批量匹配</li><li>TP：立即快速派单</li><li>Hold：等待下一轮</li><li>Filter：不进入候选</li></ul></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>工程兜底</h3><ul><li>近距离跳过模型</li><li>模型失败不过滤</li><li>高峰规则降级</li><li>最大距离硬护栏</li></ul></div>
+        </div>
+        <div class="formula-box"><strong>统一期望完单框架（策略候选）</strong><div class="formula-grid"><div class="formula-mini"><b>GS value</b>P(win) × (1 − CAA)</div><div class="formula-mini"><b>TP value</b>P(win) × (1 − CAA) − λ × 司机机会成本</div><div class="formula-mini"><b>Hold value</b>β × (1 − OCR) × E(finish_next)</div></div><small>λ 表示立即占用司机的机会成本；β 控制等待激进度。它们是离线调节参数，不是模型自然输出。</small></div>
+        <div class="contract"><div class="contract-panel"><h3>训练与服务合同</h3><dl><dt>CAA</dt><dd>已应答 OD 上预测司乘取消；连环派与非连环派需分场景校准。</dd><dt>OCR</dt><dd>预测本轮不播后、下一轮开始前的订单流失。</dd><dt>点时</dt><dd>供需、等待、价格和模型分必须来自同一决策时点。</dd></dl></div><div class="contract-panel"><h3>实验必须同时看</h3><dl><dt>效率</dt><dd>应答、CR、完单、候选 OD 规模与去重司机数。</dd><dt>体验</dt><dd>乘客 ETP、接驾距离、司乘应答后取消。</dd><dt>外部性</dt><dd>端内外腾挪、连环派占比、共享司机资源挤占。</dd></dl></div></div>
+        <div class="evidence-bar"><b>2026 证据</b><span>V2.1 全国 PID 历史实验记录了组合策略效果，但实验同时改变模型、阈值和近距离过滤，不能把收益单独归因给某一模型；扩量表为空，不能认定已推全。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="matching">
+      <div class="wrap">
+        <div class="eyebrow">03 · Matching Strategy</div><h2>匹配：在一轮订单 × 司机矩阵上做双边稳定选择</h2>
+        <div class="strategy-head"><div class="strategy-code"><div class="index">02</div><b>GS 匹配</b><span>偏好构造 + 延迟接受 + 模式输出</span></div><div class="strategy-thesis"><h3>不是逐单找最近司机</h3><p>把本轮召回得到的 OD 边组成二分图。订单侧偏好可承载接驾距离、履约与订单价值；司机侧偏好可承载 IPH、顺路度、奖励和机会倾斜。GS 用两套偏好求稳定匹配，避免出现司乘双方都想改配的阻塞对。</p></div></div>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>构图</h3><ul><li>节点：本轮订单、司机</li><li>边：召回通过的 OD</li><li>边属性：距离、价值、履约</li><li>场景：普通/连环派/预约</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>双边排序</h3><ul><li>O→D：近、稳、价值高</li><li>D→O：IPH、奖励、顺路</li><li>倾斜进入排序分</li><li>并列与缺失显式处理</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 3</span><h3>延迟接受</h3><ul><li>主动方申请首选</li><li>被动方暂留更优者</li><li>被拒后申请下一位</li><li>直至无可继续申请</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 4</span><h3>选择主动方</h3><ul><li>GS_D：司机先选订单</li><li>GS_O：订单先选司机</li><li>GS_S：按轮次供需切换</li><li>主动方在稳定集合中占优</li></ul></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>模式与兜底</h3><ul><li>全指派/半指派/抢单</li><li>1vN 设置订单容量 N</li><li>超时/超轮次中止</li><li>回退 KM / 就近方案</li></ul></div>
+        </div>
+        <div class="contract"><div class="contract-panel"><h3>GS 与 KM 的取舍</h3><dl><dt>GS</dt><dd>表达双边偏好、结果稳定，但不保证平台单一加权目标最大。</dd><dt>KM</dt><dd>给定统一边权后求全局最大权匹配，但难表达双边不同目标。</dd><dt>1vN</dt><dd>一个订单可保留 N 个司机，一个司机最多接收一个订单，适合抢单/半指派。</dd></dl></div><div class="contract-panel"><h3>反事实评估</h3><dl><dt>双顺序</dt><dd>真实 GS 生效，同时交换主动方离线仿真，独立日志对齐轮次。</dd><dt>核心指标</dt><dd>完单、GMV、接驾、司乘取消、司机 TSH、匹配耗时。</dd><dt>风险</dt><dd>供需比阈值、倾斜耦合、场景兼容和运力挤占。</dd></dl></div></div>
+        <div class="evidence-bar"><b>状态边界</b><span>GS_D / GS_O / 动态 GS_S 是策略方案和实验设计；收益数字主要是预估或离线仿真，当前生产主动方、阈值和实验结论仍需发布记录核验。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="pk">
+      <div class="wrap">
+        <div class="eyebrow">04 · Platform PK</div><h2>PK：在举手结果间做履约约束下的距离与价值排序</h2>
+        <div class="strategy-head"><div class="strategy-code"><div class="index">03</div><b>平台 PK</b><span>候选窗口 + 多任务履约 + 约束排序</span></div><div class="strategy-thesis"><h3>商家匹配之后，平台再做跨商家选择</h3><p>首个举手到达后开启窗口；only 举手可直接进入胜出流程，both/multi 候选持续更新当前胜者。排序分以履约为基座，通过距离惩罚、λ、倾斜和硬护栏控制“履约—接驾”的置换。</p></div></div>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>收集举手</h3><ul><li>首举手开启窗口</li><li>记录商家、司机、DO</li><li>only / both 分结构</li><li>平台规则二次过滤</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>预测履约</h3><ul><li>三分类：D 取消/C 取消/完单</li><li>构造司乘履约率</li><li>司机历史取消/拒单</li><li>供需、价值、实时特征</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 3</span><h3>约束排序</h3><ul><li>履约分 + 距离归一分</li><li>城市 λ / 权重 w</li><li>胜出履约 ≥ Top 履约 90%</li><li>兼容商家与司机倾斜</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 4</span><h3>动态时停</h3><ul><li>新候选与当前胜者比较</li><li>判断继续等的边际收益</li><li>满足条件提前结束</li><li>最长窗口到期强制输出</li></ul></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>输出与监控</h3><ul><li>输出胜出 DO 与分解分</li><li>校验特征缺失/填充</li><li>监控 only/both 迁移</li><li>异常时回退旧策略</li></ul></div>
+        </div>
+        <div class="formula-box"><strong>历史候选目标</strong><div class="formula-grid"><div class="formula-mini"><b>线性权衡</b>score = (1−w)·fulfillment + w·distance_norm</div><div class="formula-mini"><b>拉格朗日形式</b>score ≈ fulfillment − distance / λ</div><div class="formula-mini"><b>单订单硬护栏</b>fulfillment(win) ≥ 0.9·max fulfillment</div></div><small>不同版本的 w、λ、分数尺度和模型标签不同，不可混作同一线上公式。</small></div>
+        <div class="metric-row"><div class="metric-pill">完单 / CR<span>平台结果</span></div><div class="metric-pill">乘客 ETP<span>等待体验</span></div><div class="metric-pill">接驾距离<span>司乘成本</span></div><div class="metric-pill">司乘取消<span>履约护栏</span></div><div class="metric-pill">only / both<span>候选结构</span></div></div>
+        <div class="evidence-bar"><b>2026 历史实验</b><span>特定窗口的随机/时间片实验记录了用少量履约置换接驾距离的结果；但当前服务版本、全量回执和持续监控未核验，不能当作现网说明。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="change-car">
+      <div class="wrap">
+        <div class="eyebrow">05 · Change-car Strategy</div><h2>换车：先保证应答，再在更长观察窗里重新匹配更优司机</h2>
+        <div class="strategy-head"><div class="strategy-code"><div class="index">04</div><b>应答后换车</b><span>风险识别 + 子单重匹配 + 体验约束</span></div><div class="strategy-thesis"><h3>不是把初次分单简单重跑</h3><p>父单已经应答，原司机处于占用/空驶状态；订单以子单重新进入 GS。换车利用的是应答后几十秒内新增或位置变化的运力机会，同时要控制原司机沉没成本、乘客确定性和连续换车次数。</p></div></div>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>触发识别</h3><ul><li>接驾 ETA / EDA 过长</li><li>路况或司机位置变化</li><li>乘客取消风险升高</li><li>新候选池出现</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>双模型判断</h3><ul><li>P(应答后乘客取消)</li><li>P(取消后仍有用车意愿)</li><li>订单/供需/司乘历史</li><li>连环派顺路度特征</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 3</span><h3>子单重匹配</h3><ul><li>订单继续留在匹配池</li><li>生成新司机候选</li><li>重新进入 GS</li><li>比较新旧接驾与履约</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 4</span><h3>动作分支</h3><div class="branch"><div><b>自动换</b><span>高风险且收益明确</span></div><div><b>手动换</b><span>需乘客确认</span></div><div><b>不换</b><span>收益不足或风险高</span></div></div></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>护栏</h3><ul><li>原司机空驶时长</li><li>连续换车次数</li><li>必须换得更近/更快</li><li>乘客与司机消息透传</li></ul></div>
+        </div>
+        <div class="contract"><div class="contract-panel"><h3>与 Hold 的区别</h3><dl><dt>Hold</dt><dd>初次匹配前短暂等待更优司机，尚未产生司机空驶。</dd><dt>换车</dt><dd>应答后用更长观察窗找新机会，原司机成本已经发生。</dd><dt>联合</dt><dd>Hold 过长会损伤应答，换车过激会损伤司机体验，需联合实验。</dd></dl></div><div class="contract-panel"><h3>评估口径</h3><dl><dt>净收益</dt><dd>新司机接驾改善、完单与取消变化，不只看换车成功率。</dd><dt>司机侧</dt><dd>父单空驶、被换频次、沟通与后续听单。</dd><dt>反事实</dt><dd>需要随机触发/阈值实验，观察性成功换车不能证明因果。</dd></dl></div></div>
+        <div class="evidence-bar"><b>策略参数</b><span>“更近 90 秒”“父单空驶约 60 秒”等来自讨论示例，不是确认的生产阈值；取消和意愿模型也存在标签代理、字段命名与校准缺口。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="predispatch">
+      <div class="wrap">
+        <div class="eyebrow">06 · Pre-dispatch Strategy</div><h2>预分单：原勾选未应答时，用额外运力换一次新的成交机会</h2>
+        <div class="strategy-head"><div class="strategy-code"><div class="index">05</div><b>预分单</b><span>时点触发 + 品类扩展 + 接受度过滤</span></div><div class="strategy-thesis"><h3>核心是“何时扩、扩给谁、乘客是否会接受”</h3><p>系统根据中心格及邻格发单量、应答率和等待时长判断是否触发；把更高价品类或额外商家纳入候选，汇总品牌应答率，再结合乘客接受度与重复拒绝规则决定是否发起预分单。</p></div></div>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>触发窗口</h3><ul><li>原勾选品类尚未应答</li><li>供需与等待达到阈值</li><li>商家/品类白名单</li><li>非重复呼叫与频控</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>应答率聚合</h3><ul><li>品牌/品类 AR 预测</li><li>盒内外运力去重</li><li>折扣与惩罚系数</li><li>AR = 1−∏(1−ARᵢ)</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 3</span><h3>接受度模型</h3><ul><li>历史接受/拒绝</li><li>价格、价差、等待</li><li>人群生命周期</li><li>供需、天气、车型</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 4</span><h3>策略输出</h3><ul><li>满足阈值：发起预分单</li><li>乘客确认后进入交易</li><li>拒绝则回到原链路</li><li>连续两次拒绝停止</li></ul></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>净增量校验</h3><ul><li>预分单完单增量</li><li>正常分单/补勾损失</li><li>去重呼叫 CR</li><li>应答后取消迁移</li></ul></div>
+        </div>
+        <div class="formula-box"><strong>候选聚合与接受决策</strong><div class="formula-grid"><div class="formula-mini"><b>联合应答率</b>AR_union = 1 − ∏ᵢ(1 − ARᵢ)</div><div class="formula-mini"><b>接受概率</b>P(A | price, gap, wait, user, supply)</div><div class="formula-mini"><b>基础动作</b>trigger ∧ AR_union ≥ τ_AR ∧ P(A) ≥ τ_A</div></div><small>阈值按城市、商家、盒子和品类配置；所有特征必须满足点时一致性。</small></div>
+        <div class="evidence-bar"><b>实验教训</b><span>享道接入实验中预分单完单增加，但正常分单和补勾完单发生迁移，去重 CR 也有负向点估计；因此不能把“预分单完单上涨”直接当作平台净增。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="upgrade">
+      <div class="wrap">
+        <div class="eyebrow">07 · Upgrade Strategy</div><h2>升舱：在预算约束下，为边际价值足够高的订单补价</h2>
+        <div class="strategy-head"><div class="strategy-code"><div class="index">06</div><b>升舱策略</b><span>候选举手 + ROI 决策 + 预算熔断</span></div><div class="strategy-thesis"><h3>升舱不是预分单接受度模型本身</h3><p>预分单负责创造额外候选，升舱负责决定是否由商家/平台承担更高价品类的价差。只有“本来不容易接受、价差可控、升舱能带来净完单”的订单才值得补。</p></div></div>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>产生升舱候选</h3><ul><li>预分单/额外品类举手</li><li>原勾选仍未成交</li><li>更高价运力可用</li><li>乘客/城市/商家白名单</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>估计基线</h3><ul><li>P(接受零补预分单)</li><li>P(finish_base)</li><li>P(finish_upgrade)</li><li>券后价格与价差</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 3</span><h3>边际价值</h3><ul><li>ΔP = P(up)−P(base)</li><li>补差成本 = price_gap</li><li>城市预算影子价格 λ</li><li>新旧公式严格隔离</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 4</span><h3>在线决策</h3><ul><li>边际收益为正则升舱</li><li>否则回到接受度过滤</li><li>逐单记录决策分解</li><li>输出补贴与车型动作</li></ul></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>预算与体验护栏</h3><ul><li>城市补贴率上限熔断</li><li>乘客价格表达一致</li><li>接驾/取消风险</li><li>随机升舱组识别增量</li></ul></div>
+        </div>
+        <div class="formula-box"><strong>V2 候选决策（在特定计费假设下）</strong><div class="formula-grid"><div class="formula-mini"><b>简化规则</b>(1 − P(接受预分单)) / price_gap &gt; λ</div><div class="formula-mini"><b>含义</b>越不可能零补接受、价差越小，越值得升舱</div><div class="formula-mini"><b>约束</b>仅当补贴在升舱车型完单时核销等假设成立</div></div><small>公式版本变化会改变 λ 的尺度；模型更新、AR 项移除后必须重新标定，不能沿用旧参数。</small></div>
+        <div class="contract"><div class="contract-panel"><h3>接受度模型</h3><dl><dt>标签</dt><dd>预分单接受/拒绝；历史正样本约 23%。</dd><dt>约束</dt><dd>等待时长单增；价格、价差、价差率单减。</dd><dt>校准</dt><dd>AUC 之外需看分桶校准、新流人群和点时一致性。</dd></dl></div><div class="contract-panel"><h3>三组实验</h3><dl><dt>空白组</dt><dd>识别升舱机制总体效果。</dd><dt>老策略</dt><dd>给出已有能力的历史基线。</dd><dt>新策略</dt><dd>识别本次 ROI / 模型迭代的边际增量。</dd></dl></div></div>
+        <div class="evidence-bar"><b>风险提示</b><span>历史观察中升舱订单取消、接驾距离和时长均可能更高，且存在选择偏差；必须用随机升舱组、成本账单和取消护栏共同评估，不能只看 CR。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="modeling">
+      <div class="wrap">
+        <div class="eyebrow">08 · Modeling Blueprint</div><h2>建模不是“给每条边一个分”，而是拆清行为、结果与约束</h2>
+        <p class="lead">一条 OD 边最终是否完单，依次受“能否触达、司机是否应答、平台是否胜出、司乘是否取消”影响。不同模型服务于不同条件概率；训练标签、样本空间和线上调用时点必须一致。</p>
+        <div class="grid g3" style="margin-top:24px">
+          <div class="card teal"><h3>召回与取消</h3><p><b>样本：</b>曝光或可召回 OD；<b>标签：</b>应答、司机取消、乘客取消、完单。历史基线使用 XGBoost；连环派取消采用 pAns 与 pACAA 双头，并以 pCAA=pACAA/pAns 表达条件取消，候选结构包括 CGC/ESMM。</p></div>
+          <div class="card purple"><h3>匹配多任务</h3><p>按 Full/Half/Grab 动作建模：抢单概率、PK 胜率、履约四分类。已收录方案采用三塔 + DCNv2；PK 头用 Action×Serial FiLM，Outcome 头用 Adapter + Masked Softmax，避免在不适用动作上计算损失。</p></div>
+          <div class="card orange"><h3>平台 PK</h3><p>三分类预测司机取消、乘客取消、完单，并派生履约率。方案中出现 PEP/双线性交互和 PEPNet 式多域专家；动态窗口可把“继续等待还是输出”建成序列决策，DQN 仅代表历史方案，不等同当前在线实现。</p></div>
+          <div class="card green"><h3>换车</h3><p>先估计应答后乘客取消，再估计取消后仍有用车意愿。代码证据中有 PyTorch + dmlite、共享 Attention、双塔输出以及 ESMM 式概率乘积；XGBoost、MLP、MMoE 是不同阶段候选，不能混称统一线上架构。</p></div>
+          <div class="card"><h3>预分单与升舱</h3><p>接受度采用带单调约束的 XGBoost：等待单增，价格/价差/价差率单减；历史正负不均衡使用 scale_pos_weight。升舱再结合 P(接受)、完单增量、price_gap 与预算影子价格 λ 做逐单 ROI 决策。</p></div>
+          <div class="card"><h3>训练与校准纪律</h3><p>按决策时点截断特征，防止未来信息泄漏；区分曝光样本与胜出样本的选择偏差；除 AUC 外检查 LogLoss、分桶校准、城市×时段稳定性，以及新客、冷启动和缺失特征覆盖。</p></div>
+        </div>
+        <div class="formula-box"><strong>推荐的概率分解</strong><div class="formula-grid"><div class="formula-mini"><b>应答</b>P(answer | recall, action, context)</div><div class="formula-mini"><b>条件取消</b>P(cancel | answer, OD, context)</div><div class="formula-mini"><b>最终完单</b>P(finish)=P(answer)·P(win|answer)·P(no-cancel|win)</div></div><small>这是理解链路的概率分解，不代表所有历史模型都以同一个联合网络训练。</small></div>
+      </div>
+    </section>
+
+    <section class="slide" id="solver">
+      <div class="wrap">
+        <div class="eyebrow">09 · Solver & Decision</div><h2>模型给出边价值，求解器负责在全局约束下选动作</h2>
+        <p class="lead">核心难点不是单点预测，而是把接驾成本、履约护栏、双边偏好、容量与预算放进同一个可运行的决策过程。</p>
+        <div class="algo-flow">
+          <div class="algo-step"><span class="step-no">STEP 1</span><h3>构造边价值</h3><ul><li>预测应答、胜出、取消、完单</li><li>加入距离、等待、GMV、IPH</li><li>按动作与场景做 Mask</li><li>记录每个分项便于解释</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 2</span><h3>目标变换</h3><ul><li>分式目标用 Dinkelbach 更新 θ</li><li>履约/预算约束引入 λ</li><li>得到可加总的 OD 边分</li><li>硬护栏先过滤不可行边</li></ul></div>
+          <div class="algo-step"><span class="step-no">STEP 3</span><h3>参数寻优</h3><ul><li>Sobol 做全局粗搜索</li><li>TPE 在高潜区域细搜索</li><li>城市×小时离线回放</li><li>双变量/对偶更新 λ</li></ul></div>
+          <div class="algo-step action"><span class="step-no">STEP 4</span><h3>组合求解</h3><ul><li>TP/贪心：低延迟快速输出</li><li>GS：表达司乘双边偏好</li><li>KM：统一边权最大匹配</li><li>1vN：订单容量扩展</li></ul></div>
+          <div class="algo-step risk"><span class="step-no">STEP 5</span><h3>在线执行</h3><ul><li>离线固化参数，在线查表打分</li><li>超时、空候选、缺特征回退</li><li>输出版本、分解分与原因码</li><li>回放比较新旧策略反事实</li></ul></div>
+        </div>
+        <div class="contract"><div class="contract-panel"><h3>Dinkelbach + 拉格朗日</h3><dl><dt>适用</dt><dd>平均接驾、单位履约成本等分式目标，以及履约率、预算等全局约束。</dd><dt>离线</dt><dd>循环更新 θ 和 λ，用历史订单池回放评估目标与约束残差。</dd><dt>在线</dt><dd>通常不做多轮迭代，只用已固化参数计算边分并进入匹配求解。</dd></dl></div><div class="contract-panel"><h3>GS / KM / TP 怎么选</h3><dl><dt>GS</dt><dd>双边偏好和稳定性优先；主动方选择会改变稳定集合中的分配。</dd><dt>KM</dt><dd>边权统一且希望全局加总最大；需要处理规模和延迟。</dd><dt>TP</dt><dd>工程低延迟和可解释优先；需用回放量化相对最优解损失。</dd></dl></div></div>
+        <div class="evidence-bar"><b>关键边界</b><span>Sobol/TPE、Dinkelbach、λ 对偶更新和 TP/GS 回放来自已收录方案与代码说明；具体线上参数、迭代频率和求解器版本仍需以发布记录核验。</span></div>
+      </div>
+    </section>
+
+    <section class="slide" id="stack">
+      <div class="wrap">
+        <div class="eyebrow">10 · Engineering Stack</div><h2>从离线样本到在线决策：必须是一条可复现的工程链</h2>
+        <div class="pipeline" style="margin-top:24px">
+          <div class="stage"><span class="no">DATA</span><h3>Hive / ODS</h3><ul><li>曝光、召回、匹配、PK、完单日志</li><li>按决策时点拼接训练样本</li><li>城市×小时回放与成本账单</li></ul></div>
+          <div class="stage"><span class="no">FEATURE</span><h3>DUFE / dmlite</h3><ul><li>离在线特征定义与 FastLoad</li><li>类别 Embedding、数值归一化</li><li>缺失率、覆盖率与一致性验收</li></ul></div>
+          <div class="stage"><span class="no">MODEL</span><h3>XGBoost / TF / PyTorch</h3><ul><li>树模型、DCNv2、多任务专家</li><li>Action 条件化与 Masked Loss</li><li>导出版本、校准与回归测试</li></ul></div>
+          <div class="stage"><span class="no">SERVING</span><h3>EVE / 容器化服务</h3><ul><li>训练、导出与模型服务部署</li><li>caller、模型版本、超时与降级</li><li>分解分、原因码和特征快照</li></ul></div>
+          <div class="stage"><span class="no">CONTROL</span><h3>Apollo / 实验平台</h3><ul><li>阈值、λ、白名单与城市配置</li><li>PID / 司机 / 时间片实验</li><li>灰度、熔断、回滚与监控</li></ul></div>
+        </div>
+        <div class="grid g3" style="margin-top:22px">
+          <div class="card teal"><h3>一致性验收</h3><p>固定样本逐条比对离线分数、在线分数和最终动作；记录特征版本、模型版本、caller 与配置快照，避免“模型没变但结果变了”。</p></div>
+          <div class="card orange"><h3>运行时护栏</h3><p>监控延迟 P95/P99、空候选、缺特征、兜底率、分数漂移和城市流量；模型服务异常时回退可解释的旧规则或旧模型。</p></div>
+          <div class="card purple"><h3>版本纪律</h3><p>TensorFlow、PyTorch、XGBoost、dmlite、EVE 与 Apollo 出现在不同项目和历史版本中；本文只汇总已见证据，不宣称现网由单一统一栈实现。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="evaluation">
+      <div class="wrap">
+        <div class="eyebrow">11 · Experiment & Diagnostics</div><h2>六条策略链，必须在同一评估框架里闭环</h2>
+        <div class="grid g3" style="margin-top:24px">
+          <div class="card teal"><h3>随机化单元</h3><p>乘客 PID 适合看交易净增量；司机 PID 适合看机会与取消；时间片适合控制共享运力干扰。先解释为什么选该分流。</p></div>
+          <div class="card orange"><h3>漏斗拆解</h3><p>候选 → 召回 → 匹配 → 举手 → PK 胜出 → 应答 → 接驾 → 完单；任何局部上涨都要检查相邻环节迁移。</p></div>
+          <div class="card purple"><h3>四层指标</h3><p>平台结果、乘客体验、司机体验、商家/运力迁移。平均值之外，还要看城市、供需、品类和尾部异质性。</p></div>
+          <div class="card green"><h3>工程一致性</h3><p>模型服务版本、特征缺失、在离线分数、配置快照、点时一致性、延迟和兜底触发率都要可追溯。</p></div>
+          <div class="card"><h3>归因纪律</h3><p>模型、阈值、规则和候选范围同时变化时，只能归因给组合策略；需要正交分组才能拆单组件收益。</p></div>
+          <div class="card"><h3>上线门槛</h3><p>SRM、样本量、显著性、成本、长期护栏、分城市稳定性、发布与回滚记录缺一不可。</p></div>
+        </div>
+        <div class="metric-row"><div class="metric-pill">候选规模<span>OD / 去重司机</span></div><div class="metric-pill">交易结果<span>CR / 完单 / GMV</span></div><div class="metric-pill">乘客体验<span>ETP / C取消</span></div><div class="metric-pill">司机体验<span>接驾 / D取消 / TSH</span></div><div class="metric-pill">成本稳定<span>补贴 / 延迟 / 兜底</span></div></div>
+        <div class="note warning"><b>统一状态口径：</b>本文介绍“策略如何做”，但不把方案设计当作当前线上实现。模型名、阈值、λ、覆盖城市和放量状态必须回到对应版本、实验和生产证据核验。</div>
+      </div>
+    </section>
+
+    <section class="slide closing" id="closing">
+      <div class="wrap">
+        <div class="eyebrow" style="color:#72d8cf">SUMMARY</div>
+        <h2>把每一次交易选择，<br>变成<em>可解释、可验证、可演进</em>的决策</h2>
+        <p class="lead">2026 的主线不是堆叠更多局部规则，而是把业务目标拆成可学习的概率、可求解的约束和可回放的在线动作，逐步统一价值、候选、匹配与 PK。</p>
+        <div class="closing-grid">
+          <div class="closing-card"><b>系统视角</b><span>任何局部优化都要回到整条交易链路，观察上下游迁移与运力挤占。</span></div>
+          <div class="closing-card"><b>模型与求解</b><span>概率模型刻画行为与结果，Dinkelbach、拉格朗日和 GS/KM 把预测转成约束下的组合决策。</span></div>
+          <div class="closing-card"><b>证据意识</b><span>规划、离线、实验与生产事实分层表达，历史结论不自动代表当前。</span></div>
+        </div>
+        <div class="foot">内部新人导览草稿 · 基于交易效率 LLM Wiki · 2026-11-05 · 未推送仓库</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const progress=document.getElementById('progress');
+    const links=[...document.querySelectorAll('nav a')];
+    const sections=[...document.querySelectorAll('section[id]')].filter(section=>section.offsetParent!==null);
+    function update(){
+      const max=document.documentElement.scrollHeight-innerHeight;
+      progress.style.width=(max?scrollY/max*100:0)+'%';
+      let active=sections[0]?.id;
+      for(const section of sections){if(section.getBoundingClientRect().top<innerHeight*.45)active=section.id;}
+      links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+active));
+    }
+    addEventListener('scroll',update,{passive:true});addEventListener('resize',update);update();
+  </script>
+</body>
+</html>

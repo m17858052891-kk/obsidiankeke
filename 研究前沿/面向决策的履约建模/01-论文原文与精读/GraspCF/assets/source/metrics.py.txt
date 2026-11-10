@@ -1,0 +1,103 @@
+"""The three interventional metrics.
+
+Each one is chance (0.5) for a model that scores the grasp pose and ignores the
+scene, by construction: the clear and obstacle-inserted variants share a pose,
+so a pose lookup returns the same number for both and cannot order them.
+
+  cf_pair_auroc       Rank every clear variant above its obstacle-inserted twin.
+                      Pooled AUROC with clear as the positive class. Chance 0.5.
+  within_grasp_auroc  Inside each graded-offset group, rank the feasible offsets
+                      above the infeasible ones. Mean per-group AUROC. Chance 0.5.
+  pick_clear_accuracy Of the two same-pose candidates, is the clear one scored
+                      higher? Strictly within-pair. Chance 0.5.
+
+bootstrap_ci resamples the pairing unit (pairs for CF-pair and pick-clear,
+groups for within-grasp) to report the 95% interval the paper quotes.
+"""
+
+from __future__ import annotations
+
+from typing import Dict, List, Sequence, Tuple
+
+import numpy as np
+from sklearn.metrics import roc_auc_score
+
+
+# ── point metrics ─────────────────────────────────────────────────────────────
+def cf_pair_auroc(clear_scores: Sequence[float], obstacle_scores: Sequence[float]) -> float:
+    """Pooled clear-vs-obstacle AUROC over all same-pose pairs (chance 0.5)."""
+    clear = np.asarray(clear_scores, np.float64)
+    obst = np.asarray(obstacle_scores, np.float64)
+    if clear.size == 0 or obst.size == 0:
+        return float("nan")
+    y = np.concatenate([np.ones_like(clear), np.zeros_like(obst)])
+    s = np.concatenate([clear, obst])
+    return float(roc_auc_score(y, s))
+
+
+def pick_clear_accuracy(clear_scores: Sequence[float], obstacle_scores: Sequence[float]) -> float:
+    """Fraction of pairs whose clear variant outranks its obstacle twin (ties = 0.5)."""
+    clear = np.asarray(clear_scores, np.float64)
+    obst = np.asarray(obstacle_scores, np.float64)
+    if clear.size == 0:
+        return float("nan")
+    wins = (clear > obst).astype(np.float64)
+    wins[clear == obst] = 0.5
+    return float(wins.mean())
+
+
+def within_grasp_auroc(group_scores: Sequence[Sequence[float]],
+                       group_labels: Sequence[Sequence[float]]) -> float:
+    """Mean AUROC over graded-offset groups that contain both labels (chance 0.5)."""
+    aurocs = []
+    for scores, labels in zip(group_scores, group_labels):
+        y = np.asarray(labels, np.int64)
+        if y.min() == y.max():
+            continue                       # a group with one label has no ranking to score
+        aurocs.append(roc_auc_score(y, np.asarray(scores, np.float64)))
+    return float(np.mean(aurocs)) if aurocs else float("nan")
+
+
+def natural_auroc(scores: Sequence[float], labels: Sequence[float]) -> float:
+    """Reference AUROC on the original split, no obstacle inserted."""
+    y = np.asarray(labels, np.int64)
+    if y.min() == y.max():
+        return float("nan")
+    return float(roc_auc_score(y, np.asarray(scores, np.float64)))
+
+
+# ── bootstrap ─────────────────────────────────────────────────────────────────
+def bootstrap_ci(values_a: Sequence[float], values_b: Sequence[float], metric: str,
+                 n_boot: int = 2000, seed: int = 0) -> Tuple[float, float]:
+    """95% CI for cf_pair_auroc or pick_clear_accuracy by resampling pairs."""
+    a = np.asarray(values_a, np.float64)
+    b = np.asarray(values_b, np.float64)
+    rng = np.random.RandomState(seed)
+    n = a.size
+    fn = cf_pair_auroc if metric == "cf_pair_auroc" else pick_clear_accuracy
+    boot = []
+    for _ in range(n_boot):
+        idx = rng.randint(0, n, size=n)
+        boot.append(fn(a[idx], b[idx]))
+    lo, hi = np.percentile(boot, [2.5, 97.5])
+    return float(lo), float(hi)
+
+
+def summarize(clear_scores: Sequence[float], obstacle_scores: Sequence[float],
+              group_scores: Sequence[Sequence[float]] = (),
+              group_labels: Sequence[Sequence[float]] = (),
+              n_boot: int = 2000) -> Dict[str, object]:
+    """Assemble the report row used by the audit harness and the leaderboard."""
+    cf = cf_pair_auroc(clear_scores, obstacle_scores)
+    pick = pick_clear_accuracy(clear_scores, obstacle_scores)
+    cf_lo, cf_hi = bootstrap_ci(clear_scores, obstacle_scores, "cf_pair_auroc", n_boot)
+    out = {
+        "n_pairs": int(np.asarray(clear_scores).size),
+        "cf_pair_auroc": cf,
+        "cf_pair_auroc_ci95": [cf_lo, cf_hi],
+        "pick_clear_accuracy": pick,
+    }
+    if group_scores:
+        out["within_grasp_auroc"] = within_grasp_auroc(group_scores, group_labels)
+        out["n_groups"] = len(group_scores)
+    return out

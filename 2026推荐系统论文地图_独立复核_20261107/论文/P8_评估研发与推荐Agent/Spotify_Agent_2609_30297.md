@@ -137,3 +137,7 @@ UserLLM、judge、coding-agent参与离线评测/开发；本方法改system pro
 - 【证据缺口】一次优化run的跨run稳定性与根因分流单模块贡献未识别。
 
 本版留存的[本轮原文/抽取快照](../../证据快照/root/引用文件/2609.30297_html.html)与[结构化访问及逐项证据](../../数据/逐篇复核.json)可用于追溯。文中sources目录名指复核工作目录，交付版以此链接为准。
+
+## 关联阅读
+
+[ATLAS](ATLAS_2608_30685.md) · [NOVA](NOVA_2606_27243.md) · [Amazon Playlist Curation](../P6_列表混排与生成架构/Amazon_Playlist_Curation_amazon_playlist.md)

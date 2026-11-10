@@ -92,3 +92,7 @@ HLT7指过去7天累计活跃小时（Hourly Life Time Last 7 days），不是D7
 复核依据：v2题头与abs；§2公式与校准；§4表1–3及线上；作者/会议页；访问快照与抽取文本保存在本组 sources/，访问日志见 access.json / additional_access.json。这里只声称关键方法、关键数值与部署边界已核验，不声称逐句验证所有数字。
 
 本版留存的[本轮原文/抽取快照](../../证据快照/audit_c/引用文件/2605.17788_full.html)与[结构化访问及逐项证据](../../数据/逐篇复核.json)可用于追溯。文中sources目录名指复核工作目录，交付版以此链接为准。
+
+## 关联阅读
+
+[URED](URED_2611_05997.md) · [PRL-PUTS](PRL-PUTS_2605_16344.md) · [SARA](../P1_语义表征与稀疏泛化/SARA_2609_17639.md) · [PinEqualizer](PinEqualizer_2607_22518.md)

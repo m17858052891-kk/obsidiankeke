@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2300" height="980" viewBox="0 0 2300 980">
+  <defs>
+    <marker id="arrow-black" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#222222"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9bb8f2"/>
+    </marker>
+    <style>
+      .bg { fill: #ffffff; }
+      .dash-box { fill: #ffffff; stroke: #222222; stroke-width: 2; stroke-dasharray: 6 7; }
+      .outer { fill: none; stroke: #ff2626; stroke-width: 6; stroke-dasharray: 18 16; }
+      .step-red { fill: #ffffff; stroke: #ff5a44; stroke-width: 2.2; }
+      .step-blue { fill: #ffffff; stroke: #586bff; stroke-width: 2.2; }
+      .solid-box { fill: #ffffff; stroke: #222222; stroke-width: 2.2; }
+      .arrow { stroke: #222222; stroke-width: 2.2; fill: none; marker-end: url(#arrow-black); }
+      .join { stroke: #222222; stroke-width: 2.2; fill: none; }
+      .flow { stroke: #9bb8f2; stroke-width: 1.7; fill: none; opacity: 0.9; marker-end: url(#arrow-blue); }
+      .axis { stroke: #111111; stroke-width: 4; marker-end: url(#arrow-black); }
+      .threshold { stroke: #111111; stroke-width: 3; stroke-dasharray: 11 10; }
+      .bracket { stroke: #98b4eb; stroke-width: 2; fill: none; }
+      .red-dot { fill: #ff2020; stroke: #222222; stroke-width: 1.2; }
+      .gray-dot { fill: #d9e0ea; stroke: #4c5868; stroke-width: 1.2; }
+      .title { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 30px; font-weight: 500; fill: #111111; }
+      .label { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 26px; font-weight: 500; fill: #111111; }
+      .box-text { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 17px; font-weight: 500; fill: #111111; }
+      .small { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 17px; fill: #111111; }
+      .note { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 18px; fill: #333333; }
+      .muted { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 18px; fill: #555555; }
+      .math { font-family: "Times New Roman", "PingFang SC", serif; font-size: 24px; font-weight: 700; fill: #111111; }
+      .step-label { font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; font-size: 23px; font-weight: 700; fill: #111111; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2300" height="980"/>
+
+  <!-- 左侧策略链路：模仿 V2 原图 -->
+  <rect class="dash-box" x="40" y="250" width="260" height="210"/>
+  <text class="label" x="58" y="292">格子召回策略</text>
+
+  <rect class="dash-box" x="40" y="478" width="260" height="210"/>
+  <text class="label" x="58" y="520">司机召回策略</text>
+
+  <path class="join" d="M 300 355 L 336 355 L 336 582 L 300 582"/>
+  <path class="arrow" d="M 336 468 L 370 468"/>
+
+  <rect class="dash-box" x="378" y="250" width="235" height="438"/>
+  <text class="label" x="402" y="292">连边策略</text>
+  <path class="arrow" d="M 613 468 L 674 468"/>
+
+  <rect class="dash-box" x="682" y="250" width="230" height="438"/>
+  <text class="label" x="704" y="292">规则过滤策略</text>
+  <path class="arrow" d="M 912 468 L 970 468"/>
+
+  <!-- 右侧匹配算法外框 -->
+  <rect class="outer" x="970" y="52" width="1085" height="870"/>
+  <text class="title" x="995" y="96">格子/司机匹配算法</text>
+
+  <!-- Step 1: score 过滤 -->
+  <rect class="step-red" x="990" y="144" width="505" height="760"/>
+
+  <rect class="solid-box" x="1044" y="180" width="200" height="100"/>
+  <text class="box-text" x="1144" y="210" text-anchor="middle">模型预测</text>
+  <text class="box-text" x="1144" y="236" text-anchor="middle">每个司机/格子对的</text>
+  <text class="math" x="1144" y="266" text-anchor="middle">score</text>
+
+  <path class="arrow" d="M 1244 230 L 1294 230"/>
+
+  <rect class="solid-box" x="1294" y="180" width="154" height="100"/>
+  <text class="box-text" x="1371" y="220" text-anchor="middle">过滤</text>
+  <text class="math" x="1371" y="254" text-anchor="middle">score &lt; λ</text>
+
+  <text class="math" x="1260" y="340" text-anchor="middle">score = B̂₀ − B̂₁</text>
+  <text class="small" x="1260" y="370" text-anchor="middle">预测调度可减少的差听单秒数</text>
+  <text class="small" x="1260" y="405" text-anchor="middle" font-weight="700">score 预测</text>
+
+  <line class="axis" x1="1260" y1="430" x2="1260" y2="770"/>
+
+  <circle class="red-dot" cx="1260" cy="462" r="10"/>
+  <text class="note" x="1132" y="469">司机1 / 格子C</text>
+  <circle class="red-dot" cx="1260" cy="502" r="10"/>
+  <text class="note" x="1132" y="509">司机2 / 格子B</text>
+  <circle class="red-dot" cx="1260" cy="542" r="10"/>
+  <text class="note" x="1132" y="549">司机1 / 格子A</text>
+  <circle class="red-dot" cx="1260" cy="615" r="10"/>
+  <text class="note" x="1132" y="622">司机1 / 格子B</text>
+  <circle class="red-dot" cx="1260" cy="675" r="10"/>
+  <text class="note" x="1132" y="682">司机3 / 格子A</text>
+  <circle class="gray-dot" cx="1260" cy="742" r="10"/>
+  <text class="note" x="1132" y="749">司机4 / 格子C</text>
+  <circle class="gray-dot" cx="1260" cy="790" r="10"/>
+  <text class="note" x="1132" y="797">司机5 / 格子C</text>
+
+  <line class="threshold" x1="1105" y1="708" x2="1410" y2="708"/>
+  <text class="math" x="1352" y="698">λ</text>
+
+  <path class="bracket" d="M 1105 430 C 1077 430 1077 430 1077 458 L 1077 664 C 1077 692 1077 692 1105 692"/>
+  <text class="muted" x="1000" y="508">可以下发调度</text>
+  <text class="muted" x="1006" y="535">司机/格子组</text>
+
+  <path class="bracket" d="M 1105 724 C 1077 724 1077 724 1077 752 L 1077 794 C 1077 822 1077 822 1105 822"/>
+  <text class="muted" x="1036" y="760">过滤</text>
+  <text class="muted" x="1012" y="787">司机/格子组</text>
+
+  <text class="step-label" x="1010" y="866">Step 1： score 过滤来保证体验收益约束</text>
+
+  <!-- Step 2: 司机/格子约束过滤 -->
+  <rect class="step-blue" x="1535" y="144" width="500" height="760"/>
+  <path class="arrow" d="M 1448 230 L 1535 230"/>
+
+  <rect class="solid-box" x="1580" y="180" width="205" height="100"/>
+  <text class="box-text" x="1682" y="210" text-anchor="middle">模型预测</text>
+  <text class="box-text" x="1682" y="236" text-anchor="middle">每个司机/格子对的</text>
+  <text class="math" x="1682" y="266" text-anchor="middle">score</text>
+
+  <path class="arrow" d="M 1785 230 L 1827 230"/>
+
+  <rect class="solid-box" x="1827" y="180" width="180" height="100"/>
+  <text class="box-text" x="1917" y="220" text-anchor="middle">score、格子、</text>
+  <text class="box-text" x="1917" y="254" text-anchor="middle">司机过滤</text>
+
+  <text class="small" x="1682" y="340" text-anchor="middle" font-weight="700">score 排序</text>
+  <line class="axis" x1="1682" y1="370" x2="1682" y2="770"/>
+
+  <circle class="red-dot" cx="1682" cy="410" r="10"/>
+  <text class="note" x="1710" y="417">司机2 / 格子B</text>
+
+  <circle class="gray-dot" cx="1682" cy="490" r="10"/>
+  <text class="note" x="1710" y="497">司机1 / 格子B</text>
+  <text class="muted" x="1868" y="497">格子B已经被占用</text>
+
+  <circle class="red-dot" cx="1682" cy="570" r="10"/>
+  <text class="note" x="1710" y="577">司机3 / 格子A</text>
+
+  <circle class="red-dot" cx="1682" cy="675" r="10"/>
+  <text class="note" x="1710" y="682">司机1 / 格子C</text>
+
+  <circle class="gray-dot" cx="1682" cy="748" r="10"/>
+  <text class="note" x="1710" y="755">司机1 / 格子A</text>
+  <text class="muted" x="1838" y="755">司机1已被分配格子</text>
+
+  <!-- 保留 V2 风格的候选流转连线：同一个司机/格子对在 Step2 中重新排序后，对应到同名候选 -->
+  <path class="flow" d="M 1272 462 C 1406 520 1536 635 1670 675"/>
+  <path class="flow" d="M 1272 502 C 1408 470 1534 423 1670 410"/>
+  <path class="flow" d="M 1272 542 C 1408 620 1534 720 1670 748"/>
+  <path class="flow" d="M 1272 615 C 1408 558 1534 512 1670 490"/>
+  <path class="flow" d="M 1272 675 C 1410 642 1536 592 1670 570"/>
+
+  <text class="step-label" x="1588" y="866">Step 2： 格子/司机过滤来保证调度约束</text>
+
+  <path class="arrow" d="M 2055 468 L 2110 468"/>
+  <rect class="solid-box" x="2110" y="407" width="176" height="120"/>
+  <text class="label" x="2198" y="476" text-anchor="middle">下发调度任务</text>
+</svg>

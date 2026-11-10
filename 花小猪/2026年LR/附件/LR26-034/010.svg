@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2080" viewBox="0 0 1600 2080">
+  <defs>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L9,5 L1,9 Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L9,5 L1,9 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L9,5 L1,9 Z" fill="#059669"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L9,5 L1,9 Z" fill="#ea580c"/>
+    </marker>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font: 700 32px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 400 16px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #4b5563; }
+      .section { font: 700 21px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #111827; }
+      .h { font: 700 17px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #111827; }
+      .text { font: 500 15px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #111827; }
+      .small { font: 400 13px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #4b5563; }
+      .tiny { font: 400 12px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #64748b; }
+      .math { font: 700 18px "Times New Roman", "STIX Two Text", serif; fill: #111827; }
+      .mathSmall { font: 700 15px "Times New Roman", "STIX Two Text", serif; fill: #111827; }
+      .inputBox { fill: #f8fafc; stroke: #64748b; stroke-width: 1.5; rx: 12; }
+      .treatBox { fill: #fff7ed; stroke: #fb923c; stroke-width: 1.5; rx: 12; }
+      .mainArea { fill: #f8fbff; stroke: #60a5fa; stroke-width: 2; stroke-dasharray: 8 6; rx: 14; }
+      .listenArea { fill: #fbfffc; stroke: #34d399; stroke-width: 2; stroke-dasharray: 8 6; rx: 14; }
+      .node { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.25; rx: 9; }
+      .blueNode { fill: #eff6ff; stroke: #60a5fa; stroke-width: 1.35; rx: 9; }
+      .greenNode { fill: #ecfdf5; stroke: #34d399; stroke-width: 1.35; rx: 9; }
+      .orangeNode { fill: #fff7ed; stroke: #fb923c; stroke-width: 1.45; rx: 10; }
+      .redNode { fill: #fff1f2; stroke: #fb7185; stroke-width: 1.35; rx: 9; }
+      .lossBlue { fill: #eef2ff; stroke: #818cf8; stroke-width: 1.45; stroke-dasharray: 7 5; rx: 10; }
+      .lossGreen { fill: #ecfdf5; stroke: #34d399; stroke-width: 1.45; stroke-dasharray: 7 5; rx: 10; }
+      .guard { fill: #f0fdf4; stroke: #86efac; stroke-width: 1.5; rx: 10; }
+      .score { fill: #fffbf5; stroke: #fb923c; stroke-width: 1.6; rx: 12; }
+      .outArea { fill: #fffafa; stroke: #ef4444; stroke-width: 1.7; stroke-dasharray: 8 6; rx: 13; }
+      .line { stroke: #64748b; stroke-width: 1.35; stroke-opacity: 0.78; fill: none; marker-end: url(#arrow-gray); }
+      .blueLine { stroke: #2563eb; stroke-width: 1.35; stroke-opacity: 0.68; fill: none; marker-end: url(#arrow-blue); }
+      .greenLine { stroke: #059669; stroke-width: 1.35; stroke-opacity: 0.68; fill: none; marker-end: url(#arrow-green); }
+      .orangeLine { stroke: #ea580c; stroke-width: 1.45; stroke-opacity: 0.78; fill: none; marker-end: url(#arrow-orange); }
+      .softLine { stroke: #94a3b8; stroke-width: 1.15; stroke-opacity: 0.72; fill: none; marker-end: url(#arrow-gray); }
+      .thinLine { stroke: #94a3b8; stroke-width: 1.15; stroke-opacity: 0.72; fill: none; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="2080"/>
+
+  <text class="title" x="56" y="54">无单调度 V3 模型结构</text>
+  <text class="subtitle" x="56" y="84">同一份司机-目标格子特征 X_ij 进入 DRCFR 因果校正模块和两类潜在结果分支；线上以预期差听单秒数减少量排序，并用完单不负做约束。</text>
+
+  <!-- Shared input -->
+  <rect class="inputBox" x="90" y="116" width="1120" height="104"/>
+  <text class="section" x="560" y="150">共同原始输入</text>
+  <text class="mathSmall" x="270" y="181">X_ij = [driver_i, source_grid, target_grid_j, ETA, supply-demand, weather, history]</text>
+  <text class="small" x="352" y="204">样本粒度：司机 i - 目标格子 j 候选对；同一个 X_ij 分别进入两条分支。</text>
+
+  <rect class="treatBox" x="1240" y="116" width="260" height="104"/>
+  <text class="h" x="1314" y="151">调度干预标记</text>
+  <text class="math" x="1324" y="181">T_dispatch</text>
+  <text class="tiny" x="1305" y="204">训练标签：0 不调度，1 调度</text>
+
+  <path class="line" d="M790,220 L790,260"/>
+
+  <!-- Global causal correction module -->
+  <rect class="mainArea" x="70" y="260" width="1440" height="460"/>
+  <text class="section" x="104" y="296">A. DRCFR 因果校正模块（整体训练使用）</text>
+  <text class="small" x="104" y="324">训练阶段用于校正下方完单分支和差听单分支的历史调度偏差：Treatment 学习干预倾向，Weight 给事实侧损失加权，Balance 做表征平衡。</text>
+  <text class="small" x="104" y="346">线上决策使用下方完单约束与差听单排序分，校正头输出不作为直接排序特征。</text>
+
+  <rect class="node" x="660" y="365" width="260" height="52"/>
+  <text class="h" x="724" y="398">Embedding_layer</text>
+
+  <rect class="blueNode" x="260" y="445" width="1060" height="150"/>
+  <text class="h" x="284" y="475">DRCFR factor block</text>
+  <text class="small" x="284" y="501">Embedding 经三路 MLP 生成因果表征：β / δ / γ</text>
+  <rect class="node" x="300" y="515" width="120" height="26"/>
+  <text class="text" x="360" y="534" text-anchor="middle">MLP</text>
+  <rect class="node" x="730" y="515" width="120" height="26"/>
+  <text class="text" x="790" y="534" text-anchor="middle">MLP</text>
+  <rect class="node" x="1160" y="515" width="120" height="26"/>
+  <text class="text" x="1220" y="534" text-anchor="middle">MLP</text>
+  <rect class="node" x="300" y="553" width="120" height="24"/>
+  <text class="mathSmall" x="360" y="571" text-anchor="middle">β</text>
+  <rect class="node" x="730" y="553" width="120" height="24"/>
+  <text class="mathSmall" x="790" y="571" text-anchor="middle">δ</text>
+  <rect class="node" x="1160" y="553" width="120" height="24"/>
+  <text class="mathSmall" x="1220" y="571" text-anchor="middle">γ</text>
+  <line class="softLine" x1="360" y1="541" x2="360" y2="553"/>
+  <line class="softLine" x1="790" y1="541" x2="790" y2="553"/>
+  <line class="softLine" x1="1220" y1="541" x2="1220" y2="553"/>
+
+  <line class="blueLine" x1="790" y1="417" x2="790" y2="445"/>
+
+  <rect class="lossBlue" x="210" y="606" width="300" height="74"/>
+  <text class="h" x="306" y="634">Treatment</text>
+  <text class="mathSmall" x="282" y="658">concat(β,δ) → π̂</text>
+  <text class="small" x="300" y="676">监督 T_dispatch</text>
+
+  <rect class="lossBlue" x="640" y="606" width="300" height="74"/>
+  <text class="h" x="750" y="634">Weight</text>
+  <text class="mathSmall" x="754" y="658">δ → w</text>
+  <text class="small" x="700" y="676">完单/差听单事实侧损失加权</text>
+
+  <rect class="lossBlue" x="1070" y="606" width="300" height="74"/>
+  <text class="h" x="1176" y="634">Balance</text>
+  <text class="mathSmall" x="1148" y="658">γ → L_imbalance</text>
+  <text class="small" x="1118" y="676">约束调度/不调度组表征差异</text>
+
+  <line class="softLine" x1="360" y1="577" x2="360" y2="606"/>
+  <line class="softLine" x1="790" y1="577" x2="790" y2="606"/>
+  <line class="softLine" x1="1220" y1="577" x2="1220" y2="606"/>
+  <g transform="translate(0,110)">
+
+  <!-- Finish potential outcome branch -->
+  <rect class="mainArea" x="70" y="640" width="680" height="580"/>
+  <text class="section" x="104" y="678">B. 完单潜在结果分支（V2 原有）</text>
+  <text class="small" x="104" y="706">基于 DRCFR 表征预测调度/不调度两侧完单概率，作为线上完单不负约束。</text>
+
+  <rect class="blueNode" x="302" y="744" width="212" height="40"/>
+  <text class="mathSmall" x="408" y="769" text-anchor="middle">concat(δ, γ)</text>
+
+  <rect class="node" x="214" y="825" width="388" height="166"/>
+  <text class="h" x="326" y="857">完单双塔预测头</text>
+  <text class="small" x="250" y="885">两套 MLP 共享输入、不共享参数，分别预测两侧完单概率</text>
+  <rect class="blueNode" x="258" y="914" width="120" height="48"/>
+  <text class="math" x="318" y="944" text-anchor="middle">F_0</text>
+  <rect class="blueNode" x="438" y="914" width="120" height="48"/>
+  <text class="math" x="498" y="944" text-anchor="middle">F_1</text>
+  <text class="tiny" x="281" y="978">不调度</text>
+  <text class="tiny" x="466" y="978">调度</text>
+
+  <rect class="guard" x="258" y="1100" width="300" height="78"/>
+  <text class="h" x="366" y="1129">完单约束</text>
+  <text class="mathSmall" x="358" y="1156">F_1 - F_0 ≥ 0</text>
+
+  <path class="blueLine" d="M790,610 L790,626 L700,626 L700,720 L408,720 L408,744"/>
+  <path class="greenLine" d="M790,610 L790,626 L1470,626 L1470,720 L1170,720 L1170,744"/>
+  <line class="blueLine" x1="408" y1="784" x2="408" y2="825"/>
+  <line class="blueLine" x1="408" y1="991" x2="408" y2="1100"/>
+
+  <!-- Listen quality potential outcome branch -->
+  <rect class="listenArea" x="830" y="640" width="680" height="580"/>
+  <text class="section" x="864" y="678">C. 差听单潜在结果分支（V3 新增）</text>
+  <text class="small" x="864" y="706">共享原始 X_ij，但从 Embedding、factor block 到预测头使用独立参数，专门建模差听单目标。</text>
+
+  <rect class="node" x="1030" y="744" width="280" height="52"/>
+  <text class="h" x="1092" y="777">差听单 Embedding</text>
+
+  <rect class="greenNode" x="878" y="834" width="584" height="132"/>
+  <text class="h" x="902" y="864">差听单 factor block</text>
+  <text class="small" x="902" y="886">结构形式同 DRCFR，经三路 MLP 独立学习差听单相关表征</text>
+  <rect class="node" x="943" y="900" width="110" height="26"/>
+  <text class="text" x="998" y="919" text-anchor="middle">MLP</text>
+  <rect class="node" x="1119" y="900" width="110" height="26"/>
+  <text class="text" x="1174" y="919" text-anchor="middle">MLP</text>
+  <rect class="node" x="1295" y="900" width="110" height="26"/>
+  <text class="text" x="1350" y="919" text-anchor="middle">MLP</text>
+  <rect class="node" x="943" y="938" width="110" height="24"/>
+  <text class="mathSmall" x="998" y="956" text-anchor="middle">βᵈ</text>
+  <rect class="node" x="1119" y="938" width="110" height="24"/>
+  <text class="mathSmall" x="1174" y="956" text-anchor="middle">δᵈ</text>
+  <rect class="node" x="1295" y="938" width="110" height="24"/>
+  <text class="mathSmall" x="1350" y="956" text-anchor="middle">γᵈ</text>
+  <line class="softLine" x1="998" y1="926" x2="998" y2="938"/>
+  <line class="softLine" x1="1174" y1="926" x2="1174" y2="938"/>
+  <line class="softLine" x1="1350" y1="926" x2="1350" y2="938"/>
+  <line class="greenLine" x1="1170" y1="796" x2="1170" y2="834"/>
+
+  <rect class="greenNode" x="896" y="1002" width="252" height="82"/>
+  <text class="h" x="952" y="1030">差听单发生概率</text>
+  <text class="mathSmall" x="974" y="1057">P_0, P_1</text>
+  <text class="small" x="926" y="1076">监督：差听单发生标签</text>
+
+  <rect class="greenNode" x="1192" y="1002" width="252" height="82"/>
+  <text class="h" x="1246" y="1030">发生后的持续秒数</text>
+  <text class="mathSmall" x="1272" y="1057">A_0, A_1</text>
+  <text class="small" x="1220" y="1076">监督：发生后的持续秒数</text>
+
+  <path class="softLine" d="M1174,962 C1094,976 1048,988 1022,1002"/>
+  <path class="softLine" d="M1350,962 C1334,978 1324,990 1318,1002"/>
+
+  <rect class="score" x="938" y="1098" width="464" height="112"/>
+  <text class="h" x="1078" y="1126">预期差听单秒数</text>
+  <text class="math" x="1054" y="1156">B_t = P_t × A_t</text>
+  <text class="small" x="988" y="1180">P_t：发生差听单概率</text>
+  <text class="small" x="988" y="1200">A_t：发生差听单后的持续秒数</text>
+  <text class="small" x="1214" y="1200">B_t：预期差听单秒数</text>
+  <path class="greenLine" d="M1022,1084 C1022,1090 1042,1094 1060,1098"/>
+  <path class="greenLine" d="M1318,1084 C1318,1090 1292,1094 1268,1098"/>
+
+  <!-- Final decision/output -->
+  <rect class="score" x="1005" y="1260" width="330" height="96"/>
+  <text class="h" x="1139" y="1290">排序分</text>
+  <text class="math" x="1090" y="1318">score_ij = B_0 - B_1</text>
+  <text class="small" x="1102" y="1340">调度可减少的预期差听单秒数</text>
+
+  <rect class="node" x="640" y="1400" width="320" height="96"/>
+  <text class="h" x="766" y="1431">决策规则</text>
+  <text class="mathSmall" x="742" y="1458">score ≥ λ</text>
+  <text class="mathSmall" x="718" y="1482">且 F_1 - F_0 ≥ 0</text>
+
+  <rect class="outArea" x="620" y="1530" width="360" height="96"/>
+  <text class="section" x="758" y="1562">模型输出</text>
+  <rect class="redNode" x="656" y="1580" width="120" height="34"/>
+  <text class="text" x="686" y="1601">是否调度</text>
+  <rect class="redNode" x="824" y="1580" width="120" height="34"/>
+  <text class="text" x="870" y="1601">排序分</text>
+
+  <line class="orangeLine" x1="1170" y1="1210" x2="1170" y2="1260"/>
+  <path class="line" d="M408,1178 L408,1380 L720,1380 L720,1400"/>
+  <path class="line" d="M1170,1356 L1170,1380 L880,1380 L880,1400"/>
+  <line class="line" x1="800" y1="1496" x2="800" y2="1530"/>
+  </g>
+
+  <!-- Variable notes -->
+  <rect class="inputBox" x="90" y="1820" width="1420" height="210"/>
+  <text class="section" x="124" y="1860">变量说明</text>
+  <text class="small" x="124" y="1888">X_ij：司机 i - 目标格子 j 的候选特征；t=0 表示不调度，t=1 表示调度；T_dispatch 为真实干预标记。</text>
+  <text class="small" x="124" y="1918">β/δ/γ：主 DRCFR 因果校正表征；Treatment 学习干预倾向，Weight 给事实侧损失加权，Balance 约束组间表征差异。</text>
+  <text class="small" x="124" y="1948">βᵈ/δᵈ/γᵈ：差听单分支独立学习的三组表征；其中 δᵈ、γᵈ 输入差听单发生概率和发生后持续秒数预测头。</text>
+  <text class="small" x="124" y="1978">F_t：策略 t 下的完单概率；P_t：策略 t 下发生差听单的概率；A_t：发生差听单后的条件持续秒数。</text>
+  <text class="small" x="124" y="2008">B_t=P_t×A_t：策略 t 下的预期差听单秒数；score=B_0-B_1：调度可减少的预期差听单秒数。</text>
+</svg>

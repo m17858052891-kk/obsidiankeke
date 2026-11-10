@@ -93,3 +93,7 @@ decoder-only模型的历史状态池化后通过学习的catalog item embedding/
 复核依据：§2作者/背景；§3–4模型与训练；§5离线/线上结果；§6–7推理工程和局限；访问快照与抽取文本保存在本组 sources/，访问日志见 access.json / additional_access.json。这里只声称关键方法、关键数值与部署边界已核验，不声称逐句验证所有数字。
 
 本版留存的[本轮原文/抽取快照](../../证据快照/audit_c/引用文件/2608.10257_full.html)与[结构化访问及逐项证据](../../数据/逐篇复核.json)可用于追溯。文中sources目录名指复核工作目录，交付版以此链接为准。
+
+## 关联阅读
+
+[LazFormer](LazFormer_2609_14978.md) · [Beyond Item IDs](../P2_时间长历史与记忆/Beyond_Item_IDs_2606_07546.md) · [Sona](../P6_列表混排与生成架构/Sona_2608_11015.md) · [UniRec](UniRec_2609_11052.md)

@@ -1,0 +1,519 @@
+# 1、模型版本
+
+模型训练周期：2025-01-03～2025-01-16
+
+空跑校验时间：2025-02-18
+
+单商家举手概率模型：服务名pk_hxz_finish_rate_6，版本名pk_only_handsup_model_v1
+
+司乘履约多任务模型：服务名pk_multitask_model，版本名v1
+
+# 2、特征一致性
+
+## 2.1、dufe特征
+
+模型包含70个司机侧dufe特征，35个连环派特征和35个非连环派特征，取模型日志表join离线hive表，各特征的diff均为0，通过一致性校验。
+
+模型包含28个供需特征、16个乘客侧特征和24个司机侧实时特征，各特征的取值和分布与训练集基本一致，通过一致性校验。
+
+## 2.2、传入特征
+
+模型包含27个传入特征，2.17校验发现cur_win_hands_up_time（当前胜出司机的举手时刻）全为0，而训练集中该特征不全为0。
+
+经过与工程校对，确认为工程侧由于其他的放量操作导致该特征修改错误，1.9日开始在杭州放量50%，年后在全国放完。
+
+追溯模型训练时间，该问题影响1.9～1.16（57%）的训练数据中属于杭州市（1%）且该特征不为0（10%）的样本中的一部分（50%），影响面基本为0。
+
+工程于2.18晚修复该特征，修复后各特征的取值和分布与训练集基本一致，通过一致性校验。
+
+## 2.3、代码和结果展示
+
+从校验过程中随机选择10条数据进行展示。
+
+对司机侧dufe特征，相邻两列为模型日志调用的特征值和hive表中的特征值，证实离在线diff为0；
+
+对其余特征，展示特征的原始调用值，证实特征值符合预期。
+
+```PlainText
+select
+    a.order_id,
+    a.roundnum,
+    a.driver_id,
+    a.passenger_id,
+    a.cp_id,
+    a.city,
+    a.call_hour,
+    a.serial_type,
+    a.is_only_hxz,
+    a.isfromdidi,
+    a.is_honghu_driver,
+    a.is_compliance,
+    a.is_grab_from_cyborg,
+    a.cur_pk_time,
+    a.cur_win_hands_up_time,
+    a.hands_up_cp_num,
+    a.flat,
+    a.flng,
+    a.tlat,
+    a.tlng,
+    a.order_waiting_period,
+    a.lumian_dis,
+    a.eta,
+    a.left_lumian_distance,
+    a.left_lumian_eta,
+    a.dropoff_order_distance,
+    a.dropoff_order_eta,
+    a.start_dest_distance,
+    a.est_start_dest_dur,
+    a.pre_total_fee,
+    a.coord_start_temperature,
+    a.coord_start_humidity,
+    a.coord_start_intensity,
+    a.coord_start_skycon,
+    a.coord_last_1min_start_empty_driver_cnt_kf,
+    a.coord_last_1min_start_order_cnt_kf,
+    a.coord_last_1min_start_1circle_empty_driver_cnt_kf,
+    a.coord_last_1min_start_1circle_order_cnt_kf,
+    a.coord_last_1min_start_2circle_empty_driver_cnt_kf,
+    a.coord_last_1min_start_2circle_order_cnt_kf,
+    a.coord_last_1min_end_empty_driver_cnt_kf,
+    a.coord_last_1min_end_order_cnt_kf,
+    a.coord_last_1min_end_1circle_empty_driver_cnt_kf,
+    a.coord_last_1min_end_1circle_order_cnt_kf,
+    a.coord_last_1min_end_2circle_empty_driver_cnt_kf,
+    a.coord_last_1min_end_2circle_order_cnt_kf,
+    a.coord_last_5min_start_empty_driver_cnt_kf,
+    a.coord_last_5min_start_order_cnt_kf,
+    a.coord_last_5min_start_1circle_empty_driver_cnt_kf,
+    a.coord_last_5min_start_1circle_order_cnt_kf,
+    a.coord_last_5min_start_2circle_empty_driver_cnt_kf,
+    a.coord_last_5min_start_2circle_order_cnt_kf,
+    a.coord_last_5min_end_empty_driver_cnt_kf,
+    a.coord_last_5min_end_order_cnt_kf,
+    a.coord_last_5min_end_1circle_empty_driver_cnt_kf,
+    a.coord_last_5min_end_1circle_order_cnt_kf,
+    a.coord_last_5min_end_2circle_empty_driver_cnt_kf,
+    a.coord_last_5min_end_2circle_order_cnt_kf,
+    a.passenger_ziying_answered_pas_cancel_cnt_7d,
+    a.passenger_ziying_answered_pas_cancel_cnt_14d,
+    a.passenger_ziying_answered_pas_cancel_cnt_28d,
+    a.passenger_ziying_pas_answered_pas_cancel_rate_14d,
+    a.passenger_ziying_pas_answered_pas_cancel_rate_28d,
+    a.passenger_ziying_finish_rate_14d,
+    a.passenger_ziying_finish_rate_28d,
+    a.passenger_ziying_avg_start_dest_dis_28d,
+    a.passenger_sanfang_answered_pas_cancel_cnt_7d,
+    a.passenger_sanfang_answered_pas_cancel_cnt_14d,
+    a.passenger_sanfang_answered_pas_cancel_cnt_28d,
+    a.passenger_sanfang_pas_answered_pas_cancel_rate_14d,
+    a.passenger_sanfang_pas_answered_pas_cancel_rate_28d,
+    a.passenger_sanfang_finish_rate_14d,
+    a.passenger_sanfang_finish_rate_28d,
+    a.passenger_sanfang_avg_start_dest_dis_28d,
+    a.driver_order_finished_1h_cnt,
+    a.driver_order_finished_2h_cnt,
+    a.driver_order_finished_1d_cnt,
+    a.driver_order_refused_1h_cnt,
+    a.driver_order_refused_2h_cnt,
+    a.driver_order_refused_1d_cnt,
+    a.driver_order_answer_1h_cnt,
+    a.driver_order_answer_2h_cnt,
+    a.driver_order_answer_1d_cnt,
+    a.driver_answer_after_p_cancel_1h_cnt,
+    a.driver_answer_after_p_cancel_2h_cnt,
+    a.driver_answer_after_p_cancel_1d_cnt,
+    a.driver_answer_after_d_cancel_1h_cnt,
+    a.driver_answer_after_d_cancel_2h_cnt,
+    a.driver_answer_after_d_cancel_1d_cnt,
+    a.driver_online_1h_cnt,
+    a.driver_online_2h_cnt,
+    a.driver_online_1d_cnt,
+    a.driver_charging_1h_cnt,
+    a.driver_charging_2h_cnt,
+    a.driver_charging_1d_cnt,
+    a.driver_order_broadcast_1h_cnt,
+    a.driver_order_broadcast_2h_cnt,
+    a.driver_order_broadcast_1d_cnt,
+
+    a.d_serial_refuse_cnt_1d,
+    b.d_serial_refuse_cnt_1d,
+    a.d_serial_refuse_cnt_3d,
+    b.d_serial_refuse_cnt_3d,
+    a.d_serial_refuse_cnt_7d,
+    b.d_serial_refuse_cnt_7d,
+    a.d_serial_refuse_cnt_14d,
+    b.d_serial_refuse_cnt_14d,
+    a.d_serial_refuse_cnt_28d,
+    b.d_serial_refuse_cnt_28d,
+    a.d_serial_answer_cnt_1d,
+    b.d_serial_answer_cnt_1d,
+    a.d_serial_answer_cnt_3d,
+    b.d_serial_answer_cnt_3d,
+    a.d_serial_answer_cnt_7d,
+    b.d_serial_answer_cnt_7d,
+    a.d_serial_answer_cnt_14d,
+    b.d_serial_answer_cnt_14d,
+    a.d_serial_answer_cnt_28d,
+    b.d_serial_answer_cnt_28d,
+    a.d_serial_reassign_cnt_1d,
+    b.d_serial_reassign_cnt_1d,
+    a.d_serial_reassign_cnt_3d,
+    b.d_serial_reassign_cnt_3d,
+    a.d_serial_reassign_cnt_7d,
+    b.d_serial_reassign_cnt_7d,
+    a.d_serial_reassign_cnt_14d,
+    b.d_serial_reassign_cnt_14d,
+    a.d_serial_reassign_cnt_28d,
+    b.d_serial_reassign_cnt_28d,
+    a.d_serial_dri_cancel_cnt_1d,
+    b.d_serial_dri_cancel_cnt_1d,
+    a.d_serial_dri_cancel_cnt_3d,
+    b.d_serial_dri_cancel_cnt_3d,
+    a.d_serial_dri_cancel_cnt_7d,
+    b.d_serial_dri_cancel_cnt_7d,
+    a.d_serial_dri_cancel_cnt_14d,
+    b.d_serial_dri_cancel_cnt_14d,
+    a.d_serial_dri_cancel_cnt_28d,
+    b.d_serial_dri_cancel_cnt_28d,
+    a.d_serial_pas_cancel_cnt_1d,
+    b.d_serial_pas_cancel_cnt_1d,
+    a.d_serial_pas_cancel_cnt_3d,
+    b.d_serial_pas_cancel_cnt_3d,
+    a.d_serial_pas_cancel_cnt_7d,
+    b.d_serial_pas_cancel_cnt_7d,
+    a.d_serial_pas_cancel_cnt_14d,
+    b.d_serial_pas_cancel_cnt_14d,
+    a.d_serial_pas_cancel_cnt_28d,
+    b.d_serial_pas_cancel_cnt_28d,
+    a.d_serial_close_cnt_1d,
+    b.d_serial_close_cnt_1d,
+    a.d_serial_close_cnt_3d,
+    b.d_serial_close_cnt_3d,
+    a.d_serial_close_cnt_7d,
+    b.d_serial_close_cnt_7d,
+    a.d_serial_close_cnt_14d,
+    b.d_serial_close_cnt_14d,
+    a.d_serial_close_cnt_28d,
+    b.d_serial_close_cnt_28d,
+    a.d_serial_finish_cnt_1d,
+    b.d_serial_finish_cnt_1d,
+    a.d_serial_finish_cnt_3d,
+    b.d_serial_finish_cnt_3d,
+    a.d_serial_finish_cnt_7d,
+    b.d_serial_finish_cnt_7d,
+    a.d_serial_finish_cnt_14d,
+    b.d_serial_finish_cnt_14d,
+    a.d_serial_finish_cnt_28d,
+    b.d_serial_finish_cnt_28d,
+    a.d_nonserial_refuse_cnt_1d,
+    b.d_nonserial_refuse_cnt_1d,
+    a.d_nonserial_refuse_cnt_3d,
+    b.d_nonserial_refuse_cnt_3d,
+    a.d_nonserial_refuse_cnt_7d,
+    b.d_nonserial_refuse_cnt_7d,
+    a.d_nonserial_refuse_cnt_14d,
+    b.d_nonserial_refuse_cnt_14d,
+    a.d_nonserial_refuse_cnt_28d,
+    b.d_nonserial_refuse_cnt_28d,
+    a.d_nonserial_answer_cnt_1d,
+    b.d_nonserial_answer_cnt_1d,
+    a.d_nonserial_answer_cnt_3d,
+    b.d_nonserial_answer_cnt_3d,
+    a.d_nonserial_answer_cnt_7d,
+    b.d_nonserial_answer_cnt_7d,
+    a.d_nonserial_answer_cnt_14d,
+    b.d_nonserial_answer_cnt_14d,
+    a.d_nonserial_answer_cnt_28d,
+    b.d_nonserial_answer_cnt_28d,
+    a.d_nonserial_reassign_cnt_1d,
+    b.d_nonserial_reassign_cnt_1d,
+    a.d_nonserial_reassign_cnt_3d,
+    b.d_nonserial_reassign_cnt_3d,
+    a.d_nonserial_reassign_cnt_7d,
+    b.d_nonserial_reassign_cnt_7d,
+    a.d_nonserial_reassign_cnt_14d,
+    b.d_nonserial_reassign_cnt_14d,
+    a.d_nonserial_reassign_cnt_28d,
+    b.d_nonserial_reassign_cnt_28d,
+    a.d_nonserial_dri_cancel_cnt_1d,
+    b.d_nonserial_dri_cancel_cnt_1d,
+    a.d_nonserial_dri_cancel_cnt_3d,
+    b.d_nonserial_dri_cancel_cnt_3d,
+    a.d_nonserial_dri_cancel_cnt_7d,
+    b.d_nonserial_dri_cancel_cnt_7d,
+    a.d_nonserial_dri_cancel_cnt_14d,
+    b.d_nonserial_dri_cancel_cnt_14d,
+    a.d_nonserial_dri_cancel_cnt_28d,
+    b.d_nonserial_dri_cancel_cnt_28d,
+    a.d_nonserial_pas_cancel_cnt_1d,
+    b.d_nonserial_pas_cancel_cnt_1d,
+    a.d_nonserial_pas_cancel_cnt_3d,
+    b.d_nonserial_pas_cancel_cnt_3d,
+    a.d_nonserial_pas_cancel_cnt_7d,
+    b.d_nonserial_pas_cancel_cnt_7d,
+    a.d_nonserial_pas_cancel_cnt_14d,
+    b.d_nonserial_pas_cancel_cnt_14d,
+    a.d_nonserial_pas_cancel_cnt_28d,
+    b.d_nonserial_pas_cancel_cnt_28d,
+    a.d_nonserial_close_cnt_1d,
+    b.d_nonserial_close_cnt_1d,
+    a.d_nonserial_close_cnt_3d,
+    b.d_nonserial_close_cnt_3d,
+    a.d_nonserial_close_cnt_7d,
+    b.d_nonserial_close_cnt_7d,
+    a.d_nonserial_close_cnt_14d,
+    b.d_nonserial_close_cnt_14d,
+    a.d_nonserial_close_cnt_28d,
+    b.d_nonserial_close_cnt_28d,
+    a.d_nonserial_finish_cnt_1d,
+    b.d_nonserial_finish_cnt_1d,
+    a.d_nonserial_finish_cnt_3d,
+    b.d_nonserial_finish_cnt_3d,
+    a.d_nonserial_finish_cnt_7d,
+    b.d_nonserial_finish_cnt_7d,
+    a.d_nonserial_finish_cnt_14d,
+    b.d_nonserial_finish_cnt_14d,
+    a.d_nonserial_finish_cnt_28d,
+    b.d_nonserial_finish_cnt_28d
+from
+(
+    select
+        param['order_id'] order_id,
+        param['roundnum'] roundnum,
+        param['driver_id'] driver_id,
+        param['passenger_id'] passenger_id,
+        param['cp_id'] cp_id,
+        param['city'] city,
+        param['call_hour'] call_hour,
+        param['serial_type'] serial_type,
+        param['is_only_hxz'] is_only_hxz,
+        param['isfromdidi'] isfromdidi,
+        param['is_honghu_driver'] is_honghu_driver,
+        param['is_compliance'] is_compliance,
+        param['is_grab_from_cyborg'] is_grab_from_cyborg,
+        param['cur_pk_time'] cur_pk_time,
+        param['cur_win_hands_up_time'] cur_win_hands_up_time,
+        param['hands_up_cp_num'] hands_up_cp_num,
+        param['flat'] flat,
+        param['flng'] flng,
+        param['tlat'] tlat,
+        param['tlng'] tlng,
+        param['order_waiting_period'] order_waiting_period,
+        param['lumian_dis'] lumian_dis,
+        param['eta'] eta,
+        param['left_lumian_distance'] left_lumian_distance,
+        param['left_lumian_eta'] left_lumian_eta,
+        param['dropoff_order_distance'] dropoff_order_distance,
+        param['dropoff_order_eta'] dropoff_order_eta,
+        param['start_dest_distance'] start_dest_distance,
+        param['est_start_dest_dur'] est_start_dest_dur,
+        param['pre_total_fee'] pre_total_fee,
+        param['coord_start_temperature'] coord_start_temperature,
+        param['coord_start_humidity'] coord_start_humidity,
+        param['coord_start_intensity'] coord_start_intensity,
+        param['coord_start_skycon'] coord_start_skycon,
+        param['coord_last_1min_start_empty_driver_cnt_kf'] coord_last_1min_start_empty_driver_cnt_kf,
+        param['coord_last_1min_start_order_cnt_kf'] coord_last_1min_start_order_cnt_kf,
+        param['coord_last_1min_start_1circle_empty_driver_cnt_kf'] coord_last_1min_start_1circle_empty_driver_cnt_kf,
+        param['coord_last_1min_start_1circle_order_cnt_kf'] coord_last_1min_start_1circle_order_cnt_kf,
+        param['coord_last_1min_start_2circle_empty_driver_cnt_kf'] coord_last_1min_start_2circle_empty_driver_cnt_kf,
+        param['coord_last_1min_start_2circle_order_cnt_kf'] coord_last_1min_start_2circle_order_cnt_kf,
+        param['coord_last_1min_end_empty_driver_cnt_kf'] coord_last_1min_end_empty_driver_cnt_kf,
+        param['coord_last_1min_end_order_cnt_kf'] coord_last_1min_end_order_cnt_kf,
+        param['coord_last_1min_end_1circle_empty_driver_cnt_kf'] coord_last_1min_end_1circle_empty_driver_cnt_kf,
+        param['coord_last_1min_end_1circle_order_cnt_kf'] coord_last_1min_end_1circle_order_cnt_kf,
+        param['coord_last_1min_end_2circle_empty_driver_cnt_kf'] coord_last_1min_end_2circle_empty_driver_cnt_kf,
+        param['coord_last_1min_end_2circle_order_cnt_kf'] coord_last_1min_end_2circle_order_cnt_kf,
+        param['coord_last_5min_start_empty_driver_cnt_kf'] coord_last_5min_start_empty_driver_cnt_kf,
+        param['coord_last_5min_start_order_cnt_kf'] coord_last_5min_start_order_cnt_kf,
+        param['coord_last_5min_start_1circle_empty_driver_cnt_kf'] coord_last_5min_start_1circle_empty_driver_cnt_kf,
+        param['coord_last_5min_start_1circle_order_cnt_kf'] coord_last_5min_start_1circle_order_cnt_kf,
+        param['coord_last_5min_start_2circle_empty_driver_cnt_kf'] coord_last_5min_start_2circle_empty_driver_cnt_kf,
+        param['coord_last_5min_start_2circle_order_cnt_kf'] coord_last_5min_start_2circle_order_cnt_kf,
+        param['coord_last_5min_end_empty_driver_cnt_kf'] coord_last_5min_end_empty_driver_cnt_kf,
+        param['coord_last_5min_end_order_cnt_kf'] coord_last_5min_end_order_cnt_kf,
+        param['coord_last_5min_end_1circle_empty_driver_cnt_kf'] coord_last_5min_end_1circle_empty_driver_cnt_kf,
+        param['coord_last_5min_end_1circle_order_cnt_kf'] coord_last_5min_end_1circle_order_cnt_kf,
+        param['coord_last_5min_end_2circle_empty_driver_cnt_kf'] coord_last_5min_end_2circle_empty_driver_cnt_kf,
+        param['coord_last_5min_end_2circle_order_cnt_kf'] coord_last_5min_end_2circle_order_cnt_kf,
+        param['passenger_ziying_answered_pas_cancel_cnt_7d'] passenger_ziying_answered_pas_cancel_cnt_7d,
+        param['passenger_ziying_answered_pas_cancel_cnt_14d'] passenger_ziying_answered_pas_cancel_cnt_14d,
+        param['passenger_ziying_answered_pas_cancel_cnt_28d'] passenger_ziying_answered_pas_cancel_cnt_28d,
+        param['passenger_ziying_pas_answered_pas_cancel_rate_14d'] passenger_ziying_pas_answered_pas_cancel_rate_14d,
+        param['passenger_ziying_pas_answered_pas_cancel_rate_28d'] passenger_ziying_pas_answered_pas_cancel_rate_28d,
+        param['passenger_ziying_finish_rate_14d'] passenger_ziying_finish_rate_14d,
+        param['passenger_ziying_finish_rate_28d'] passenger_ziying_finish_rate_28d,
+        param['passenger_ziying_avg_start_dest_dis_28d'] passenger_ziying_avg_start_dest_dis_28d,
+        param['passenger_sanfang_answered_pas_cancel_cnt_7d'] passenger_sanfang_answered_pas_cancel_cnt_7d,
+        param['passenger_sanfang_answered_pas_cancel_cnt_14d'] passenger_sanfang_answered_pas_cancel_cnt_14d,
+        param['passenger_sanfang_answered_pas_cancel_cnt_28d'] passenger_sanfang_answered_pas_cancel_cnt_28d,
+        param['passenger_sanfang_pas_answered_pas_cancel_rate_14d'] passenger_sanfang_pas_answered_pas_cancel_rate_14d,
+        param['passenger_sanfang_pas_answered_pas_cancel_rate_28d'] passenger_sanfang_pas_answered_pas_cancel_rate_28d,
+        param['passenger_sanfang_finish_rate_14d'] passenger_sanfang_finish_rate_14d,
+        param['passenger_sanfang_finish_rate_28d'] passenger_sanfang_finish_rate_28d,
+        param['passenger_sanfang_avg_start_dest_dis_28d'] passenger_sanfang_avg_start_dest_dis_28d,
+        param['driver_order_finished_1h_cnt'] driver_order_finished_1h_cnt,
+        param['driver_order_finished_2h_cnt'] driver_order_finished_2h_cnt,
+        param['driver_order_finished_1d_cnt'] driver_order_finished_1d_cnt,
+        param['driver_order_refused_1h_cnt'] driver_order_refused_1h_cnt,
+        param['driver_order_refused_2h_cnt'] driver_order_refused_2h_cnt,
+        param['driver_order_refused_1d_cnt'] driver_order_refused_1d_cnt,
+        param['driver_order_answer_1h_cnt'] driver_order_answer_1h_cnt,
+        param['driver_order_answer_2h_cnt'] driver_order_answer_2h_cnt,
+        param['driver_order_answer_1d_cnt'] driver_order_answer_1d_cnt,
+        param['driver_answer_after_p_cancel_1h_cnt'] driver_answer_after_p_cancel_1h_cnt,
+        param['driver_answer_after_p_cancel_2h_cnt'] driver_answer_after_p_cancel_2h_cnt,
+        param['driver_answer_after_p_cancel_1d_cnt'] driver_answer_after_p_cancel_1d_cnt,
+        param['driver_answer_after_d_cancel_1h_cnt'] driver_answer_after_d_cancel_1h_cnt,
+        param['driver_answer_after_d_cancel_2h_cnt'] driver_answer_after_d_cancel_2h_cnt,
+        param['driver_answer_after_d_cancel_1d_cnt'] driver_answer_after_d_cancel_1d_cnt,
+        param['driver_online_1h_cnt'] driver_online_1h_cnt,
+        param['driver_online_2h_cnt'] driver_online_2h_cnt,
+        param['driver_online_1d_cnt'] driver_online_1d_cnt,
+        param['driver_charging_1h_cnt'] driver_charging_1h_cnt,
+        param['driver_charging_2h_cnt'] driver_charging_2h_cnt,
+        param['driver_charging_1d_cnt'] driver_charging_1d_cnt,
+        param['driver_order_broadcast_1h_cnt'] driver_order_broadcast_1h_cnt,
+        param['driver_order_broadcast_2h_cnt'] driver_order_broadcast_2h_cnt,
+        param['driver_order_broadcast_1d_cnt'] driver_order_broadcast_1d_cnt,
+
+        param['d_serial_refuse_cnt_1d'] d_serial_refuse_cnt_1d,
+        param['d_serial_refuse_cnt_3d'] d_serial_refuse_cnt_3d,
+        param['d_serial_refuse_cnt_7d'] d_serial_refuse_cnt_7d,
+        param['d_serial_refuse_cnt_14d'] d_serial_refuse_cnt_14d,
+        param['d_serial_refuse_cnt_28d'] d_serial_refuse_cnt_28d,
+        param['d_serial_answer_cnt_1d'] d_serial_answer_cnt_1d,
+        param['d_serial_answer_cnt_3d'] d_serial_answer_cnt_3d,
+        param['d_serial_answer_cnt_7d'] d_serial_answer_cnt_7d,
+        param['d_serial_answer_cnt_14d'] d_serial_answer_cnt_14d,
+        param['d_serial_answer_cnt_28d'] d_serial_answer_cnt_28d,
+        param['d_serial_reassign_cnt_1d'] d_serial_reassign_cnt_1d,
+        param['d_serial_reassign_cnt_3d'] d_serial_reassign_cnt_3d,
+        param['d_serial_reassign_cnt_7d'] d_serial_reassign_cnt_7d,
+        param['d_serial_reassign_cnt_14d'] d_serial_reassign_cnt_14d,
+        param['d_serial_reassign_cnt_28d'] d_serial_reassign_cnt_28d,
+        param['d_serial_dri_cancel_cnt_1d'] d_serial_dri_cancel_cnt_1d,
+        param['d_serial_dri_cancel_cnt_3d'] d_serial_dri_cancel_cnt_3d,
+        param['d_serial_dri_cancel_cnt_7d'] d_serial_dri_cancel_cnt_7d,
+        param['d_serial_dri_cancel_cnt_14d'] d_serial_dri_cancel_cnt_14d,
+        param['d_serial_dri_cancel_cnt_28d'] d_serial_dri_cancel_cnt_28d,
+        param['d_serial_pas_cancel_cnt_1d'] d_serial_pas_cancel_cnt_1d,
+        param['d_serial_pas_cancel_cnt_3d'] d_serial_pas_cancel_cnt_3d,
+        param['d_serial_pas_cancel_cnt_7d'] d_serial_pas_cancel_cnt_7d,
+        param['d_serial_pas_cancel_cnt_14d'] d_serial_pas_cancel_cnt_14d,
+        param['d_serial_pas_cancel_cnt_28d'] d_serial_pas_cancel_cnt_28d,
+        param['d_serial_close_cnt_1d'] d_serial_close_cnt_1d,
+        param['d_serial_close_cnt_3d'] d_serial_close_cnt_3d,
+        param['d_serial_close_cnt_7d'] d_serial_close_cnt_7d,
+        param['d_serial_close_cnt_14d'] d_serial_close_cnt_14d,
+        param['d_serial_close_cnt_28d'] d_serial_close_cnt_28d,
+        param['d_serial_finish_cnt_1d'] d_serial_finish_cnt_1d,
+        param['d_serial_finish_cnt_3d'] d_serial_finish_cnt_3d,
+        param['d_serial_finish_cnt_7d'] d_serial_finish_cnt_7d,
+        param['d_serial_finish_cnt_14d'] d_serial_finish_cnt_14d,
+        param['d_serial_finish_cnt_28d'] d_serial_finish_cnt_28d,
+        param['d_nonserial_refuse_cnt_1d'] d_nonserial_refuse_cnt_1d,
+        param['d_nonserial_refuse_cnt_3d'] d_nonserial_refuse_cnt_3d,
+        param['d_nonserial_refuse_cnt_7d'] d_nonserial_refuse_cnt_7d,
+        param['d_nonserial_refuse_cnt_14d'] d_nonserial_refuse_cnt_14d,
+        param['d_nonserial_refuse_cnt_28d'] d_nonserial_refuse_cnt_28d,
+        param['d_nonserial_answer_cnt_1d'] d_nonserial_answer_cnt_1d,
+        param['d_nonserial_answer_cnt_3d'] d_nonserial_answer_cnt_3d,
+        param['d_nonserial_answer_cnt_7d'] d_nonserial_answer_cnt_7d,
+        param['d_nonserial_answer_cnt_14d'] d_nonserial_answer_cnt_14d,
+        param['d_nonserial_answer_cnt_28d'] d_nonserial_answer_cnt_28d,
+        param['d_nonserial_reassign_cnt_1d'] d_nonserial_reassign_cnt_1d,
+        param['d_nonserial_reassign_cnt_3d'] d_nonserial_reassign_cnt_3d,
+        param['d_nonserial_reassign_cnt_7d'] d_nonserial_reassign_cnt_7d,
+        param['d_nonserial_reassign_cnt_14d'] d_nonserial_reassign_cnt_14d,
+        param['d_nonserial_reassign_cnt_28d'] d_nonserial_reassign_cnt_28d,
+        param['d_nonserial_dri_cancel_cnt_1d'] d_nonserial_dri_cancel_cnt_1d,
+        param['d_nonserial_dri_cancel_cnt_3d'] d_nonserial_dri_cancel_cnt_3d,
+        param['d_nonserial_dri_cancel_cnt_7d'] d_nonserial_dri_cancel_cnt_7d,
+        param['d_nonserial_dri_cancel_cnt_14d'] d_nonserial_dri_cancel_cnt_14d,
+        param['d_nonserial_dri_cancel_cnt_28d'] d_nonserial_dri_cancel_cnt_28d,
+        param['d_nonserial_pas_cancel_cnt_1d'] d_nonserial_pas_cancel_cnt_1d,
+        param['d_nonserial_pas_cancel_cnt_3d'] d_nonserial_pas_cancel_cnt_3d,
+        param['d_nonserial_pas_cancel_cnt_7d'] d_nonserial_pas_cancel_cnt_7d,
+        param['d_nonserial_pas_cancel_cnt_14d'] d_nonserial_pas_cancel_cnt_14d,
+        param['d_nonserial_pas_cancel_cnt_28d'] d_nonserial_pas_cancel_cnt_28d,
+        param['d_nonserial_close_cnt_1d'] d_nonserial_close_cnt_1d,
+        param['d_nonserial_close_cnt_3d'] d_nonserial_close_cnt_3d,
+        param['d_nonserial_close_cnt_7d'] d_nonserial_close_cnt_7d,
+        param['d_nonserial_close_cnt_14d'] d_nonserial_close_cnt_14d,
+        param['d_nonserial_close_cnt_28d'] d_nonserial_close_cnt_28d,
+        param['d_nonserial_finish_cnt_1d'] d_nonserial_finish_cnt_1d,
+        param['d_nonserial_finish_cnt_3d'] d_nonserial_finish_cnt_3d,
+        param['d_nonserial_finish_cnt_7d'] d_nonserial_finish_cnt_7d,
+        param['d_nonserial_finish_cnt_14d'] d_nonserial_finish_cnt_14d,
+        param['d_nonserial_finish_cnt_28d'] d_nonserial_finish_cnt_28d
+    from
+        kflower_ods.ods_log_kflower_ether_pk_multitask_model_hi
+    where
+        concat_ws('-', year, month, day) = '2025-02-19' and hour between 7 and 9
+) a
+left join
+(
+    select
+        *
+    from
+        kflower_strategy.pk_hxz_driver_feature
+    where
+        dt =  '2025-02-18'
+) b on a.driver_id = b.driver_id
+order by rand() limit 10000
+;
+```
+
+| order_id <br> | roundnum <br> | driver_id <br> | passenger_id <br> | cp_id <br> | city <br> | call_hour <br> | serial_type <br> | is_only_hxz <br> | isfromdidi <br> | is_honghu_driver <br> | is_compliance <br> | is_grab_from_cyborg <br> | cur_pk_time <br> | cur_win_hands_up_time <br> | hands_up_cp_num <br> | flat <br> | flng <br> | tlat <br> | tlng <br> | order_waiting_period <br> | lumian_dis <br> | eta <br> | left_lumian_distance <br> | left_lumian_eta <br> | dropoff_order_distance <br> | dropoff_order_eta <br> | start_dest_distance <br> | est_start_dest_dur <br> | pre_total_fee <br> | coord_start_temperature <br> | coord_start_humidity <br> | coord_start_intensity <br> | coord_start_skycon <br> | coord_last_1min_start_empty_driver_cnt_kf <br> | coord_last_1min_start_order_cnt_kf <br> | coord_last_1min_start_1circle_empty_driver_cnt_kf <br> | coord_last_1min_start_1circle_order_cnt_kf <br> | coord_last_1min_start_2circle_empty_driver_cnt_kf <br> | coord_last_1min_start_2circle_order_cnt_kf <br> | coord_last_1min_end_empty_driver_cnt_kf <br> | coord_last_1min_end_order_cnt_kf <br> | coord_last_1min_end_1circle_empty_driver_cnt_kf <br> | coord_last_1min_end_1circle_order_cnt_kf <br> | coord_last_1min_end_2circle_empty_driver_cnt_kf <br> | coord_last_1min_end_2circle_order_cnt_kf <br> | coord_last_5min_start_empty_driver_cnt_kf <br> | coord_last_5min_start_order_cnt_kf <br> | coord_last_5min_start_1circle_empty_driver_cnt_kf <br> | coord_last_5min_start_1circle_order_cnt_kf <br> | coord_last_5min_start_2circle_empty_driver_cnt_kf <br> | coord_last_5min_start_2circle_order_cnt_kf <br> | coord_last_5min_end_empty_driver_cnt_kf <br> | coord_last_5min_end_order_cnt_kf <br> | coord_last_5min_end_1circle_empty_driver_cnt_kf <br> | coord_last_5min_end_1circle_order_cnt_kf <br> | coord_last_5min_end_2circle_empty_driver_cnt_kf <br> | coord_last_5min_end_2circle_order_cnt_kf <br> | passenger_ziying_answered_pas_cancel_cnt_7d <br> | passenger_ziying_answered_pas_cancel_cnt_14d <br> | passenger_ziying_answered_pas_cancel_cnt_28d <br> | passenger_ziying_pas_answered_pas_cancel_rate_14d <br> | passenger_ziying_pas_answered_pas_cancel_rate_28d <br> | passenger_ziying_finish_rate_14d <br> | passenger_ziying_finish_rate_28d <br> | passenger_ziying_avg_start_dest_dis_28d <br> | passenger_sanfang_answered_pas_cancel_cnt_7d <br> | passenger_sanfang_answered_pas_cancel_cnt_14d <br> | passenger_sanfang_answered_pas_cancel_cnt_28d <br> | passenger_sanfang_pas_answered_pas_cancel_rate_14d <br> | passenger_sanfang_pas_answered_pas_cancel_rate_28d <br> | passenger_sanfang_finish_rate_14d <br> | passenger_sanfang_finish_rate_28d <br> | passenger_sanfang_avg_start_dest_dis_28d <br> | driver_order_finished_1h_cnt <br> | driver_order_finished_2h_cnt <br> | driver_order_finished_1d_cnt <br> | driver_order_refused_1h_cnt <br> | driver_order_refused_2h_cnt <br> | driver_order_refused_1d_cnt <br> | driver_order_answer_1h_cnt <br> | driver_order_answer_2h_cnt <br> | driver_order_answer_1d_cnt <br> | driver_answer_after_p_cancel_1h_cnt <br> | driver_answer_after_p_cancel_2h_cnt <br> | driver_answer_after_p_cancel_1d_cnt <br> | driver_answer_after_d_cancel_1h_cnt <br> | driver_answer_after_d_cancel_2h_cnt <br> | driver_answer_after_d_cancel_1d_cnt <br> | driver_online_1h_cnt <br> | driver_online_2h_cnt <br> | driver_online_1d_cnt <br> | driver_charging_1h_cnt <br> | driver_charging_2h_cnt <br> | driver_charging_1d_cnt <br> | driver_order_broadcast_1h_cnt <br> | driver_order_broadcast_2h_cnt <br> | driver_order_broadcast_1d_cnt <br> | d_serial_refuse_cnt_1d <br> | d_serial_refuse_cnt_1d <br> | d_serial_refuse_cnt_3d <br> | d_serial_refuse_cnt_3d <br> | d_serial_refuse_cnt_7d <br> | d_serial_refuse_cnt_7d <br> | d_serial_refuse_cnt_14d <br> | d_serial_refuse_cnt_14d <br> | d_serial_refuse_cnt_28d <br> | d_serial_refuse_cnt_28d <br> | d_serial_answer_cnt_1d <br> | d_serial_answer_cnt_1d <br> | d_serial_answer_cnt_3d <br> | d_serial_answer_cnt_3d <br> | d_serial_answer_cnt_7d <br> | d_serial_answer_cnt_7d <br> | d_serial_answer_cnt_14d <br> | d_serial_answer_cnt_14d <br> | d_serial_answer_cnt_28d <br> | d_serial_answer_cnt_28d <br> | d_serial_reassign_cnt_1d <br> | d_serial_reassign_cnt_1d <br> | d_serial_reassign_cnt_3d <br> | d_serial_reassign_cnt_3d <br> | d_serial_reassign_cnt_7d <br> | d_serial_reassign_cnt_7d <br> | d_serial_reassign_cnt_14d <br> | d_serial_reassign_cnt_14d <br> | d_serial_reassign_cnt_28d <br> | d_serial_reassign_cnt_28d <br> | d_serial_dri_cancel_cnt_1d <br> | d_serial_dri_cancel_cnt_1d <br> | d_serial_dri_cancel_cnt_3d <br> | d_serial_dri_cancel_cnt_3d <br> | d_serial_dri_cancel_cnt_7d <br> | d_serial_dri_cancel_cnt_7d <br> | d_serial_dri_cancel_cnt_14d <br> | d_serial_dri_cancel_cnt_14d <br> | d_serial_dri_cancel_cnt_28d <br> | d_serial_dri_cancel_cnt_28d <br> | d_serial_pas_cancel_cnt_1d <br> | d_serial_pas_cancel_cnt_1d <br> | d_serial_pas_cancel_cnt_3d <br> | d_serial_pas_cancel_cnt_3d <br> | d_serial_pas_cancel_cnt_7d <br> | d_serial_pas_cancel_cnt_7d <br> | d_serial_pas_cancel_cnt_14d <br> | d_serial_pas_cancel_cnt_14d <br> | d_serial_pas_cancel_cnt_28d <br> | d_serial_pas_cancel_cnt_28d <br> | d_serial_close_cnt_1d <br> | d_serial_close_cnt_1d <br> | d_serial_close_cnt_3d <br> | d_serial_close_cnt_3d <br> | d_serial_close_cnt_7d <br> | d_serial_close_cnt_7d <br> | d_serial_close_cnt_14d <br> | d_serial_close_cnt_14d <br> | d_serial_close_cnt_28d <br> | d_serial_close_cnt_28d <br> | d_serial_finish_cnt_1d <br> | d_serial_finish_cnt_1d <br> | d_serial_finish_cnt_3d <br> | d_serial_finish_cnt_3d <br> | d_serial_finish_cnt_7d <br> | d_serial_finish_cnt_7d <br> | d_serial_finish_cnt_14d <br> | d_serial_finish_cnt_14d <br> | d_serial_finish_cnt_28d <br> | d_serial_finish_cnt_28d <br> | d_nonserial_refuse_cnt_1d <br> | d_nonserial_refuse_cnt_1d <br> | d_nonserial_refuse_cnt_3d <br> | d_nonserial_refuse_cnt_3d <br> | d_nonserial_refuse_cnt_7d <br> | d_nonserial_refuse_cnt_7d <br> | d_nonserial_refuse_cnt_14d <br> | d_nonserial_refuse_cnt_14d <br> | d_nonserial_refuse_cnt_28d <br> | d_nonserial_refuse_cnt_28d <br> | d_nonserial_answer_cnt_1d <br> | d_nonserial_answer_cnt_1d <br> | d_nonserial_answer_cnt_3d <br> | d_nonserial_answer_cnt_3d <br> | d_nonserial_answer_cnt_7d <br> | d_nonserial_answer_cnt_7d <br> | d_nonserial_answer_cnt_14d <br> | d_nonserial_answer_cnt_14d <br> | d_nonserial_answer_cnt_28d <br> | d_nonserial_answer_cnt_28d <br> | d_nonserial_reassign_cnt_1d <br> | d_nonserial_reassign_cnt_1d <br> | d_nonserial_reassign_cnt_3d <br> | d_nonserial_reassign_cnt_3d <br> | d_nonserial_reassign_cnt_7d <br> | d_nonserial_reassign_cnt_7d <br> | d_nonserial_reassign_cnt_14d <br> | d_nonserial_reassign_cnt_14d <br> | d_nonserial_reassign_cnt_28d <br> | d_nonserial_reassign_cnt_28d <br> | d_nonserial_dri_cancel_cnt_1d <br> | d_nonserial_dri_cancel_cnt_1d <br> | d_nonserial_dri_cancel_cnt_3d <br> | d_nonserial_dri_cancel_cnt_3d <br> | d_nonserial_dri_cancel_cnt_7d <br> | d_nonserial_dri_cancel_cnt_7d <br> | d_nonserial_dri_cancel_cnt_14d <br> | d_nonserial_dri_cancel_cnt_14d <br> | d_nonserial_dri_cancel_cnt_28d <br> | d_nonserial_dri_cancel_cnt_28d <br> | d_nonserial_pas_cancel_cnt_1d <br> | d_nonserial_pas_cancel_cnt_1d <br> | d_nonserial_pas_cancel_cnt_3d <br> | d_nonserial_pas_cancel_cnt_3d <br> | d_nonserial_pas_cancel_cnt_7d <br> | d_nonserial_pas_cancel_cnt_7d <br> | d_nonserial_pas_cancel_cnt_14d <br> | d_nonserial_pas_cancel_cnt_14d <br> | d_nonserial_pas_cancel_cnt_28d <br> | d_nonserial_pas_cancel_cnt_28d <br> | d_nonserial_close_cnt_1d <br> | d_nonserial_close_cnt_1d <br> | d_nonserial_close_cnt_3d <br> | d_nonserial_close_cnt_3d <br> | d_nonserial_close_cnt_7d <br> | d_nonserial_close_cnt_7d <br> | d_nonserial_close_cnt_14d <br> | d_nonserial_close_cnt_14d <br> | d_nonserial_close_cnt_28d <br> | d_nonserial_close_cnt_28d <br> | d_nonserial_finish_cnt_1d <br> | d_nonserial_finish_cnt_1d <br> | d_nonserial_finish_cnt_3d <br> | d_nonserial_finish_cnt_3d <br> | d_nonserial_finish_cnt_7d <br> | d_nonserial_finish_cnt_7d <br> | d_nonserial_finish_cnt_14d <br> | d_nonserial_finish_cnt_14d <br> | d_nonserial_finish_cnt_28d <br> | d_nonserial_finish_cnt_28d <br> |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 52844657095948 <br> | 1 <br> | 580545096207619 <br> | 17594939566387 <br> | 1373 <br> | 32 <br> | 7 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 24.5648 <br> | 118.0563 <br> | 24.562563 <br> | 118.031783 <br> | 45 <br> | 2830 <br> | 7 <br> | -1 <br> | -1 <br> | -1 <br> | -1 <br> | 3043 <br> | 8 <br> | 9.82 <br> | 11 <br> | 0.68 <br> | 0 <br> | 1 <br> | 0 <br> | 3 <br> | 2 <br> | 10 <br> | 0 <br> | 4 <br> | 0 <br> | 1 <br> | 0 <br> | 1 <br> | 1 <br> | 4 <br> | 4 <br> | 13 <br> | 9 <br> | 40 <br> | 2 <br> | 21 <br> | 0 <br> | 5 <br> | 1 <br> | 7 <br> | 1 <br> | 24 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | 0 <br> | null <br> | 1 <br> | 6700 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0.14 <br> | 0.45 <br> | 0.42 <br> | 4154.4 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 8 <br> | 8 <br> | 34 <br> | 34 <br> | 107 <br> | 107 <br> | 212 <br> | 212 <br> | 334 <br> | 334 <br> | 3 <br> | 3 <br> | 16 <br> | 16 <br> | 40 <br> | 40 <br> | 79 <br> | 79 <br> | 116 <br> | 116 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 1 <br> | 1 <br> | 6 <br> | 6 <br> | 26 <br> | 26 <br> | 43 <br> | 43 <br> | 83 <br> | 83 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 4 <br> | 4 <br> | 12 <br> | 12 <br> | 41 <br> | 41 <br> | 90 <br> | 90 <br> | 133 <br> | 133 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 31 <br> | 31 <br> | 80 <br> | 80 <br> | 163 <br> | 163 <br> | 324 <br> | 324 <br> | 455 <br> | 455 <br> | 3 <br> | 3 <br> | 4 <br> | 4 <br> | 6 <br> | 6 <br> | 8 <br> | 8 <br> | 15 <br> | 15 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 5 <br> | 5 <br> | 16 <br> | 16 <br> | 33 <br> | 33 <br> | 53 <br> | 53 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 26 <br> | 26 <br> | 71 <br> | 71 <br> | 141 <br> | 141 <br> | 283 <br> | 283 <br> | 387 <br> | 387 <br> |
+| 52844677278091 <br> | 1 <br> | 56629249272764947 <br> | 17595495174956 <br> | 1117 <br> | 32 <br> | 9 <br> | 1 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 0 <br> | 1 <br> | 1 <br> | 3 <br> | 24.63738 <br> | 118.03035 <br> | 24.612283 <br> | 118.048586 <br> | 4 <br> | 1950 <br> | 3 <br> | 538 <br> | 0 <br> | 1412 <br> | 2 <br> | 3948 <br> | 9 <br> | 10.9 <br> | 15.04 <br> | 0.67 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 13 <br> | 3 <br> | 18 <br> | 2 <br> | 33 <br> | 7 <br> | 14 <br> | 5 <br> | 0 <br> | 1 <br> | 2 <br> | 3 <br> | 52 <br> | 13 <br> | 81 <br> | 4 <br> | 157 <br> | 27 <br> | 73 <br> | 25 <br> | 0 <br> | 3 <br> | 8 <br> | 0.5 <br> | 0.67 <br> | 0.33 <br> | 0.23 <br> | 3933.33 <br> | 2 <br> | 3 <br> | 4 <br> | 0.38 <br> | 0.29 <br> | 0.33 <br> | 0.45 <br> | 3900.44 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 17 <br> | 17 <br> | 28 <br> | 28 <br> | 28 <br> | 28 <br> | 28 <br> | 28 <br> | 28 <br> | 28 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | 5 <br> | 5 <br> | 5 <br> | 5 <br> | 5 <br> | 5 <br> | 5 <br> | 5 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 14 <br> | 14 <br> | 23 <br> | 23 <br> | 23 <br> | 23 <br> | 23 <br> | 23 <br> | 23 <br> | 23 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 19 <br> | 19 <br> | 27 <br> | 27 <br> | 27 <br> | 27 <br> | 27 <br> | 27 <br> | 27 <br> | 27 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 17 <br> | 17 <br> | 25 <br> | 25 <br> | 25 <br> | 25 <br> | 25 <br> | 25 <br> | 25 <br> | 25 <br> |
+| 52844661703163 <br> | 1 <br> | 56629249214796200 <br> | 35185318513329 <br> | 1234 <br> | 65 <br> | 8 <br> | 1 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 47.3426 <br> | 123.92662 <br> | 47.356093 <br> | 124.04512 <br> | 108 <br> | 1964 <br> | 5 <br> | 1162 <br> | 3 <br> | 802 <br> | 2 <br> | 11891 <br> | 26 <br> | 30.51 <br> | -18.98 <br> | 0.73 <br> | 0 <br> | 2 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 3 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 5 <br> | 0 <br> | 3 <br> | 0 <br> | 3 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 2 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | null <br> | 0.5 <br> | null <br> | 0.5 <br> | 12500 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 6 <br> | 6 <br> | 48 <br> | 48 <br> | 58 <br> | 58 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 5 <br> | 5 <br> | 5 <br> | 5 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 3 <br> | 3 <br> | 19 <br> | 19 <br> | 20 <br> | 20 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 24 <br> | 24 <br> | 33 <br> | 33 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | 6 <br> | 6 <br> | 21 <br> | 21 <br> | 43 <br> | 43 <br> | 55 <br> | 55 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 3 <br> | 3 <br> | 5 <br> | 5 <br> | 10 <br> | 10 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 5 <br> | 5 <br> | 17 <br> | 17 <br> | 36 <br> | 36 <br> | 43 <br> | 43 <br> |
+| 52844652473324 <br> | 1 <br> | 615727621446562 <br> | 35185679117296 <br> | 1373 <br> | 25 <br> | 7 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 43.83378 <br> | 125.40649 <br> | 43.84767 <br> | 125.448229 <br> | 4 <br> | 1947 <br> | 5 <br> | -1 <br> | -1 <br> | -1 <br> | -1 <br> | 6074 <br> | 15 <br> | 13.44 <br> | -18.39 <br> | 0.96 <br> | 0 <br> | 7 <br> | 3 <br> | 0 <br> | 12 <br> | 5 <br> | 10 <br> | 7 <br> | 1 <br> | 0 <br> | 1 <br> | 1 <br> | 9 <br> | 1 <br> | 13 <br> | 1 <br> | 60 <br> | 24 <br> | 64 <br> | 30 <br> | 2 <br> | 1 <br> | 7 <br> | 4 <br> | 60 <br> | 8 <br> | 1 <br> | 1 <br> | 1 <br> | 0.14 <br> | 0.09 <br> | 0.67 <br> | 0.77 <br> | 7176.4 <br> | 3 <br> | 3 <br> | 3 <br> | 0.27 <br> | 0.23 <br> | 0.78 <br> | 0.82 <br> | 7977.78 <br> | 1 <br> | 1 <br> | 2 <br> | 0 <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | 4 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 3240 <br> | 3240 <br> | 4380 <br> | 984 <br> | 984 <br> | 1451 <br> | 4 <br> | 4 <br> | 6 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 3 <br> | 3 <br> | 9 <br> | 9 <br> | 26 <br> | 26 <br> | 84 <br> | 84 <br> | 227 <br> | 227 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 5 <br> | 5 <br> | 18 <br> | 18 <br> | 38 <br> | 38 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 2 <br> | 2 <br> | 16 <br> | 16 <br> | 63 <br> | 63 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | 6 <br> | 6 <br> | 19 <br> | 19 <br> | 50 <br> | 50 <br> | 126 <br> | 126 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 7 <br> | 7 <br> | 32 <br> | 32 <br> | 70 <br> | 70 <br> | 112 <br> | 112 <br> | 202 <br> | 202 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 3 <br> | 3 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | 5 <br> | 5 <br> | 8 <br> | 8 <br> | 19 <br> | 19 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 7 <br> | 7 <br> | 29 <br> | 29 <br> | 65 <br> | 65 <br> | 101 <br> | 101 <br> | 179 <br> | 179 <br> |
+| 52844649845073 <br> | 1 <br> | 56629248436441779 <br> | 52777151829057 <br> | 1056 <br> | 196 <br> | 7 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 42.27781 <br> | 118.93221 <br> | 42.273666 <br> | 118.954106 <br> | 2 <br> | 2045 <br> | 6 <br> | -1 <br> | -1 <br> | -1 <br> | -1 <br> | 2731 <br> | 7 <br> | 8.56 <br> | -12.51 <br> | 0.52 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 3 <br> | 3 <br> | 3 <br> | 3 <br> | 4 <br> | 4 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 3 <br> | 3 <br> | 3 <br> | 3 <br> | 4 <br> | 4 <br> |
+| 52844661789944 <br> | 2 <br> | 56629248975607123 <br> | 52777146144836 <br> | 1375 <br> | 125 <br> | 8 <br> | 1 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 40.06593 <br> | 113.35249 <br> | 40.082164 <br> | 113.271521 <br> | 12 <br> | 2745 <br> | 6 <br> | 375 <br> | 1 <br> | 2370 <br> | 5 <br> | 8788 <br> | 21 <br> | 12.65 <br> | -6.96 <br> | 0.45 <br> | 0 <br> | 2 <br> | 0 <br> | 0 <br> | 1 <br> | 4 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 5 <br> | 2 <br> | 7 <br> | 0 <br> | 5 <br> | 7 <br> | 17 <br> | 3 <br> | 14 <br> | 0 <br> | 0 <br> | 0 <br> | 17 <br> | 7 <br> | 20 <br> | 1 <br> | 1 <br> | 1 <br> | 0.5 <br> | 0.5 <br> | 0.5 <br> | 0.5 <br> | 8418 <br> | 1 <br> | 2 <br> | 3 <br> | 0.5 <br> | 0.38 <br> | 0.5 <br> | 0.63 <br> | 8340 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 10 <br> | 10 <br> | 46 <br> | 46 <br> | 130 <br> | 130 <br> | 296 <br> | 296 <br> | 478 <br> | 478 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 3 <br> | 3 <br> | 7 <br> | 7 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 9 <br> | 9 <br> | 33 <br> | 33 <br> | 84 <br> | 84 <br> | 162 <br> | 162 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 8 <br> | 8 <br> | 36 <br> | 36 <br> | 94 <br> | 94 <br> | 207 <br> | 207 <br> | 306 <br> | 306 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 1 <br> | 4 <br> | 4 <br> | 15 <br> | 15 <br> | 51 <br> | 51 <br> | 95 <br> | 95 <br> | 169 <br> | 169 <br> | 289 <br> | 289 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 5 <br> | 5 <br> | 9 <br> | 9 <br> | 15 <br> | 15 <br> | 39 <br> | 39 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 15 <br> | 15 <br> | 46 <br> | 46 <br> | 86 <br> | 86 <br> | 154 <br> | 154 <br> | 250 <br> | 250 <br> |
+| 52844682988382 <br> | 1 <br> | 56629247505005561 <br> | 52776867147630 <br> | 1157 <br> | 241 <br> | 9 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 29.12325 <br> | 110.45285 <br> | 29.118775 <br> | 110.476174 <br> | 2 <br> | 1022 <br> | 2 <br> | -1 <br> | -1 <br> | -1 <br> | -1 <br> | 3635 <br> | 9 <br> | 9.04 <br> | 8.54 <br> | 0.99 <br> | 0 <br> | 7 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 3 <br> | 0 <br> | 1 <br> | 0 <br> | 2 <br> | 0 <br> | 4 <br> | 1 <br> | 0 <br> | 0 <br> | 2 <br> | 1 <br> | 12 <br> | 2 <br> | 5 <br> | 0 <br> | 20 <br> | 2 <br> | 7 <br> | 4 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 4800 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | 3963.33 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 6 <br> | 6 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 1 <br> | 1 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 4 <br> | 4 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 1 <br> | 1 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 9 <br> | 9 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 5 <br> | 5 <br> |
+| 52844684726208 <br> | 1 <br> | 56611656263203385 <br> | 35185242342358 <br> | 1219 <br> | 13 <br> | 9 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 36.28863 <br> | 119.99608 <br> | 36.273623 <br> | 120.027259 <br> | 2 <br> | 899 <br> | 4 <br> | -1 <br> | -1 <br> | -1 <br> | -1 <br> | 4151 <br> | 13 <br> | 7.88 <br> | 0.75 <br> | 0.64 <br> | 0 <br> | 1 <br> | 4 <br> | 0 <br> | 6 <br> | 1 <br> | 8 <br> | 1 <br> | 13 <br> | 0 <br> | 10 <br> | 3 <br> | 16 <br> | 3 <br> | 10 <br> | 0 <br> | 28 <br> | 4 <br> | 52 <br> | 6 <br> | 51 <br> | 1 <br> | 62 <br> | 9 <br> | 78 <br> | 13 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1.5 <br> | 8045.33 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0.82 <br> | 6832.33 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 1 <br> | null <br> | null <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 16 <br> | 16 <br> | 20 <br> | 20 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 2 <br> | 2 <br> | 2 <br> | 2 <br> | 14 <br> | 14 <br> | 18 <br> | 18 <br> |
+| 52844650055915 <br> | 1 <br> | 56611655544376837 <br> | 17595480418062 <br> | 1034 <br> | 1 <br> | 7 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 40.10538 <br> | 116.63148 <br> | 40.129308 <br> | 116.640897 <br> | 1 <br> | 855 <br> | 3 <br> | -1 <br> | -1 <br> | -1 <br> | -1 <br> | 3636 <br> | 8 <br> | 15.79 <br> | -5 <br> | 0.31 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 5 <br> | 1 <br> | 0 <br> | 1 <br> | 6 <br> | 0 <br> | 4 <br> | 1 <br> | 0 <br> | 2 <br> | 2 <br> | 0.29 <br> | 0.2 <br> | 0.5 <br> | 0.64 <br> | 8021.71 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0.86 <br> | 0.78 <br> | 6397.43 <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 2 <br> | 2 <br> | 3 <br> | 3 <br> | 8 <br> | 8 <br> | 17 <br> | 17 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | 3 <br> | 3 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | 2 <br> | 2 <br> | 3 <br> | 3 <br> | 6 <br> | 6 <br> | 14 <br> | 14 <br> |
+| 52844659690149 <br> | 1 <br> | 615728599107333 <br> | 52777998732245 <br> | 1373 <br> | 25 <br> | 7 <br> | 1 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 43.82656 <br> | 125.24737 <br> | 43.86481 <br> | 125.31849 <br> | 20 <br> | 3782 <br> | 10 <br> | 2455 <br> | 6 <br> | 1327 <br> | 3 <br> | 9218 <br> | 25 <br> | 16.09 <br> | -17.11 <br> | 0.96 <br> | 0 <br> | 7 <br> | 0 <br> | 2 <br> | 2 <br> | 6 <br> | 1 <br> | 14 <br> | 0 <br> | 0 <br> | 3 <br> | 3 <br> | 6 <br> | 18 <br> | 0 <br> | 14 <br> | 5 <br> | 27 <br> | 4 <br> | 63 <br> | 0 <br> | 3 <br> | 8 <br> | 13 <br> | 35 <br> | 72 <br> | 2 <br> | 2 <br> | 3 <br> | 0.29 <br> | 0.38 <br> | 0.5 <br> | 0.44 <br> | 8171.25 <br> | 0 <br> | 0 <br> | 1 <br> | 0 <br> | 0.17 <br> | 0.5 <br> | 0.63 <br> | 7720 <br> | 1 <br> | 1 <br> | 2 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 1 <br> | 3 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 3540 <br> | 3720 <br> | 6660 <br> | 1958 <br> | 1958 <br> | 2348 <br> | 1 <br> | 3 <br> | 5 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 19 <br> | 19 <br> | 33 <br> | 33 <br> | 112 <br> | 112 <br> | null <br> | null <br> | null <br> | null <br> | 2 <br> | 2 <br> | 3 <br> | 3 <br> | 10 <br> | 10 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 6 <br> | 6 <br> | 11 <br> | 11 <br> | 39 <br> | 39 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 11 <br> | 11 <br> | 19 <br> | 19 <br> | 63 <br> | 63 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 26 <br> | 26 <br> | 44 <br> | 44 <br> | 170 <br> | 170 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 2 <br> | 2 <br> | null <br> | null <br> | null <br> | null <br> | 7 <br> | 7 <br> | 8 <br> | 8 <br> | 20 <br> | 20 <br> | null <br> | null <br> | null <br> | null <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | 0 <br> | null <br> | null <br> | null <br> | null <br> | 19 <br> | 19 <br> | 36 <br> | 36 <br> | 148 <br> | 148 <br> |
+
+# 3、打分一致性
+
+从模型日志表提取所有特征，离线过一遍模型进行打分，与模型日志表中的线上打分diff=0，通过一致性校验。
+
+从校验过程中随机选择10条数据进行展示。
+
+## 3.1、单商家举手概率模型
+
+离线打分output_offline和线上打分output_online在小数点后六位都相同，通过一致性校验。
+
+| order_id <br> | roundnum <br> | driver_id <br> | output_offline <br> | output_online <br> |
+| --- | --- | --- | --- | --- |
+| 52844502580475 <br> | 1 <br> | 56629249242730966 <br> | \[0.9532429054379463,0.04675709456205368\] <br> | 0.046757 <br> |
+| 52844524188361 <br> | 1 <br> | 56629249043885198 <br> | \[0.04986673593521118,0.9501332640647888\] <br> | 0.950133 <br> |
+| 52844547176481 <br> | 1 <br> | 56629249006504772 <br> | \[0.33227527141571045,0.6677247285842896\] <br> | 0.667725 <br> |
+| 52844558612013 <br> | 1 <br> | 56629249042325932 <br> | \[0.38031214475631714,0.6196878552436829\] <br> | 0.619688 <br> |
+| 52844479763871 <br> | 1 <br> | 56629248755070659 <br> | \[0.1174464225769043,0.8825535774230957\] <br> | 0.882553 <br> |
+| 52844619582318 <br> | 1 <br> | 56629249238598371 <br> | \[0.23100274801254272,0.7689972519874573\] <br> | 0.768997 <br> |
+| 52844499236558 <br> | 1 <br> | 56611655583585838 <br> | \[0.7525569945573807,0.24744300544261932\] <br> | 0.247443 <br> |
+| 52844552989609 <br> | 1 <br> | 56629249027677144 <br> | \[0.7681104242801666,0.23188957571983337\] <br> | 0.231889 <br> |
+| 52844515182855 <br> | 1 <br> | 56629249107043274 <br> | \[0.042235493659973145,0.9577645063400269\] <br> | 0.957765 <br> |
+| 52844572859750 <br> | 1 <br> | 56629248331866379 <br> | \[0.9377089738845825,0.06229102611541748\] <br> | 0.062291 <br> |
+
+## 3.2、司乘履约多任务模型
+
+离线打分output_offline和线上打分output_online在小数点后六位都相同，通过一致性校验。
+
+| order_id <br> | roundnum <br> | driver_id <br> | output_offline <br> | output_online <br> |
+| --- | --- | --- | --- | --- |
+| 52844499012968 <br> | 1 <br> | 580545019846491 <br> | \[0.5874804258346558,0.7792966365814209,0.6986477375030518,0.5128413438796997\] <br> | \[0.58748055,0.77929664,0.698648,0.5128414\] <br> |
+| 52844584798576 <br> | 1 <br> | 615728647557572 <br> | \[0.4820900857448578,0.6271733045578003,0.6790957450866699,0.9783617258071899\] <br> | \[0.48209006,0.6271732,0.6790957,0.9783618\] <br> |
+| 52844613759997 <br> | 1 <br> | 56629249164157912 <br> | \[0.67296302318573,0.7457185983657837,0.8614972829818726,0.5935700535774231\] <br> | \[0.67296314,0.74571866,0.8614974,0.5935703\] <br> |
+| 52844517408890 <br> | 1 <br> | 615728876892692 <br> | \[0.7349895238876343,0.7390314340591431,0.9873527884483337,0.6113694310188293\] <br> | \[0.7349895,0.7390314,0.98735285,0.6113695\] <br> |
+| 52844513337086 <br> | 1 <br> | 56629248431647152 <br> | \[0.8640996217727661,0.8856915235519409,0.9725621938705444,0.6184980869293213\] <br> | \[0.8640998,0.88569164,0.97256225,0.6184981\] <br> |
+| 52844492456469 <br> | 1 <br> | 598135488384240 <br> | \[0.3429836630821228,0.43232592940330505,0.6093853712081909,0.3206389248371124\] <br> | \[0.34298366,0.4323259,0.60938555,0.32063866\] <br> |
+| 52844587741905 <br> | 1 <br> | 56629247401721649 <br> | \[0.9245182871818542,0.9438999891281128,0.9794577360153198,0.8999859094619751\] <br> | \[0.9245182,0.9439,0.97945774,0.89998597\] <br> |
+| 52844602486585 <br> | 1 <br> | 56629249140243498 <br> | \[0.8138414621353149,0.8577495813369751,0.9393602609634399,0.9320146441459656\] <br> | \[0.8138415,0.85774964,0.9393603,0.9320145\] <br> |
+| 52844455747078 <br> | 1 <br> | 56629248734484696 <br> | \[0.8774314522743225,0.9178808331489563,0.9558702707290649,0.9867106080055237\] <br> | \[0.87743145,0.9178809,0.95587033,0.9867106\] <br> |
+| 52844486477558 <br> | 1 <br> | 56611656246551744 <br> | \[0.6081432104110718,0.7441757917404175,0.7714774012565613,0.9194239377975464\] <br> | \[0.6081432,0.7441758,0.7714774,0.91942394\] <br> |

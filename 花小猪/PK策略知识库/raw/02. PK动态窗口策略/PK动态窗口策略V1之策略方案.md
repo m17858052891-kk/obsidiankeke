@@ -1,0 +1,203 @@
+# 一、业务背景
+
+## 1、问题定义
+
+![](https://cooper.didichuxing.com/uploader/f/J3ATHWxbbGuJraX9.png?accessToken=eyJhbGciOiJIUzI1NiIsImtpZCI6ImRlZmF1bHQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3MjkxNDk3OTEsImZpbGVHVUlEIjoiWkxlQUh3M2x5RGY5NmlJWCIsImlhdCI6MTcyOTE0OTE5MSwiaXNzIjoidXBsb2FkZXJfYWNjZXNzX3Jlc291cmNlIiwidXNlcklkIjoxMDAwMDE4MTExNn0.f5BOC26dgc3u7Y1DN6b17AZ21HXR6iLlTQF4qM4yINk)
+
+- 静态窗口：固定收集司机的时间窗口为4秒
+
+	- T0/D1：第1个司机举手，开始PK流程并计时
+
+	- D2：第2个司机举手，与当前胜者（D1）比较PK分数，高者（D2）为当前胜者，低者（D1）释放
+
+	- D3：第3个司机举手，与当前胜者（D2）比较PK分数，高者（D2）为当前胜者，低者（D3）释放
+
+	- T0+4s：4秒时间到，PK流程结束，当前胜者（D2）胜出
+
+- 动态窗口：通过判断是否为**Top1司机**来决策是否**提前结束**收集司机的时间窗口
+
+	- T0/D1：第1个司机举手，开始PK流程并计时，**预测该司机非Top1司机，继续收集司机**
+
+	- T0+xs/D2：第2个司机举手，**预测该司机是Top1司机，直接发起最终决策**，与当前胜者（D1）比较PK分数，高者（D2）胜出，低者（D1）释放，PK流程提前结束
+
+- 收益路径
+
+	- 权衡应答前取消率下降（应答时长）和应答后取消率增加（PK分数）来提升大盘CR
+
+	- 加快PK流程以避免过长时间的运力锁定，通过提升平台交易的效率来提升大盘CR
+
+## 2、策略现状
+
+- 线上流量
+
+	- 空白组，10%：静态时间窗口，窗口长度固定为4秒
+
+	- 策略组，90%：动态时间窗口，建模Top1司机为**4秒内预估接驾时长最短的司机**
+
+- 线上其他策略
+
+	- 当单独勾选小猪自营运力时，举手司机会立即胜出，不受PK动态时间的影响
+
+	- 当Top1司机为半指派提前举手或滴滴司机，PK动态时间不适用，不会提前胜出
+
+## 3、数据分析
+
+- 剔除受到其他策略影响的样本，统计时间窗口分布并分析提前胜出情况，主要关注
+
+	- 线上由策略引发的**提前胜出占比22.8%**，线上策略的覆盖面仍然不够大
+
+	- 线上的平均**PK时间约为3.09秒**，PK时间仍有进一步压缩的空间
+
+	- 线上受策略影响后only举手占比41.8%，**only举手且4秒胜出占比23.9%**，若这部分订单能被识别并直接胜出，**平均PK时长降低约0.96秒**
+
+| 是否胜出 <br> | 是否Top1 <br> | 举手类型 <br> | 比例 <br> | 胜出类型 <br> | 比例 <br> | 原因解释 <br> |
+| --- | --- | --- | --- | --- | --- | --- |
+| 胜出司机 <br> | 非Top1 <br> | only举手 <br> | 22.1% <br> | 正常胜出 <br> | 22.1% <br> | 策略组非Top1未触发策略/空白组 <br> |
+| 提前胜出 <br> | 0.0% <br> | 策略组非Top1无法提前胜出 <br> |
+| both举手 <br> | 53.1% <br> | 正常胜出 <br> | 52.7% <br> | 策略组非Top1未触发策略/空白组 <br> |
+| 提前胜出 <br> | 0.3% <br> | 策略组非Top1但后举手司机为Top1 <br> |
+| Top1 <br> | only举手 <br> | 19.7% <br> | 正常胜出 <br> | 1.8% <br> | 空白组 <br> |
+| 提前胜出 <br> | 17.9% <br> | 策略组Top1触发策略 <br> |
+| both举手 <br> | 5.1% <br> | 正常胜出 <br> | 0.6% <br> | 空白组 <br> |
+| 提前胜出 <br> | 4.6% <br> | 策略组Top1触发策略 <br> |
+
+## 4、存在问题
+
+- 策略侧
+
+	- 当前策略仅能使PK流程提前结束，未发掘延长时间窗口的收益路径，例如降低应答后乘客取消率
+
+	- 策略迭代受制于线上模型的影响，即对于PK提前结束的样本，无法观测是否还会有后续司机举手
+
+- 工程侧
+
+	- 部署策略的Apollo灰度无法取出空白组和策略组的订单，后续变更配置到AB实验
+
+	- 司机举手和胜出时间的落表字段仅精确到秒，不易定位不同司机的举手前后次序
+
+# 二、离线测算
+
+## 1、最优时停模拟
+
+- 理论基础（秘书问题）
+
+	- 定义：从一群候选人中选择一位最优秀的秘书，候选人按顺序出场，且一旦拒绝就无法回头
+
+	- 目标：观察一定数量的候选人后，决定什么时候停止决策，以选择出最优秀的秘书
+
+	- 策略：先观察前n/e个候选人而不做选择，在此之后选择第一个比所有之前见过的都更优秀的人
+
+- 随机模拟
+
+| 模拟 <br> | 设置 <br> | 胜出条件 <br> | 结果 <br> |
+| --- | --- | --- | --- |
+| 1 <br> | 最长PK时间8秒，每一轮PK的司机数量随机1-10个，到达时间随机，PK得分随机 <br> | PK得分大于0.9时，立即获胜 <br> | 平均6.03s结束，94.1%的情况找到本轮8秒内的最优司机 <br> |
+| 2 <br> | 在模拟1的基础上，加上在第一个司机举手时判断是否为only举手，only举手概率随机 <br> | 当第一个司机有大于80%的概率为only举手，或举手司机的PK得分大于0.9时，立即获胜 <br> | 平均4.19s结束，87.6%的情况找到本轮8秒内的最优司机 <br> |
+| 3 <br> | 在模拟2的基础上，将最长PK时间改为4秒，每一轮PK的司机数量改为随机1-5个 <br> | 当第一个司机有大于80%的概率为only举手，或举手司机的PK得分大于0.9时，立即获胜 <br> | 平均2.10s结束，87.9%的情况找到本轮4秒内的最优司机 <br> |
+
+## 2、乘客取消概率建模
+
+- 模型训练
+
+	- 更新一版与线上策略相同的多任务学习模型，预测目标包括整体履约、乘客履约、司机履约和是否为Top1司机
+
+![](https://cooper.didichuxing.com/uploader/f/fmaioMs7kbKATyt4.png?accessToken=eyJhbGciOiJIUzI1NiIsImtpZCI6ImRlZmF1bHQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3Mjk1NjU1NTcsImZpbGVHVUlEIjoiWkxlQUh3M2x5RGY5NmlJWCIsImlhdCI6MTcyOTU2NDk1NywiaXNzIjoidXBsb2FkZXJfYWNjZXNzX3Jlc291cmNlIiwidXNlcklkIjoxMDAwMDE4MTExNn0.uQdBzrrF8jbswikWm0dpNd43rztulYC59tmjiq5lusk)
+
+- 离线评估
+
+	- 在整体履约和乘客取消构成的样本上，乘客履约（乘客取消）的预测AUC为0.733
+
+	- 模型预测的乘客取消概率呈长尾分布，大部分订单的乘客取消概率较低
+
+	- 在不同阈值下，预测为乘客取消的样本中真实被乘客取消的比例与阈值的变化趋势一致
+
+| 乘客取消率阈值（&gt;） <br> | 0.1 <br> | 0.2 <br> | 0.3 <br> | 0.4 <br> | 0.5 <br> | 0.6 <br> | 0.7 <br> | 0.8 <br> | 0.9 <br> |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 样本比例（ratio） <br> | 0.931 <br> | 0.656 <br> | 0.437 <br> | 0.277 <br> | 0.161 <br> | 0.083 <br> | 0.034 <br> | 0.010 <br> | 0.001 <br> |
+| 精准率（precision） <br> | 0.208 <br> | 0.260 <br> | 0.319 <br> | 0.380 <br> | 0.448 <br> | 0.526 <br> | 0.621 <br> | 0.742 <br> | 0.895 <br> |
+
+  ![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/1729147142171bacadfcbe32a1d87c963dcca326eef4c/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=d38f3e8b01c36816db62478906d5deff818244abd65b23c036938e901d607641)![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/1729147171077558c0d045939fc4f7ca185005362b758/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=77f56ffe7eee6b4b217a06dce31fb0dff5af96c1f9c78ad30bcba005774d84b3)
+
+# 三、技术方案
+
+## 1、模型和特征
+
+除线上PK模型外，计划开发两个模型，分别是only举手概率模型和时停策略模型
+
+### 1）only举手概率模型
+
+开发only举手概率模型，对第一个举手的司机调用一次，部分特征需要建设
+
+- 订单特征：价格、送驾距离、应答时间等，已经建设
+
+- 司机特征：完单数、拒单率、取消率等，已经建设
+
+- 供需特征：格子内发单数、空车司机数等，已经建设
+
+- 分单特征：订单在分单系统中的时间、轮数、连边数等，需要建设
+
+### 2）时停策略模型
+
+迭代线上策略的多任务司乘履约率模型（包含预估接驾时长/距离最短概率、司乘履约率、乘客取消率）
+
+## 2、策略方案
+
+| 策略 <br> | 策略内容 <br> | 策略流程 <br> |
+| --- | --- | --- |
+| 时停规则 <br> | 每一个司机：举手完备性判断 <br> | ![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/1734427769040b97191dd8515d6e112c2fb132dd8dbb0/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=88c1beb8d9ee4bb005839db2082191ef43e1faa9847091c616b731c8785a8bcc) <br> |
+| 前置策略 <br> | 第一个司机：only举手判断 <br> | ![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/1734427042283e6e02c995ac25e6dac3b305c9e1000a8/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=679a7d0a8717455cee29aa4f65dd01bb2c539cab544b577eba6453ec8d84b36b) <br> |
+| **距离组** <br>时停规则+前置策略+动态时停策略1 <br> | 第一个司机：举手完备性判断-&gt;only举手判断-&gt;接驾距离最近判断 <br> <br>非第一个司机：举手完备性判断-&gt;进行PK-&gt;当前PK胜者接驾距离最近判断 <br> | ![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/17344270046580696a0e3dfc46183a6a06c8bd3e49d47/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=f11204db08a7191b6bd6fd82420f64d365bc99850dd9e43e754519da40ff0623) <br> |
+| **司乘组** <br>时停规则+前置策略+动态时停策略2 <br> | 第一个司机：举手完备性判断-&gt;only举手判断-&gt;高司乘履约率判断 <br> <br>非第一个司机：举手完备性判断-&gt;进行PK-&gt;当前PK胜者高司乘履约率判断 <br> | ![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/1734427174862db9f7a9a54598a2025145e89cb58147b/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=85026d7e20fe52308a7a516e75e872f99b3babf80ef6251a5b8c79dfa1f4934f) <br> |
+| **乘客组** <br>时停规则+前置策略+动态时停策略3 <br> | 第一个司机：举手完备性判断-&gt;only举手判断-&gt;低乘客取消率判断 <br> <br>非第一个司机：举手完备性判断-&gt;进行PK-&gt;当前PK胜者低乘客取消率判断 <br> <br>4秒内胜者：高乘客取消率判断 <br> <br>非第一个司机：举手完备性判断-&gt;进行PK-&gt;当前PK胜者低乘客取消率判断 <br> | ![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/1734427308577c197bceb089151f8b020c627bea8b6ab/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075926Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=0f41dcfef6e564a88cd41a7c584b50760d6b2b948b08b0379b7f3acf3075483a) <br> |
+
+# 四、实验评估
+
+## 多分组实验
+
+同时上线多个策略进行小流量实验，与空白组和线上策略组进行对比
+
+- 组1，空白组，10%：静态时间窗口，窗口长度固定为4秒
+
+- 组2，现状组，78%：动态时间窗口，线上策略
+
+- 组3，距离组，4%：动态时间窗口，时停规则+前置策略+动态时停策略1
+
+- 组4，司乘组，4%：动态时间窗口，时停规则+前置策略+动态时停策略2
+
+- 组5，乘客组，4%：动态时间窗口，时停规则+前置策略+动态时停策略3
+
+# 五、日志与监控
+
+## 1、日志
+
+当前描述PK过程的Hive表：[kflower_marketplace.kflower_allmatch_pk_round_info](https://datamap.didichuxing.com/detail?uri=hive%3A%2F%2Fmycluster-tj%3Akflower_marketplace%3Akflower_allmatch_pk_round_info)，亟待在此基础上补充建设的字段有
+
+- id标识：乘客id（passenger_id）
+
+- 时间戳：PK开始时间（start_time）、司机举手时间（hands_up_time）、PK结束时间（win_time），需精确到毫秒
+
+- 举手次序：司机在PK窗口中的举手次序（strive_rank）
+
+- PK结果：PK胜出类型（win_scence，包括：4秒正常胜出/策略提前胜出/完备提前胜出）
+
+- 勾选行为：乘客勾选商家数（select_cp_cnt）、勾选商家列表（select_cp_list）
+
+## 2、监控
+
+根据动态时间策略的收益链路，实验主要监控的指标包括
+
+- 平台指标：人均完单数
+
+- 漏斗指标：竞争成交率、司机取消率、乘客应答前取消率、乘客应答后取消率
+
+- 乘客体验指标：单均愿等时长
+
+# 六、开发时间线
+
+Step1：工程调整配置，将灰度迁移至评估大师
+
+Step2：工程优化日志：详见【五、日志与监控】
+
+Step3：策略开发only举手概率模型和司乘履约率多任务模型，部署上线
+
+Step4：工程协助配置和监控新策略的实验，开发更完备的PK日志

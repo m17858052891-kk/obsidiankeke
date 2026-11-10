@@ -91,3 +91,7 @@ LTV定义未给足复算细节；CI较宽且接近零下界，应保留不确定
 复核依据：§3–5模型/预算/数据；§6线上8周与OBD表；附录A五次种子消融；访问快照与抽取文本保存在本组 sources/，访问日志见 access.json / additional_access.json。这里只声称关键方法、关键数值与部署边界已核验，不声称逐句验证所有数字。
 
 本版留存的[本轮原文/抽取快照](../../证据快照/audit_c/引用文件/2608.10182_full.html)与[结构化访问及逐项证据](../../数据/逐篇复核.json)可用于追溯。文中sources目录名指复核工作目录，交付版以此链接为准。
+
+## 关联阅读
+
+[PRL-PUTS](PRL-PUTS_2605_16344.md) · [GPBM](../P8_评估研发与推荐Agent/GPBM_amazon_gpbm.md) · [DREAM](DREAM_2608_09408.md) · [PinEqualizer](PinEqualizer_2607_22518.md)

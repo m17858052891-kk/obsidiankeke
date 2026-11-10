@@ -1,0 +1,155 @@
+# 1、背景
+
+线上用于PK模型的司机历史特征存在较多问题，包括
+
+- 离线表零散：历史特征建设的口径较统一，但离线特征却分散在4张不同的Hive表中，过于零散化
+
+- 口径不准确：当前特征混淆了null值和0值，例如：对于28d有行为而14d无行为，14d特征为0而非null；对于非连环派有行为而连环派无行为，连环派特征为0而非null，口径不准确
+
+- 复用性较差：当前特征受过去聚合规则的影响，存在一些先入为主的处理，例如：司机取消数根据判责加权，乘客取消数是不含扩播单，并直接内置在特征加工中，迭代性较差
+
+# 2、特征建设
+
+针对以上两个问题，重建PK模型司机历史特征，统一存储在离线Hive表：==kflower_strategy.pk_hxz_driver_feature==
+
+- 特征表刻画的链路：司机胜出-拒单/应答-取消/完单，dt统一为司机胜出的时间，司机胜出全集等于<u>PK窗口胜出</u>加上<u>有应答的预分单胜出</u>
+
+- null值和0值的区别：司机只有在对应的时间窗口和场景下有胜出表现才有特征值，反之特征值为null
+
+- 特征展示原始含义：对司机取消数特征不再进行判责加权，对乘客取消数特征不再限制为非扩播单
+
+# 3、特征口径
+
+| 特征名 <br> | 特征口径 <br> |
+| --- | --- |
+| d\_(non)serial_refuse_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机拒单数，其中拒单口径为司机PK窗口胜出但未应答 <br> |
+| d\_(non)serial_answer_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机应答数 <br> |
+| d\_(non)serial_reassign_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机取消（被改派）数 <br> |
+| d\_(non)serial_dri_cancel_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机取消（未被改派）数 <br> |
+| d\_(non)serial_pas_cancel_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机被乘客取消数 <br> |
+| d\_(non)serial_close_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机被客服关单数 <br> |
+| d\_(non)serial_finish_cnt\_(x)d <br> | 近x天司机在小猪端内的（非）连环派单的司机完单数 <br> |
+
+# 4、新旧特征差异
+
+对比新旧口径下同名特征在14d统计窗口下的平均绝对值diff差异，没有出现较大的变化
+
+```PlainText
+with new as
+(
+    select
+        dt,
+        driver_id,
+        d_serial_refuse_cnt_14d,
+        d_serial_dri_cancel_cnt_14d,
+        d_serial_pas_cancel_cnt_14d,
+        d_serial_reassign_cnt_14d,
+        d_serial_answer_cnt_14d,
+        d_serial_finish_cnt_14d,
+        d_nonserial_refuse_cnt_14d,
+        d_nonserial_dri_cancel_cnt_14d,
+        d_nonserial_pas_cancel_cnt_14d,
+        d_nonserial_reassign_cnt_14d,
+        d_nonserial_answer_cnt_14d,
+        d_nonserial_finish_cnt_14d
+    from
+        kflower_strategy.pk_hxz_driver_feature
+    where
+        dt between '${start_dt}' and '${end_dt}'
+),
+
+old as
+(
+    select
+        a.dt,
+        a.driver_id,
+        serial_total_refuse_cnt_14d,
+        serial_total_cancel_dri_cnt_14d,
+        serial_total_cancel_pas_cnt_14d,
+        serial_reassign_dri_cnt_14d,
+        serial_answer_dri_cnt_14d,
+        serial_finish_dri_cnt_14d,
+        ord_total_refuse_cnt_14d,
+        ord_total_cancel_dri_cnt_14d,        
+        ord_total_cancel_pas_cnt_14d,
+        ord_reassign_dri_cnt_14d,
+        ord_answer_dri_cnt_14d,
+        ord_finish_dri_cnt_14d
+    from
+        (
+            select
+                dt,
+                driver_id,
+                serial_total_cancel_dri_cnt_14d,
+                serial_total_cancel_pas_cnt_14d,
+                ord_total_cancel_dri_cnt_14d,
+                ord_total_cancel_pas_cnt_14d
+            from
+                kflower_strategy.pk_hxz_dri_2_cancel
+            where
+                dt between '${start_dt}' and '${end_dt}'
+        ) a
+        left join
+        (
+            select
+                dt,
+                driver_id,
+                serial_total_refuse_cnt_14d,
+                ord_total_refuse_cnt_14d
+            from
+                kflower_strategy.pk_hxz_dri_2
+            where
+                dt between '${start_dt}' and '${end_dt}'
+        ) b on a.driver_id = b.driver_id and a.dt = b.dt
+        left join
+        (
+            select
+                dt,
+                driver_id,
+                serial_reassign_dri_cnt_14d,
+                serial_answer_dri_cnt_14d,
+                serial_finish_dri_cnt_14d,
+                ord_reassign_dri_cnt_14d,
+                ord_answer_dri_cnt_14d,
+                ord_finish_dri_cnt_14d
+            from
+                kflower_strategy.pk_hxz_dri_3
+            where
+                dt between '${start_dt}' and '${end_dt}'
+        ) c on a.driver_id = c.driver_id and a.dt = c.dt
+)
+
+select
+    avg(abs(d_serial_refuse_cnt_14d - serial_total_refuse_cnt_14d)) as d_serial_refuse_cnt_14d_avg_diff,
+    avg(abs(d_serial_dri_cancel_cnt_14d - serial_total_cancel_dri_cnt_14d)) as d_serial_dri_cancel_cnt_14d_avg_diff,
+    avg(abs(d_serial_pas_cancel_cnt_14d - serial_total_cancel_pas_cnt_14d)) as d_serial_pas_cancel_cnt_14d_avg_diff,
+    avg(abs(d_serial_reassign_cnt_14d - serial_reassign_dri_cnt_14d)) as d_serial_reassign_cnt_14d_avg_diff,
+    avg(abs(d_serial_answer_cnt_14d - serial_answer_dri_cnt_14d)) as d_serial_answer_cnt_14d_avg_diff,
+    avg(abs(d_serial_finish_cnt_14d - serial_finish_dri_cnt_14d)) as d_serial_finish_cnt_14d_avg_diff,
+    avg(abs(d_nonserial_refuse_cnt_14d - ord_total_refuse_cnt_14d)) as d_nonserial_refuse_cnt_14d_avg_diff,
+    avg(abs(d_nonserial_dri_cancel_cnt_14d - ord_total_cancel_dri_cnt_14d)) as d_nonserial_dri_cancel_cnt_14d_avg_diff,
+    avg(abs(d_nonserial_pas_cancel_cnt_14d - ord_total_cancel_pas_cnt_14d)) as d_nonserial_pas_cancel_cnt_14d_avg_diff,
+    avg(abs(d_nonserial_reassign_cnt_14d - ord_reassign_dri_cnt_14d)) as d_nonserial_reassign_cnt_14d_avg_diff,
+    avg(abs(d_nonserial_answer_cnt_14d - ord_answer_dri_cnt_14d)) as d_nonserial_answer_cnt_14d_avg_diff,
+    avg(abs(d_nonserial_finish_cnt_14d - ord_finish_dri_cnt_14d)) as d_nonserial_finish_cnt_14d_avg_diff
+from
+    new a
+join
+    old b on a.driver_id = b.driver_id and a.dt = b.dt
+;
+```
+
+| 特征 <br> | diff <br> |
+| --- | --- |
+| d_serial_refuse_cnt_14d_diff <br> | 0.0029 <br> |
+| d_serial_dri_cancel_cnt_14d_diff <br> | 0.0008 <br> |
+| d_serial_pas_cancel_cnt_14d_diff <br> | 0.0015 <br> |
+| d_serial_reassign_cnt_14d_diff <br> | 0.0001 <br> |
+| d_serial_answer_cnt_14d_diff <br> | 0.0007 <br> |
+| d_serial_finish_cnt_14d_diff <br> | 0.0073 <br> |
+| d_nonserial_refuse_cnt_14d_diff <br> | 0.0091 <br> |
+| d_nonserial_dri_cancel_cnt_14d_diff <br> | 0.0012 <br> |
+| d_nonserial_pas_cancel_cnt_14d_diff <br> | 0.1896 <br> |
+| d_nonserial_reassign_cnt_14d_diff <br> | 0.0002 <br> |
+| d_nonserial_answer_cnt_14d_diff <br> | 0.0008 <br> |
+| d_nonserial_finish_cnt_14d_diff <br> | 0.0059 <br> |

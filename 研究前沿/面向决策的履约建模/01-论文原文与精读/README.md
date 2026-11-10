@@ -9,62 +9,58 @@ created: "2026-11-04"
 
 [[研究前沿/面向决策的履约建模/README|方向入口]] · [[研究前沿/_模板/论文精读|论文模板]]
 
-新论文按“论文简称/精读.md + assets/source + assets”组织。已存在于库中的论文保留原位置，以完整路径链接复用。
+先区分动作后的状态变化、多个结局的发生概率和最终决策质量。它们使用的训练目标与证据不同。
 
-## 论文索引
+## 完整目录
 
 <!-- 自动索引开始 -->
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/RCIF/精读|RCIF：Reduced Cost Influence Functions for Predict-then-Optimize under Noisy Data]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/ActTime/精读|ActTime：ActTime: Action-Conditioned World Modeling for Time Series]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PtOGtO/精读|PtOGtO：Contextual Decision Making: Predictive or Generative]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/StandIn/精读|StandIn：Stand-In Effects and Pooling Amplification: Design-Based Tests of Whether Biological World Models Use Actions]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/FC-DFL/精读|FC-DFL：Frequency-Calibrated Decision-Focused Learning for BESS Dispatch Under Renewable Uncertainty]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/RAN-SCM/精读|RAN-SCM：From Confounding to Counterfactuals: A Cross-Layer Causal Model for RAN Scheduling]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/OpenNWM/精读|OpenNWM：OpenNWM: A Generalist Navigation World Model with Latent Action Pretraining]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/BoundedSensitivity/精读|BoundedSensitivity：Reference-based sensitivity analysis for bounded longitudinal outcomes]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PoissonSL/精读|PoissonSL：Poisson Super Learning For Survival And Competing Risks On A Discretized Time Scale]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PolicySampleRisk/精读|PolicySampleRisk：How Risky Is Your Data-Driven Policy?]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/LatentForesight/精读|LatentForesight：Coordinating Humanoid Loco-Manipulation through Action-Conditioned Latent Foresight]] — 本期首次入库。
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PrimeSim/精读|PrimeSim：PrimeSim: A Generalist World Model Simulator from Large-Scale Cross-Embodiment Demonstrations]] — 本期首次入库。
+### 动作如何改变后续状态
+
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/ActTime/精读|在时间序列中比较候选动作的后果 · ActTime]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/SensorWM/精读|最近状态变化能否改善动作后的多步预测 · SensorWM]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/StandIn/精读|检验世界模型是否真正使用了动作信息 · StandIn]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/OpenNWM/精读|利用潜在动作预训练导航世界模型 · OpenNWM]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PrimeSim/精读|用跨具身数据学习长时域动作条件模拟 · PrimeSim]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/MKD2World/精读|让动作导致的局部变化进入状态预测损失 · MKD2World]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/IVBench/精读|用留出干预与同构盲模型检验模拟器 · IVBench]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/BacktrackingOT/精读|用噪声独立约束审计回溯反事实 · BacktrackingOT]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/RAN-SCM/精读|从调度日志中的混杂走向结构反事实 · RAN-SCM]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/ForesightNav/精读|将动作后果评分蒸馏进单次前向策略 · ForesightNav]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/GraspCF/精读|保持动作不变并用独立规划器重标可行性 · GraspCF]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/INTERACT/精读|用动作条件下的未来状态监督候选轨迹 · INTERACT]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/LatentForesight/精读|用动作条件下的潜在未来为候选前缀排序 · LatentForesight]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/LaMA-DT/精读|检验合成轨迹是否自洽再用于策略学习 · LaMA-DT]]
+
+### 怎样估计等待、完成与竞争风险
+
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/BoundedSensitivity/精读|纵向结局有界时检验敏感性假设 · BoundedSensitivity]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/CompetingEstimands/精读|检验竞争结局下风险比的解释边界 · CompetingEstimands]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/CompetingRiskLoss/精读|分离损失函数与网络结构对竞争风险预测的影响 · CompetingRiskLoss]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/EGP-Hazard/精读|利用右删失日志的暴露时长估计长尾风险 · EGP-Hazard]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PoissonSL/精读|用离散时间风险率估计多个竞争结局的概率 · PoissonSL]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/SmoothConcordance/精读|按风险分数差评价等待排序的可信度 · SmoothConcordance]]
+
+### 预测怎样影响决策与策略评估
+
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/RCIF/精读|按样本对决策边界的影响重新加权训练数据 · RCIF]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/DFLNOL/精读|学习连续选边后按决策成本训练预测器 · DFLNOL]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/ADWM-OPE/精读|用目标策略引导下一状态预测并离线评估价值 · ADWM-OPE]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/DD-LS/精读|考虑分配方案对需求的影响并用容量上界加速求解 · DD-LS]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/FC-DFL/精读|用离散调度成本训练可再生能源预测器 · FC-DFL]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PolicySampleRisk/精读|分解训练样本与未来结果给策略带来的风险 · PolicySampleRisk]]
+- [[研究前沿/面向决策的履约建模/01-论文原文与精读/PtOGtO/精读|比较预测后优化与生成情景后优化 · PtOGtO]]
+
 <!-- 自动索引结束 -->
 
-## 待精读
+## 其他方向与已有精读
 
-摘要级候选与已完成关键方法精读分别维护，详见本期候选队列。
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/ALIGN-HOLD/精读|从匹配经验中学习实时等待决策 · ALIGN-HOLD]]
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/GenMatch/精读|用候选竞争与剩余状态生成整批派单方案 · GenMatch]]。阶段履约监督与整批决策，可迁移但未识别反事实概率。
+- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/SparseStochasticMatching/精读|查询受限时怎样挑出值得评估的候选边 · SparseStochasticMatching]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/IMMD-Flow/精读|用正交流模型采样干预后的结果分布 · IMMD-Flow]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/MultiLTMLE/精读|序贯多档干预的双重稳健估计 · MultiLTMLE]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/ValidatedDigitalTwins/精读|用实验检验数字孪生对政策效应的估计 · ValidatedDigitalTwins]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/ComposableCausality/精读|构造时间序列因果发现与效应估计的可控基准 · ComposableCausality]]
+- [[研究前沿/uplift模型迭代/01-论文原文与精读/OnsagerOPE/精读|同样本奖励模型的早停与策略价值校正 · OnsagerOPE]]
 
-
-## 2026-11-05 检索批次
-
-[[研究前沿/_运行记录/2026-11-05-三方向检索|本期检索记录]] · [[研究前沿/_运行记录/2026-11-05-待精读候选|本期候选队列]]
-
-## 跨方向关联
-
-- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/ALIGN-HOLD/精读|ALIGN-HOLD（正文位于其主要方向）]]
-
-
-## 2026-11-05 队列补完
-
-[[研究前沿/_运行记录/2026-11-05-队列精读|本次精读记录与证据边界]]
-
-## 跨方向方法
-
-- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/GenMatch/精读|GenMatch]]：阶段履约监督与整批决策，可迁移但未识别反事实概率。
-
-
-<!-- 2026-11-06-daily-update -->
-## 2026-11-06 跨方向关联
-
-- [[研究前沿/动态等待与匹配决策/01-论文原文与精读/SparseStochasticMatching/精读|SparseStochasticMatching]] — 复用唯一正文。
-- [[研究前沿/uplift模型迭代/01-论文原文与精读/IMMD-Flow/精读|IMMD-Flow]] — 复用唯一正文。
-
-## 2026-11-09 新增与关联
-
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/IVBench/精读|模拟器知道干预做了什么吗？用同构盲模型评估试验组差]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/ForesightNav/精读|把动作后果蒸馏进单次前向的导航策略]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/INTERACT/精读|用动作条件的未来实体状态监督候选轨迹]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/DD-LS/精读|DD-LS · 让分配方案决定需求分布，再用容量上界加速求解]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/EGP-Hazard/精读|EGP-Hazard · 将右删失下的暴露时长用于估计长尾等待风险]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/LaMA-DT/精读|LaMA-DT · 先检验合成轨迹是否自洽，再用于策略学习]]
-- [[研究前沿/面向决策的履约建模/01-论文原文与精读/CompetingRiskLoss/精读|The Loss or the Architecture? What Matters in Survival Analysis with Competing Risks]]
-- 跨方向 · [[研究前沿/uplift模型迭代/01-论文原文与精读/MultiLTMLE/精读|Doubly-robust causal inference for multi-valued treatment regimes with recurrent neural networks]]
-- 跨方向 · [[研究前沿/uplift模型迭代/01-论文原文与精读/ValidatedDigitalTwins/精读|Experimentally Validated Digital Twins: Evaluating Workforce Training Programs in the Age of Big Data]]
+[[研究前沿/_运行记录/待处理队列|待取得原文或待核实的候选]] · [[研究前沿/_运行记录/README|查看历史批次与收录口径]]

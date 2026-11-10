@@ -1,0 +1,47 @@
+
+# PK模型结构升级v2.1实验评估
+
+背景：[PK可解释模型结构升级离线评估](https://cooper.didichuxing.com/knowledge/2199610335356/2206536768826)
+
+评估大师： <https://x.intra.hongyibo.com.cn/exp/477111532257281?globalBusinessId=120000&globalProjectId=394841194299393&expFlowTab=dashboard&dashboardTab=metricDetail>
+
+实验周期： 2026-03-19 （不符合预期，提前停止）
+
+实验分组：
+
+|  <br> | 对照组 <br> | 实验组1 <br> | 实验组2 <br> | 实验组3 <br> | 实验组4 <br> |
+| --- | --- | --- | --- | --- | --- |
+| 模型 <br> | LR v2 <br> | Wide & Deep  <br> |
+| 乘客履约：司机履约 <br> | / <br> | 0.9:0.1 <br> | 0.8:0.2 <br> | 0.7:0.3 <br> | 0.6:0.4 <br> |
+
+**实验结论：**
+
+- C取消 +0.2pp | +0.11pp | +0.31pp |+0.31pp 
+
+- CR -0.09pp | -0.4pp | -0.4pp | -0.4pp
+
+- 单均接驾距离 显著涨，单均预计接驾时长 显著涨
+
+**详细数据：**
+
+![](https://s3-ep-inter.didistatic.com/didoc2-upload-file-prod/images/1774508681722/OffugJB2VIdz1DwZt32ct/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T080030Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=3e2b730282a75c9a5cf59012388db25e32be14f6923656f8f0cca7a5343d1e41)
+
+**原因分析：**
+
+Q：**为什么各个组的单均接驾距离涨？**
+
+A：出于“司机接驾距离与C取消强相关”的认知，对照组中的LR会将接驾距离的权重\*2，而实验组的模型未进行double操作。导致vs 对照组，各个实验组的单均接驾距离显著涨，导致C取消显著涨。
+
+Q：**为什么模型的离线乘客履约AUC不能反映实际乘客履约？即两个目标之间存在gap**
+
+A：SSB，训练数据为胜出后，实际预测空间为分单（O对D打分）和PK，存在样本选择性偏差。（历史LR版本，也存在距离权重\*2后线上效果更好的情况。）
+
+Q：**那如何评估模型效果？**
+
+A：离线评估：采用退而求其次的评估方式，认为相同样本空间下，离线模型效果好于离线LR效果（乘客履约AUC），说明Wide&Deep 模型结构优于LR。
+
+线上评估：通过线上实验效果来说明新模型效果更优。
+
+Q：如何解？
+
+A：为接近线上数据分布，采用将距离/2的特征训练模型，使得距离权重\*2.

@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1880" viewBox="0 0 1280 1880">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      .bg { fill: #f6f8fb; }
+      .title { font: 500 26px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 400 14px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #64748b; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.4; rx: 8; }
+      .box-blue { fill: #eef6ff; stroke: #3b82f6; stroke-width: 1.6; rx: 8; }
+      .box-green { fill: #eefbf4; stroke: #22a06b; stroke-width: 1.6; rx: 8; }
+      .box-amber { fill: #fff8e6; stroke: #f59e0b; stroke-width: 1.6; rx: 8; }
+      .box-purple { fill: #f7f0ff; stroke: #a855f7; stroke-width: 1.6; rx: 8; }
+      .box-red { fill: #fff2f2; stroke: #ef4444; stroke-width: 1.6; rx: 8; }
+      .container { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.6; rx: 8; }
+      .container-soft { fill: #fbfdff; stroke: #cbd5e1; stroke-width: 1.2; rx: 8; }
+      .dash { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 7 7; rx: 8; }
+      .label { font: 500 18px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #1f2937; }
+      .label-small { font: 500 15px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #1f2937; }
+      .text { font: 400 14px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #334155; }
+      .text-small { font: 400 12px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #475569; }
+      .muted { fill: #64748b; }
+      .mono { font: 400 12px "SFMono-Regular", Consolas, "Liberation Mono", monospace; fill: #334155; }
+      .arrow { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .arrow-soft { stroke: #64748b; stroke-width: 1.7; fill: none; marker-end: url(#arrow-soft); }
+      .arrow-dash { stroke: #64748b; stroke-width: 1.5; fill: none; stroke-dasharray: 6 6; marker-end: url(#arrow-soft); }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1280" height="1880"/>
+
+  <text class="title" x="640" y="44" text-anchor="middle">模型二：HoldGDCN EDA阈值模型框架</text>
+  <text class="subtitle" x="640" y="70" text-anchor="middle">先学习14个hold轮次的阈值，再映射成线上使用的eda_1~eda_20</text>
+
+  <!-- Main input chain -->
+  <rect class="box-blue" x="365" y="100" width="550" height="100"/>
+  <text class="label" x="640" y="130" text-anchor="middle">模型输入 features</text>
+  <text class="text" x="640" y="156" text-anchor="middle">3个稀疏特征 + 560个数值特征 = 563维</text>
+  <text class="text-small" x="640" y="180" text-anchor="middle">订单、城市、时空供需、乘客历史、网格供需等特征</text>
+
+  <path class="arrow" d="M 640 200 L 640 235"/>
+
+  <rect class="box" x="365" y="235" width="550" height="105"/>
+  <text class="label" x="640" y="265" text-anchor="middle">统一预处理后得到入模向量 x_embed</text>
+  <text class="text" x="640" y="292" text-anchor="middle">稀疏Embedding 152维 + 数值归一化 560维</text>
+  <text class="mono" x="640" y="316" text-anchor="middle">x_embed = 712d</text>
+
+  <path class="arrow" d="M 640 340 L 640 380"/>
+
+  <!-- HoldGDCN container -->
+  <rect class="container" x="80" y="380" width="1120" height="680"/>
+  <text class="label" x="640" y="412" text-anchor="middle">HoldGDCN 顶层结构</text>
+  <text class="text-small" x="640" y="435" text-anchor="middle">14个完全独立的 SingleRoundModel；每个hold轮次一个完整子模型，不共享Backbone</text>
+
+  <rect class="box-purple" x="135" y="470" width="300" height="128"/>
+  <text class="label-small" x="285" y="500" text-anchor="middle">x_embed复制给14个子模型</text>
+  <text class="text" x="285" y="528" text-anchor="middle">每个子模型看到同一个订单向量</text>
+  <text class="text-small" x="285" y="552" text-anchor="middle">差异来自各轮次独立参数</text>
+  <text class="mono" x="285" y="576" text-anchor="middle">round_models[0..13]</text>
+
+  <path class="arrow-soft" d="M 640 340 C 510 392, 365 420, 285 470"/>
+  <path class="arrow-soft" d="M 435 534 C 462 548, 485 562, 510 576"/>
+
+  <rect class="container-soft" x="475" y="470" width="665" height="455"/>
+  <text class="label" x="807" y="502" text-anchor="middle">SingleRoundModel_i（展开一次）</text>
+
+  <rect class="box" x="510" y="530" width="275" height="92"/>
+  <text class="label-small" x="647" y="558" text-anchor="middle">特征拆分与编码</text>
+  <text class="text-small" x="647" y="582" text-anchor="middle">Sparse: day_of_week / city_id / call_hour</text>
+  <text class="text-small" x="647" y="604" text-anchor="middle">Dense: 560维归一化数值特征</text>
+
+  <rect class="box" x="830" y="530" width="275" height="92"/>
+  <text class="label-small" x="968" y="558" text-anchor="middle">拼接成 x_embed</text>
+  <text class="text-small" x="968" y="582" text-anchor="middle">Sparse Embedding: 152维</text>
+  <text class="text-small" x="968" y="604" text-anchor="middle">Dense Normalized: 560维</text>
+
+  <path class="arrow-soft" d="M 785 576 L 830 576"/>
+
+  <rect class="box-amber" x="535" y="662" width="535" height="170"/>
+  <text class="label" x="802" y="692" text-anchor="middle">GDCN Backbone</text>
+  <text class="text-small" x="802" y="716" text-anchor="middle">同一个 x_embed 在Backbone内部走显式交叉分支和深层网络分支</text>
+
+  <rect class="box" x="560" y="738" width="235" height="72"/>
+  <text class="label-small" x="678" y="764" text-anchor="middle">Gated Cross ×3</text>
+  <text class="text-small" x="678" y="787" text-anchor="middle">显式学习特征交叉</text>
+  <text class="mono" x="678" y="804" text-anchor="middle">x0*(Wx+b)*gate + x</text>
+
+  <rect class="box" x="815" y="738" width="235" height="72"/>
+  <text class="label-small" x="933" y="764" text-anchor="middle">Deep Network</text>
+  <text class="text-small" x="933" y="787" text-anchor="middle">712 -> 1024 -> 512 -> 256</text>
+  <text class="text-small" x="933" y="805" text-anchor="middle">Linear + BN + ReLU + Dropout</text>
+
+  <path class="arrow-soft" d="M 968 622 L 802 662"/>
+  <path class="arrow-soft" d="M 802 716 C 740 726, 705 730, 678 738"/>
+  <path class="arrow-soft" d="M 802 716 C 865 726, 900 730, 933 738"/>
+
+  <rect class="box-green" x="565" y="860" width="235" height="45"/>
+  <text class="label-small" x="683" y="889" text-anchor="middle">cross_out 712维</text>
+
+  <rect class="box-green" x="815" y="860" width="235" height="45"/>
+  <text class="label-small" x="933" y="889" text-anchor="middle">deep_out 256维</text>
+
+  <path class="arrow-soft" d="M 678 810 L 683 860"/>
+  <path class="arrow-soft" d="M 933 810 L 933 860"/>
+
+  <rect class="box-green" x="560" y="952" width="500" height="76"/>
+  <text class="label-small" x="810" y="980" text-anchor="middle">Concat + Linear Head</text>
+  <text class="text-small" x="810" y="1004" text-anchor="middle">712 + 256 = 968维，Linear(968,1) 输出 hold_i 的EDA阈值</text>
+
+  <path class="arrow-soft" d="M 683 905 C 700 930, 740 945, 810 952"/>
+  <path class="arrow-soft" d="M 933 905 C 915 930, 880 945, 810 952"/>
+
+  <rect class="box-purple" x="135" y="660" width="300" height="174"/>
+  <text class="label-small" x="285" y="690" text-anchor="middle">为什么是14个独立子模型？</text>
+  <text class="text-small" x="285" y="718" text-anchor="middle">不同hold轮次的标签分布不同</text>
+  <text class="text-small" x="285" y="742" text-anchor="middle">早期hold和后期hold的业务含义不同</text>
+  <text class="text-small" x="285" y="766" text-anchor="middle">独立模型减少轮次间负迁移</text>
+  <text class="text-small" x="285" y="790" text-anchor="middle">每轮梯度只更新自己的子模型</text>
+  <text class="mono" x="285" y="814" text-anchor="middle">14 outputs = hold_0~hold_13</text>
+
+  <path class="arrow-dash" d="M 435 745 L 535 745"/>
+
+  <path class="arrow" d="M 810 1028 L 810 1100"/>
+
+  <!-- Main lower chain -->
+  <rect class="box-green" x="445" y="1100" width="390" height="82"/>
+  <text class="label" x="640" y="1130" text-anchor="middle">14轮预测 hold_0~hold_13</text>
+  <text class="text-small" x="640" y="1154" text-anchor="middle">训练/验证阶段直接输出 [B,14]</text>
+
+  <path class="arrow" d="M 640 1182 L 640 1232"/>
+
+  <rect class="box-red" x="940" y="1088" width="285" height="128"/>
+  <text class="label-small" x="1082" y="1116" text-anchor="middle">Pinball Loss τ=0.95</text>
+  <text class="text-small" x="1082" y="1142" text-anchor="middle">pred &lt; label：0.95 × 误差</text>
+  <text class="text-small" x="1082" y="1164" text-anchor="middle">pred &gt; label：0.05 × 误差</text>
+  <text class="text-small" x="1082" y="1186" text-anchor="middle">低估惩罚约为高估19倍</text>
+  <text class="text-small" x="1082" y="1208" text-anchor="middle">学习偏高的条件分位阈值</text>
+
+  <rect class="box" x="60" y="1088" width="295" height="128"/>
+  <text class="label-small" x="208" y="1116" text-anchor="middle">训练标签</text>
+  <text class="text-small" x="208" y="1142" text-anchor="middle">final_label_hold0~13</text>
+  <text class="text-small" x="208" y="1164" text-anchor="middle">每个字段表示一个hold轮次</text>
+  <text class="text-small" x="208" y="1186" text-anchor="middle">Loss在14轮空间学习</text>
+  <text class="text-small" x="208" y="1208" text-anchor="middle">再映射到线上20秒空间</text>
+
+  <path class="arrow-dash" d="M 835 1141 C 870 1141, 905 1141, 940 1141"/>
+  <path class="arrow-dash" d="M 355 1141 C 385 1141, 415 1141, 445 1141"/>
+
+  <rect class="box-amber" x="360" y="1232" width="560" height="116"/>
+  <text class="label" x="640" y="1262" text-anchor="middle">14轮 -> 20秒映射 index_map</text>
+  <text class="text-small" x="640" y="1290" text-anchor="middle">sec1,2,3,4 -> hold0,1,2,2；sec5,6,7,8 -> hold3,4,4,5</text>
+  <text class="text-small" x="640" y="1314" text-anchor="middle">后续依次复用部分hold轮次，sec20 -> hold13</text>
+  <text class="mono" x="640" y="1336" text-anchor="middle">[0,1,2,2,3,4,4,5,6,6,7,8,8,9,10,10,11,12,12,13]</text>
+
+  <path class="arrow" d="M 640 1348 L 640 1398"/>
+
+  <rect class="box-blue" x="360" y="1398" width="560" height="108"/>
+  <text class="label" x="640" y="1428" text-anchor="middle">线上输出约束</text>
+  <text class="text" x="640" y="1456" text-anchor="middle">clamp 到 [1500, 3600]</text>
+  <text class="text-small" x="640" y="1480" text-anchor="middle">running minimum 保证 eda_1 >= eda_2 >= ... >= eda_20</text>
+
+  <rect class="dash" x="930" y="1378" width="270" height="150"/>
+  <text class="label-small" x="1065" y="1408" text-anchor="middle">为什么要单调不增？</text>
+  <text class="text-small" x="1065" y="1436" text-anchor="middle">hold越久，越有机会等到更近供给</text>
+  <text class="text-small" x="1065" y="1460" text-anchor="middle">EDA阈值不应突然变大</text>
+  <text class="text-small" x="1065" y="1484" text-anchor="middle">避免线上阈值曲线回跳</text>
+  <text class="text-small" x="1065" y="1508" text-anchor="middle">后处理保证策略可用性</text>
+
+  <path class="arrow-dash" d="M 920 1452 L 930 1452"/>
+
+  <path class="arrow" d="M 640 1506 L 640 1556"/>
+
+  <rect class="box-green" x="390" y="1556" width="500" height="92"/>
+  <text class="label" x="640" y="1588" text-anchor="middle">输出 eda_1~eda_20</text>
+  <text class="text" x="640" y="1616" text-anchor="middle">第t秒建议使用的EDA阈值</text>
+  <text class="text-small" x="640" y="1638" text-anchor="middle">预测脚本拼成20列，PRED_KEY兼容使用eda_1</text>
+
+  <rect class="dash" x="95" y="1538" width="275" height="132"/>
+  <text class="label-small" x="232" y="1568" text-anchor="middle">评估怎么看？</text>
+  <text class="text-small" x="232" y="1596" text-anchor="middle">14轮 MAE / RMSE 是核心</text>
+  <text class="text-small" x="232" y="1620" text-anchor="middle">检查20秒输出统计</text>
+  <text class="text-small" x="232" y="1644" text-anchor="middle">检查单调性满足率和分布对齐</text>
+
+  <path class="arrow-dash" d="M 390 1602 L 370 1602"/>
+
+  <path class="arrow" d="M 640 1648 L 640 1698"/>
+
+  <rect class="box-purple" x="350" y="1698" width="580" height="116"/>
+  <text class="label" x="640" y="1730" text-anchor="middle">在线策略使用</text>
+  <text class="text" x="640" y="1758" text-anchor="middle">模型二给供给侧阈值 eda_t，模型一给取消风险 cancel_t</text>
+  <text class="text-small" x="640" y="1782" text-anchor="middle">策略用 lambda 权衡供给收益与取消风险，选择最终hold秒数和EDA阈值</text>
+
+  <text class="subtitle" x="640" y="1846" text-anchor="middle">核心记忆：HoldGDCN = 14个独立GDCN回归器 + 秒级映射 + 单调约束，服务于模型一/模型二联合决策。</text>
+</svg>

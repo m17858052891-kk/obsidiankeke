@@ -1,0 +1,260 @@
+# 1、建模周期
+
+| 样本集 <br> | 时间范围 <br> |
+| --- | --- |
+| 训练集 <br> | 2025-01-03～2025-01-16 <br> |
+| 测试集 <br> | 2025-01-17～2025-01-20 <br> |
+
+# 2、样本结构
+
+## 2.1、样本集
+
+![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/17394167518357b9312c3c8e0f2f9eb17b663af4e12a0/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075929Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=aaee4261a74da3c77bd300817541e5494acdb76cd6c463d361bc68d59aa38b95)
+
+## 2.2、标签
+
+| 样本类型/标签类型 <br> | OD <br> | O <br> | D <br> | T <br> |
+| --- | --- | --- | --- | --- |
+| 完单 <br> | 1 <br> | 1 <br> | 1 <br> | 0/1 <br> |
+| 乘客取消（应答后取消） <br> | 0 <br> | 0 <br> | 1 <br> | 0/1 <br> |
+| 司机取消（含未应答和应答后取消） <br> | 0 <br> | 1 <br> | 0 <br> | 0/1 <br> |
+| 司机未胜出 <br> | 0 <br> | 0 <br> | 0 <br> | 0/1 <br> |
+
+## 2.3、特征空间
+
+| 特征类型 <br> | 代表性特征 <br> | 特征数 <br> |
+| --- | --- | --- |
+| 传入特征 <br> | 商家id、城市id，接驾距离、是否连环派、是否滴滴司机等 <br> | 27 <br> |
+| 供需特征 <br> | 起点坐标所在格子5分钟内出现的空车司机数等 <br> | 28 <br> |
+| 乘客历史特征 <br> | 乘客近28天三方/自营取消率等 <br> | 16 <br> |
+| 司机实时特征 <br> | 司机当天截止当前的完单数等 <br> | 24 <br> |
+| 司机历史特征 <br> | 司机近28天连环派/非连环派完单数等 <br> | 70 <br> |
+
+# 3、模型结构
+
+## 3.1、训练参数
+
+| 模块 <br> | 参数名 <br> | 参数值 <br> |
+| --- | --- | --- |
+| 训练配置 <br> | epoch <br> | 1  <br> |
+| batch size <br> | 1024 <br> |
+| learning rate <br> | 0.01 <br> |
+| loss <br> | binary cross entropy <br> |
+| optimizer <br> | Adam <br> |
+| Embedding & Scalar2Vec <br> | d_embed <br> | 20 <br> |
+| Expert <br> | n_expert <br> | 5\*3 <br> |
+| d_expert_layers <br> | \[128\], relu <br> |
+| d_expert_out <br> | 1024, relu <br> |
+| POSO <br> | d_expert_out <br> | 1024, sigmoid <br> |
+| Gate <br> | d_gate_out <br> | 10, softmax <br> |
+| Tower <br> | d_tower_out <br> | 1, sigmoid <br> |
+
+## 3.2、模型框架
+
+![](https://s3-ep-inter.didistatic.com/didoc-upload-image-prod/17394156524162e5649435c96ba79fec619e4e08a627d/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKDD00000000000EBLCTZNRBJHX6ZS%2F20260526%2Fgzep%2Fs3%2Faws4_request&X-Amz-Date=20260526T075929Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=6ec7c225b43c87bbcb8ebbbe0df3b4101b44a287c666712b22d4445fcf173531)
+
+# 4、离线评估
+
+## 4.1、评估条件
+
+| 目标 <br> | 评估样本 <br> | 筛选条件 <br> |
+| --- | --- | --- |
+| OD <br> | 完单&司机取消&乘客取消 <br> | O = 1 or D = 1 <br> |
+| O <br> | 完单&乘客取消 <br> | D = 1 <br> |
+| D <br> | 完单&司机取消 <br> | O = 1 <br> |
+| T <br> | 完单&司机取消&乘客取消&司机未胜出 <br> | 无 <br> |
+
+## 4.2、AUC
+
+| 目标 <br> | AUC <br> |
+| --- | --- |
+| OD <br> | 0.779 <br> |
+| O <br> | 0.768 <br> |
+| D <br> | 0.855 <br> |
+| T <br> | 0.899 <br> |
+
+## 4.3、触发率 & 精准率 & 召回率
+
+```PlainText
+with thresholds as
+(
+    select 0.01 + (seq - 1) * 0.01 as threshold
+    from
+        (
+            select posexplode(split(space(100), ' ')) as (seq, x)
+        ) s
+)
+
+select
+    threshold,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] >= threshold and od_is_finish = 1 then 1 else 0 end) as od_TP,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] >= threshold and od_is_finish = 0 then 1 else 0 end) as od_FP,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] < threshold and od_is_finish = 0 then 1 else 0 end) as od_TN,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] < threshold and od_is_finish = 1 then 1 else 0 end) as od_FN,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] >= threshold then 1 else 0 end) / sum(case when (o_is_finish = 1 or d_is_finish = 1) then 1 else 0 end) as od_trigger,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] >= threshold and od_is_finish = 1 then 1 else 0 end) / sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] >= threshold then 1 else 0 end) as od_precision,
+    sum(case when (o_is_finish = 1 or d_is_finish = 1) and probabilities[0] >= threshold and od_is_finish = 1 then 1 else 0 end) / sum(case when (o_is_finish = 1 or d_is_finish = 1) and od_is_finish = 1 then 1 else 0 end) as od_recall,
+    
+    sum(case when d_is_finish = 1 and probabilities[1] >= threshold and o_is_finish = 1 then 1 else 0 end) as o_TP,
+    sum(case when d_is_finish = 1 and probabilities[1] >= threshold and o_is_finish = 0 then 1 else 0 end) as o_FP,
+    sum(case when d_is_finish = 1 and probabilities[1] < threshold and o_is_finish = 0 then 1 else 0 end) as o_TN,
+    sum(case when d_is_finish = 1 and probabilities[1] < threshold and o_is_finish = 1 then 1 else 0 end) as o_FN,
+    sum(case when d_is_finish = 1 and probabilities[1] >= threshold then 1 else 0 end) / sum(case when d_is_finish = 1 then 1 else 0 end) as o_trigger,
+    sum(case when d_is_finish = 1 and probabilities[1] >= threshold and o_is_finish = 1 then 1 else 0 end) / sum(case when d_is_finish = 1 and probabilities[1] >= threshold then 1 else 0 end) as o_precision,
+    sum(case when d_is_finish = 1 and probabilities[1] >= threshold and o_is_finish = 1 then 1 else 0 end) / sum(case when d_is_finish = 1 and o_is_finish = 1 then 1 else 0 end) as o_recall,
+    
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] >= threshold and 1 - o_is_finish = 1 then 1 else 0 end) as o_c_TP,
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] >= threshold and 1 - o_is_finish = 0 then 1 else 0 end) as o_c_FP,
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] < threshold and 1 - o_is_finish = 0 then 1 else 0 end) as o_c_TN,
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] < threshold and 1 - o_is_finish = 1 then 1 else 0 end) as o_c_FN,
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] >= threshold then 1 else 0 end) / sum(case when d_is_finish = 1 then 1 else 0 end) as o_c_trigger,
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] >= threshold and 1 - o_is_finish = 1 then 1 else 0 end) / sum(case when d_is_finish = 1 and 1 - probabilities[1] >= threshold then 1 else 0 end) as o_c_precision,
+    sum(case when d_is_finish = 1 and 1 - probabilities[1] >= threshold and 1 - o_is_finish = 1 then 1 else 0 end) / sum(case when d_is_finish = 1 and 1 - o_is_finish = 1 then 1 else 0 end) as o_c_recall,
+    
+    sum(case when probabilities[3] >= threshold and is_closest = 1 then 1 else 0 end) as t_TP,
+    sum(case when probabilities[3] >= threshold and is_closest = 0 then 1 else 0 end) as t_FP,
+    sum(case when probabilities[3] < threshold and is_closest = 0 then 1 else 0 end) as t_TN,
+    sum(case when probabilities[3] < threshold and is_closest = 1 then 1 else 0 end) as t_FN,
+    sum(case when probabilities[3] >= threshold then 1 else 0 end) / sum(1) as t_trigger,
+    sum(case when probabilities[3] >= threshold and is_closest = 1 then 1 else 0 end) / sum(case when probabilities[3] >= threshold then 1 else 0 end) as t_precision,
+    sum(case when probabilities[3] >= threshold and is_closest = 1 then 1 else 0 end) / sum(case when is_closest = 1 then 1 else 0 end) as t_recall
+from
+    kflower_strategy.ether_deeplearning_predict_14164_c4686465130668487_1739414836192_4109220127034553_temp_1739414921322
+join
+    thresholds
+group by
+    threshold
+order by
+    threshold
+;
+```
+
+| 阈值 <br> | OD 触发率 <br> | OD 精准率 <br> | OD 召回率 <br> | O 触发率 <br> | O 精准率 <br> | O 召回率 <br> | 1-O 触发率 <br> | 1-O 精准率 <br> | 1-O 召回率 <br> | T 触发率 <br> | T 精准率 <br> | T 召回率 <br> |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0.01 <br> | 1.000 <br> | 0.701 <br> | 1.000 <br> | 1.000 <br> | 0.792 <br> | 1.000 <br> | 1.000 <br> | 0.208 <br> | 1.000 <br> | 0.987 <br> | 0.683 <br> | 1.000 <br> |
+| 0.02 <br> | 0.999 <br> | 0.701 <br> | 1.000 <br> | 1.000 <br> | 0.792 <br> | 1.000 <br> | 1.000 <br> | 0.208 <br> | 1.000 <br> | 0.979 <br> | 0.688 <br> | 1.000 <br> |
+| 0.03 <br> | 0.999 <br> | 0.702 <br> | 1.000 <br> | 1.000 <br> | 0.792 <br> | 1.000 <br> | 0.991 <br> | 0.210 <br> | 0.999 <br> | 0.972 <br> | 0.693 <br> | 0.999 <br> |
+| 0.04 <br> | 0.998 <br> | 0.702 <br> | 1.000 <br> | 1.000 <br> | 0.792 <br> | 1.000 <br> | 0.962 <br> | 0.215 <br> | 0.994 <br> | 0.965 <br> | 0.698 <br> | 0.999 <br> |
+| 0.05 <br> | 0.998 <br> | 0.702 <br> | 1.000 <br> | 1.000 <br> | 0.792 <br> | 1.000 <br> | 0.914 <br> | 0.224 <br> | 0.983 <br> | 0.959 <br> | 0.702 <br> | 0.999 <br> |
+| 0.06 <br> | 0.998 <br> | 0.702 <br> | 1.000 <br> | 0.999 <br> | 0.792 <br> | 1.000 <br> | 0.859 <br> | 0.235 <br> | 0.968 <br> | 0.952 <br> | 0.706 <br> | 0.998 <br> |
+| 0.07 <br> | 0.997 <br> | 0.703 <br> | 1.000 <br> | 0.999 <br> | 0.792 <br> | 1.000 <br> | 0.804 <br> | 0.246 <br> | 0.951 <br> | 0.946 <br> | 0.711 <br> | 0.997 <br> |
+| 0.08 <br> | 0.997 <br> | 0.703 <br> | 1.000 <br> | 0.999 <br> | 0.792 <br> | 1.000 <br> | 0.750 <br> | 0.258 <br> | 0.931 <br> | 0.940 <br> | 0.715 <br> | 0.996 <br> |
+| 0.09 <br> | 0.996 <br> | 0.703 <br> | 1.000 <br> | 0.999 <br> | 0.792 <br> | 1.000 <br> | 0.700 <br> | 0.271 <br> | 0.911 <br> | 0.934 <br> | 0.719 <br> | 0.996 <br> |
+| 0.1 <br> | 0.995 <br> | 0.704 <br> | 1.000 <br> | 0.999 <br> | 0.793 <br> | 1.000 <br> | 0.656 <br> | 0.283 <br> | 0.890 <br> | 0.928 <br> | 0.722 <br> | 0.995 <br> |
+| 0.11 <br> | 0.994 <br> | 0.704 <br> | 1.000 <br> | 0.999 <br> | 0.793 <br> | 1.000 <br> | 0.615 <br> | 0.294 <br> | 0.870 <br> | 0.922 <br> | 0.726 <br> | 0.994 <br> |
+| 0.12 <br> | 0.994 <br> | 0.705 <br> | 0.999 <br> | 0.999 <br> | 0.793 <br> | 1.000 <br> | 0.578 <br> | 0.306 <br> | 0.849 <br> | 0.916 <br> | 0.730 <br> | 0.993 <br> |
+| 0.13 <br> | 0.992 <br> | 0.706 <br> | 0.999 <br> | 0.999 <br> | 0.793 <br> | 1.000 <br> | 0.544 <br> | 0.317 <br> | 0.829 <br> | 0.910 <br> | 0.734 <br> | 0.991 <br> |
+| 0.14 <br> | 0.991 <br> | 0.706 <br> | 0.999 <br> | 0.998 <br> | 0.793 <br> | 1.000 <br> | 0.513 <br> | 0.328 <br> | 0.808 <br> | 0.905 <br> | 0.738 <br> | 0.990 <br> |
+| 0.15 <br> | 0.990 <br> | 0.707 <br> | 0.999 <br> | 0.998 <br> | 0.793 <br> | 1.000 <br> | 0.485 <br> | 0.338 <br> | 0.788 <br> | 0.899 <br> | 0.742 <br> | 0.989 <br> |
+| 0.16 <br> | 0.989 <br> | 0.708 <br> | 0.999 <br> | 0.998 <br> | 0.793 <br> | 1.000 <br> | 0.459 <br> | 0.349 <br> | 0.769 <br> | 0.893 <br> | 0.745 <br> | 0.987 <br> |
+| 0.17 <br> | 0.988 <br> | 0.708 <br> | 0.998 <br> | 0.998 <br> | 0.794 <br> | 1.000 <br> | 0.435 <br> | 0.359 <br> | 0.749 <br> | 0.887 <br> | 0.749 <br> | 0.986 <br> |
+| 0.18 <br> | 0.986 <br> | 0.709 <br> | 0.998 <br> | 0.997 <br> | 0.794 <br> | 1.000 <br> | 0.413 <br> | 0.368 <br> | 0.730 <br> | 0.881 <br> | 0.753 <br> | 0.984 <br> |
+| 0.19 <br> | 0.985 <br> | 0.710 <br> | 0.998 <br> | 0.997 <br> | 0.794 <br> | 1.000 <br> | 0.392 <br> | 0.378 <br> | 0.712 <br> | 0.875 <br> | 0.756 <br> | 0.982 <br> |
+| 0.2 <br> | 0.983 <br> | 0.711 <br> | 0.997 <br> | 0.997 <br> | 0.794 <br> | 1.000 <br> | 0.373 <br> | 0.387 <br> | 0.693 <br> | 0.870 <br> | 0.760 <br> | 0.980 <br> |
+| 0.21 <br> | 0.981 <br> | 0.712 <br> | 0.997 <br> | 0.996 <br> | 0.795 <br> | 0.999 <br> | 0.355 <br> | 0.396 <br> | 0.675 <br> | 0.864 <br> | 0.764 <br> | 0.978 <br> |
+| 0.22 <br> | 0.979 <br> | 0.713 <br> | 0.996 <br> | 0.996 <br> | 0.795 <br> | 0.999 <br> | 0.338 <br> | 0.404 <br> | 0.657 <br> | 0.858 <br> | 0.767 <br> | 0.976 <br> |
+| 0.23 <br> | 0.977 <br> | 0.715 <br> | 0.996 <br> | 0.995 <br> | 0.795 <br> | 0.999 <br> | 0.322 <br> | 0.413 <br> | 0.639 <br> | 0.852 <br> | 0.771 <br> | 0.974 <br> |
+| 0.24 <br> | 0.974 <br> | 0.716 <br> | 0.995 <br> | 0.994 <br> | 0.796 <br> | 0.999 <br> | 0.307 <br> | 0.422 <br> | 0.622 <br> | 0.847 <br> | 0.774 <br> | 0.972 <br> |
+| 0.25 <br> | 0.971 <br> | 0.717 <br> | 0.994 <br> | 0.994 <br> | 0.796 <br> | 0.999 <br> | 0.293 <br> | 0.430 <br> | 0.605 <br> | 0.841 <br> | 0.778 <br> | 0.970 <br> |
+| 0.26 <br> | 0.969 <br> | 0.719 <br> | 0.993 <br> | 0.993 <br> | 0.796 <br> | 0.999 <br> | 0.279 <br> | 0.438 <br> | 0.588 <br> | 0.835 <br> | 0.781 <br> | 0.968 <br> |
+| 0.27 <br> | 0.966 <br> | 0.720 <br> | 0.992 <br> | 0.992 <br> | 0.797 <br> | 0.998 <br> | 0.267 <br> | 0.446 <br> | 0.571 <br> | 0.829 <br> | 0.785 <br> | 0.965 <br> |
+| 0.28 <br> | 0.962 <br> | 0.722 <br> | 0.991 <br> | 0.991 <br> | 0.797 <br> | 0.998 <br> | 0.254 <br> | 0.454 <br> | 0.554 <br> | 0.823 <br> | 0.788 <br> | 0.963 <br> |
+| 0.29 <br> | 0.959 <br> | 0.723 <br> | 0.990 <br> | 0.990 <br> | 0.798 <br> | 0.998 <br> | 0.242 <br> | 0.461 <br> | 0.537 <br> | 0.818 <br> | 0.792 <br> | 0.960 <br> |
+| 0.3 <br> | 0.955 <br> | 0.725 <br> | 0.989 <br> | 0.989 <br> | 0.799 <br> | 0.997 <br> | 0.231 <br> | 0.469 <br> | 0.520 <br> | 0.812 <br> | 0.795 <br> | 0.957 <br> |
+| 0.31 <br> | 0.951 <br> | 0.727 <br> | 0.987 <br> | 0.988 <br> | 0.799 <br> | 0.997 <br> | 0.219 <br> | 0.477 <br> | 0.503 <br> | 0.806 <br> | 0.799 <br> | 0.955 <br> |
+| 0.32 <br> | 0.947 <br> | 0.729 <br> | 0.986 <br> | 0.986 <br> | 0.800 <br> | 0.996 <br> | 0.208 <br> | 0.485 <br> | 0.486 <br> | 0.800 <br> | 0.802 <br> | 0.952 <br> |
+| 0.33 <br> | 0.943 <br> | 0.731 <br> | 0.984 <br> | 0.985 <br> | 0.801 <br> | 0.996 <br> | 0.198 <br> | 0.493 <br> | 0.469 <br> | 0.794 <br> | 0.805 <br> | 0.949 <br> |
+| 0.34 <br> | 0.938 <br> | 0.733 <br> | 0.982 <br> | 0.983 <br> | 0.801 <br> | 0.995 <br> | 0.188 <br> | 0.501 <br> | 0.452 <br> | 0.788 <br> | 0.809 <br> | 0.946 <br> |
+| 0.35 <br> | 0.933 <br> | 0.736 <br> | 0.979 <br> | 0.982 <br> | 0.802 <br> | 0.995 <br> | 0.178 <br> | 0.509 <br> | 0.435 <br> | 0.782 <br> | 0.812 <br> | 0.943 <br> |
+| 0.36 <br> | 0.928 <br> | 0.738 <br> | 0.977 <br> | 0.980 <br> | 0.803 <br> | 0.994 <br> | 0.168 <br> | 0.517 <br> | 0.418 <br> | 0.776 <br> | 0.816 <br> | 0.939 <br> |
+| 0.37 <br> | 0.923 <br> | 0.740 <br> | 0.975 <br> | 0.978 <br> | 0.804 <br> | 0.993 <br> | 0.159 <br> | 0.525 <br> | 0.402 <br> | 0.770 <br> | 0.819 <br> | 0.936 <br> |
+| 0.38 <br> | 0.917 <br> | 0.743 <br> | 0.972 <br> | 0.975 <br> | 0.805 <br> | 0.992 <br> | 0.150 <br> | 0.533 <br> | 0.386 <br> | 0.765 <br> | 0.822 <br> | 0.932 <br> |
+| 0.39 <br> | 0.911 <br> | 0.745 <br> | 0.969 <br> | 0.973 <br> | 0.806 <br> | 0.991 <br> | 0.142 <br> | 0.541 <br> | 0.370 <br> | 0.759 <br> | 0.826 <br> | 0.929 <br> |
+| 0.4 <br> | 0.905 <br> | 0.748 <br> | 0.966 <br> | 0.971 <br> | 0.807 <br> | 0.990 <br> | 0.134 <br> | 0.549 <br> | 0.354 <br> | 0.752 <br> | 0.829 <br> | 0.925 <br> |
+| 0.41 <br> | 0.899 <br> | 0.750 <br> | 0.962 <br> | 0.968 <br> | 0.809 <br> | 0.988 <br> | 0.126 <br> | 0.557 <br> | 0.338 <br> | 0.746 <br> | 0.832 <br> | 0.921 <br> |
+| 0.42 <br> | 0.892 <br> | 0.753 <br> | 0.959 <br> | 0.965 <br> | 0.810 <br> | 0.987 <br> | 0.119 <br> | 0.565 <br> | 0.323 <br> | 0.740 <br> | 0.835 <br> | 0.917 <br> |
+| 0.43 <br> | 0.885 <br> | 0.756 <br> | 0.955 <br> | 0.962 <br> | 0.811 <br> | 0.986 <br> | 0.112 <br> | 0.574 <br> | 0.308 <br> | 0.734 <br> | 0.839 <br> | 0.913 <br> |
+| 0.44 <br> | 0.877 <br> | 0.759 <br> | 0.950 <br> | 0.959 <br> | 0.813 <br> | 0.984 <br> | 0.105 <br> | 0.582 <br> | 0.293 <br> | 0.728 <br> | 0.842 <br> | 0.909 <br> |
+| 0.45 <br> | 0.870 <br> | 0.762 <br> | 0.946 <br> | 0.955 <br> | 0.814 <br> | 0.982 <br> | 0.098 <br> | 0.590 <br> | 0.278 <br> | 0.722 <br> | 0.845 <br> | 0.905 <br> |
+| 0.46 <br> | 0.862 <br> | 0.765 <br> | 0.941 <br> | 0.952 <br> | 0.815 <br> | 0.980 <br> | 0.092 <br> | 0.598 <br> | 0.264 <br> | 0.716 <br> | 0.849 <br> | 0.901 <br> |
+| 0.47 <br> | 0.854 <br> | 0.768 <br> | 0.936 <br> | 0.948 <br> | 0.817 <br> | 0.978 <br> | 0.085 <br> | 0.607 <br> | 0.249 <br> | 0.709 <br> | 0.852 <br> | 0.896 <br> |
+| 0.48 <br> | 0.845 <br> | 0.772 <br> | 0.931 <br> | 0.944 <br> | 0.818 <br> | 0.976 <br> | 0.079 <br> | 0.618 <br> | 0.233 <br> | 0.703 <br> | 0.855 <br> | 0.892 <br> |
+| 0.49 <br> | 0.837 <br> | 0.775 <br> | 0.925 <br> | 0.940 <br> | 0.820 <br> | 0.973 <br> | 0.072 <br> | 0.628 <br> | 0.218 <br> | 0.697 <br> | 0.858 <br> | 0.887 <br> |
+| 0.5 <br> | 0.828 <br> | 0.778 <br> | 0.919 <br> | 0.934 <br> | 0.822 <br> | 0.970 <br> | 0.066 <br> | 0.639 <br> | 0.202 <br> | 0.690 <br> | 0.861 <br> | 0.882 <br> |
+| 0.51 <br> | 0.819 <br> | 0.781 <br> | 0.913 <br> | 0.928 <br> | 0.825 <br> | 0.966 <br> | 0.060 <br> | 0.649 <br> | 0.188 <br> | 0.684 <br> | 0.864 <br> | 0.877 <br> |
+| 0.52 <br> | 0.810 <br> | 0.785 <br> | 0.906 <br> | 0.921 <br> | 0.827 <br> | 0.962 <br> | 0.056 <br> | 0.657 <br> | 0.177 <br> | 0.678 <br> | 0.868 <br> | 0.872 <br> |
+| 0.53 <br> | 0.800 <br> | 0.788 <br> | 0.900 <br> | 0.915 <br> | 0.829 <br> | 0.958 <br> | 0.052 <br> | 0.665 <br> | 0.166 <br> | 0.671 <br> | 0.871 <br> | 0.867 <br> |
+| 0.54 <br> | 0.791 <br> | 0.791 <br> | 0.893 <br> | 0.908 <br> | 0.831 <br> | 0.953 <br> | 0.048 <br> | 0.673 <br> | 0.156 <br> | 0.665 <br> | 0.874 <br> | 0.861 <br> |
+| 0.55 <br> | 0.782 <br> | 0.794 <br> | 0.886 <br> | 0.902 <br> | 0.833 <br> | 0.949 <br> | 0.045 <br> | 0.681 <br> | 0.146 <br> | 0.658 <br> | 0.877 <br> | 0.856 <br> |
+| 0.56 <br> | 0.772 <br> | 0.798 <br> | 0.878 <br> | 0.895 <br> | 0.836 <br> | 0.945 <br> | 0.041 <br> | 0.690 <br> | 0.137 <br> | 0.651 <br> | 0.880 <br> | 0.850 <br> |
+| 0.57 <br> | 0.762 <br> | 0.801 <br> | 0.871 <br> | 0.888 <br> | 0.838 <br> | 0.940 <br> | 0.038 <br> | 0.698 <br> | 0.127 <br> | 0.645 <br> | 0.883 <br> | 0.845 <br> |
+| 0.58 <br> | 0.752 <br> | 0.804 <br> | 0.863 <br> | 0.881 <br> | 0.840 <br> | 0.935 <br> | 0.035 <br> | 0.706 <br> | 0.119 <br> | 0.638 <br> | 0.886 <br> | 0.839 <br> |
+| 0.59 <br> | 0.742 <br> | 0.807 <br> | 0.855 <br> | 0.874 <br> | 0.842 <br> | 0.929 <br> | 0.032 <br> | 0.715 <br> | 0.110 <br> | 0.631 <br> | 0.889 <br> | 0.832 <br> |
+| 0.6 <br> | 0.731 <br> | 0.811 <br> | 0.846 <br> | 0.866 <br> | 0.845 <br> | 0.924 <br> | 0.029 <br> | 0.724 <br> | 0.102 <br> | 0.624 <br> | 0.893 <br> | 0.826 <br> |
+| 0.61 <br> | 0.721 <br> | 0.814 <br> | 0.837 <br> | 0.858 <br> | 0.847 <br> | 0.918 <br> | 0.027 <br> | 0.732 <br> | 0.095 <br> | 0.617 <br> | 0.896 <br> | 0.820 <br> |
+| 0.62 <br> | 0.710 <br> | 0.817 <br> | 0.828 <br> | 0.850 <br> | 0.849 <br> | 0.911 <br> | 0.025 <br> | 0.741 <br> | 0.087 <br> | 0.610 <br> | 0.899 <br> | 0.813 <br> |
+| 0.63 <br> | 0.698 <br> | 0.821 <br> | 0.818 <br> | 0.841 <br> | 0.852 <br> | 0.905 <br> | 0.022 <br> | 0.750 <br> | 0.080 <br> | 0.603 <br> | 0.902 <br> | 0.806 <br> |
+| 0.64 <br> | 0.687 <br> | 0.824 <br> | 0.808 <br> | 0.832 <br> | 0.854 <br> | 0.897 <br> | 0.020 <br> | 0.759 <br> | 0.074 <br> | 0.596 <br> | 0.905 <br> | 0.799 <br> |
+| 0.65 <br> | 0.675 <br> | 0.828 <br> | 0.798 <br> | 0.822 <br> | 0.857 <br> | 0.890 <br> | 0.018 <br> | 0.767 <br> | 0.068 <br> | 0.588 <br> | 0.908 <br> | 0.792 <br> |
+| 0.66 <br> | 0.663 <br> | 0.831 <br> | 0.787 <br> | 0.812 <br> | 0.860 <br> | 0.882 <br> | 0.017 <br> | 0.776 <br> | 0.062 <br> | 0.581 <br> | 0.911 <br> | 0.785 <br> |
+| 0.67 <br> | 0.651 <br> | 0.835 <br> | 0.775 <br> | 0.802 <br> | 0.862 <br> | 0.873 <br> | 0.015 <br> | 0.785 <br> | 0.057 <br> | 0.574 <br> | 0.914 <br> | 0.777 <br> |
+| 0.68 <br> | 0.639 <br> | 0.838 <br> | 0.763 <br> | 0.792 <br> | 0.865 <br> | 0.865 <br> | 0.014 <br> | 0.793 <br> | 0.052 <br> | 0.566 <br> | 0.917 <br> | 0.770 <br> |
+| 0.69 <br> | 0.626 <br> | 0.841 <br> | 0.751 <br> | 0.781 <br> | 0.867 <br> | 0.855 <br> | 0.012 <br> | 0.802 <br> | 0.047 <br> | 0.558 <br> | 0.920 <br> | 0.762 <br> |
+| 0.7 <br> | 0.613 <br> | 0.845 <br> | 0.739 <br> | 0.769 <br> | 0.870 <br> | 0.845 <br> | 0.011 <br> | 0.811 <br> | 0.043 <br> | 0.551 <br> | 0.923 <br> | 0.754 <br> |
+| 0.71 <br> | 0.599 <br> | 0.848 <br> | 0.725 <br> | 0.758 <br> | 0.873 <br> | 0.835 <br> | 0.010 <br> | 0.820 <br> | 0.039 <br> | 0.543 <br> | 0.925 <br> | 0.745 <br> |
+| 0.72 <br> | 0.586 <br> | 0.852 <br> | 0.712 <br> | 0.746 <br> | 0.876 <br> | 0.825 <br> | 0.009 <br> | 0.828 <br> | 0.035 <br> | 0.535 <br> | 0.928 <br> | 0.736 <br> |
+| 0.73 <br> | 0.571 <br> | 0.855 <br> | 0.697 <br> | 0.733 <br> | 0.878 <br> | 0.813 <br> | 0.008 <br> | 0.836 <br> | 0.032 <br> | 0.527 <br> | 0.931 <br> | 0.727 <br> |
+| 0.74 <br> | 0.556 <br> | 0.859 <br> | 0.682 <br> | 0.721 <br> | 0.881 <br> | 0.802 <br> | 0.007 <br> | 0.844 <br> | 0.028 <br> | 0.518 <br> | 0.934 <br> | 0.718 <br> |
+| 0.75 <br> | 0.541 <br> | 0.862 <br> | 0.665 <br> | 0.707 <br> | 0.884 <br> | 0.789 <br> | 0.006 <br> | 0.853 <br> | 0.026 <br> | 0.510 <br> | 0.937 <br> | 0.709 <br> |
+| 0.76 <br> | 0.525 <br> | 0.866 <br> | 0.648 <br> | 0.693 <br> | 0.886 <br> | 0.776 <br> | 0.006 <br> | 0.862 <br> | 0.023 <br> | 0.501 <br> | 0.940 <br> | 0.699 <br> |
+| 0.77 <br> | 0.507 <br> | 0.870 <br> | 0.630 <br> | 0.678 <br> | 0.889 <br> | 0.761 <br> | 0.005 <br> | 0.869 <br> | 0.021 <br> | 0.493 <br> | 0.943 <br> | 0.689 <br> |
+| 0.78 <br> | 0.489 <br> | 0.873 <br> | 0.610 <br> | 0.662 <br> | 0.892 <br> | 0.746 <br> | 0.004 <br> | 0.876 <br> | 0.018 <br> | 0.484 <br> | 0.946 <br> | 0.678 <br> |
+| 0.79 <br> | 0.471 <br> | 0.877 <br> | 0.589 <br> | 0.645 <br> | 0.895 <br> | 0.729 <br> | 0.004 <br> | 0.885 <br> | 0.016 <br> | 0.474 <br> | 0.948 <br> | 0.667 <br> |
+| 0.8 <br> | 0.451 <br> | 0.881 <br> | 0.567 <br> | 0.627 <br> | 0.898 <br> | 0.711 <br> | 0.003 <br> | 0.892 <br> | 0.015 <br> | 0.465 <br> | 0.951 <br> | 0.656 <br> |
+| 0.81 <br> | 0.430 <br> | 0.885 <br> | 0.543 <br> | 0.608 <br> | 0.901 <br> | 0.692 <br> | 0.003 <br> | 0.900 <br> | 0.013 <br> | 0.456 <br> | 0.954 <br> | 0.645 <br> |
+| 0.82 <br> | 0.408 <br> | 0.889 <br> | 0.518 <br> | 0.587 <br> | 0.904 <br> | 0.671 <br> | 0.003 <br> | 0.908 <br> | 0.011 <br> | 0.446 <br> | 0.957 <br> | 0.632 <br> |
+| 0.83 <br> | 0.385 <br> | 0.894 <br> | 0.491 <br> | 0.565 <br> | 0.908 <br> | 0.648 <br> | 0.002 <br> | 0.916 <br> | 0.010 <br> | 0.436 <br> | 0.959 <br> | 0.620 <br> |
+| 0.84 <br> | 0.360 <br> | 0.898 <br> | 0.461 <br> | 0.541 <br> | 0.911 <br> | 0.622 <br> | 0.002 <br> | 0.925 <br> | 0.009 <br> | 0.425 <br> | 0.962 <br> | 0.607 <br> |
+| 0.85 <br> | 0.334 <br> | 0.903 <br> | 0.430 <br> | 0.515 <br> | 0.914 <br> | 0.595 <br> | 0.002 <br> | 0.934 <br> | 0.008 <br> | 0.415 <br> | 0.965 <br> | 0.593 <br> |
+| 0.86 <br> | 0.307 <br> | 0.907 <br> | 0.397 <br> | 0.487 <br> | 0.918 <br> | 0.564 <br> | 0.002 <br> | 0.941 <br> | 0.007 <br> | 0.404 <br> | 0.967 <br> | 0.579 <br> |
+| 0.87 <br> | 0.278 <br> | 0.912 <br> | 0.361 <br> | 0.456 <br> | 0.922 <br> | 0.531 <br> | 0.001 <br> | 0.948 <br> | 0.006 <br> | 0.393 <br> | 0.970 <br> | 0.565 <br> |
+| 0.88 <br> | 0.247 <br> | 0.917 <br> | 0.323 <br> | 0.422 <br> | 0.926 <br> | 0.493 <br> | 0.001 <br> | 0.953 <br> | 0.005 <br> | 0.381 <br> | 0.972 <br> | 0.549 <br> |
+| 0.89 <br> | 0.215 <br> | 0.922 <br> | 0.282 <br> | 0.385 <br> | 0.930 <br> | 0.452 <br> | 0.001 <br> | 0.959 <br> | 0.005 <br> | 0.369 <br> | 0.975 <br> | 0.533 <br> |
+| 0.9 <br> | 0.181 <br> | 0.927 <br> | 0.240 <br> | 0.344 <br> | 0.934 <br> | 0.406 <br> | 0.001 <br> | 0.964 <br> | 0.004 <br> | 0.356 <br> | 0.977 <br> | 0.516 <br> |
+| 0.91 <br> | 0.147 <br> | 0.933 <br> | 0.196 <br> | 0.300 <br> | 0.938 <br> | 0.355 <br> | 0.001 <br> | 0.968 <br> | 0.004 <br> | 0.343 <br> | 0.979 <br> | 0.498 <br> |
+| 0.92 <br> | 0.113 <br> | 0.939 <br> | 0.152 <br> | 0.250 <br> | 0.943 <br> | 0.298 <br> | 0.001 <br> | 0.973 <br> | 0.003 <br> | 0.329 <br> | 0.981 <br> | 0.479 <br> |
+| 0.93 <br> | 0.081 <br> | 0.945 <br> | 0.109 <br> | 0.196 <br> | 0.948 <br> | 0.235 <br> | 0.001 <br> | 0.977 <br> | 0.003 <br> | 0.315 <br> | 0.984 <br> | 0.459 <br> |
+| 0.94 <br> | 0.051 <br> | 0.951 <br> | 0.070 <br> | 0.141 <br> | 0.953 <br> | 0.169 <br> | 0.001 <br> | 0.980 <br> | 0.002 <br> | 0.298 <br> | 0.986 <br> | 0.436 <br> |
+| 0.95 <br> | 0.027 <br> | 0.958 <br> | 0.037 <br> | 0.086 <br> | 0.959 <br> | 0.104 <br> | 0.000 <br> | 0.983 <br> | 0.002 <br> | 0.281 <br> | 0.988 <br> | 0.411 <br> |
+| 0.96 <br> | 0.010 <br> | 0.965 <br> | 0.014 <br> | 0.038 <br> | 0.965 <br> | 0.046 <br> | 0.000 <br> | 0.987 <br> | 0.002 <br> | 0.260 <br> | 0.990 <br> | 0.381 <br> |
+| 0.97 <br> | 0.002 <br> | 0.971 <br> | 0.002 <br> | 0.009 <br> | 0.972 <br> | 0.011 <br> | 0.000 <br> | 0.989 <br> | 0.001 <br> | 0.234 <br> | 0.992 <br> | 0.344 <br> |
+| 0.98 <br> | 0.000 <br> | 0.975 <br> | 0.000 <br> | 0.000 <br> | 0.977 <br> | 0.000 <br> | 0.000 <br> | 0.993 <br> | 0.001 <br> | 0.197 <br> | 0.994 <br> | 0.291 <br> |
+| 0.99 <br> | 0.000 <br> | null <br> | 0.000 <br> | 0.000 <br> | null <br> | 0.000 <br> | 0.000 <br> | 0.995 <br> | 0.001 <br> | 0.134 <br> | 0.996 <br> | 0.197 <br> |
+
+# 5、阈值选择
+
+PID分流实验
+
+| 预测项 <br> | 作用 <br> | 阈值 <br> |
+| --- | --- | --- |
+| 司乘履约率 <br> | 缩短窗口 <br> | 0.70 <br> |
+| 乘客履约率 <br> | 延长窗口 <br> | 0.80 <br> |
+| 乘客取消率 <br> | 缩短窗口 <br> | 0.50 <br> |
+| 距离最近概率 <br> | 缩短窗口 <br> | 0.70 <br> |
+
+时间片实验
+
+| 预测项 <br> | 作用 <br> | 阈值 <br> |
+| --- | --- | --- |
+| 司乘履约率 <br> | 缩短窗口 <br> | 0.90 <br> |
+| 乘客履约率 <br> | 延长窗口 <br> | 0.93 <br> |
+| 乘客取消率 <br> | 缩短窗口 <br> | 0.45 <br> |
+| 距离最近概率 <br> | 缩短窗口 <br> | 0.95 <br> |
+
+# 附、模型优化方向
+
+| 模块 <br> | 现状 <br> | 优化点 <br> |
+| --- | --- | --- |
+| 模型结构 <br> | PLE <br> | - 消融实验 <br><br>	- 退化至MMOE：验证连环派、非连环派和共享Expert的分置结构是否有增益 <br><br>	- 退化至多个单头：验证多任务的底层共享参数是否对各自预测有增益 <br><br>- 模型升级 <br><br>	- 多场景建模：STAR、HiNet、PEPNet等 <br><br> |
+| 特征表征 <br> | DCN <br> | - 连续型特征表征 <br><br>	- 原始值 <br><br>	- Field Embedding（同一特征共用Embedding\*原始值） <br><br>	- Scalar2Vec（Dense拉齐Embedding维度） <br><br>	- 硬离散化（等频/等距/决策树分箱后Embedding） <br><br>	- AutoDis（自动交叉） <br><br>- 特征交叉 <br><br>	- FM系：DeepFM等 <br><br>	- DCN系：GDCN等 <br><br>	- ~~Attenion系：AutoInt（参数多训练慢，离线结果无提升且不稳定）~~ <br><br>	- AutoGroup <br><br> |
+| 训练参数 <br> | 略 <br> | - batch size：256、512、1024、2048等 <br><br>- learning rate：0.0001，0.001，0.01，0.1等 <br><br>- loss：不同任务reweight等 <br><br>- optimizer：Adam、SGD等 <br><br>- 激活函数：sigmoid、relu、softmax <br><br> |

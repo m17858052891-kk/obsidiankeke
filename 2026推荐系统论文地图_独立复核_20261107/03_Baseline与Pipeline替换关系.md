@@ -303,3 +303,7 @@ flowchart LR
 ### [GPBM](论文/P8_评估研发与推荐Agent/GPBM_amazon_gpbm.md)
 
 - **详见笔记：条件关系**。与INTERPOL直接竞争评估器，IPM/PBM为特例；与PRL-PUTS的Reward@HIT只有OPE思想相似，动作空间与识别假设不同，不可直接替换；与NOVA等上游选型模块条件互补。
+
+## 跨论文比较
+
+[语义注入与推理贡献比较](12_语义注入与推理贡献比较.md)

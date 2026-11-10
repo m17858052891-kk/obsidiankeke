@@ -96,3 +96,7 @@ Zhonghao Luo、Jianhong Chen、Nathan Apolonio、Amina Shabbeer，均Amazon Musi
 复核依据：官方页面与PDF首页；§2–3方法/数据；表1–3；线上节；附录A提示词；访问快照与抽取文本保存在本组 sources/，访问日志见 access.json / additional_access.json。这里只声称关键方法、关键数值与部署边界已核验，不声称逐句验证所有数字。
 
 本版留存的[本轮原文/抽取快照](../../证据快照/audit_c/引用文件/amazon_playlist_full.pdf)与[结构化访问及逐项证据](../../数据/逐篇复核.json)可用于追溯。文中sources目录名指复核工作目录，交付版以此链接为准。
+
+## 关联阅读
+
+[UGR](UGR_2610_39426.md) · [Sona](Sona_2608_11015.md) · [Spotify Agent](../P8_评估研发与推荐Agent/Spotify_Agent_2609_30297.md)

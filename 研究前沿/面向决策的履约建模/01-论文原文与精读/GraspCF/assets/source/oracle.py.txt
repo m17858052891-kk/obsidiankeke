@@ -1,0 +1,469 @@
+"""The motion-planning oracle: the only planner call in the whole release.
+
+A grasp is feasible when a 7-DOF Franka Panda can (1) reach the grasp pose, (2)
+reach a 10 cm pre-grasp standoff, (3) descend the standoff to the grasp along a
+collision-free straight line, and (4) reach the standoff from the home
+configuration along a collision-free path. The first three stages mirror what a
+deployed pick controller actually executes; the fourth is the transit that a
+single-grasp predictor usually ignores and that the counterfactual obstacles are
+built to block.
+
+The scene cloud is loaded as one mesh collision body, not per-point spheres, so a
+plan stays fast (a per-point body count in the tens of thousands stalls PyBullet's
+broadphase). Points within EPS of any candidate grasp are dropped first: the
+aligned GraspNet cloud keeps the target object, so without that carve every
+top-down grasp would self-collide with the very object it is grasping. EPS=0.05
+is loose enough to clear the gripper's swept fingers and tight enough to keep the
+rest of the object as a real obstacle.
+
+Frame convention: grasps and clouds arrive in the GraspNet table frame. We shift
+them into the robot-base frame with a per-scene offset (target re-centred to
+x=0.50 in front of the base, table top at the base z), then remap the gripper's
+local axes so its +z points down the approach, which is PyBullet's IK convention.
+
+This module imports cleanly without PyBullet or any data present (the heavy
+imports are deferred to construction time) so the rest of the relabel package and
+its tests stay importable in a bare environment. It only runs where the planner
+and GraspNet scenes are installed.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+
+# Gripper remap: GraspNet's local frame -> PyBullet's, so local +z is the
+# approach direction the IK solver expects. Identical to the labelling pipeline
+# and to schema.Grasp.approach.
+R_REMAP = np.array([[0, 0, -1],
+                    [0, 1,  0],
+                    [1, 0,  0]], dtype=np.float64)
+
+# Cloud-to-collision-geometry parameters, carried over from the label generator.
+EPS = 0.05      # drop scene points within this radius of any candidate grasp
+VOX = 0.002     # voxel size kept for API parity; the mesh path does not use it
+
+
+# ── BiRRT-Connect ─────────────────────────────────────────────────────────────
+class BiRRTConnect:
+    """Bidirectional RRT-Connect over the 7 arm joints.
+
+    Two trees grow from start and goal; each iteration extends one toward a
+    sample (goal-biased) and then greedily connects the other to that new node.
+    Collision checking is delegated to PyBullet contact queries. Finger-link and
+    declared-adjacent self contacts are ignored so a closed gripper and the
+    robot's own neighbouring links do not read as collisions.
+    """
+
+    def __init__(self, client, robot_id, joint_indices, joint_limits,
+                 obstacle_ids, disabled_self_pairs=None, finger_link_ids=None,
+                 step_size=0.08, max_iterations=1500,
+                 connect_step_size=0.04, goal_bias=0.05,
+                 contact_tolerance=0.005):
+        self.client            = client
+        self.robot_id          = robot_id
+        self.joint_indices     = joint_indices
+        self.joint_limits      = np.asarray(joint_limits, dtype=np.float64)
+        self.obstacle_ids      = obstacle_ids
+        self.disabled_self     = set(disabled_self_pairs or [])
+        self.finger_links      = set(finger_link_ids or [])
+        self.step_size         = step_size
+        self.max_iterations    = max_iterations
+        self.connect_step_size = connect_step_size
+        self.goal_bias         = goal_bias
+        self.contact_tolerance = contact_tolerance
+
+    def set_joints(self, q):
+        import pybullet as p
+        for idx, val in zip(self.joint_indices, q):
+            p.resetJointState(self.robot_id, idx, val, physicsClientId=self.client)
+
+    def is_collision_free(self, q):
+        import pybullet as p
+        self.set_joints(q)
+        p.performCollisionDetection(physicsClientId=self.client)
+        # Robot vs each obstacle. contact[8] is the penetration depth (negative
+        # when bodies overlap); a small tolerance absorbs mesh discretization
+        # noise so a grazing touch is not a hard collision.
+        for obs_id in self.obstacle_ids:
+            for c in p.getContactPoints(bodyA=self.robot_id, bodyB=obs_id,
+                                        physicsClientId=self.client):
+                if c[3] in self.finger_links:
+                    continue
+                if c[8] < -self.contact_tolerance:
+                    return False
+        # Robot vs itself, minus the adjacent pairs that always touch.
+        for c in p.getContactPoints(bodyA=self.robot_id, bodyB=self.robot_id,
+                                    physicsClientId=self.client):
+            pair = (min(c[3], c[4]), max(c[3], c[4]))
+            if pair not in self.disabled_self:
+                return False
+        return True
+
+    def is_edge_free(self, q1, q2):
+        diff = q2 - q1
+        dist = np.linalg.norm(diff)
+        if dist < 1e-6:
+            return True
+        n = max(int(dist / self.connect_step_size), 2)
+        for i in range(1, n + 1):
+            if not self.is_collision_free(q1 + (i / n) * diff):
+                return False
+        return True
+
+    def sample(self):
+        return np.array([np.random.uniform(lo, hi) for lo, hi in self.joint_limits])
+
+    def nearest(self, tree, q):
+        return int(np.argmin([np.linalg.norm(n["q"] - q) for n in tree]))
+
+    def steer(self, q_from, q_to):
+        d = q_to - q_from
+        dist = np.linalg.norm(d)
+        return q_to.copy() if dist <= self.step_size else q_from + (d / dist) * self.step_size
+
+    def extend(self, tree, q_target):
+        ni = self.nearest(tree, q_target)
+        q_new = self.steer(tree[ni]["q"], q_target)
+        if self.is_collision_free(q_new) and self.is_edge_free(tree[ni]["q"], q_new):
+            tree.append({"q": q_new, "parent": ni})
+            status = "reached" if np.linalg.norm(q_new - q_target) < 1e-3 else "advanced"
+            return status, len(tree) - 1
+        return "trapped", -1
+
+    def connect(self, tree, q_target):
+        status, idx = "advanced", -1
+        while status == "advanced":
+            status, idx = self.extend(tree, q_target)
+        return status, idx
+
+    def extract(self, tree, idx):
+        path = []
+        while idx is not None:
+            path.append(tree[idx]["q"])
+            idx = tree[idx]["parent"]
+        return path[::-1]
+
+    def plan(self, q_start, q_goal):
+        """Return a joint-space path start -> goal, or None if none is found."""
+        q_start = np.asarray(q_start, dtype=np.float64)
+        q_goal  = np.asarray(q_goal,  dtype=np.float64)
+        if not self.is_collision_free(q_start) or not self.is_collision_free(q_goal):
+            return None
+        ta = [{"q": q_start, "parent": None}]
+        tb = [{"q": q_goal,  "parent": None}]
+        for _ in range(self.max_iterations):
+            qr = q_goal.copy() if np.random.random() < self.goal_bias else self.sample()
+            sa, ia = self.extend(ta, qr)
+            if sa != "trapped":
+                sb, ib = self.connect(tb, ta[ia]["q"])
+                if sb == "reached":
+                    pa = self.extract(ta, ia)
+                    pb = self.extract(tb, ib)
+                    pb.reverse()
+                    return pa + pb[1:]
+            ta, tb = tb, ta   # alternate which tree is extended
+        return None
+
+
+# ── feasibility scene ─────────────────────────────────────────────────────────
+class FeasibilityScene:
+    """A PyBullet world (plane, table, Panda) that relabels grasps under edits.
+
+    Construct once, load the scene cloud once, then insert obstacles and call
+    check_grasp per grasp. The cloud mesh and any inserted bodies persist until
+    cleared, so several obstacle families can be relabelled against the same
+    base scene without reloading the cloud.
+    """
+
+    ARM_JOINTS    = [0, 1, 2, 3, 4, 5, 6]
+    FINGER_JOINTS = [9, 10]
+    EE_LINK       = 11
+    HOME          = [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785]
+    GRIPPER_LINKS = {9, 11}
+    # Link pairs that are always in contact (consecutive links plus the two
+    # fingers); excluded from the self-collision check.
+    ADJACENT_PAIRS = {
+        (-1, 0), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6),
+        (6, 7), (7, 8), (8, 9), (8, 10), (9, 10), (9, 11), (10, 11),
+    }
+
+    def __init__(self, gui=False):
+        import pybullet as p
+        import pybullet_data
+        self.client = p.connect(p.GUI if gui else p.DIRECT)
+        p.setAdditionalSearchPath(pybullet_data.getDataPath(), physicsClientId=self.client)
+        p.setGravity(0, 0, -9.81, physicsClientId=self.client)
+
+        self.plane_id = p.loadURDF("plane.urdf", physicsClientId=self.client)
+        self.table_id = p.loadURDF("table/table.urdf", [0.5, 0.0, 0.0],
+                                   useFixedBase=True, physicsClientId=self.client)
+        self.table_height = p.getAABB(self.table_id, physicsClientId=self.client)[1][2]
+        self.robot_base = [0.0, 0.0, self.table_height]
+        self.robot_id = p.loadURDF("franka_panda/panda.urdf", self.robot_base,
+                                   useFixedBase=True, physicsClientId=self.client)
+
+        self.joint_limits = []
+        for j in self.ARM_JOINTS:
+            info = p.getJointInfo(self.robot_id, j, physicsClientId=self.client)
+            self.joint_limits.append((float(info[8]), float(info[9])))
+
+        self._set_arm(self.HOME)
+        self._open_gripper()
+
+        # The base and first link sit inside the table model; ignore that contact.
+        for lk in (-1, 0):
+            p.setCollisionFilterPair(self.robot_id, self.table_id, lk, -1, 0,
+                                     physicsClientId=self.client)
+
+        self.obstacle_ids = [self.plane_id, self.table_id]
+        self.cloud_ids = []        # mesh body for the scene cloud
+        self.inserted_ids = []     # boxes/spheres/etc. added on top
+
+    # ── pose helpers ──────────────────────────────────────────────────────────
+    def _set_arm(self, q):
+        import pybullet as p
+        for idx, val in zip(self.ARM_JOINTS, q):
+            p.resetJointState(self.robot_id, idx, val, physicsClientId=self.client)
+
+    def _open_gripper(self, w=0.04):
+        import pybullet as p
+        for j in self.FINGER_JOINTS:
+            p.resetJointState(self.robot_id, j, w, physicsClientId=self.client)
+
+    def offset_for(self, pts_table):
+        """Table-to-base offset for a scene: re-centre the cloud to x=0.50 in
+        front of the base and put the table top at the base z. The grasp poses
+        get the same shift so the pair stays consistent."""
+        c = np.mean(pts_table, axis=0)
+        return np.array([self.robot_base[0] + 0.50 - c[0],
+                         self.robot_base[1]        - c[1],
+                         self.table_height], dtype=np.float64)
+
+    def _grasp_to_world(self, T_table_grasp, offset):
+        from scipy.spatial.transform import Rotation
+        R = T_table_grasp[:3, :3]
+        t = T_table_grasp[:3, 3].copy() + offset
+        quat = Rotation.from_matrix(R @ R_REMAP).as_quat()
+        return t, quat
+
+    # ── scene geometry ────────────────────────────────────────────────────────
+    def load_cloud(self, pts_world, grasp_positions, epsilon=EPS, voxel_size=VOX):
+        """Load the scene cloud as one mesh obstacle, carving an epsilon ball
+        around every candidate grasp so a top-down grasp does not self-collide
+        with the target it is grasping. Clears any cloud from a previous scene.
+
+        Falls back from an alpha shape (a tighter surface) to a convex hull when
+        the alpha-shape reconstruction is empty or fails; if neither yields a
+        usable mesh the scene keeps only its plane and table, which is still a
+        valid (if permissive) world.
+        """
+        import pybullet as p
+        from scipy.spatial import ConvexHull
+        try:
+            import open3d as o3d
+        except ImportError:
+            o3d = None
+
+        self._clear_cloud()
+
+        keep = np.ones(len(pts_world), dtype=bool)
+        for g in grasp_positions:
+            keep &= np.linalg.norm(pts_world - g[None, :], axis=1) > epsilon
+        pts = pts_world[keep]
+        if len(pts) < 4:
+            return
+
+        vertices = triangles = None
+        if o3d is not None:
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(pts)
+            pcd.estimate_normals()
+            try:
+                mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
+                    pcd, alpha=0.01)
+                vertices = np.asarray(mesh.vertices)
+                triangles = np.asarray(mesh.triangles)
+            except Exception:
+                pass
+        if vertices is None or triangles is None or len(triangles) == 0:
+            try:
+                hull = ConvexHull(pts)
+                vertices, triangles = hull.points, hull.simplices
+            except Exception:
+                return
+
+        vertices = np.asarray(vertices, dtype=np.float32)
+        triangles = np.asarray(triangles, dtype=np.int32)
+        if len(vertices) < 4 or len(triangles) == 0 or not np.all(np.isfinite(vertices)):
+            return
+
+        try:
+            col = p.createCollisionShape(p.GEOM_MESH, vertices=vertices.tolist(),
+                                         meshScale=[1, 1, 1], indices=triangles.tolist(),
+                                         physicsClientId=self.client)
+            mesh_id = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=col,
+                                        basePosition=[0, 0, 0], physicsClientId=self.client)
+        except Exception:
+            return
+
+        self.cloud_ids = [mesh_id]
+        self.obstacle_ids.append(mesh_id)
+        # The gripper closes around the (now carved) target, so let it touch the
+        # cloud mesh; only the arm body needs to stay clear.
+        for lk in self.GRIPPER_LINKS:
+            p.setCollisionFilterPair(self.robot_id, mesh_id, lk, -1, 0,
+                                     physicsClientId=self.client)
+
+    def insert_obstacle(self, kind, params, position, quat=None):
+        """Drop a primitive obstacle into the scene as a static collision body.
+
+        kind/params/position/quat match schema.Obstacle exactly, so a relabelled
+        record and the planner see the same geometry. Returns the body id; it
+        stays until clear_inserted().
+        """
+        import pybullet as p
+        position = list(np.asarray(position, dtype=np.float64))
+        orn = [0, 0, 0, 1] if quat is None else list(np.asarray(quat, dtype=np.float64))
+
+        if kind == "box":
+            shapes = [(p.GEOM_BOX, dict(halfExtents=list(params["half_extents"])), (0, 0, 0))]
+        elif kind == "sphere":
+            shapes = [(p.GEOM_SPHERE, dict(radius=float(params["radius"])), (0, 0, 0))]
+        elif kind == "lshape":
+            # Two stacked boxes; the second is offset in the obstacle's own frame,
+            # matching how schema.Obstacle.points samples an L.
+            o2 = list(np.asarray(params.get("offset_2", (0, 0, 0)), dtype=np.float64))
+            shapes = [(p.GEOM_BOX, dict(halfExtents=list(params["half_extents"])), (0, 0, 0)),
+                      (p.GEOM_BOX, dict(halfExtents=list(params["half_extents_2"])), o2)]
+        else:
+            raise ValueError(f"unknown obstacle kind: {kind}")
+
+        col_ids, frames = [], []
+        for geom, kw, frame in shapes:
+            col_ids.append(p.createCollisionShape(geom, physicsClientId=self.client, **kw))
+            frames.append(list(frame))
+
+        if len(col_ids) == 1:
+            bid = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=col_ids[0],
+                                    basePosition=position, baseOrientation=orn,
+                                    physicsClientId=self.client)
+        else:
+            # PyBullet stacks extra shapes via link entries on a massless base.
+            n_extra = len(col_ids) - 1
+            bid = p.createMultiBody(
+                baseMass=0, baseCollisionShapeIndex=col_ids[0],
+                basePosition=position, baseOrientation=orn,
+                linkMasses=[0] * n_extra,
+                linkCollisionShapeIndices=col_ids[1:],
+                linkVisualShapeIndices=[-1] * n_extra,
+                linkPositions=frames[1:],
+                linkOrientations=[[0, 0, 0, 1]] * n_extra,
+                linkParentIndices=[0] * n_extra,
+                linkJointTypes=[p.JOINT_FIXED] * n_extra,
+                linkJointAxis=[[0, 0, 1]] * n_extra,
+                linkInertialFramePositions=[[0, 0, 0]] * n_extra,
+                linkInertialFrameOrientations=[[0, 0, 0, 1]] * n_extra,
+                physicsClientId=self.client)
+
+        self.inserted_ids.append(bid)
+        self.obstacle_ids.append(bid)
+        return bid
+
+    def clear_inserted(self):
+        """Remove every inserted obstacle, keeping the scene cloud."""
+        import pybullet as p
+        ids = set(self.inserted_ids)
+        for bid in self.inserted_ids:
+            p.removeBody(bid, physicsClientId=self.client)
+        self.obstacle_ids = [o for o in self.obstacle_ids if o not in ids]
+        self.inserted_ids = []
+
+    def _clear_cloud(self):
+        import pybullet as p
+        ids = set(self.cloud_ids)
+        for bid in self.cloud_ids:
+            p.removeBody(bid, physicsClientId=self.client)
+        self.obstacle_ids = [o for o in self.obstacle_ids if o not in ids]
+        self.cloud_ids = []
+
+    # ── IK and the feasibility decision ───────────────────────────────────────
+    def _solve_ik(self, pos, quat, n_attempts=300):
+        """Damped-least-squares IK with random restarts. Returns (q, err) or
+        (None, err) if no restart lands within 2 cm of the target position."""
+        import pybullet as p
+        best_q, best_err = None, np.inf
+        for attempt in range(n_attempts):
+            if attempt > 0:
+                self._set_arm([np.random.uniform(lo, hi) for lo, hi in self.joint_limits])
+            sol = p.calculateInverseKinematics(
+                self.robot_id, self.EE_LINK, pos, quat,
+                lowerLimits=[lo for lo, _ in self.joint_limits],
+                upperLimits=[hi for _, hi in self.joint_limits],
+                jointRanges=[hi - lo for lo, hi in self.joint_limits],
+                restPoses=self.HOME, maxNumIterations=2000, residualThreshold=1e-5,
+                physicsClientId=self.client)
+            q = np.array(sol[:7])
+            if not all(lo <= q[i] <= hi for i, (lo, hi) in enumerate(self.joint_limits)):
+                continue
+            self._set_arm(q)
+            actual = p.getLinkState(self.robot_id, self.EE_LINK,
+                                    physicsClientId=self.client)[0]
+            err = np.linalg.norm(np.array(actual) - np.array(pos))
+            if err < best_err:
+                best_err, best_q = err, q
+            if err < 0.005:
+                return q, err
+        return (best_q, best_err) if (best_q is not None and best_err < 0.02) else (None, best_err)
+
+    def check_grasp(self, T_table_grasp, offset, standoff=0.10, max_iters=1500):
+        """Relabel one grasp on the current scene. Returns (feasible, reason).
+
+        Stages, in pipeline order (the first one to fail is the binding reason):
+          ik_fail          no IK at the grasp pose
+          pregrasp_ik_fail no IK at the standoff back along the approach
+          birrt_fail       no collision-free path home -> standoff
+          approach_fail    the straight standoff -> grasp descent collides and no
+                           planned descent exists either
+          success          all four pass
+        """
+        from scipy.spatial.transform import Rotation
+        pos, quat = self._grasp_to_world(T_table_grasp, offset)
+
+        q_grasp, _ = self._solve_ik(pos, quat)
+        if q_grasp is None:
+            return False, "ik_fail"
+
+        R_pb = Rotation.from_quat(quat).as_matrix()
+        pre_pos = pos - R_pb[:, 2] * standoff
+        q_pre, _ = self._solve_ik(pre_pos, quat)
+        if q_pre is None:
+            return False, "pregrasp_ik_fail"
+
+        planner = self._make_planner(max_iters)
+        self._set_arm(self.HOME)
+        self._open_gripper()
+        if planner.plan(np.array(self.HOME), q_pre) is None:
+            return False, "birrt_fail"
+
+        # Linear descent standoff -> grasp, checked at 20 interpolation steps.
+        for i in range(21):
+            if not planner.is_collision_free(q_pre + (i / 20.0) * (q_grasp - q_pre)):
+                # The straight descent is blocked; allow a planned one in case a
+                # short detour clears, but a corridor obstacle will block both.
+                if self._make_planner(max_iters).plan(q_pre, q_grasp) is None:
+                    return False, "approach_fail"
+                break
+
+        return True, "success"
+
+    def _make_planner(self, max_iters):
+        return BiRRTConnect(
+            self.client, self.robot_id, self.ARM_JOINTS, self.joint_limits,
+            self.obstacle_ids, disabled_self_pairs=self.ADJACENT_PAIRS,
+            finger_link_ids=self.GRIPPER_LINKS,
+            step_size=0.08, max_iterations=max_iters,
+            connect_step_size=0.04, goal_bias=0.05, contact_tolerance=0.005)
+
+    def disconnect(self):
+        import pybullet as p
+        p.disconnect(physicsClientId=self.client)

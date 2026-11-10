@@ -96,3 +96,7 @@ Olafur Gudmundsson et al，完整18名作者见arXiv；工作在Pinterest完成�
 复核依据：v1题头/版本；§2测量框架；§3–4全漏斗方法与公式1–4；§5表1–2/负向经验；无独立附录；访问快照与抽取文本保存在本组 sources/，访问日志见 access.json / additional_access.json。这里只声称关键方法、关键数值与部署边界已核验，不声称逐句验证所有数字。
 
 本版留存的[本轮原文/抽取快照](../../证据快照/audit_c/引用文件/2607.22518_full.html)与[结构化访问及逐项证据](../../数据/逐篇复核.json)可用于追溯。文中sources目录名指复核工作目录，交付版以此链接为准。
+
+## 关联阅读
+
+[URED](URED_2611_05997.md) · [PRL-PUTS](PRL-PUTS_2605_16344.md) · [Uncertainty Calibration](Uncertainty_Calibration_2605_17788.md)
