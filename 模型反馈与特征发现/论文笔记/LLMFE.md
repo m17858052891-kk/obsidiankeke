@@ -8,6 +8,12 @@ category: "结构反馈与语言生成"
 
 # LLM-FE: Automated Feature Engineering for Tabular Data with LLMs as Evolutionary Optimizers
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“LLM-FE: Automated Feature Engineering for Tabular Data with LLMs as Evolutionary Optimizers”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > LLM根据多岛经验池中的优秀程序生成变体或组合，按验证分数组织和采样程序，并重置弱岛；这里的变异/组合主要由语言生成隐式实现，不是预设的传统交叉算子。
 

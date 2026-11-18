@@ -8,6 +8,12 @@ category: "理论、选择与迁移边界"
 
 # Understanding Global Feature Contributions With Additive Importance Measures
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Understanding Global Feature Contributions With Additive Importance Measures”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > SAGE以模型的全局预测损失改进构建合作博弈，用Shapley值平均不同联盟上下文的边际价值。
 

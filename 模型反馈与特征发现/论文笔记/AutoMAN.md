@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # Learned Feature Importance Scores for Automated Feature Engineering
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Learned Feature Importance Scores for Automated Feature Engineering”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 每个预设变换学习局部输入掩码，再对拼接后的变换结果学习全局掩码；与MLP预测头一起用目标损失更新。连续权重加top-h保留，避免显式展开全部子集。
 

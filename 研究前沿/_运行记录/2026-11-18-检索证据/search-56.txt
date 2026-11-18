@@ -1,0 +1,209 @@
+Sequential Request Rejection Patterns in Ride-Hailing Systems: A Zero-Inflated Request-Level Analysis (https://www.mdpi.com/2071-1050/18/18/9292)
+citeturn624search0 [wordlim: 200] Published: 2 months ago; Crawled: today; Hall [13] therefore characterizes ride-hailing as an established component of urban transportation rather than a temporary technological disruption and identifies externalities, taxation, public-transport integration, and labor regulation as central policy areas. ... Although focusing on safety rather than acceptance, Lee et al. [16] find that working hours and road characteristics are systematically associated with aggressive driving behavior among ride-hailing drivers. ... Ride-hailing requests are processed through a sequential dispatch mechanism in which a passenger request may be offered to multiple drivers before a successful driver–passenger match is established.
+
+#### 3.1.3. Sequential Request Rejection Process
+
+Ride-hailing requests are processed through a sequential dispatch mechanism in which a passenger request may be offered to multiple drivers before a successful driver–passenger match is established. The present study focuses specifically on requests that ultimately result in successful matching. Accordingly, the unit of analysis is an eventually matched passenger request, rather than an individual accept–reject decision made by a single driver. Requests that remain unmatched or are canceled before successful acceptance are outside the analytical scope of the study. Within this defined population, the sequential dispatch history of each request is characterized by the number of unsuccessful driver assignments preceding eventual acceptance and the time required to reach that successful match.
+
+The first request-level outcome, count of rejects, is defined as the number of consecutive driver rejections experienced by a passenger request before it is ultimately accepted. A value of zero indicates that the request is accepted by the first driver to whom it is dispatched. A positive value indicates that one or more drivers reject the request before a subsequent driver accepts it. Thus, the rejection count represents the accumulated sequential rejection exposure of the passenger request prior to successful matching, rather than repeated rejection behavior by a single driver.
+
+The second request-level outcome, matching time, captures the temporal consequence of this sequential process from the passenger perspective. It is defined as the elapsed duration between the creation of passenger request i and its eventual acceptance by a driver:
+
+$${\mathit{MT}}_{i}= {t}_{i}^{\mathit{accept}}-{t}_{i}^{\mathit{request}}$$
+
+(4)
+
+where ${t}_{i}^{\mathit{request}}$ denotes the time at which passenger request i is created on the platform and ${t}_{i}^{\mathit{accept}}$ denotes the time at which the same request is ultimately accepted. Requests accepted at the first dispatch therefore have zero rejection exposure and immediate or near-immediate matching, whereas requests experiencing one or more unsuccessful assignments generally remain in the matching process for a longer period before acceptance. --------------------------------------------------------------------------------
+Enhancing Recommendation Diversity by Re-ranking with Large Language Models (https://doi.org/10.1145%2F3700604)
+citeturn624search1 [wordlim: 200] Published: last year; Crawled: 4 days ago; In principle, we could provide a cost comparison between the OpenAI and Meta model re-rankers if we were to calculate their energy costs. ... However, some recent reports^{13} report that training and inference are rapidly becoming cheaper (decreasing annually by 75% and 86%, respectively), which will probably break down the barrier for LLM adoption and reduce the cost advantage of traditional re-ranking.
+### 5.3 Re-ranking Cost Analysis
+
+Finally, we analyse the cost of performing re-ranking. Table 8 reports the average inference time to re-rank the candidate recommendations of a user. For re-ranking using OpenAI’s LLMs, the table shows the same value (i.e., 25 seconds). This value is not the actual cost. It is an upper bound which we have to use in this table due to problems we encountered using OpenAI APIs. In a preliminary experiment to test the APIs, we noticed that the model’s response time had a very large variability and sometimes the model did not return any outputs at all (i.e., the service seemed not to be available), probably due to unknown usage policies and high workloads. We found that introducing a sleep time of 25 seconds between API calls was a way of ensuring we obtaining outputs. Unfortunately, this prevents us from providing an accurate estimation of response time. Nevertheless, the table shows that traditional re-rankers have a clear advantage over LLM-based re-rankers here: they are three orders of magnitude faster than the LLM-based re-rankers. --------------------------------------------------------------------------------
+SepLRM: A Foundation Model Paradigm for Recommendation (https://borowiecki.dev/pdf/2611.10356)
+citeturn624search12 [wordlim: 200] Published: last week; Crawled: 6 days ago; This suggests that transferable KV caches do not require large-scale feature interaction, so the parameter budget for sequence modeling should be prioritized in RFM. ... Besides, the user-level KV cache further removes redundancy across samples, substantially reducing storage while preserving most of the sequence scaling gain.
+
+These results show that RFM AUC is not a reliable metric for KV cache quality, but VM AUC and TR are. Moreover, they further indicate that transfer effectiveness depends more on whether encoder-decoder separation preserves the native query-KV interaction, while additional capacity should be allocated preferentially to sequence modeling.
+
+### 5.5.2 Effect of KV Cache Design.
+
+To examine the trade-off between storage cost and transfer effectiveness, we vary the dimension, precision, and granularity of the KV cache, with all other settings fixed. The default configuration uses the sample-level KV cache with 512-dimensional BF16 representations.
+
+As shown in Table 4, SepLRM is robust to dimension reduction and low-bit quantization. These results reveal that quantization reduces storage with negligible transfer loss, while low-rank projection retains a high TR with modest degradation. Besides, the user-level KV cache further removes redundancy across samples, substantially reducing storage while preserving most of the sequence scaling gain. In SepLRM, these strategies can be combined according to storage, transfer, and reuse requirements.
+
+## 5.6 Online A/B tests
+
+We deploy SepLRM on ByteDance’s GIP (General Information Platform) Advertising and Douyin E-commerce, with sequence length and encoder-decoder depth configured as 10K/4E4D and 5K/6E6D, respectively. In each experiment, the baseline is the mature, highly optimized production model. The experiment on GIP Advertising--------------------------------------------------------------------------------
+How Generative Recommenders Are Redefining RecSys at Scale | NVIDIA Technical Blog (https://linproxy.fan.workers.dev/https/developer.nvidia.com/blog/how-generative-recommenders-are-redefining-recsys-at-scale/)
+citeturn624search2 [wordlim: 200] Published: 3 months ago; Crawled: 3 weeks ago;   * Generative recommenders reframe recommendation as sequence modeling to predict the next item or action from user history, enabling unified retrieval and ranking with transformer-like architectures. ...   * For HSTU inference, recsys-examples supports PyTorch AOTInductor with Triton Inference Server, and combining it with nv-embedding-cache and a FlexKV-enabled KV cache delivers up to 2.38x speedup over the Python backend in an all-GPU cache-hit scenario.
+
+# How Generative Recommenders Are Redefining RecSys at Scale
+
+Aug 20, 2026
+
+By Elijah Soba, Santosh Bhavani, Shijie Liu and Burak Yoldemir
+
+## AI-Generated Summary
+
+  * Generative recommenders reframe recommendation as sequence modeling to predict the next item or action from user history, enabling unified retrieval and ranking with transformer-like architectures.
+  * The recsys-examples repository provides production-style training and inference implementations for HSTU and Semantic ID models, integrating DynamicEmb for dynamic embedding tables and Megatron-Core for distributed dense-layer parallelism.
+  * DynamicEmb replaces static embedding tables with a GPU-optimized scored hash table that allocates rows on demand across HBM and host memory, making long-tail item catalogs tractable at scale.
+  * For HSTU inference, recsys-examples supports PyTorch AOTInductor with Triton Inference Server, and combining it with nv-embedding-cache and a FlexKV-enabled KV cache delivers up to 2.38x speedup over the Python backend in an all-GPU cache-hit scenario.
+--------------------------------------------------------------------------------
+An empirical investigation of taxi driver response behavior to ride-hailing requests: A spatio-temporal perspective (https://pmc.ncbi.nlm.nih.gov/articles/PMC5993247/)
+citeturn624search3 [wordlim: 200] Published: 8.5 years ago; Crawled: last week; The ride-hailing app chooses one driver to get the deal based mainly on how quick the driver responds, how far away the driver is, and how convenient it is for the driver to pick up the passenger. ... Consistent with the numbers reported by the industry, our data showed that only 60.1% of the ride-hailing requests received responses; the remaining 39.9% did not.
+
+  * Step 1. Passengers who need a ride log into the ride-hailing app. The app uses its GPS system to automatically identify the passenger’s current location and then the passenger types in the destination.
+
+  * Step 2. The passenger determines whether to offer a premium to the driver. In most situations, the passengers do not offer any premiums. However, during rush hours or in high demand locations, it can be extremely difficult to get a ride without offering a decent premium. After determining the premium amount, the passenger submits the request to the app.
+
+  * Step 3. After the app receives the request, it determines whether and how much to offer as a subsidy to the request. Then, it sends the request to a number of taxi drivers within a reasonable distance through its voice-based system. The voice-based system will broadcast the departure and destination locations of the request, whether the passenger offers a premium, how much subsidy the firm offers, etc.
+
+  * Step 4. Upon receiving the request, the drivers decide whether to respond. The ride-hailing app chooses one driver to get the deal based mainly on how quick the driver responds, how far away the driver is, and how convenient it is for the driver to pick up the passenger. When no driver responds to a request, it will be cancelled.
+
+Consistent with the numbers reported by the industry, our data showed that only 60.1% of the ride-hailing requests received responses; the remaining 39.9% did not. This finding suggests that, even with the “match-making” service of the ride-hailing app, a significant portion of the requests were not fulfilled by any drivers. Thus, it is relevant and important to help practitioners improve the driver response rate. We next examine how the driver response rate differs across time and locations, and present evidence for the importance of modeling the spatio-temporal dynamics.
+
+--------------------------------------------------------------------------------
+SequenceO1: End-to-End Ultra-Long (100K) Sequence Modeling in Recommendation with Low-Rank Caching (https://arxiv.org/abs/2609.08443)
+citeturn624academia13 [wordlim: 200] Published: 2 months ago; Modeling long-term user behavior is central to sequential recommendation and billion-scale industrial recommender systems, yet production ranking models operate under strict latency, memory, communication, and training-throughput constraints. At the 100K scale, the challenge extends beyond attention complexity: raw sequence features must be stored, transferred, and repeatedly processed during training and online serving. Existing approaches based on history truncation, multi-stage behavior retrieval, compressed lifelong histories, or train-short/infer-long extrapolation either weaken end-to-end optimization or retain substantial length-dependent cost. ... These results provide a practical model-system approach to efficient attention, sequence compression, and scalable long-sequence and long-context recommendation systems.
+Title: SequenceO1: End-to-End Ultra-Long (100K) Sequence Modeling in Recommendation with Low-Rank Caching
+Authors: Lin Guan, Jia-Qi Yang, Zhishan Zhao, Jiaqi Huang, Hangyu Wang, Longbin Li, Beichuan Zhang, Haonan Jiang, Jinan Ni, Xiangyu Fan, Xiaowen Li, Ziyao Ren, Yuhang Qi, Xiaolong Zhu, Xuanyuan Luo, Qiwei Chen, Yi Cheng, Lele Yu
+Date: Tue Sep  8 08:49:44 2026
+
+Modeling long-term user behavior is central to sequential recommendation and billion-scale industrial recommender systems, yet production ranking models operate under strict latency, memory, communication, and training-throughput constraints. At the 100K scale, the challenge extends beyond attention complexity: raw sequence features must be stored, transferred, and repeatedly processed during training and online serving. Existing approaches based on history truncation, multi-stage behavior retrieval, compressed lifelong histories, or train-short/infer-long extrapolation either weaken end-to-end optimization or retain substantial length-dependent cost. --------------------------------------------------------------------------------
+SepLRM: A Foundation Model Paradigm for Recommendation (https://arxiv.cnoctave.top/pdf/2611.10356)
+citeturn624search14 [wordlim: 200] Published: last week; Crawled: 5 days ago; Different VMs may use their own decoders, feature interaction modules, and prediction heads, enabling the KV cache to be reused across models, recommendation stages, and business scenarios. ... As the shared sequence model, the RFM prioritizes its capacity for sequence modeling: stronger feature interaction may improve its own predictions without benefiting VMs, whereas better sequence modeling directly enhances the shared representations.
+   - The shared LG-Store supplies cached information to the VMs through Read connections.
+
+The diagram distinguishes model deployment, shared cache access, precomputation, prefetching, candidate generation, and final ranking.
+</visual_element>
+
+## 4 System
+
+### 4.1 Training
+
+As shown in Figure 3, the RFM and VMs are trained independently, but both require access to the KV caches. As the shared sequence model, the RFM prioritizes its capacity for sequence modeling: stronger feature interaction may improve its own predictions without benefiting VMs, whereas better sequence modeling directly enhances the shared representations. We therefore retain only lightweight feature interaction and prediction heads in the RFM to provide effective supervision.
+
+To reduce the I/O and communication overhead for KV cache access, an asynchronous pipeline is designed to overlap cache operations for adjacent mini-batches with current model computation. Since thread-level asynchrony still competes for memory bandwidth, and CPU time and cache, we also isolate cache access and data processing in separate processes, leaving the training process to submit requests and receive KV tensors. Besides, we limit request concurrency to prevent backlogs. In brief, this pipeline improves training throughput and stability.
+
+### 4.2 Serving
+
+KV cache preparation is launched before downstream ranking and overlaps it with candidate generation and pre-ranking. It supports two modes: precomputation, which invokes the RFM upon request arrival to generate an up-to-date cache, and prefetching, which--------------------------------------------------------------------------------
+The implications of drivers’ ride acceptance decisions on the operations of ride-sourcing platforms (https://www.sciencedirect.com/science/article/pii/S0965856424004105)
+citeturn624search4 [wordlim: 200] Published: 1.8 years ago; Crawled: 2 months ago; Ride-sourcing companies provide door-to-door transport services by connecting passengers with independent service suppliers labelled as “driver-partners”. Once a passenger submits a ride request, the platform attempts to match the request with a nearby available driver. ... We find that the ride acceptance decision of ride-sourcing drivers has far-reaching consequences for system performance in terms of passengers’ waiting time, driver’s revenue, operating costs, and profit, all of which are highly dependent on the ratio between demand and supply. ... Ride-hailing
+
+## Transportation Research Part A: Policy and Practice
+
+Volume 192, February 2025, 104362
+
+# The implications of drivers’ ride acceptance decisions on the operations of ride-sourcing platforms
+
+https://doi.org/10.1016/j.tra.2024.104362Get rights and content
+
+Under a Creative Commons license
+
+Open access
+
+## Abstract
+
+As a two-sided digital platform, ride-sourcing has disruptively penetrated the mobility market. Ride-sourcing companies provide door-to-door transport services by connecting passengers with independent service suppliers labelled as “driver-partners”. Once a passenger submits a ride request, the platform attempts to match the request with a nearby available driver. Drivers have the freedom to accept or decline ride requests. The consequences of this decision, which is made at the operation level, have remained largely unknown in the literature. Using agent-based simulation modelling on the realistic case study of the city of Amsterdam, the Netherlands, we study the impacts of drivers’ ride acceptance behaviour, estimated from unique empirical data, on the ride-sourcing system where the platform applies regular and surge pricing strategies, and riders may revoke their requests and reject the received offers. --------------------------------------------------------------------------------
+Advancing Quantization for R   R Models with Microscaling Formats (https://arxiv.cnoctave.top/pdf/2611.17501)
+citeturn624search15 [wordlim: 200] Crawled: yesterday; * Inference work per example of the most complex launched late-stage ads ranking model at Meta, normalized to H1’24 (1×), on a logarithmic scale. ... requests to models of different complexity based on the person’s context and intent, so that the most complex models are spent on the requests where they deliver the most value, and it co-designs these models with the serving system to keep their computational cost sub-linear in complexity, for example by computing user-side signals once per request instead of once per user–ad pair. ... Using LoKA (Luo et al., 2026), which benchmarks low-precision GEMM kernels on the shapes and input distributions of production ads models, engineers identified the linear layers that tolerate FP8 and switched only those to FP8 GEMMs with tensor-wise or row-wise scaling; all other layers stayed in FP16, the baseline format for R&R inference.
+MXFP8 and MXFP6 Inference for Recommendation Models
+
+<visual_element id="e1">
+**Figure 1. Inference work per example of the most complex launched late-stage ads ranking model at Meta.**
+
+Line chart showing normalized inference work on a logarithmic scale.
+
+- **Y-axis:** Normalized inference work.
+  - Tick values (bottom to top): 1×, 2×, 5×, 10×, 20×, 40×.
+- **X-axis:** Half-year and year.
+- **Data points:**
+
+| Period | Normalized inference work |
+|---|---:|
+| H1 2024 | 1.0× |
+| H2 2024 | 2.7× |
+| H1 2025 | 3.3× |
+| H2 2025 | 21.2× |
+| H1 2026 | 22.2× |
+| H2 2026 | 33.3× (estimated) |
+
+The chart uses a solid blue line connecting the first five data points and a dashed blue line from H1 2026 to the estimated H2 2026 point. The vertical axis is logarithmic.
+
+*Figure 1.* Inference work per example of the most complex launched late-stage ads ranking model at Meta, normalized to H1’24 (1×), on a logarithmic scale. The sharp increase in H2’25 coincides with the first launch of the Adaptive Ranking Model (Meta, 2026a); H2’26 is an estimated target.
+--------------------------------------------------------------------------------
+Rethinking Personalized Generation: Test-Time Alignment via Factorized Ranking Models (https://www.paperpeel.com/paper/2609.35695)
+citeturn624search5 [wordlim: 200] Published: last month; Crawled: 3 weeks ago; ### C.4 Inference Cost ... Our current implementation does not yet read the states off the generation pass but recomputes them in a separate pooling pass (Appendix C.2); counting that pass, end-to-end selection costs 2.1 ms per candidate, still 18× cheaper than reward-model scoring, and the recycled figure is the architectural ceiling. ... Ranking guided generation removes the need to materialize the pool at all: each intervention costs one forward and backward pass through the MLP plus one V×d matrix–vector product, which is negligible relative to a generator forward pass, and the gate fires on a minority of decoding steps (4–39% at the default threshold, Appendix C.3).
+### C.4 Inference Cost
+
+Table 8: Measured inference cost on one NVIDIA RTX A6000 for one query with N=64N=64 candidates. Reward-model numbers are the mean over Skywork-Reward-V2, InternLM2, URM, and ArmoRM (range in the text); generation and embedding use Qwen2.5-7B-Instruct with vLLM.
+
+Stage  | Per candidate  | Per query (N=64)  | Peak GPU memory
+--- | --- | --- | ---
+Candidate generation, short-form (Qwen2.5-7B-Instruct)  | 10.2 ms  | 0.65 s  | ≈40 GiB
+Embedding pass (only if states are not recycled from generation)  | 2.08 ms  | 0.13 s  | 25–39 GiB
+Ranker scoring, ours (2.8M MLP, recycled embeddings)  | 0.0015 ms  | 0.098 ms  | 0.93 GiB
+Reward-model scoring (8B, mean of four)  | 37.1 ms  | 2.38 s  | 20.6 GiB
+
+Table 8 reports measured wall-clock and memory costs on a single NVIDIA RTX A6000 (46 GiB) for one query with 64 candidates. Scoring the pool with the 2.8M-parameter ranker takes 0.098 ms at 0.93 GiB peak GPU memory, roughly 655k candidates per second, when the candidate embeddings are recycled from generation. --------------------------------------------------------------------------------
+Fast and Accurate Model Scaling (https://openaccess.thecvf.com/content/CVPR2021/papers/Dollar_Fast_and_Accurate_Model_Scaling_CVPR_2021_paper.pdf)
+citeturn624search16 [wordlim: 200] Crawled: 4 days ago; The primary benefit of model scaling is it allows us to scale to larger models where optimization is not feasible. ... Model ranking is *consistent* across flop regimes, with scaled versions RegNetZ achieving the best accuracy.
+--------------------------------------------------------------------------------
+LRanker: Scaling LLM Ranking to Millions of Candidates with Test-Time Scaling (https://borowiecki.dev/pdf/2605.27810)
+citeturn624search17 [wordlim: 200] Crawled: last week; Published in Transactions on Machine Learning Research (10/2026) ... ** Reported times are the *online*, per-query cost. For LRanker, the time is for direct ranking (Step 1 in Section 3.3): projecting the centroids, one LLM forward pass, inner-product scoring of all candidates with their cached embeddings (Eq. (9)), and sorting; the added latency of test-time scaling is reported in Table 17. ... | Scenario | Model | Online Per-query Inference Time |
+--------------------------------------------------------------------------------
+Scaling Machine Learning Systems (https://mlsysbook.ai/vol2/contents/vol2/inference/inference.html)
+citeturn624search6 [wordlim: 200] Crawled: today; The serving lesson is that recommendation latency is often dominated by embedding lookup rather than dense model inference. ... The search-ranking scenario binds on cascade cost, because each query coordinates many smaller models for query understanding, document relevance, and result ranking under one end-to-end budget rather than serving one large model.
+--------------------------------------------------------------------------------
+Ride acceptance behaviour of ride-sourcing drivers (https://doi.org/10.1016/j.trc.2022.103783)
+citeturn624search7 [wordlim: 200] Published: 4.2 years ago; Crawled: yesterday; Results also reveal that pickup time, which is the travel time between the driver’s location and the rider’s waiting spot, has a negative impact on ride acceptance. ... Offering door-to-door transport services, these two-sided ride-sourcing platforms match passengers requesting rides through a mobile app with semi-independent drivers who do not only serve as chauffeurs but also act as private fleet providers. ... Nonetheless, since the entry of the ride-sourcing business into the market, the relationship between platforms and drivers has been fragile. ... Such policies are adopted by ride-hailing platforms which leverage the inherent asymmetry in access to information, providing drivers with limited information when making work-related decisions. ... This is due to the fact that the pickup time increases ride disutility since drivers are not paid while driving without a passenger.
+--------------------------------------------------------------------------------
+RecMem: Recurrent Memory Compression for Long-Sequence Generative Recommendation (https://arxiv.org/abs/2611.17921)
+citeturn624academia18 [wordlim: 200] Published: 4 days ago; Title: RecMem: Recurrent Memory Compression for Long-Sequence Generative Recommendation ... It outperforms PHSTU and the evaluated recent-only and retrieval baselines, and analyses of distant history show that archived interactions contribute predictive signal.
+--------------------------------------------------------------------------------
+icml2009finalNew.dvi (https://www.cs.toronto.edu/~zemel/documents/boltzRank-ICML2009.pdf)
+citeturn624search19 [wordlim: 200] Crawled: 2 weeks ago; The pairwise potential \(\varphi\) allows \(f\) to effectively enforce the learned second order relative constraints during inference which, to the best of our knowledge, has not been explored in existing ranking models. Enforcing these constraints comes at the cost of increased inference time of \(O(m)\) for any given document. ... We could perform a form of maximum likelihood learning, as is frequently performed on Boltzmann models, to match the model’s estimate of the rank distribution, \(P(R|S)\), to the true rank distribution, \(P(R|L)\), as specified by the target relevance levels \(L\).
+--------------------------------------------------------------------------------
+Data-Efficient Scaling-Law Discovery for Recommendation Systems via Coupled Hyperparameter Scaling (https://arxiv.org/abs/2611.05643)
+citeturn624academia20 [wordlim: 200] Published: 2 weeks ago; We address how to discover the scaling law of an arbitrary ranking model efficiently.
+--------------------------------------------------------------------------------
+Proactive hybrid fleet allocation for ride-hailing platforms during rush hour (https://www.sciencedirect.com/science/article/pii/S1366554526006319)
+citeturn624search8 [wordlim: 200] Published: last month; Crawled: last month; Ride-hailing platforms like Uber and Lyft are representative examples, enabling riders to access transportation services seamlessly. ... For instance, during the morning rush hour, trip origins are often widely scattered across residential neighborhoods, while destinations are heavily concentrated in employment hubs such as central business districts. ... On the supply side, the challenge of proactive allocation during rush hour arises from the operational structure of ride-hailing platforms, which often manage a hybrid fleet consisting of both company-owned and crowd-sourced vehicles.
+--------------------------------------------------------------------------------
+The Making of the “Good Bad” Job: How Algorithmic Management Manufactures Consent Through Constant and Confined Choices (https://journals.sagepub.com/doi/10.1177/00018392241236163)
+citeturn624search9 [wordlim: 200] Published: 2.7 years ago; Crawled: 2 months ago; In blanket ride rejections, drivers rejected all rides of a specific type. ... Shared rides were offered at a lower cost, which made the service more attractive to new customers; however, most drivers, including myself, disliked shared rides due to the low pay, circuitous routes, and querulous riders frustrated by longer travel times, and many drivers systematically rejected these rides. ... It’s a great deal and I don’t have to worry about driving around looking for another ride.”
+--------------------------------------------------------------------------------
+Ranking Reasoning LLMs under Test-Time Scaling (https://www.researchgate.net/publication/401834635_Ranking_Reasoning_LLMs_under_Test-Time_Scaling)
+citeturn624search10 [wordlim: 200] Published: 8 months ago; Crawled: 2 months ago; Task Inference Time (hours) Completion Tokens (M) ... Table 24: Task-level computational cost aggregated over ... trials per dataset–model pair. ... H.4 Ranking-Method Identiﬁers
+--------------------------------------------------------------------------------
+Effect of trip attributes on ridehailing driver trip request acceptance (https://www.alphaxiv.org/abs/2402.01650)
+citeturn624search11 [wordlim: 200] Published: 2.9 years ago; Crawled: last month; The findings could be useful for transportation agencies to improve ridehailing service efficiency, better fulfill urban mobility needs, and reduce environmental burden. ... This research addresses that gap by examining the factors that influence ridehailing driver trip acceptance behavior, with important implications for service efficiency, equity, and environmental sustainability. ... Previous research on ridehailing has primarily focused on passenger behavior, system-level impacts, and broad operational patterns.
+--------------------------------------------------------------------------------
+From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs (https://arxiv.org/abs/2609.01240)
+citeturn624academia21 [wordlim: 200] Published: 2 months ago; Scaling Transformers has driven large gains in language modeling, but transplanting this to behavior-sequence modeling in production ranking is challenging: recommendation differs in signal quality, where behavior sequences are noisy, temporally irregular, and sparsely supervised, and in computation asymmetry, where each request scores many candidates against one shared user history under tight latency budgets. ... For computation asymmetry, it factorizes ranking into a heavy reusable encoder and a lightweight cross decoder with projection-free KV attention and token-specific parameterization, coupling user-level shared-prefix training with shared-prefix serving for compute-once, decode-many-times ranking.
+--------------------------------------------------------------------------------
+We tested Jev as a reranker against Voyage, Cohere and Qwen on 1,000 eval cases. It came within 0.003 of first place (!!) (https://www.reddit.com/r/LLMDevs/comments/1xattho/we_tested_jev_as_a_reranker_against_voyage_cohere/)
+citeturn624reddit22 [wordlim: 200] Published: 4 weeks ago; A perfectly calibrated model should produce more or less the same ranking for both approaches (up to ambiguity of the context, choices and question). ... It also beat Cohere's newest model, rerank-v4.0-pro, on score (0.506), cost ($2.49 vs $3.42) and latency (0.28s vs 0.77s). ... On our data, the extra detail of the graded scale didn't improve the ranking.
+--------------------------------------------------------------------------------
+Transformer (deep learning) (https://en.wikipedia.org/wiki/Transformer_%28deep_learning%29)
+citeturn624search23 [wordlim: 200] Crawled: 3 days ago; In general, when a user uses an autoregressive transformer to generate a continuation to a sequence of tokens, the model would first perform a forward-pass on this sequence, whereby the KV caches over this sequence are computed. ... Sharing key and value projections across heads reduces the size of the KV cache and memory bandwidth required during autoregressive decoding; reported speed and quality effects depend on the model and task.
+--------------------------------------------------------------------------------
+Same model, same GPU, same day: 174x cost range from settings nobody reports (https://www.reddit.com/r/LocalLLM/comments/1vvkysi/same_model_same_gpu_same_day_174x_cost_range_from/)
+citeturn624reddit24 [wordlim: 200] Published: 2 months ago; I've been measuring inference cost on a Tesla T4 and ended up with 16 measurements of the same model, on the same card, within a few hours. ... Batch size at least shifts everything in one direction, so if you're comparing two setups the ranking usually survives even if the absolute numbers are junk.
+--------------------------------------------------------------------------------
+Learning to rank (https://en.wikipedia.org/wiki/Learning_to_rank)
+citeturn624search25 [wordlim: 200] Crawled: last week; The goal of constructing the ranking model is to rank new, unseen lists in a similar way to rankings in the training data. ... * LETOR: A Benchmark Collection for Research on Learning to Rank for Information Retrieval ... This is often difficult in practice because most evaluation measures are not continuous functions with respect to ranking model's parameters, and so continuous approximations or bounds on evaluation measures have to be used.
+--------------------------------------------------------------------------------
+Ridesharing company (https://en.wikipedia.org/wiki/Ridesharing_company)
+citeturn624search26 [wordlim: 200] Crawled: today; The term "ride-sharing" has also been defined to refer to on-demand carpooling or shared transport, whereas "ride-hailing" has been defined as the hiring of a private driver for personal transportation. ... Crimes have been committed by rideshare drivers as well as by individuals posing as rideshare drivers who lure unsuspecting passengers to their vehicles by placing an emblem on their car or by claiming to be a passenger's expected driver.
+--------------------------------------------------------------------------------
+Cabify (https://en.wikipedia.org/wiki/Cabify)
+citeturn624search27 [wordlim: 200] Crawled: last month; Cabify also has a transportation option for disabled persons - Cabify Access - available in Chile, Spain and Peru. ... This means that it optimizes the distance between two points so the passenger is paying for the most direct route regardless of the actual route chosen by the driver. ... In March 2017, the killing of the 19-year-old girl Maria Castilla by a Cabify driver in Mexico raised questions regarding the safety with ride-hailing services.
+--------------------------------------------------------------------------------
+Bradley–Terry model (https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model)
+citeturn624search28 [wordlim: 200] Crawled: last month; Applications of the model include the ranking of competitors in sports, chess, and other competitions, the ranking of products in paired comparison surveys of consumer choice, analysis of dominance hierarchies within animal and human communities, ranking of journals, ranking of AI models, and is foundational to the field of training reward models in reinforcement learning from human feedback.
+--------------------------------------------------------------------------------
+Taxi (https://en.wikipedia.org/wiki/Taxi)
+citeturn624search29 [wordlim: 200] Crawled: today; In some jurisdictions, private hire vehicles can only be hired from the dispatch office, and must be assigned each fare by the office by radio or phone. ... Two-way radio communication had not become a standard by the time the film was made in the early 1960s. image ... The activity of taxi fleets is usually monitored and controlled by a central office, which provides dispatching, accounting, and human resources services to one or more taxi companies. ... Business frequencies in the UHF range are also licensed in pairs to allow for repeaters, though taxi companies usually use the pair for duplex communications. ... In the United States, a nut is industry slang for the amount of money a driver has to pay upfront to lease a taxi for a specific period of time. ... So "on the nut" simply means to be next in a taxi stand to receive a passenger.
+

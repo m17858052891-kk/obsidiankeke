@@ -1,0 +1,277 @@
+CETN: Contrast-enhanced Through Network for Click-Through Rate Prediction (https://doi.org/10.1145%2F3688571)
+citeturn612search0 [wordlim: 200] Published: 2.0 years ago; Crawled: 2 weeks ago; The CTR prediction task aims to enhance the profitability and user satisfaction of commercial recommendation systems by predicting the likelihood of a current user clicking on items recommended by the system. ... (CTR Prediction Based on Feature Interactions). ... where \(g(\cdot)\) denotes an interaction function and \(o^{(i)}\) denotes the \(i\)th order FI.
+
+## 2 Preliminaries
+
+### 2.1 Problem Definition
+
+The CTR prediction task aims to enhance the profitability and user satisfaction of commercial recommendation systems by predicting the likelihood of a current user clicking on items recommended by the system. Therefore, about the CTR prediction tasks based on FI, we can define it formally as follows.
+
+Definition 1
+
+(CTR Prediction Based on Feature Interactions). For a given user \(u\) and item \(v\), three groups of features are extracted from them:
+
+—
+
+User profiles (\(x_{p}\)): age, gender, occupation, etc.
+
+—
+
+Item attributes (\(x_{a}\)): brand, price, category, etc.
+
+—
+
+Context (\(x_{c}\)): timestamp, device, position, etc.
+
+As shown in Table 2, in general, \(x_{p}\), \(x_{a}\), and \(x_{c}\) are multi-field categorical data and are represented using one-hot encoding, and then we utilize an embedding layer to transform them into low-dimensional dense vectors: \(\mathbf{e}_{i} = \textit{E}_{i}x_{i}\), where \(\textit{E}_{i}\in\mathbb{R}^{d\times s_{i}}\) and \(s_{i}\) separately indicate the embedding matrix and the vocabulary size for the \(i\)th field, \(d\) represents the embedding dimension. --------------------------------------------------------------------------------
+Feature-Interaction-Enhanced Sequential Transformer for Click-Through Rate Prediction (https://www.mdpi.com/2076-3417/14/7/2760)
+citeturn612search1 [wordlim: 200] Published: 2.6 years ago; Crawled: last month; In this paper, we propose a Feature-Interaction-Enhanced Sequence Model (FESeq), which integrates feature interaction and the sequential recommendation model in a cascading structure. ... Therefore, research in CTR prediction has gained attention from academia and industry [1,2]. ... When the interacting layer depth is three, the feature interaction can extract as high as eight-order feature interactions, but the recommendation performance tends to decrease, which indicates that extremely high-order feature combinations are not useful for CTR prediction.
+Click-through rate (CTR) prediction plays a crucial role in online services and applications, such as online shopping and advertising. The performance of CTR prediction can have a direct impact on user experience and the revenue of the online platforms. For CTR prediction models, self-attention-based methods have been widely applied to this field. Recent works generally adopted the Transformer architecture, where the self-attention mechanism can capture the global dependencies of the user’s historical interactions and predict the next item. Despite the effectiveness of self-attention methods in modeling sequential user behaviors, most sequential recommenders hardly exploit feature interaction techniques to extract high-order feature combinations. In this paper, we propose a Feature-Interaction-Enhanced Sequence Model (FESeq), which integrates feature interaction and the sequential recommendation model in a cascading structure. Specifically, the interacting layer in FESeq is an automatic feature engineering step for the Transformer model. Then, we add a linear time interval embedding layer and a positional embedding layer to the Transformer in the sequence-refiner layer to learn both the time intervals and the position information in the user’s sequence behaviors. We also design an attention-based sequence pooling layer that can model the relevance of the user’s historical behaviors and the target item representation through scaled bilinear attention. Our experiments show that the proposed method beats all the baselines on both public and industrial datasets.
+
+Keywords:
+
+click-through-rate prediction; feature interaction; sequential recommendation; sequence pooling; self-attention
+
+## 1. Introduction
+
+The click-through rate (CTR) prediction task is a binary classification problem that measures the likelihood of a user clicking an item. A higher CTR indicates that a higher percentage of the recommended items are clicked by the users, leading to more revenues for the advertising platforms. Therefore, research in CTR prediction has gained attention from academia and industry [1,2]. Currently, two mainstream methods exist to solve the CTR prediction task in recommender systems: feature interaction and sequential recommendation. While both methods aim to provide personalized recommendations by mining useful information from the user–item interactions, they process the feature fields differently.
+
+## 4. Experiments
+
+In this section, we introduce the experiment settings and present our experimental results. For the experimental results, we first compare the proposed model with current SOTA baselines on both public and industrial datasets. Then, we conduct ablation studies to verify the efficacy of each part on the proposed model. We also carry out hyperparameter tuning experiments to explore how parameters affect model performance, such as the embedding dimension and the interacting layer depth. To observe how the interacting layer learns the relevance between two feature pairs and how the sequence pooling layer attends to all user behaviors for the CTR prediction task, we provide the visualization results of the attention matrix in the interacting layer and the attention scores in the sequence pooling layer.
+
+### 4.1. Experiment Settings
+
+#### 4.1.1. Datasets
+
+Public Dataset Ele.me (https://tianchi.aliyun.com/dataset/131047, 21 March 2024) contains user click logs sampled from a commercial food delivery website in 3 days, with a total of 1.23 million samples. 
+The experiment results are concluded in Table 11. We observe that the model performs the best in terms of both the AUC and Logloss when both the input feature interaction layer depth and the target item feature interaction layer depth are two. Therefore, both the input feature interaction layers and the target item feature interaction layers are necessary. When the interacting layer depth is lower than two, the feature interaction can only extract low-order simple feature interactions, and the model performance is limited. When the interacting layer depth is three, the feature interaction can extract as high as eight-order feature interactions, but the recommendation performance tends to decrease, which indicates that extremely high-order feature combinations are not useful for CTR prediction.
+
+Table 11. Effect of the input feature interaction layer depth and the target item feature interaction layer depth on the model performance. The bold number denotes the best value in the column.
+
+Image
+## 5. Conclusions
+
+In this paper, we present a novel CTR prediction model that combines feature interactions with sequence recommendations in a cascading manner. Specifically, the model incorporates feature interactions as a feature engineering step into the Transformer sequence model to provide high-order features for the Transformer. Besides, positional embeddings and linear time interval embeddings are introduced to the Transformer layer to model the positional and time interval information of user behaviors. We also novelly pool the Transformer layer output with scaled bilinear attention that explicitly learns the relevance between the user’s historical behaviors and the target item. Extensive experimental results on both public and private datasets show that our proposed model outperforms SOTA baselines on the CTR prediction task. Ablation studies confirm that the interacting layer can extract high-order information from both sequential and non-sequential features before the Transformer model. Besides, we observe the effectiveness of embedding positional and timestamp information and maintaining causality in the Transformer layer. --------------------------------------------------------------------------------
+A Review of Click-Through Rate Prediction Using Deep Learning (https://www.mdpi.com/2079-9292/14/18/3734)
+citeturn612search2 [wordlim: 200] Published: 1.2 years ago; Crawled: today; Feature-interaction-based methods (e.g., CETN [156], OptFS [159]) improve CTR prediction performance by automatically identifying meaningful feature interactions, often outperforming manually engineered baselines. ... These findings summarize current literature and outline a roadmap for future CTR research, linking existing methods to broader challenges discussed in the next section.
+
+Feature-interaction-based methods (e.g., CETN [156], OptFS [159]) improve CTR prediction performance by automatically identifying meaningful feature interactions, often outperforming manually engineered baselines. Meanwhile, customer behavior models demonstrate that long sequential dependencies and evolving interests are essential for personalization. However, issues remain regarding sequence length and memory efficiency. The key insight is that combining feature-level interactions with temporal behavior modeling yields superior personalization capabilities.
+
+Table 10 demonstrates representative feature-interaction CTR methods. These models perform well with structured datasets that have complex features, like those in Criteo and Avazu, and are useful for capturing higher-order interactions. However, they require careful management of accuracy and computational costs. Key issues include parameter explosion (e.g., CETN), overfitting in high-dimensional spaces, and limited interpretability, with some approaches requiring manual filtering of irrelevant features.
+
+Image
+
+Table 10. Summary of representative feature-interaction CTR methods.
+
+We find that graph-based and multimodal methods are the top approaches for predicting CTR. These methods consistently perform better than older deep learning models on large benchmarks. However, challenges still exist in modeling user behavior over time and learning how different features interact with each other. Models like CETN offer potential solutions to these challenges. Cross-domain and transfer learning improve prediction accuracy and address cold-start issues when new users or items have limited data. In industrial settings, there is a growing emphasis on distributed architectures that use edge computing. These architectures aim to strike a balance between strong predictions and efficient computation. These findings summarize current literature and outline a roadmap for future CTR research, linking existing methods to broader challenges discussed in the next section.
+--------------------------------------------------------------------------------
+Rethinking Positional Encoding and Interaction Granularity for CTR Prediction (https://arxiv.org/abs/2610.37140)
+citeturn612academia12 [wordlim: 200] Published: 3 weeks ago; Title: Rethinking Positional Encoding and Interaction Granularity for CTR Prediction
+Title: Rethinking Positional Encoding and Interaction Granularity for CTR Prediction
+Authors: Xinxun Zhang, Yuxiang Wang, Xiaokai Zhou, Jiayue Li, Yi Li, Yue Liu, Jun Zhang, Xiaoling Zhou, Tieyun Qian, Xiao Yan, Jiawei Jiang
+Date: Tue Oct 27 12:35:53 2026
+
+Click-through rate (CTR) prediction relies on historical behaviors and contextual features to estimate clicks on a target item. Existing Transformer-based CTR models often adopt index-based or temporal positional encodings and token-level causal interaction. However, we observe that most existing positional encodings do not outperform NoPE, while relaxing causal constraints within target-relative temporal groups also yields gains. These observations motivate a fundamental question: what positional encoding and interaction granularity does CTR prediction actually require? To address this question, we propose \textbf{TRIP}, which combines target-aware rank--time positional encoding with temporal-group interaction modeling. Specifically, Factorized Rank Encoding represents each behavior's ordinal position within the historical sequence through a low-rank factorization, while Target-Relative Time Encoding characterizes its temporal distance to the target on a coarse-to-fine scale. This joint design grounds each behavior's positional representation in its sequence context and temporal relation to the current target. Furthermore, Temporal Group-Causal Interaction enriches intra-group representations through bidirectional interaction and masked reconstruction while preserving inter-group causal order. Finally, behavior representations are condensed into compact group summaries for efficient group-level modeling in subsequent layers. Experiments on four public benchmarks show that TRIP improves AUC by up to 4.45\% relative to the strongest baseline.--------------------------------------------------------------------------------
+AutoFeature: Searching for Feature Interactions and Their Architectures for Click-through Rate Prediction | Proceedings of the 29th ACM International Conference on Information & Knowledge Management (https://doi.org/10.1145/3340531.3411912)
+citeturn612search3 [wordlim: 200] Published: 6.1 years ago; Crawled: 3 weeks ago; Besides, they use the same network structure or function to model all the feature interactions while ignoring the difference of complexity among them. ... Extensive experiments on multiple CTR prediction benchmarks show the superiority of our AutoFeature over the state-of-the-art baselines.
+Besides, they use the same network structure or function to model all the feature interactions while ignoring the difference of complexity among them. To address these issues, we propose a neural architecture search based approach called AutoFeature that automatically finds essential feature interactions and selects an appropriate structure to model each of these interactions. Specifically, we first define a flexible architecture search space for the CTR prediction task which covers many popular designs such as PIN, PNN and DeepFM, etc., and enables higher-order interactions. Then we propose an efficient neural architecture search algorithm that recursively refines the search space by partitioning it into several subspaces and samples from higher quality ones. Extensive experiments on multiple CTR prediction benchmarks show the superiority of our AutoFeature over the state-of-the-art baselines. In addition, our experiments show that the learned architectures use fewer flops/parameters and hence can efficiently incorporate higher-order feature interactions. This further boosts the performance. Finally, we show that AutoFeature can find meaningful feature interactions.
+--------------------------------------------------------------------------------
+Towards a Unified Framework of Optimal Input-Side Dimensional Configuration for Deep CTR Prediction (https://arxiv.org/abs/2610.35695)
+citeturn612academia13 [wordlim: 200] Published: 3 weeks ago; Deep click-through rate (CTR) prediction has achieved substantial success through increasingly expressive feature interaction architectures.
+Title: Towards a Unified Framework of Optimal Input-Side Dimensional Configuration for Deep CTR Prediction
+Authors: Chaohua Yang, Fuyuan Lyu, Xing Tang, Dugang Liu, Xiuqiang He, Zhong Ming
+Date: Mon Oct 26 16:24:11 2026
+
+Deep click-through rate (CTR) prediction has achieved substantial success through increasingly expressive feature interaction architectures. However, predictive performance also depends on how input-side information is configured before interaction modeling. Existing studies have shown that selecting informative samples, features, or embedding units can improve prediction accuracy. Nevertheless, they primarily optimize these selection mechanisms independently along a single input-side dimension, overlooking their shared basic form and the inherent dependencies across input levels, thereby limiting the effectiveness of input-side dimensional configuration. To address this issue, we propose OptIDC, a unified framework for Optimal Input-side Dimensional Configuration in deep CTR prediction. OptIDC jointly learns sample, feature, and embedding-unit level configurations within a unified framework by integrating their corresponding selection mechanisms. To explicitly coordinate selection decisions across different levels, OptIDC further introduces a selection-weighted Optimal Transport mechanism that aligns coarse- and fine-grained selections via transport over finite measures, thereby alleviating cross-level selection conflicts while preserving the semantics of each input level. Moreover, OptIDC is model-agnostic and can be seamlessly integrated into existing CTR models. Extensive experiments on four real-world benchmark datasets demonstrate that OptIDC consistently achieves higher AUC than existing input-side selection methods, validating the effectiveness of unified input-side dimensional configuration.--------------------------------------------------------------------------------
+Evaluating Tabular Deep Learning under Temporal Shift and Extensive Feature Engineering (https://www.ispras.ru/en/proceedings/isp_38_2026_5/isp_38_2026_5_305/)
+citeturn612search4 [wordlim: 200] Crawled: last month; Progress in machine learning research is valuable when it transfers from academic benchmarks to practical applications. ... To study how recent advances in tabular deep learning transfer to these conditions, we introduce TabReD, a collection of eight industry-grade tabular datasets with time-based splits and high-dimensional engineered feature spaces. We reassess a broad range of methods, including GBDTs, MLP-like neural networks, numerical feature embeddings, attention-based and retrieval-based models, advanced training recipes, and ensembles.
+
+# Evaluating Tabular Deep Learning under Temporal Shift and Extensive Feature Engineering
+
+## Evaluating Tabular Deep Learning under Temporal Shift and Extensive Feature Engineering
+
+Rubachev I.V. (NRU HSE, Moscow, Russia)
+
+#### Abstract
+
+Progress in machine learning research is valuable when it transfers from academic benchmarks to practical applications. For tabular deep learning, this requires understanding how academic evaluation settings reflect real-world applications. In this paper, we analyze existing tabular benchmarks and identify two industrially common but underrepresented properties: temporal distribution drift and feature spaces produced by extensive data acquisition and feature engineering pipelines. The first calls for time-based train/validation/test splits, while the second changes the number and structure of predictive, uninformative, and correlated features compared with typical academic datasets. To study how recent advances in tabular deep learning transfer to these conditions, we introduce TabReD, a collection of eight industry-grade tabular datasets with time-based splits and high-dimensional engineered feature spaces. We reassess a broad range of methods, including GBDTs, MLP-like neural networks, numerical feature embeddings, attention-based and retrieval-based models, advanced training recipes, and ensembles. The results show that time-based evaluation changes method rankings and relative performance compared with random splits; on TabReD, simple MLP-like architectures with numerical embeddings and GBDTs are the most robust, while several more complex recent methods transfer less reliably.
+
+#### Keywords
+
+tabular data; benchmark; temporal shift; feature engineering; deep learning.
+
+#### Edition
+
+Proceedings of the Institute for System Programming, vol. 38, issue 5, 2026, pp. 305-324
+
+ISSN 2220-6426 (Online), ISSN 2079-8156 (Print).
+
+DOI: 10.15514/ISPRAS-2026-38(5)-17
+
+#### For citation
+
+Rubachev I.V. Evaluating Tabular Deep Learning under Temporal Shift and Extensive Feature Engineering. Proceedings of the Institute for System Programming, vol. 38, issue 5, 2026, pp. 305-324 DOI: 10.15514/ISPRAS-2026-38(5)-17.--------------------------------------------------------------------------------
+Learning to rank via combining representations (https://www.microsoft.com/en-us/research/publication/learning-to-rank-via-combining-representations/?lang=fr-ca)
+citeturn612search5 [wordlim: 200] Published: 6.6 years ago; Crawled: last month; Learning to rank — producing a ranked list of items specific to a query and with respect to a set of supervisory items — is a problem of general interest.
+
+# Learning to rank via combining representations
+
+  * Hayden S. Helm ,
+  * Amitabh Basu ,
+  * Avanti Athreya ,
+  * Youngser Park ,
+  * Joshua T. Vogelstein ,
+  * Michael Winding ,
+  * Marta Zlatic ,
+  * Albert Cardona ,
+  * Patrick Bourke ,
+  * Jonathan Larson ,
+  * Chris White ,
+  * Carey E. Priebe
+
+May 2020
+
+Télécharger BibTex
+
+Learning to rank — producing a ranked list of items specific to a query and with respect to a set of supervisory items — is a problem of general interest. The setting we consider is one in which no analytic description of what constitutes a good ranking is available. Instead, we have a collection of representations and supervisory information consisting of a (target item, interesting items set) pair. We demonstrate — analytically, in simulation, and in real data examples — that learning to rank via combining representations using an integer linear program is effective when the supervision is as light as “these few items are similar to your item of interest.” While this nomination task is of general interest, for specificity we present our methodology from the perspective of vertex nomination in graphs. The methodology described herein is model agnostic.
+
+Publication--------------------------------------------------------------------------------
+1806-LearningToRank.pptx (https://www.clsp.jhu.edu/wp-content/uploads/2018/06/2018-06-19-Duh-Learning-to-rank.pdf)
+citeturn612search14 [wordlim: 200] Crawled: 5 days ago; # What is Learning to Rank?
+# What is Learning to Rank?
+
+## UNORDERED SET
+
+A group of four blue rectangular items arranged without a specified order, enclosed within a red dashed oval.
+
+## RANKING FUNCTION
+
+**trained by Machine Learning**
+
+A red arrow pointing from the unordered set on the left toward the ordered list on the right, indicating that a ranking function trained by Machine Learning transforms an unordered set into an ordered list.
+
+## ORDERED LIST
+
+Four blue rectangular items arranged vertically in a single column, representing the ranked (ordered) output.
+
+**Page number:** 3
+
+<visual_element id="e1">
+Conceptual diagram of Learning to Rank:
+
+- **Left side — UNORDERED SET:** Four identical blue rectangular blocks positioned inside a large red dashed oval. Their positions are:
+  - Upper-left
+  - Upper-right
+  - Lower-left
+  - Lower-right
+- **Center — RANKING FUNCTION:** A large red right-pointing arrow connects the unordered set to the ordered list. Beside and below the arrow is the label:
+  - RANKING FUNCTION
+  - *trained by Machine Learning*
+- **Right side — ORDERED LIST:** Four identical blue rectangular blocks arranged vertically in one column, from top to bottom.
+
+The diagram illustrates the transformation of an unordered collection of items into an ordered list using a ranking function trained by Machine Learning. The individual blocks have no visible text or numerical rank labels.
+</visual_element>--------------------------------------------------------------------------------
+Learning to rank from relevance judgments distributions (https://ideas.repec.org/a/bla/jinfst/v73y2022i9p1236-1252.html)
+citeturn612search6 [wordlim: 200] Published: 4.2 years ago; Crawled: last month; # Learning to rank from relevance judgments distributions
+
+# Learning to rank from relevance judgments distributions
+
+## Author
+
+Listed:
+
+  * Alberto Purpura
+  * Gianmaria Silvello
+  * Gian Antonio Susto
+
+Registered:
+
+## Abstract
+
+LEarning TO Rank (LETOR) algorithms are usually trained on annotated corpora where a single relevance label is assigned to each available document‐topic pair. Within the Cranfield framework, relevance labels result from merging either multiple expertly curated or crowdsourced human assessments. In this paper, we explore how to train LETOR models with relevance judgments distributions (either real or synthetically generated) assigned to document‐topic pairs instead of single‐valued relevance labels. We propose five new probabilistic loss functions to deal with the higher expressive power provided by relevance judgments distributions and show how they can be applied both to neural and gradient boosting machine (GBM) architectures. Moreover, we show how training a LETOR model on a sampled version of the relevance judgments from certain probability distributions can improve its performance when relying either on traditional or probabilistic loss functions. Finally, we validate our hypothesis on real‐world crowdsourced relevance judgments distributions. Overall, we observe that relying on relevance judgments distributions to train different LETOR models can boost their performance and even outperform strong baselines such as LambdaMART on several test collections.
+
+## Suggested Citation
+
+* Alberto Purpura & Gianmaria Silvello & Gian Antonio Susto, 2022. "Learning to rank from relevance judgments distributions," Journal of the Association for Information Science & Technology, Association for Information Science & Technology, vol. 73(9), pages 1236-1252, September.
+Handle: RePEc:bla:jinfst:v:73:y:2022:i:9:p:1236-1252
+
+## Download full text from publisher
+
+[Input][Input]File URL: https://doi.org/10.1002/asi.24629
+Download Restriction: no--------------------------------------------------------------------------------
+EST: Towards Efficient Scaling Laws in Click-Through Rate Prediction via Unified Modeling (https://borowiecki.dev/pdf/2602.10811)
+citeturn612search15 [wordlim: 200] Published: 5 days ago; Crawled: 2 days ago; Efficiently scaling industrial Click-Through Rate (CTR) prediction has recently attracted significant research attention. ... **Diagram: CTR prediction input structure and feature space. ... - **Unified modeling** [9, 47] attempts to preserve these signals by jointly modeling \(\mathcal{B}_u\) and \(\mathcal{N}\) within a single sequence and leverages computation reuse to enable deeper interaction modeling under compute budget, *i.e.*, sharing user-side calculations across multiple candidates in the same request.
+
+## Keywords
+
+Recommendation System, Click-Through Rate Prediction, Scaling Laws
+
+# 1 Introduction
+
+Click-through rate (CTR) prediction is a fundamental task in modern recommendation systems, aimed at estimating the probability of a user clicking on an item. As illustrated in Figure 1, industrial CTR prediction models typically integrate diverse inputs, including non-behavioral features \(\mathcal{N}\) (e.g., user profiles, candidate attributes), user-specific behaviors \(\mathcal{B}_u\) (e.g., short-term historical behaviors) and candidate-specific behaviors \(\mathcal{B}_c\) (e.g., subsequences dynamically searched from lifelong behaviors with the candidate item [3, 5, 23, 35]). Moreover, these behaviors are often multimodal [30], interleaving discrete IDs with rich content signals such as images and text. These features are fed into deep networks to model feature interactions and produce final predictions.
+
+## Figure 1. The CTR prediction in recommendation systems.
+
+<visual_element id="e1">
+
+**Diagram: CTR prediction input structure and feature space.--------------------------------------------------------------------------------
+# Learning to Rank: From Pairwise Approach to Listwise Approach (https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf?file=tr-2007-40.pdf)
+citeturn612search16 [wordlim: 200] Published: 19.6 years ago; Crawled: 5 days ago; The paper is concerned with learning to rank, which is to construct a model or a function for ranking objects. ... Learning to rank, when applied to document retrieval, is a task as follows.
+--------------------------------------------------------------------------------
+# Click-Through Rate Prediction Based on User Behaviors and Feature Importance (https://assets-eu.researchsquare.com/files/rs-2623900/v1_covered_d1fc0c78-baac-4e7b-9a65-79291e0b2354.pdf?c=1687094088)
+citeturn612search17 [wordlim: 200] Crawled: 2 weeks ago; **Keywords:** CTR prediction, Behavior sequence, Feature interaction, Attention mechanism ... Feature interaction and behavioral sequence model are the two most important modeling methods in CTR prediction.
+--------------------------------------------------------------------------------
+Keep it Simple! A Multiple-Choice Task can Benefit Generative Recommendation (https://borowiecki.dev/pdf/2611.19320)
+citeturn612search18 [wordlim: 200] Published: yesterday; Crawled: today; Specifically, most generative models directly predict target items without explicitly learning negative compositions and relative ranking signals. ... Extensive experiments on four publicly available benchmark datasets show that our approach can improve TIGER, a conventional generative recommendation model, by 4.9% to 79% in NDCG@10.
+--------------------------------------------------------------------------------
+GitHub - HaFred/awesome-generative-recsys: An automatic refreshing "awesome" paper list for the generative recommendation systems. Updated everyday at 11PM GMT+8, warm and fresh since '26 · GitHub (https://github.com/HaFred/awesome-generative-recsys)
+citeturn612search7 [wordlim: 200] Crawled: 6 days ago; Unified Generative Ranking for Heterogeneous E-commerce Recommendation ...      * TL;DR: UGR performs list-wise generative ranking over the full request-level multi-business heterogeneous candidate set (~1000 candidates in production) and directly generates multi-business ranking lists via candidate-aware autoregressive decoding; beyond exposure-sequence imitation it adds weighted SFT + permutation preference optimization and a training-time ad-debiasing tower while preserving GSP pricing at serving. ...      * TL;DR: R2QRec learns to generate recommendation queries from item interactions without query annotations: retrieval verification selects generated expressions that recover observed items as SFT targets, then policy refinement scores query sets by the observed item's rank in their fused list (log-rank feedback, KL penalty); only the query generator is trained.
+--------------------------------------------------------------------------------
+TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning (https://arxiv.org/abs/2609.00986)
+citeturn612academia19 [wordlim: 200] Published: 2 months ago; Title: TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning
+--------------------------------------------------------------------------------
+Learning to Rank Based on Subsequences (https://openaccess.thecvf.com/content_iccv_2015/papers/Fernando_Learning_to_Rank_ICCV_2015_paper.pdf)
+citeturn612search20 [wordlim: 200] Crawled: 4 days ago; To learn accurate rankers we need discriminative feature representations \(\psi(X_i,Y_i^j)\). ... The mean pairwise difference representation is perhaps the most popular choice in the learning-to-rank literature [12, 27, 13, 21, 18, 9].
+--------------------------------------------------------------------------------
+LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era (https://arxiv.org/abs/2609.18148)
+citeturn612academia21 [wordlim: 200] Published: 2 months ago; In this paper, we propose LIGE-GR, a listwise generation and evaluation recommendation framework that upgrades from a traditional ranking system based on itemwise recommendation toward a generative recommendation paradigm.
+--------------------------------------------------------------------------------
+Learning bivariate scoring functions for ranking (https://link.springer.com/article/10.1007/s10791-024-09444-7)
+citeturn612search8 [wordlim: 200] Published: 2.1 years ago; Crawled: 2 months ago; Learning-to-Rank algorithms are characterized mainly by the ranking model \(\Phi\) learned and the loss function \(\ell {}\) exploited. ... The first question regards how to learn a bivariate ranking model that is invariant to permutations.
+--------------------------------------------------------------------------------
+GAIN: A Gated Adaptive Feature Interaction Network for Click-Through Rate Prediction (https://pmc.ncbi.nlm.nih.gov/articles/PMC9571864/)
+citeturn612search9 [wordlim: 200] Published: 4.1 years ago; Crawled: 3 weeks ago; Therefore, the CTR prediction task has always been a hot research spot for academia and industry.
+
+Modeling a feature interaction is one of the most prevailing methods for the CTR prediction task.
+--------------------------------------------------------------------------------
+A survey on neural top-rank learning (https://www.sciencedirect.com/science/article/pii/S0925231226024902)
+citeturn612search10 [wordlim: 200] Crawled: last week; Top-rank learning aims to learn a real-valued ranking function that maximizes Pos@Top, which refers to the most reliable positive samples ranked above the top-ranked negative sample. ... To the best of our knowledge, this is the first survey that: (i) formally establishes the conceptual hierarchy among LTR, bipartite ranking, and top-rank learning; (ii) systematically reviews the integration of top-rank objectives with modern neural architectures, including graph neural networks; (iii) bridges discriminative top-rank learning and generative top-rank selection—a connection largely overlooked in prior literature; and (iv) identifies open challenges at the intersection of top-rank learning and foundation models.
+--------------------------------------------------------------------------------
+TabM: Advancing Tabular Deep Learning with Parameter-Efficient Ensembling (https://alex-wiki.langotime.ai/sources/tabm-2024)
+citeturn612search11 [wordlim: 200] Published: 6 months ago; Crawled: last month;   * Numerical embedding package used by the official code: yandex-research/rtdl-num-embeddings ... Its numerical embeddings operate on typed table columns, not on literal numerals in a token stream. ... The paper reports that TabM is a top-tier tabular deep-learning model under this protocol and emphasizes that MLP-like models, including TabM, offer a better performance-efficiency tradeoff than the evaluated attention- and retrieval-based tabular architectures.
+--------------------------------------------------------------------------------
+Learning to rank (https://en.wikipedia.org/wiki/Learning_to_rank)
+citeturn612search22 [wordlim: 200] Crawled: last week; Learning to rank (LTR) or machine-learned ranking (MLR) is the application of machine learning, often supervised, semi-supervised or reinforcement learning, in the construction of ranking models for information retrieval and recommender systems. ... Such an approach is sometimes called bag of features and is analogous to the bag of words model and vector space model used in information retrieval for representation of documents. ... (2005), "Query Chains: Learning to Rank from Implicit Feedback" (PDF), Proceedings of the ACM Conference on Knowledge Discovery and Data Mining, arXiv:cs/0605035, Bibcode:2006cs........5035R, archived (PDF) from the original on 2011-07-27, retrieved 2009-12-19
+--------------------------------------------------------------------------------
+Preference learning (https://en.wikipedia.org/wiki/Preference_learning)
+citeturn612search23 [wordlim: 200] Crawled: 3 months ago; The main task in preference learning concerns problems in "learning to rank".
+--------------------------------------------------------------------------------
+Recommender system (https://en.wikipedia.org/wiki/Recommender_system)
+citeturn612search24 [wordlim: 200] Crawled: yesterday; "Actions Speak Louder than Words: Trillion-Parameter Sequential Transducers for Generative Recommendations". arXiv:2402.17152 [cs.LG]. ... Bridging-Based Ranking (Report).
+--------------------------------------------------------------------------------
+AI & Machine Learning Full Course - Lecture 10 - Learning to Rank (LTR), Pointwise vs Pairwise vs Listwise Ranking, TF-IDF, Cosine Similarity, Bag of Words, Query-Document Features, Relevance Labels, RankNet, LambdaRank & LambdaMART for Search and Recommendations (https://www.reddit.com/r/SECourses/comments/1xt2335/ai_machine_learning_full_course_lecture_10/)
+citeturn612reddit25 [wordlim: 200] Published: last week; # Learn how search engines rank results, from TF-IDF to supervised learning to rank ... * 21:19 Vector Space Representation ... Learning to Rank · Information Retrieval · TF-IDF · Cosine Similarity · Bag of Words · Pointwise · Pairwise · Listwise · Relevance Judgments · NDCG · RankNet · LambdaRank · LambdaMART · Search Ranking
+--------------------------------------------------------------------------------
+Apprentissage par classement (https://fr.wikipedia.org/wiki/Apprentissage_par_classement)
+citeturn612search26 [wordlim: 200] Crawled: 2 months ago; *  Tapio Pahikkala, Tsivtsivadze, Evgeni, Airola, Antti, Järvinen, Jouni et Boberg, Jorma, An efficient algorithm for learning to rank from preference graphs, vol. 75, 2009, 129–165 p.
+--------------------------------------------------------------------------------
+Apprendimento di ranking (https://it.wikipedia.org/wiki/Apprendimento_di_ranking)
+citeturn612search27 [wordlim: 200] Crawled: last year; *   Chris Burges, Tal Shaked e Erin Renshaw, Learning to rank using gradient descent, in Proceedings of the 22nd international conference on Machine learning, Association for Computing Machinery, 7 agosto 2005, pp.
+--------------------------------------------------------------------------------
+Aprendizaje de clasificación (https://es.wikipedia.org/wiki/Aprendizaje_de_clasificaci%C3%B3n)
+citeturn612search28 [wordlim: 200] Crawled: 2 months ago; Duh (2009), Learning to Rank with Partially-Labeled Data Archivado el 20 de julio de 2011 en Wayback Machine.
+--------------------------------------------------------------------------------
+How Ranking Systems Evolved: From Rules to LLM-Based Ranking (https://www.reddit.com/r/learnmachinelearning/comments/1vzb2yv/how_ranking_systems_evolved_from_rules_to/)
+citeturn612reddit29 [wordlim: 200] Published: 2 months ago; **Rules → Learning-to-Rank → Deep Ranking → Transformers → Multi-Objective/Slate → Bandits/RL → LLM Ranking**
+

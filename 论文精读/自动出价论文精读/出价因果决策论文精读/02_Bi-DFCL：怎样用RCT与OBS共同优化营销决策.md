@@ -1,4 +1,10 @@
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“02_Bi-DFCL：怎样用RCT与OBS共同优化营销决策”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 
 论文：[Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization: Bridging Observational and Experimental Data](https://arxiv.org/abs/2510.19517)  
 会议：NeurIPS 2025  

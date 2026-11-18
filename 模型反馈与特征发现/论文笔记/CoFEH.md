@@ -8,6 +8,12 @@ category: "多模型反馈与经验学习"
 
 # CoFEH: LLM-driven Feature Engineering Empowered by Collaborative Bayesian Hyperparameter Optimization
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“CoFEH: LLM-driven Feature Engineering Empowered by Collaborative Bayesian Hyperparameter Optimization”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > MCTS搜索特征处理流水线，BO搜索下游超参数；用数据状态元特征及超参数共同建代理；HPO新分数回传特征搜索树，动态分配两种搜索预算。
 

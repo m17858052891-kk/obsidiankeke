@@ -35,5 +35,5 @@ topics: [因果推断]
 
 ## 项目案例
 
-- [[ecr/项目指标：AUCC与MTAUCC|项目指标：AUCC与MTAUCC]]：保留项目的完整计算定义。
-- [[ecr/README|ecr入口]]：区分离线证据与当前结论。
+- [[项目指标：AUCC与MTAUCC|项目指标：AUCC与MTAUCC]]：保留项目的完整计算定义。
+- [[面试准备/实习总结/实习相关/ecr/README|ecr入口]]：区分离线证据与当前结论。

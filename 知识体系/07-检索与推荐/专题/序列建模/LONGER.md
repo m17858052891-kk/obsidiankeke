@@ -11,6 +11,12 @@ created: 2026-07-27
 
 # LONGER：工业推荐超长序列建模详解
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 司乘行为序列建模**。保留“LONGER：工业推荐超长序列建模详解”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/司乘行为序列建模/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 论文：[LONGER: Scaling Up Long Sequence Modeling in Industrial Recommenders](https://arxiv.org/abs/2505.04421)  
 HTML：[arXiv HTML](https://arxiv.org/html/2505.04421)  
 会议：RecSys 2025  

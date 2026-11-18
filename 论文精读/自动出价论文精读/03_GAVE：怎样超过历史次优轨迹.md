@@ -9,6 +9,12 @@ created: 2026-07-28
 ---
 # GAVE：怎样超过历史次优轨迹？
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“GAVE：怎样超过历史次优轨迹？”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 论文：[Generative Auto-Bidding with Value-Guided Explorations](https://arxiv.org/abs/2504.14587)  
 PDF：[作者公开版本](https://personal.ntu.edu.sg/boan/papers/SIGIR25_autobidding.pdf)  
 代码：[Applied-Machine-Learning-Lab/GAVE](https://github.com/Applied-Machine-Learning-Lab/GAVE)  

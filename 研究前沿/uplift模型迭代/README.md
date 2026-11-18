@@ -7,9 +7,15 @@ created: "2026-11-04"
 
 # uplift模型迭代
 
+自 2026-11-18 起，本文作为方法参考。当前日报检索入口见 [[研究前沿/预分单与候选扩展/README|预分单与候选扩展]] · [[研究前沿/换车与动态重匹配/README|换车与动态重匹配]] · [[研究前沿/升舱与预算分配/README|升舱与预算分配]] · [[研究前沿/等应答页表单与交互决策/README|等应答页表单与交互决策]] · [[研究前沿/模型自进化/README|模型自进化]]。
+
+
 怎样更准确、稳健、高效地估计干预增量，并把估计用于排序、分配和决策？
 
+**策略迭代阅读入口**　[[研究前沿/uplift模型迭代/按交易策略先读|阅读顺序、可改模块与第一步对照]]
+
 ## 第一次读，从这里开始
+
 
 先读 [[研究前沿/uplift模型迭代/01-论文原文与精读/PPDF/精读|随机试验很小时，观察数据能帮什么忙]]。读完试着说清两件事：哪批数据决定要估计谁的增量，哪批数据能帮助减少估计的波动。
 
@@ -23,13 +29,13 @@ created: "2026-11-04"
 
 ### 哪些数据足以识别增量
 
-同一人只能看到一条结果。即使全程随机分组，两个组的结果分布也不足以确定个体增量的方差。[[研究前沿/uplift模型迭代/01-论文原文与精读/JointPOBounds/精读|JointPOBounds 的上下界]] 解释此时还能报告多窄的范围。如果发券会影响相邻用户，[[研究前沿/uplift模型迭代/01-论文原文与精读/NEDNet/精读|NEDNet 的自身与邻居效应]] 要另外记录邻居暴露，检查各组合是否在数据里出现，并检验自身处理和邻居暴露能否相加。它的效果来自两个社交网络的半合成实验。
+同一人只能看到一条结果。即使全程随机分组，两个组的结果分布也不足以确定个体增量的方差。[JointPOBounds 的上下界（原文）](https://arxiv.org/abs/2611.07536v1) 解释此时还能报告多窄的范围。如果发券会影响相邻用户，[[研究前沿/uplift模型迭代/01-论文原文与精读/NEDNet/精读|NEDNet 的自身与邻居效应]] 要另外记录邻居暴露，检查各组合是否在数据里出现，并检验自身处理和邻居暴露能否相加。它的效果来自两个社交网络的半合成实验。
 
 [[研究前沿/uplift模型迭代/03-实验假设与结果/检验网络暴露分支遗漏的处理交互|未运行：加入处理与邻居暴露的交互，看加性分支何时失效]]
 
 ### 预算固定时怎样选档
 
-如果每轮都可以探索，[[研究前沿/uplift模型迭代/01-论文原文与精读/ActionCenteredCBwK/精读|ActionCenteredCBwK]] 用当轮各档被选中的实际概率估计相对不干预的增量，再用剩余预算筛动作。若分配器已经固定，[[研究前沿/uplift模型迭代/01-论文原文与精读/LCM-Promo/精读|LCM-Promo]] 提供另一种对照：保持同一全局预算和分配器，只换促销响应模型。前者的对照来自半合成环境；后者报告了真实平台上更换模型的整体 A/B 结果。读前先确认自己能改估计器、分配器，还是两者都能改。
+如果每轮都可以探索，[[多档干预下，怎样判断对一个人再加一档是否值得|ActionCenteredCBwK]] 用当轮各档被选中的实际概率估计相对不干预的增量，再用剩余预算筛动作。若分配器已经固定，[[模型迭代思想记录/LCM-Promo：怎样把带场景的历史行为用到预测里|LCM-Promo 方法笔记]] 提供另一种对照：保持同一全局预算和分配器，只换促销响应模型。前者的对照来自半合成环境；后者报告了真实平台上更换模型的整体 A/B 结果。读前先确认自己能改估计器、分配器，还是两者都能改。
 
 [[研究前沿/uplift模型迭代/02-可复用方法卡/按实际抽样分布中心化多档动作|多档动作怎样中心化]] · [[研究前沿/uplift模型迭代/03-实验假设与结果/预算固定时基线错设对多档增量决策的影响|未运行：固定预算和控制器，只替换增量估计]]
 
@@ -74,25 +80,26 @@ uplift建模、增益建模、异质性处理效应、个体处理效应、多�
 
 ## 可直接执行的检索组合
 
-每条独立检索，按检索日期附加时间窗口；不得要求同一论文命中全部词。
+公共短查询逐条执行。
 
-- `"uplift modeling" deep learning`
-- `"treatment effect estimation" representation learning`
-- `"multi-treatment" uplift`
-- `"continuous treatment" "dose response"`
-- `"treatment effect" randomized observational data fusion`
-- `"uplift" calibration ranking evaluation`
-- `"causal" "decision-focused learning"`
-- `uplift 异质性处理效应 多处理 连续干预 模型`
+- `"multi-treatment uplift" policy evaluation`
+- `"uplift modeling" fixed budget`
+- `"dose-response" pricing incentives`
+- `"policy learning" multiple budget constraints`
+- `"offline policy evaluation" randomized targeting`
+- `多档补贴 增量完单 策略评估`
 
-扩展路线：
+跨领域机制补查：
 
-- `"treatment effect" Transformer attention`
-- `"causal inference" orthogonal representation`
-- `"uplift" multi-task monotonic uncertainty`
-- `"policy learning" heterogeneous treatment effects`
+- `"heterogeneous treatment effects" ranking calibration`
+- `"causal representation learning" multiple treatments`
 
 ## 收录边界
+
+优先看发单前一次表单曝光中可选的折扣、补贴或展示组合。记录可选动作和不干预基线、随机化单位、预算及业务约束；在相同成本或相同触达比例下，检查哪种规则产生更多增量呼叫、完单或净收益。相同触达比例只有在单位成本相当时才近似同预算。也接纳能改变相邻档响应估计、策略排序或约束评估的表示、损失与校准模块。 依总规则判为主读、前沿观察或本轮略过。
+
+本地依据　[[花小猪/2026年LR/【LR26-052】乘客与增长-技术建设-可变决策空间与双约束问题的Uplift 模型评估优化-V1.0|乘客与增长-技术建设-可变决策空间与双约束问题的Uplift 模型评估优化-V1.0]] · [[花小猪/2026年LR/【LR26-043】乘客与增长-表单策略-平台联合决策V4离线规划求解-V1.0|乘客与增长-表单策略-平台联合决策V4离线规划求解-V1.0]]
+
 
 不要求来自网约车、营销或已有生产系统。医疗、广告、推荐、经济学等领域的方法，只要对处理效应、干预响应或因果决策有明确模块价值，都可收录。普通 CTR/CVR、通用 Transformer、LLM 或推荐模型须指出具体可迁移机制，不能只凭标题沾边入库。
 

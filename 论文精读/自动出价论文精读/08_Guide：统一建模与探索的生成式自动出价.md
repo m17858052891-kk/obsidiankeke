@@ -11,6 +11,12 @@ created: 2026-08-14
 
 # Guide：统一建模与探索的生成式自动出价
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“Guide：统一建模与探索的生成式自动出价”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 论文： [Generative Auto-Bidding with Unified Modeling and Exploration](https://arxiv.org/abs/2605.19457)  
 代码： [M2C-Tech/GUIDE](https://github.com/M2C-Tech/GUIDE)  
 作者：Mingming Zhang 等，Taobao & Tmall Group / Wuhan University  

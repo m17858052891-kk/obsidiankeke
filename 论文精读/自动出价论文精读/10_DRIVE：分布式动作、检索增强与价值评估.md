@@ -20,6 +20,12 @@ date_read: 2026-09-01
 
 # DRIVE：Distributional and Retrieval-Augmented Bidding with Value Evaluation
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“DRIVE：Distributional and Retrieval-Augmented Bidding with Value Evaluation”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!abstract] 一句话结论
 > DRIVE 不让 Decision Transformer 直接回归并执行一个“平均动作”，而是先用 **GMM 生成多峰动作候选**、再从历史轨迹中 **检索相似且高 RTG 的动作候选**，最后用 **离线 IQL critic 对候选统一估值并选择**。它真正的创新不是某个单独组件，而是把“提出候选”和“决定执行”解耦。
 

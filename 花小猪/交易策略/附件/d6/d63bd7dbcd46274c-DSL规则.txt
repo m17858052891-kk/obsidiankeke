@@ -1,0 +1,87 @@
+dia.version 0.1
+
+available:
+    accept all
+;
+action:
+  var.llm_high_accuracy = 0
+  var.hit_rule = 0
+  // 1) 实时单取消前，司乘无成功通话，乘客主叫司机的通话未成功大于1次
+  when (fact.order_passenger_call_driver_failed_before_cancel == 1 && fact.duty_output == '司机无责') ||
+       (fact.order_passenger_call_driver_failed_before_cancel == 1 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_passenger_call_driver_failed_before_cancel == 1 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))           
+  then
+    var.hit_rule = 1
+    var.llm_high_accuracy = 1
+    return
+  end
+
+  // 2) 司机接单位置在路口或高架桥: 0, 上车点禁停: 0, park_time为dos_cancelled_time - order_dos_strive_time
+  when (fact.order_first_link_is_crossing_or_elevated == 0 && fact.order_is_noparking_mole == 0 && fact.park_time < 15 && fact.duty_output == '司机无责') ||
+       (fact.order_first_link_is_crossing_or_elevated == 0 && fact.order_is_noparking_mole == 0 && fact.park_time < 15 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_first_link_is_crossing_or_elevated == 0 && fact.order_is_noparking_mole == 0 && fact.park_time < 15 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))         
+  then
+    var.hit_rule = 2
+    var.llm_high_accuracy = 1
+    return
+  end
+
+  // 3) 司机接单位置在路口或高架桥: 0, 订单取消之后2小时内司机没有完单: 1, is_serial_order: 0
+  when (fact.order_first_link_is_crossing_or_elevated == 0 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.order_is_serial_type == 0 && fact.duty_output == '司机无责') ||
+       (fact.order_first_link_is_crossing_or_elevated == 0 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.order_is_serial_type == 0 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_first_link_is_crossing_or_elevated == 0 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.order_is_serial_type == 0 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))     
+  then
+    var.hit_rule = 3
+    var.llm_high_accuracy = 1
+    return
+  end
+
+  // 4) 司机取消: 1, 上车点禁停: 0, 订单取消之后2小时内司机没有完单: 1
+  when (fact.order_driver_cancel == 1 && fact.order_is_noparking_mole == 0 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.duty_output == '司机无责') ||
+       (fact.order_driver_cancel == 1 && fact.order_is_noparking_mole == 0 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) 
+  then
+    var.hit_rule = 4
+    var.llm_high_accuracy = 1
+    return
+  end
+
+  // 5) 上车点禁停: 0, 司机无法在司机迟到时间前到达上车点: 1, is_serial_order: 0
+  when (fact.order_is_noparking_mole == 0 && fact.order_driver_will_late == 1 && fact.order_is_serial_type == 0 && fact.duty_output == '司机无责') ||
+       (fact.order_is_noparking_mole == 0 && fact.order_driver_will_late == 1 && fact.order_is_serial_type == 0 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_is_noparking_mole == 0 && fact.order_driver_will_late == 1 && fact.order_is_serial_type == 0 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))     
+  then
+    var.hit_rule = 5
+    var.llm_high_accuracy = 1
+    return 
+  end
+
+  // 6) 司机接驾途中在原地停留时长大于3分钟: 1, 本单是未开跨城费城市的跨城单: 0, is_serial_order: 0
+  when (fact.order_is_driver_stay_three_min == 1 && fact.order_crosscity_no_cross_city_fee == 0 && fact.order_is_serial_type == 0 && fact.duty_output == '司机无责') ||
+       (fact.order_is_driver_stay_three_min == 1 && fact.order_crosscity_no_cross_city_fee == 0 && fact.order_is_serial_type == 0 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_is_driver_stay_three_min == 1 && fact.order_crosscity_no_cross_city_fee == 0 && fact.order_is_serial_type == 0 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))     
+  then
+    var.hit_rule = 6
+    var.llm_high_accuracy = 1
+    return
+  end
+
+  // 7) 取消时刻司机行驶距离大于300米: 1, 订单取消之后2小时内司机没有完单: 1, is_serial_order: 0
+  when (fact.order_pickup_dist_gt_three_hundred == 1 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.order_is_serial_type == 0 && fact.duty_output == '司机无责') ||
+       (fact.order_pickup_dist_gt_three_hundred == 1 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.order_is_serial_type == 0 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_pickup_dist_gt_three_hundred == 1 && fact.order_no_pickup_two_hour_after_cancel == 1 && fact.order_is_serial_type == 0 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))     
+  then
+    var.hit_rule = 7
+    var.llm_high_accuracy = 1
+    return
+  end
+
+  // 8) 本单是未开跨城费城市的跨城单: 0, 司机接驾途中在原地停留时长大于3分钟: 1, 上车点禁停: 0
+  when (fact.order_crosscity_no_cross_city_fee == 0 && fact.order_is_driver_stay_three_min == 1 && fact.order_is_noparking_mole == 0 && fact.duty_output == '司机无责') ||
+       (fact.order_crosscity_no_cross_city_fee == 0 && fact.order_is_driver_stay_three_min == 1 && fact.order_is_noparking_mole == 0 && fact.order_driver_cancel == 1 && fact.judge_feature_name in ('司机长时间停留','司机无法按时到达','无特殊情况，司机未到达上车点')) ||
+       (fact.order_crosscity_no_cross_city_fee == 0 && fact.order_is_driver_stay_three_min == 1 && fact.order_is_noparking_mole == 0 && fact.order_passenger_cancel == 1 && fact.judge_feature_name in ('因司机个人原因导致订单取消', '司机长时间停留'))     
+  then
+    var.hit_rule = 8
+    var.llm_high_accuracy = 1
+    return
+  end
+; 

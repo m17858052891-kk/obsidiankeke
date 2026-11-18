@@ -8,6 +8,12 @@ category: "多模型反馈与经验学习"
 
 # Optimizing Reasoning LLMs for Automated Feature Engineering via Multi-Stage Direct Preference Optimization
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Optimizing Reasoning LLMs for Automated Feature Engineering via Multi-Stage Direct Preference Optimization”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 先用Critic对提案的用途、多样性和冗余评分形成偏好对，再用执行成功与相对原始特征的验证AUC形成代码偏好对；两阶段DPO更新生成器，之后冻结应用于未见任务。
 

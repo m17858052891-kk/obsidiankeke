@@ -8,6 +8,12 @@ category: "多模型反馈与经验学习"
 
 # MACFE: A Meta-learning and Causality Based Feature Engineering Framework
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“MACFE: A Meta-learning and Causality Based Feature Engineering Framework”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 特征直方图+dataset meta-features检索MIC收益经验；DAGClassifier预选原始特征，再组合变换。
 

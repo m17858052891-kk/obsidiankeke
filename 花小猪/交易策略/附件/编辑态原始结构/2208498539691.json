@@ -1,0 +1,2789 @@
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "元信息",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "完整标题：Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization: Bridging Observational and Experimental Data",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "作者：Shuli Zhang, Hao Zhou, Jiaqi Zheng, Guibin Jiang, Bing Cheng, Wei Lin, Guihai Chen",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "发表：NeurIPS 2025 Main Conference Track, CCF-A",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "官方页面：https://proceedings.neurips.cc/paper_files/paper/2025/hash/93427bc08aef8f9d6d5366d70284f571-Abstract-Conference.html",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "arXiv：https://arxiv.org/abs/2510.19517",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "本地 PDF：/Users/didi/Desktop/2026/v3_workspace/cift/paper/2025_neurips_bi_level_decision_focused_causal_learning_for_large_scale_marketing_optimization.pdf",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "筛选原因：原清单标注为 NeurIPS 2025，属于 CCF-A；NeurIPS 官方 proceedings 确认其为 Main Conference Track。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "摘要总结",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文研究大型互联网平台营销资源分配问题。传统方案通常是两阶段：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "用 ML/uplift/CATE 模型预测不同 treatment 对个体的增量收益和成本；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "把预测值输入 OR/knapsack 优化器，在预算约束下分配补贴、折扣、券等资源。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "text": "这种路线有两个关键问题：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "prediction-decision misalignment：预测误差低不代表预算分配决策好；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "bias-variance dilemma：OBS 数据规模大但有选择偏差、位置偏差等，RCT 数据无偏但昂贵且样本少。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "论文提出 Bi-DFCL，即 Bi-Level Decision-Focused Causal Learning。核心是把 RCT 中无偏的决策质量估计作为上层目标，把 OBS 中大规模 prediction learning 作为下层目标，通过 Bridge Network 生成 counterfactual pseudo-labels，动态纠正 OBS 训练方向。方法还提出 primal policy learning loss 与 primal improved finite difference，解决离散 OR 决策不可微问题；再用 implicit differentiation 求解双层优化，避免手动调 prediction loss 与 decision loss 权重。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "实验包括 Criteo uplift benchmark、美团两个大规模营销数据集和四周线上 A/B test。结果显示 Bi-DFCL 在离线 AUCC/EOM 和线上订单指标上均优于 TSM、DFCL、LTD-DR、AutoDebias 等基线，并已在美团营销场景部署。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "引言与研究动机",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "营销资源有限，平台需要从大量商户、用户或商品中选择 treatment，例如不同额度的满减、不同折扣、是否发券等。该问题天然是预算约束下的多 treatment 分配问题。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "传统 two-stage method 的缺陷：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "ML 阶段优化预测准确率，OR 阶段优化预算下总收益，两者目标不一致；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "marketing OR 通常是非凸、NP-hard 的 multi-choice knapsack，预测误差可能被决策过程放大；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "OBS 日志样本多但有 confounding，RCT 样本少但无偏；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "只用 OBS 高偏，直接用 RCT 高方差，朴素融合又难以获得好的 bias-variance tradeoff。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "Decision-Focused Learning 能把下游决策质量纳入训练，但现有 DFL 方法很难直接用于营销：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "MCKP 离散且不可微；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "预算约束不确定；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "counterfactual outcome 不可观测；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "大规模数据下计算成本高；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "现有 DFCL 主要用 RCT 估计 decision loss，无法充分利用 OBS。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "本文的目标是同时解决“预测-决策错位”和“OBS/RCT 偏差-方差困境”。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "方法细节",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "问题形式化：MTBAP",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "设有 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "N"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 个个体、",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "M"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 个 treatment。对个体 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 和 treatment ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "r_{ij}"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：潜在收益；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "c_{ij}"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：潜在成本；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "z_{ij} \\in \\{0,1\\}"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：是否给个体 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "i"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 分配 treatment ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "j"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "目标是在预算 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "B"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 下最大化总收益：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\begin{aligned}\n\\max_z \\quad & \\sum_i \\sum_j z_{ij} r_{ij} \\\\\n\\mathrm{s.t.} \\quad & \\sum_i \\sum_j z_{ij} c_{ij} \\le B \\\\\n& \\sum_j z_{ij} = 1,\\quad \\forall i \\\\\n& z_{ij} \\in \\{0,1\\}\n\\end{aligned}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "这是 multi-treatment budget allocation problem，本质是 multi-choice knapsack problem。论文使用 Lagrangian relaxation 近似求解：给定 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\lambda^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，选择 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\arg\\max_j [r_{ij} - \\lambda^* c_{ij}]"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "预测损失与决策损失",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "Target Network ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "F_\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 预测：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "\\hat{r}_{ij}(\\theta)"
+                  },
+                  "type": "mathquill"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "\\hat{c}_{ij}(\\theta)"
+                  },
+                  "type": "mathquill"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "prediction loss 是收益和成本的 MSE：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "L_{\\mathrm{PL}}(\\theta)\n=\n\\mathbb{E}\n\\left[\n(r_{ij} - \\hat{r}_{ij})^2\n+\n(c_{ij} - \\hat{c}_{ij})^2\n\\right]"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "decision loss 是负的真实决策收益：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "L_{\\mathrm{DL}}(\\theta)\n=\n-\nM \\cdot\n\\mathbb{E}\n\\left[\nz^*_{ij}(\\hat{r}(\\theta), \\hat{c}(\\theta)) r_{ij}\n\\right]"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "但在因果营销里，对每个样本只观察到 factual treatment 下的 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "r_{i,t_i}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 和 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "c_{i,t_i}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，counterfactual surfaces 不可观测，因此 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "L_{\\mathrm{PL}}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 和 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "L_{\\mathrm{DL}}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 都不能直接完整计算。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "Bi-level Optimization",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文将 RCT 和 OBS 分工：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "上层：用 RCT 计算无偏 decision loss，优化 Bridge Network；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "下层：用 OBS 大样本训练 Target Network 的 prediction loss，但该 loss 被 Bridge Network 纠偏。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "双层形式：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\phi^*\n=\n\\arg\\min_{\\phi}\nL_{\\mathrm{DL}}(\\theta^*(\\phi); D_{\\mathrm{RCT}})"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\mathrm{s.t.}\\quad\n\\theta^*(\\phi)\n=\n\\arg\\min_{\\theta}\nL_{\\mathrm{PL}}(\\phi, \\theta; D_{\\mathrm{OBS}})"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "其中：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "F_\\theta"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 是 Target Network；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "G_\\phi"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 是 Bridge Network；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "F_\\psi"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 是 Teacher Network，先在 RCT 上用任意 uplift model 预训练并固定。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "Bridge Network 输出 gating coefficient ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "w"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，用来生成 OBS 上未观测 treatment 的 counterfactual pseudo-label：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "r^{cf}_{ij}\n=\n\\hat{r}^{pre}_{ij}(\\psi) w^r_{ij}\n+\n\\hat{r}_{ij}(\\theta)(1 - w^r_{ij})"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "c^{cf}_{ij}\n=\n\\hat{c}^{pre}_{ij}(\\psi) w^c_{ij}\n+\n\\hat{c}_{ij}(\\theta)(1 - w^c_{ij})"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "也就是说，pseudo-label 在 RCT teacher 的相对无偏但高方差信号与 OBS target 的低方差但可能有偏信号之间自适应折中。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "下层 OBS prediction loss 包含两部分：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "factual label 的 MSE；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "counterfactual pseudo-label 的 MSE。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "这样，RCT 的 decision-aware 信号通过 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "G_\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 改写 OBS 上的训练目标，使大规模 OBS 学习方向更接近真实决策质量。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "决策损失不可微的处理",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "真实 knapsack 解 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 包含 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\arg\\max"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 和 indicator，不可微。论文先利用 RCT strong ignorability 构造 decision loss 的无偏估计：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "L_{\\mathrm{DL}}(\\theta; D_{\\mathrm{RCT}})\n=\n-\n\\mathbb{E}_{i,t_i}\n\\left[\n\\frac{N}{N_{t_i}}\nz^*_{i,t_i}(\\hat{r}, \\hat{c})\nr_{i,t_i}\n\\right]"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "然后提出两个 primal surrogate。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "PPL：Primal Policy Learning Loss",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "用 softmax relaxation 近似离散选择：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "z'_{i,t_i}\n=\n\\frac{\n\\exp(\\hat{r}_{i,t_i} - \\lambda^* \\hat{c}_{i,t_i})\n}{\n\\sum_j \\exp(\\hat{r}_{ij} - \\lambda^* \\hat{c}_{ij})\n}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "得到：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "L_{\\mathrm{PPL}}\n=\n-\n\\mathbb{E}\n\\left[\n\\frac{N}{N_{t_i}}\nz'_{i,t_i}\nr_{i,t_i}\n\\right]"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "PPL 直接针对特定预算 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "B"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 下的 primal decision quality，而不是像 dual decision loss 那样考虑所有预算，因此更贴近真实营销约束。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "PIFD：Primal Improved Finite Difference",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "PIFD 通过黑盒扰动估计 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\partial L_{\\mathrm{DL}} / \\partial z'_{ij}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，并结合 PPL-aware gradient estimator 加速。相比 PPL，PIFD 保留原始优化 landscape，不依赖 relaxation 形状，同时可把估计梯度冻结成 non-trainable node 接入自动微分框架。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "Implicit Differentiation",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "双层优化需要求：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\nabla_\\phi L_{\\mathrm{DL}}(\\theta^*(\\phi); D_{\\mathrm{RCT}})\n=\n\\left.\n\\nabla_\\theta L_{\\mathrm{DL}}(\\theta; D_{\\mathrm{RCT}})\n\\right|_{\\theta = \\theta^*(\\phi)}\n\\frac{\\partial \\theta^*(\\phi)}{\\partial \\phi}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\theta^*(\\phi)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 没有闭式解。论文使用 implicit function theorem：下层最优点满足：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\frac{\n\\partial L_{\\mathrm{PL}}(\\phi, \\theta; D_{\\mathrm{OBS}})\n}{\n\\partial \\theta\n}\n=\n0"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "对 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 求导可得到线性系统：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "H_{\\theta\\theta}\n\\frac{\\partial \\theta^*(\\phi)}{\\partial \\phi}\n=\n-\nH_{\\phi\\theta}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "为避免显式构造或求逆 Hessian，论文使用 conjugate gradient，只需要 Hessian-vector product，适合大规模营销数据。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "实验总结",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "数据集",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文使用三类离线数据：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CRITEO-UPLIFT v2 Hybrid：公开 uplift benchmark，约 349.8 万 OBS 训练样本、69.9 万 RCT 训练样本、139.8 万 RCT 验证样本、419.4 万 RCT 测试样本；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Marketing Data I：美团满减场景，8 个 treatment，180 个特征，约 2220 万 OBS、222 万 RCT 训练样本；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Marketing Data II：美团折扣场景，5 个 treatment，192 个特征，约 3382 万 OBS、202 万 RCT 训练样本。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "离线指标：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "AUCC：用于 Criteo 二元 treatment，衡量成本曲线下的排序/决策质量；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "EOM：用于多 treatment 营销场景，基于 RCT 对预算分配策略的 expected outcome 做无偏估计。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "基线",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "基线分三组：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "只用 RCT：TSM-SL、TSM-CF、DHCL、DFCL-DPL、DFCL-DIFD；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "只用 OBS：TSM-SL、TSM-CF、IPS、DR-JT、CFR-WASS、CFR-MMD、DragonNet；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "RCT+OBS：TSM-SL、LTD-IPS、LTD-DR、AutoDebias、CausE、KD-Label、KD-Feature。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "离线结果",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "Bi-DFCL 在三个数据集上均优于所有基线。代表性结果：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CRITEO：Bi-DFCL-PIFD AUCC ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "0.7812 \\pm 0.0084"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，相对 TSM-SL 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "9.37\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Marketing Data I：Bi-DFCL-PIFD EOM ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "1.0297 \\pm 0.0030"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "2.97\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Marketing Data II：Bi-DFCL-PPL EOM ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "1.0252 \\pm 0.0023"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "2.52\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "观察结论：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "RCT-only 的 end-to-end 方法通常优于 two-stage，说明 decision-focused training 有价值；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "DFCL-PPL/PIFD 优于 dual decision loss，说明 primal budget-specific loss 更贴近真实决策；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "OBS-only 方法有时预测/排序不错，但受偏差限制，稳定性不足；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "现有 RCT+OBS 融合方法改善有限，Bi-DFCL 的 Bridge Network 与双层目标能更好折中偏差和方差。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "消融实验",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文按顺序加入四个组件：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Decision Loss (PPL)",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Bi-level Optimization",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Counterfactual Labels",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Implicit Differentiation",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "在两个美团营销数据上，每加入一个组件都带来提升。例如 Marketing Data I 从 baseline ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 1
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 到 PPL ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 1.0167
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，加入双层后 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 1.024
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，加入 counterfactual labels 后 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 1.0248
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，最终 implicit differentiation 达到 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 1.0277
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "线上 A/B Test",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文在美团折扣活动中进行了四周线上 A/B test：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "参与对象：约 79 万商户；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "treatment：",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "0\\%, 5\\%, 10\\%, 15\\%, 20\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 折扣；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "目标：在每日预算约束下最大化订单；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "对比方法：TSM-SL、LTD-DR、DFCL-PIFD、Bi-DFCL-PPL、Bi-DFCL-PIFD。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "四周归一化订单结果显示：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "LTD-DR 相对 TSM-SL 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "0.91\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "DFCL-PIFD 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "1.80\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Bi-DFCL-PPL 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "3.00\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Bi-DFCL-PIFD 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "3.22\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "这说明方法不仅离线有效，也能在真实营销预算分配中转化为线上收益。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "创新点、局限与启发",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "创新点：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "将 OBS/RCT 融合从“估计 CATE 更准”推进到“最终预算分配决策更好”；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "上层 RCT decision loss 与下层 OBS prediction loss 的双层结构，天然平衡偏差和方差；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Bridge Network 用 RCT 信号动态修正 OBS counterfactual pseudo-label；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "PPL/PIFD 解决营销 MCKP 中离散决策不可微问题；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "implicit differentiation 使双层训练可扩展到千万级样本。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "局限：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "方法复杂，工程实现成本高，需要稳定的 RCT 数据、teacher model、bridge model 和 OR solver；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "论文强依赖 RCT 对 decision loss 的无偏估计，若实验设计或 logging 有问题，会影响上层目标；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "对预算、成本、收益定义较依赖业务场景；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "PIFD、implicit differentiation 等模块可能带来较高训练成本和调试难度。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "对 CIFT 的启发：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "对离散价格、补贴、折扣策略，不能只优化 CATE/uplift 精度，应直接对齐预算约束下的策略收益；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "可用 OBS 训练大模型，用 RCT 构造无偏 decision loss 来纠正学习方向；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Bridge Network/pseudo-label 思路适合把“实验可信但少”和“日志丰富但偏”结合起来；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "如果 CIFT 后续目标是资源分配或价格策略优化，Bi-DFCL 提供了比单纯 CATE 校准更靠近决策闭环的框架。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    }
+  ],
+  "format": "agent-readable-json",
+  "operation": "pull",
+  "sections": [
+    {
+      "anchor": "",
+      "headingText": "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+      "index": 0,
+      "level": 1,
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "元信息",
+      "index": 1,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "元信息"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "摘要总结",
+      "index": 9,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "摘要总结"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "引言与研究动机",
+      "index": 18,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "引言与研究动机"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "方法细节",
+      "index": 32,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "问题形式化：MTBAP",
+      "index": 33,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "问题形式化：MTBAP"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "预测损失与决策损失",
+      "index": 41,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "预测损失与决策损失"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "Bi-level Optimization",
+      "index": 50,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "Bi-level Optimization"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "决策损失不可微的处理",
+      "index": 69,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "决策损失不可微的处理"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "PPL：Primal Policy Learning Loss",
+      "index": 73,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "决策损失不可微的处理",
+        "PPL：Primal Policy Learning Loss"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "PIFD：Primal Improved Finite Difference",
+      "index": 79,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "决策损失不可微的处理",
+        "PIFD：Primal Improved Finite Difference"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "Implicit Differentiation",
+      "index": 81,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "方法细节",
+        "Implicit Differentiation"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "实验总结",
+      "index": 89,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "实验总结"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "数据集",
+      "index": 90,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "实验总结",
+        "数据集"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "基线",
+      "index": 98,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "实验总结",
+        "基线"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "离线结果",
+      "index": 103,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "实验总结",
+        "离线结果"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "消融实验",
+      "index": 113,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "实验总结",
+        "消融实验"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "线上 A/B Test",
+      "index": 120,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "实验总结",
+        "线上 A/B Test"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "创新点、局限与启发",
+      "index": 132,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization",
+        "创新点、局限与启发"
+      ]
+    }
+  ]
+}

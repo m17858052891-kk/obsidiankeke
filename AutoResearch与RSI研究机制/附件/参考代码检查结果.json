@@ -1,0 +1,102 @@
+{
+  "python": "3.9.6",
+  "packages": {
+    "numpy": "2.0.2",
+    "pandas": "2.3.3",
+    "matplotlib": "3.9.4",
+    "tqdm": "4.70.1"
+  },
+  "cases": [
+    {
+      "name": "exact_tqdm_import",
+      "result": "both imports succeeded",
+      "status": "returned",
+      "seconds": 0.005
+    },
+    {
+      "name": "score_zero_reference_area",
+      "result": {
+        "value": "nan",
+        "finite": false
+      },
+      "status": "returned",
+      "seconds": 0.0
+    },
+    {
+      "name": "missing_treatment_group",
+      "status": "raised",
+      "exception": "ZeroDivisionError",
+      "message": "division by zero",
+      "seconds": 0.002
+    },
+    {
+      "name": "disable_group_balance",
+      "status": "raised",
+      "exception": "UnboundLocalError",
+      "message": "local variable 'balance_weight_dict' referenced before assignment",
+      "seconds": 0.001
+    },
+    {
+      "name": "qini_10_rows_100_points",
+      "status": "raised",
+      "exception": "ValueError",
+      "message": "slice step cannot be zero",
+      "seconds": 0.001
+    },
+    {
+      "name": "missing_outcome_label",
+      "result": {
+        "missing_label_after_preprocessing": [
+          0.0
+        ]
+      },
+      "status": "returned",
+      "seconds": 0.02
+    },
+    {
+      "name": "no_effect_complete_report",
+      "result": {
+        "scores": [
+          "nan",
+          "nan"
+        ],
+        "finite": [
+          false,
+          false
+        ]
+      },
+      "status": "returned",
+      "seconds": 0.037
+    },
+    {
+      "name": "recompute_saved_example",
+      "result": {
+        "rows": 239377,
+        "prediction_dtype": "float64",
+        "algorithm_mtaucc": 0.09054,
+        "saved_log_algorithm_mtaucc": 0.09055,
+        "algorithm_matches_saved_log": false,
+        "random_mtaucc_in_this_probe": 0.04475,
+        "random_value_reproduces_training_rng": false,
+        "scope": "evaluation of saved predictions only; no training/reproduction claim"
+      },
+      "status": "returned",
+      "seconds": 4.507
+    },
+    {
+      "name": "recompute_saved_example_float32",
+      "result": {
+        "rows": 239377,
+        "prediction_dtype": "float32",
+        "algorithm_mtaucc": 0.09055,
+        "saved_log_algorithm_mtaucc": 0.09055,
+        "algorithm_matches_saved_log": true,
+        "random_mtaucc_in_this_probe": 0.04475,
+        "random_value_reproduces_training_rng": false,
+        "scope": "evaluation of saved predictions only; no training/reproduction claim"
+      },
+      "status": "returned",
+      "seconds": 4.272
+    }
+  ]
+}

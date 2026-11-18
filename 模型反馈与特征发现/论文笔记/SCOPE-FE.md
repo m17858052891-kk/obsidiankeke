@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # SCOPE-FE: Structured Control of Operator and Pairwise Exploration for Feature Engineering via Quality-Aware Candidate-Space Reduction
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“SCOPE-FE: Structured Control of Operator and Pairwise Exploration for Feature Engineering via Quality-Aware Candidate-Space Reduction”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 先以训练集特征间关联构建硬聚类，仅保留簇内二元组合；再用少量候选的FeatureBoost增益为算子评分，保留高分算子。缩减候选池后沿用OpenFE筛选器。
 

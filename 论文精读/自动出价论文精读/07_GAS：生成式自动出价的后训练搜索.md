@@ -14,6 +14,12 @@ tags:
 
 # GAS：使用后训练搜索的生成式自动出价
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“GAS：使用后训练搜索的生成式自动出价”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > **论文**：[GAS: Generative Auto-bidding with Post-training Search](https://arxiv.org/abs/2412.17018)  
 > **作者**：Yewen Li, Shuai Mao, Jingtong Gao, Nan Jiang, Yunjian Xu, Qingpeng Cai, Fei Pan, Peng Jiang, Bo An  
 > **会议**：Companion Proceedings of the ACM Web Conference 2025（WWW Companion 2025）  

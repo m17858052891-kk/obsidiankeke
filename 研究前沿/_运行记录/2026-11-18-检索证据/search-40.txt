@@ -1,0 +1,160 @@
+Calibrate What You SHIP: Post-Selection Risk Control for Verifier-Guided Text-to-Image Generation (https://arxiv.org/abs/2608.21748)
+citeturn626academia12 [wordlim: 200] Published: 2 months ago; Title: Calibrate What You SHIP: Post-Selection Risk Control for Verifier-Guided Text-to-Image Generation ... This creates a candidate-to-policy calibration mismatch: search changes both which prompts receive an output and which candidate is released, so candidate-level risk control need not imply control of released-output risk.
+Title: Calibrate What You SHIP: Post-Selection Risk Control for Verifier-Guided Text-to-Image Generation
+Authors: Xuanhua Yin, Shunqi Mao, Wei Guo, Chuanzhi Xu, Weidong Cai
+Date: Sat Aug 22 03:05:44 2026
+
+Verifier-guided text-to-image systems increasingly use test-time search to select, refine, or stop among multiple candidates, yet release thresholds are often calibrated on individual images. This creates a candidate-to-policy calibration mismatch: search changes both which prompts receive an output and which candidate is released, so candidate-level risk control need not imply control of released-output risk. We formalize this estimand shift through prompt reweighting and within-prompt selection, and introduce SHIP, Selection-aware Held-out calibration of Inference Policies. SHIP runs or replays the complete deployed policy on held-out prompts, evaluates the image it actually releases using an independent target judge, and selects the most permissive threshold whose risk upper bound satisfies a prescribed budget. For replayable policies with a prespecified threshold grid, simultaneous confidence control provides finite-sample validity. Experiments across fixed, sequential, and adaptive T2I inference procedures show that policy-level calibration recovers lower-risk operating points while exposing policy-dependent tradeoffs among risk, coverage, and compute. On GenEval2 with FLUX at N=16, a pooled-candidate threshold yields released risk 0.310, whereas SHIP reduces it to 0.162. Across 200 cached-stream splits, the fixed-grid certificate has no target crossing. Reliable inference-time scaling therefore requires calibrating the output distribution induced by the complete deployed policy.--------------------------------------------------------------------------------
+考虑乘客行为异质性的网约车个性化司乘匹配决策方法 (https://sysmath.cjoe.ac.cn/jweb_xtkxysx/CN/10.12341/jssms250045)
+citeturn626search0 [wordlim: 200] Published: 1.5 years ago; Crawled: 2 months ago; 首先,针对乘客们在年龄,职业,收入等方面存在的多元化异质性特征,依据乘车行为的历史数据,运用梯度提升决策树算法对乘客进行分类;其次,分别考虑司机与乘客的心理期望与感知,依据前景理论分别计算出乘客对司机以及司机对乘客的综合前景值;进一步,针对乘客在网约车平台呼叫预约车辆的过程中频繁存在的取消订单行为,构建了乘客的爽约概率函数,用于测度乘客的爽约概率;在此基础上,建立了个性化司乘匹配的多目标优化模型,并通过模型求解获得司乘匹配的结果;最后,通过网约车平台下乘客预约车辆的实例分析,进一步验证了提出方法的有效性和可行性.
+
+BAO Yining^{1}, CHEN Xi^{1}, ZHANG Wenbo^{1}, LIANG Haiming^{2}
+
+Author information +
+
+1. School of Economics and Management, Xidian University, Xi'an Shananxi 701071;
+2. Business School, Sichuan University, Chengdu Sichuan 610065
+
+文章历史 +
+
+接受日期
+---
+2025-05-22
+录用日期
+---
+2025-05-22
+
+### 摘要
+
+针对网约车服务中普遍存在的乘客差异化行为以及频发的乘客爽约现象,提出了考虑乘客行为异质性与爽约行为的个性化司机与乘客匹配决策方法.首先,针对乘客们在年龄,职业,收入等方面存在的多元化异质性特征,依据乘车行为的历史数据,运用梯度提升决策树算法对乘客进行分类;其次,分别考虑司机与乘客的心理期望与感知,依据前景理论分别计算出乘客对司机以及司机对乘客的综合前景值;进一步,针对乘客在网约车平台呼叫预约车辆的过程中频繁存在的取消订单行为,构建了乘客的爽约概率函数,用于测度乘客的爽约概率;在此基础上,建立了个性化司乘匹配的多目标优化模型,并通过模型求解获得司乘匹配的结果;最后,通过网约车平台下乘客预约车辆的实例分析,进一步验证了提出方法的有效性和可行性.
+--------------------------------------------------------------------------------
+算法在哈啰顺风车中的实践应用 - 腾讯云开发者社区-腾讯云 (https://developer.cloud.tencent.com.cn/news/841380)
+citeturn626search1 [wordlim: 200] Published: 5.4 years ago; Crawled: yesterday; 交易生态模块，目标是保证车主在行程前、行程中、行程后的履约体验和行程安全。 ... 在行程前我们会预测一笔交易发生取消、投诉、或者恶性事件的概率来做匹配干预，差司机和挑剔乘客避免碰到一起引起不舒服的体验。
+## 交易生态治理算法
+
+交易生态模块，目标是保证车主在行程前、行程中、行程后的履约体验和行程安全。此模块包含 4 个部分，交易链路、架构，模型演进和场景举例。
+
+### 1. 链路
+
+在行程前我们会预测一笔交易发生取消、投诉、或者恶性事件的概率来做匹配干预，差司机和挑剔乘客避免碰到一起引起不舒服的体验。同时在行程前我们会根据历史数据预测车主或者乘客可能会有哪种不好的行为比如线下交易，绕路接人等，在接单前对疑似用户进行教育与引导。
+
+在行程中，我们会通过算法进行轨迹偏航实时检测、异常停留的实时检测等不同手段的监测算法，保护司乘的安全。
+
+在行程后，我们通过判责算法来保证司乘的合法权益。
+
+### 2. 架构
+
+在交易生态治理算法的特征一部分来自于基础特征，包括时空特征（比如订单坐标，时间等）、订单特征（是否拼单，乘客数目，是否同跨城等）、以及离线的司乘行为特征。--------------------------------------------------------------------------------
+D1 HMI Research (https://assets.super.so/7a446d13-e840-4f4c-9fa0-60ded5b047a8/files/3a848896-2897-4fbd-9c50-238672a3c358/D1_HMI_Research.pdf)
+citeturn626search13 [wordlim: 200] Crawled: 2 weeks ago; | 出车/行驶 | 司机 | 别蹭/追尾/碰撞等；疲劳驾驶，容易犯困；长期驾驶，腰酸背痛 | 行车安全提醒；疲劳智能缓解；语音控制车辆 | ... | 到达上车点/识别 | 乘客 | 定位不准；无法识别接驾车辆 | 定位准确；醒目的接驾提示 |
+| 听单接单 | 司机 | 长时空驶，接不到单；视线离路，不便利 | 查看热力图；一键接单；查看流水 |
+| 接驾 | 乘客 | 视线离路，不安全；担心车内气味环境差；外面太冷/热 | 电话联系乘客；智能通风换气；乘客APP控制 |
+| 到达上车点/识别 | 乘客 | 定位不准；无法识别接驾车辆 | 定位准确；醒目的接驾提示 |
+
+司机独驾：非接单时。乘客共驾：订单循环。
+</visual_element>
+
+<visual_element id="e2">
+下方流程由右向左：
+
+| 阶段 | 角色 | 痛点 | 预期 |
+|---|---|---|---|
+| 乘客上车 | 乘客 | 乘客上车不便；不知道从哪儿上车；腿部空间局促不舒适 | 乘客智能迎宾仪式；推荐落座位置；自动调节座椅空间 |
+| 送驾 | 乘客 | 被导航播报声音打扰；对空气温度不满意；车内音乐不喜欢 | 勿扰模式/声音分区；乘客听歌体验；乘客APP智能控制 |
+| 到达目的地/下车 | 乘客 | 下车碰撞剐蹭；未复位影响下一乘客 | 下车安全提醒；音乐/空调/座椅；智能复位 |
+| 中午充电/午餐 | 司机 | 充电处吃饭不便 | 充电桩推荐；周边服务推荐 |
+| 午休/停车等单休息 | 司机 | 车内休息不舒适；不接单时打发时间 | 基础娱乐体验；小憩模式体验 |
+| 故障异常 | 司机 | 不知道车辆是否异常 | 故障及时提醒；故障排查建议 |
+| 晚上充电 | 司机 | 充电离家太远 | 顺路单；结合电量派单 |
+| 收车 | 司机 | 下车忘记锁车窗 | 自动检测车况；智能提醒/执行 |
+| END | 司机 | — | — |
+
+</visual_element>--------------------------------------------------------------------------------
+CS7310-Algorithm@SJTU　　　　　　　　 Group Project　　　　　　　　 Instructor: Xiaofeng Gao (https://anl.sjtu.edu.cn/gao-xf/resources/projectDesc/CS7310-2022/Project-Description.pdf/hehe)
+citeturn626search14 [wordlim: 200] Published: 4.0 years ago; Crawled: 2 weeks ago; 如图2所示，如果交换乘客接送的顺序，形成路径序列 \(S_2=[p_c,p_o^2,p_o^1,p_d^2,p_d^1]\)，则其比 ... **定义 2（接乘顺序序列）** 对于一个给定匹配 \(\{c,U\}\)，**接乘顺序序列** \(S\) 是一个由汽车位置和乘客的起终点组成的序列，来帮助司机完成拼单接乘需求。
+平台可以获取车的位置信息 \(p_c\) 以及每个乘客的起点和终点 \(\{p_o^i,p_d^i\}\)。
+
+**定义 2（接乘顺序序列）** 对于一个给定匹配 \(\{c,U\}\)，**接乘顺序序列** \(S\) 是一个由汽车位置和乘客的起终点组成的序列，来帮助司机完成拼单接乘需求。
+
+根据业务逻辑，接乘顺序序列 \(S\) 需满足如下约束：
+
+- **先序约束：** 在序列 \(S\) 中，\(p_c\) 应该是第一个元素，且对于任意乘客 \(u_i\)，起点 \(p_o^i\) 应在终点 \(p_d^i\) 前。
+- **容量约束：** 在一个匹配中，分配给一辆车的乘客数为 2 或 3（乘客数为 2 的情况称为双拼，乘客数为 3 的情况称为三拼）。
+- **拼车约束：** 每个乘客需要与至少一个其他乘客有共乘路段。严格定义为，对于**任意**乘客 \(u_i\)，存在 \(j\) 使得在 \(S\) 中 \(p_o^j\) 在 \(p_o^i\) 和 \(p_d^i\) 之间或 \(p_d^j\) 在 \(p_o^i\) 和 \(p_d^i\) 之间；或者反之，\(p_o^i\) 在 \(p_o^j\) 和 \(p_d^j\) 之间或 \(p_d^i\) 在 \(p_o^j\) 和 \(p_d^j\) 之间。如 \(S=[p_c,p_o^1,p_d^1,p_o^2,p_d^2]\) 是不合理的，因为这是两个独立的乘车订单，乘客乘坐之间未有任何共享路段，不在本问题的讨论范围内。（注：本问题中假设给定的匹配符合拼车场景，平台会预先筛选出起点接近、终点接近的订单作为备选匹配。）
+
+Page 2 of 9--------------------------------------------------------------------------------
+Calibrate What You SHIP: Post-Selection Risk Control for Verifier-Guided Text-to-Image Generation (https://pith.science/paper/2608.21748)
+citeturn626search2 [wordlim: 200] Published: 2 months ago; Crawled: 6 days ago; # Calibrate What You SHIP: Post-Selection Risk Control for Verifier-Guided Text-to-Image Generation ... What is actually new: the T2I-specific estimand decomposition, the SHIP replay procedure for threshold-independent streams, and the lower bound showing the post-selection gap can approach 1−α. ... Run the fixed-grid SHIP certificate on fresh, independently sampled calibration and test splits—new prompt draws and new generator seeds rather than cached streams—and count how often the held-out released risk exceeds $\alpha$; a crossing rate above the calibration failure level $\delta$ would show the finite-sample guarantee is not being achieved in practice.
+--------------------------------------------------------------------------------
+A Multi-Behavior and Sequence-Aware Recommendation Method (https://www.mdpi.com/2079-9292/15/3/700)
+citeturn626search3 [wordlim: 200] Published: 9 months ago; Crawled: 2 days ago; Current multi-behavior recommendation models mainly focused on multiple types of user–item interactions without considering sequential associations between behaviors, treating different behaviors as independent events for modeling. ... Currently, only a few studies have focused on behavioral sequence information, and researchers have gradually realized the importance of behavioral order for user preference modeling. ... To evaluate the impact of different behavior sequence relationships in multi-behavior scenarios, we conducted experiments on the Taobao dataset (results shown in Figure 6). ... Combined with the model’s learning process, it can alleviate data sparsity and reduce noise impact.
+--------------------------------------------------------------------------------
+An inter- and intra-attention model for multi-behavior recommendation (https://link.springer.com/article/10.1007/s41060-025-00839-3)
+citeturn626search4 [wordlim: 200] Published: 1.4 years ago; Crawled: 3 weeks ago; Knowledge enhancement for contrastive multi-behavior recommendation (KMCLR) [20] incorporates contrastive learning into the multi-behavior recommendation paradigm to address data sparsity issues in input data. ...   * SASRec [9]: A model that utilizes multi-head self-attention to capture the sequential pattern in the users’ history and then applies dot product for calculating the item scores. ... Additionally, eliminating the behavior encoder component, responsible for capturing deep behavioral dependencies, and relying solely on the sequence encoder, has an impact on all datasets, highlighting the advantages of the two-stage attention procedure for modeling multi-behavior sequences.
+--------------------------------------------------------------------------------
+A comprehensive survey on multi-behavior recommender systems: extended taxonomy and recent advances (https://springerlink.fh-diploma.de/article/10.1007/s41060-025-01019-z)
+citeturn626search5 [wordlim: 200] Published: 9 months ago; Crawled: 6 days ago; Recent work [6] encodes a behavior-unified sequence, along with multi-model features (e.g., text and image), using large language models (LLMs). ... Parallel encoding allows for the detailed modeling of behavior-specific patterns by processing each interaction type separately.
+--------------------------------------------------------------------------------
+模块化智能公交车辆运行数据采集方法、装置及介质 (https://patents.google.com/patent/CN116090778B/zh)
+citeturn626search6 [wordlim: 200] Published: 5 months ago; Crawled: last month; 参见图2，步骤6中系统采集、分析与记录乘客各类标签，并以个人为单位生成唯一的基于神经网络的行为预测模型，在乘客下次下单时预测并推荐其偏好方案，并通过乘客的历史履约行为预测模块化公交整体所需运力水平、需求热点地区以及个性化需求情况，实现模块化公交系统的总体运力调控、路线优化以及优化个性化与普通车辆的配比情况。
+--------------------------------------------------------------------------------
+Unified Heterogeneous Feature Interaction via Effective-Rank Scaling for Recommender Systems (https://borowiecki.dev/pdf/2610.35318)
+citeturn626search15 [wordlim: 200] Published: 3 weeks ago; Crawled: 2 weeks ago; We conduct an online A/B test on Taobao Homepage traffic against the production ranker, using persistent user-level randomization while holding non-ranking policies fixed. ... We propose HiRank, a unified framework for multi-scenario recommendation that combines multi-behavior sequence modeling with heterogeneous feature interaction. ... Ablation studies support the complementary roles of the key components, while effective-rank diagnostics characterize representation diversity and scaling experiments show gains from longer sequences and increased model capacity.
+--------------------------------------------------------------------------------
+网约车安全监控方法、装置、设备及存储介质 (https://patents.google.com/patent/CN115018228A/zh)
+citeturn626search7 [wordlim: 200] Published: 4.2 years ago; Crawled: 2 weeks ago; 步骤六、如图2和图3所示，司机无轨迹乘客有轨迹：算法侧进行轨迹、图像应用计算，具体的，算法侧利用轨迹信息进行特征分析得到轨迹特征，如乘客速度超出人类步行速度极限时，或乘客停留在司机轨迹消失处，并结合图像特征，进行判断行程结束后司乘未分离。 ... 如此，算法侧综合轨迹特征、语音特征及图像特征判断后，将行程结束后司乘未分离的判断结果传给工程端，工程端将进行司机端、乘客端、客服端的技术交互，进行结果应用，实施干预。
+--------------------------------------------------------------------------------
+CAMBSRec: A Context-Aware Multi-Behavior Sequential Recommendation Model (https://www.mdpi.com/2227-9709/12/3/79)
+citeturn626search8 [wordlim: 200] Published: 1.3 years ago; Crawled: 6 days ago; The second leverage adopts transformer architectures for performance enhancement: MBHT [10] employs low-rank self-attention layers to capture short- and long-term cross-behavior dependencies, complemented by hypergraph convolutional networks for global multi-behavior relationship modeling, but the model also suffers from distortion of sparse behavior representation, as the hypergraph aggregation process tends to amplify the signals of high-frequency behaviors (e.g., “clicks”), resulting in suppression of long-tailed behavioral features, as well as its computational complexity, which makes it extremely inefficient for training and causes inference with large datasets. Concurrently, MB-STR [11] introduces a multi-behavior sequence generator to encode heterogeneous sequential patterns across behaviors, subsequently embedding temporal multi-behavior dependencies into attention bias matrices to effectively capture cross-behavior temporal dynamics; however, sparse behaviors (e.g., user’s final purchase) and long behavioral sequences lead to a large variance in its strategy gradient and convergence difficulties.
+--------------------------------------------------------------------------------
+Denoised Conformal Alignment for Reliable Selection of Conditional Average Treatment Effect Predictions (https://borowiecki.dev/pdf/2607.03161)
+citeturn626search16 [wordlim: 200] Crawled: last week; These scores support selective inference with controlled risk via conformal calibration. ... Conformal prediction (CP) offers distribution-free uncertainty quantification with marginal coverage guarantees [Vovk et al., 2005, Angelopoulos and Bates, 2023], and recent work has extended CP to causal inference to produce valid counterfactual and ITE intervals under standard identification assumptions [Lei and Candès, 2021, Chernozhukov et al., 2021]. ... Once actions are triggered only for top-ranked individuals, the relevant target distribution is no longer the population, but the *post-selection subpopulation* induced by the model itself. ... which remains unavailable for calibration because \(\tau(X_i)\) is unknown, precluding conformalized selection methods that require observed error labels [Candès et al., 2023, Gui et al., 2024, Jin and Candès, 2023].
+--------------------------------------------------------------------------------
+Confidence on the focal: conformal prediction with selection-conditional coverage (https://academic.oup.com/jrsssb/article/87/4/1239/8113856)
+citeturn626search9 [wordlim: 200] Published: 1.6 years ago; Crawled: today; where ${\mathcal{D}}_{\mathrm{calib}}=\{({X}_{i},{Y}_{i}){\}}_{i=1}^{n}$ is the calibration data, and $\mathcal{S}(\cdot ,\cdot )$ is a data-driven process to decide the units of interest, which maps the calibration and test data to a subset of $[m]\phantom{\rule{.1em}{0ex}}:\phantom{\rule{-2pt}{0ex}}=\{1,\dots ,m\}$⁠. ... By separating the selection process from the (post hoc) uncertainty quantification step, we leave the freedom of defining selection rules to the practitioners. ... Such a selection issue has recently been raised in the literature of predictive inference: through analysis of a real drug discovery dataset, Jin and Candès (2023, Section 1) demonstrate that more than $30\mathrm{\%}$ of seemingly promising prediction sets (in the sense that ${\hat{C}}_{\alpha ,n+j}=\{{\textstyle \text{active}}\}$⁠) miss the actual outcomes when the nominal marginal miscoverage rate is $\alpha =0.01$⁠.
+--------------------------------------------------------------------------------
+CAP: A General Algorithm for Online Selective Conformal Prediction with FCR Control (https://storage.googleapis.com/lacuna-pdfs-lunar-airport-385023/pdfs/1d/28/1d28d05595893f423636e8cbb76002ce86c9622565154984404cc45b76e01902.pdf)
+citeturn626search17 [wordlim: 200] Crawled: 5 days ago; This paper aims to develop a distribution-free framework to construct post-selection prediction intervals with selection-conditional coverage while successfully controlling real-time FCR around the target level. Our strategy is motivated by the idea of post-selection calibration in Bao et al. (2024), which proposed a selective conditional conformal prediction procedure (SCOP) in the offline scheme.
+--------------------------------------------------------------------------------
+李玲芳等：网约车平台信息机制设计与司机工作模式选择 (https://www.acem.sjtu.edu.cn/ueditor/jsp/upload/file/20230606/1686049815946034749.pdf)
+citeturn626search18 [wordlim: 200] Published: 4.1 years ago; Crawled: 2 weeks ago; 在本研究中，我们与滴滴平台合作，随机抽取了2015年12月1日至12月31日北京1 000名网约车司机的脱敏数据。2015年滴滴仍处于抢派结合模式的探索阶段，订单优先派送距离乘客一定半径范围内的司机，播报订单的起始位置和目的地位置信息（播报时间3-5秒），如果没有司机抢单，系统会扩大播报半径直至有司机接单。
+--------------------------------------------------------------------------------
+Individual Driving Destination Prediction by Considering Intersection Transfer Preference and Current Move Mode（顾及路口转移偏好和当前移动模式的个体驾驶目的地预测方法） (https://www.researchgate.net/publication/359454427_Individual_Driving_Destination_Prediction_by_Considering_Intersection_Transfer_Preference_and_Current_Move_Modegujilukouzhuanyipianhaohedangqianyidongmoshidegetijiashimudedeyucefangfa)
+citeturn626search10 [wordlim: 200] Published: 4.6 years ago; Crawled: 2 months ago; 成的子序列数量可满足模型训练要求。 ... 网约车司机虽然也具有一定的载客时空偏
+
+好，但其驾驶行为更多反映乘客群体出行模 ... 当前移动模式的个体驾驶目的地预测方法。
+--------------------------------------------------------------------------------
+Two-path Multi-behavior Sequence Modeling (https://www.preprints.org/manuscript/202306.0431)
+citeturn626search11 [wordlim: 200] Published: 3.5 years ago; Crawled: last month; The model consists of a Multi-behavior interaction sequence path, a multi-behavior interaction graph path and path-path self-supervised learning. ... Multi-Behavior Interaction Sequence Modeling ... Therefore, we design intra-path self-supervised learning of multi-behavior interaction sequences to enhance supervision signals of multiple behavioral data through self-supervised learning. ...   * Remove two-path Self-Supervision w/o-DCL: No two-path contrastive learning strategy is used to supplement sparse data.
+--------------------------------------------------------------------------------
+Selection instability and coefficient uncertainty in Cox modelling after Lasso selection (https://arxiv.org/abs/2611.04765)
+citeturn626academia19 [wordlim: 200] Published: 2 weeks ago; We compare conventional post-selection Cox Wald intervals and a model-based bootstrap without re-selection, both of which keep the selected predictor set fixed, with two re-selection procedures: one retains the observed tuning-parameter value, whereas the other reapplies the cross-validation minimum (CV-min) tuning rule within each bootstrap sample. ... These results suggest that selection instability can be an important component of post-selection coefficient uncertainty and that bootstrap re-selection can help incorporate this variability.
+--------------------------------------------------------------------------------
+Beyond Observed Auxiliary Relations: Environment-Conditioned Modeling for Multi-Behavior Recommendation (https://arxiv.org/abs/2608.22920)
+citeturn626academia20 [wordlim: 200] Published: 2 months ago; Title: Beyond Observed Auxiliary Relations: Environment-Conditioned Modeling for Multi-Behavior Recommendation
+--------------------------------------------------------------------------------
+2021年货拉拉乘客跳车事件 (https://zh.wikipedia.org/wiki/2021%E5%B9%B4%E8%B4%A7%E6%8B%89%E6%8B%89%E4%B9%98%E5%AE%A2%E8%B7%B3%E8%BD%A6%E4%BA%8B%E4%BB%B6)
+citeturn626search21 [wordlim: 200] Crawled: 4 months ago; 长沙市岳麓区人民法院认定，乘客车莎莎（1997年－2021年2月10日，23岁）在货拉拉平台下单搬家货运服务，途中因司机周阳春服务态度不佳且偏离导航路线，心生恐惧，要求停车未被周阳春理会后，从运行中的微型面包车副驾驶用双手抓住货车右侧窗户下沿，且上身探出了车外，从车窗坠落受伤，后经抢救无效离世。 ... 法院审理认为，司机周阳春未能对乘客车莎莎的跳车行为做出有效应对措施，并存在过错。 ... 针对该案件，大量网民基于自身性别进行判断。 ... 21时30分34秒，周阳春在曲苑路拨打120和110表示车莎莎在岳麓区曲苑路从车上跳窗，根据警方公布的监控视频显示，从最后一个车窗关着的路口监控时间，到司机拨打120的时间，间隔约40秒。 ... 7月31日，有位自称是司机周阳春家属的网民在知乎发文，称长沙市公安局高新分局、岳麓区检察院、长沙市公共法律援助中心违规办案，禁止律师会见嫌疑人并强制指派法律援助律师，且指派的法援律师并未切实履职。
+--------------------------------------------------------------------------------
+序列学习 (https://zh.wikipedia.org/wiki/%E5%BA%8F%E5%88%97%E5%AD%A6%E4%B9%A0)
+citeturn626search22 [wordlim: 200] Crawled: last week; 1951年，哈佛大学的神经生理学家卡尔·拉什利（英语：Karl Lashley）发表了《行为中的序列顺序问题》（The Problem of Serial Order in Behavior），论述了当时对序列学习的看法并提出了自己的假说。
+--------------------------------------------------------------------------------
+上海出租车 (https://zh.wikipedia.org/wiki/%E4%B8%8A%E6%B5%B7%E5%87%BA%E7%A7%9F%E8%BD%A6)
+citeturn626search23 [wordlim: 200] Crawled: 2 months ago; 2010年上海世博会闭幕后，上海的出租车行业整体服务质量存在下滑趋势，近年来拒载、绕道、多收费等违规行为突出，同时存在司机态度不礼貌、行车不文明等问题，引来了大量的乘客投诉和服务纠纷。 ... 根据2018年11月1日起执行的新版《上海市交通委员会关于出租汽车和车辆非法客运行政处罚的裁量基准》规定，出租车司机如出现拒载、绕道多收费，在从业生涯中两次被执法部门查证属实，将被吊销营运资格证。
+--------------------------------------------------------------------------------
+GenMatch: An End-to-End Generative Matching Framework for Micro-View Order-Dispatching in Ride-Hailing (https://arxiv.org/abs/2608.19751)
+citeturn626academia24 [wordlim: 200] Published: 2 months ago; 
+Title: GenMatch: An End-to-End Generative Matching Framework for Micro-View Order-Dispatching in Ride-Hailing
+Authors: Chuang Liu, Yuxueqing Zhang, Tengfei Lyu, Zirui Yuan, Weiqi Hu, Yanghan Cheng, Ming Wang, Li Ma, Zihao Lu
+Date: Thu Aug 20 07:56:29 2026
+
+Micro-View Order-Dispatching assigns available drivers to passenger orders within each dispatch batch and is critical to the service quality and operational efficiency of ride-hailing platforms. Mainstream industrial solutions follow a multi-stage paradigm of model prediction, value calculation, and dispatch matching. Although dispatch quality is determined by the final batch-level assignment, these stages optimize different intermediate objectives. This cross-stage objective inconsistency means that improving a single stage does not necessarily improve the overall dispatch result. We therefore formulate Micro-View Order-Dispatching as a generative matching problem and propose GenMatch, an end-to-end Generative Matching framework and the first such framework deployed in a real-world production environment. Applying generative modeling to this problem introduces three challenges. First, each dispatch batch forms a dynamic sparse bipartite graph, requiring efficient structured batch-level encoding. Second, replacing the hand-crafted value function requires learning unified business utility from heterogeneous feedback. Third, directly generating an assignment requires tracking the evolving matching state because each selected order-driver pair changes the remaining feasible candidates. GenMatch addresses these challenges with a Context-Aware Bipartite Encoder, a Business-Aware Utility Learner, and a State-Aware Pointer Decoder. Extensive offline evaluations and online A/B tests in five cities across DiDi's international ride-hailing markets show consistent improvements over competitive baselines, confirming the effectiveness and practicality of GenMatch for industrial order-dispatching.--------------------------------------------------------------------------------
+郑州空姐打车遇害案 (https://zh.wikipedia.org/wiki/%E9%83%91%E5%B7%9E%E7%A9%BA%E5%A7%90%E6%89%93%E8%BD%A6%E9%81%87%E5%AE%B3%E6%A1%88)
+citeturn626search25 [wordlim: 200] Crawled: 10 months ago; 该声明还表示，鉴于以上问题，决定自5月12日零时起，对顺风车业务进行停业自查整改一周，同时其他平台业务对全量司机进行全面审查，并清理平台上可能存在的人车不符情况、整改运营及客服体系。 ... 根据交通运输部出台的《网络预约出租汽车经营服务管理暂行办法》规定，顺风车“按城市人民政府有关规定执行”，即顺风车的管理权限下放到地方人民政府。 ... 另有媒体报道称，滴滴顺风车司机在接单前，可以查看乘客此前搭乘顺风车的时间、地点、消费价格，以及司机对乘客的评价，尤其是评价涉及引导性，如“颜值爆表”、“不化妆也漂亮”、“声音甜美”、“安静的美少女”、“美女下车时丝袜容易走光看得想入非非”等。
+--------------------------------------------------------------------------------
+乐清幼师打车遇害案 (https://zh.wikipedia.org/wiki/%E4%B9%90%E6%B8%85%E5%B9%BC%E5%B8%88%E6%89%93%E8%BD%A6%E9%81%87%E5%AE%B3%E6%A1%88)
+citeturn626search26 [wordlim: 200] Crawled: 3 months ago; 由于私下接单可以省下本应支付给滴滴公司的费用，乘客和司机都可以得到实惠。 ... 25日，滴滴公司发文称对案发前司机骚扰女乘客被投诉而客服未做到及时回复并处理负有不可推卸的责任，向公众道歉。 ... 滴滴出行遭到全国各地政府和交通运输部及公安部的约谈，要求其清退不合规车辆和人员，保障乘客安全。
+--------------------------------------------------------------------------------
+滴滴出行 (https://zh.wikipedia.org/wiki/%E6%BB%B4%E6%BB%B4%E5%87%BA%E8%A1%8C)
+citeturn626search27 [wordlim: 200] Crawled: 3 months ago; 2018年央視專題表示整理過去三年見報的新聞滴滴就有50起性騷擾、搶劫、強姦新聞，包含轰动中国的兩起命案。顺风车部門总经理黄洁莉有意將顺风车服務往相親艳遇的方向發展；包含在节假日推出一些活動，平日也使用开屏广告，例如「我們相遇的浪漫故事」「濕了、硬了」「第一次見面就免單，我早晚也是你的」等暗示司机接异性乘客会有更多互動。 ... 2021年3月14日凌晨2点左右，福建省福州市長樂區滴滴网约车司机高某与乘客张某发生争执，高某驾车将张某撞死。
+

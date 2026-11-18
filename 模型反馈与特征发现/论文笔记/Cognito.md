@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # Cognito: Automated Feature Engineering for Supervised Learning
 
+<!-- 全库方法复筛开始 -->
+> **待核验 · 模型自进化**。有“Cognito: Automated Feature Engineering for Supervised Learning”的方法线索，但当前记录的全文、关键对照或证据覆盖不足；先补齐原文和所需章节，不进入近期先读。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 层级、非穷举地探索变换，greedy提升模型表现，支持用户domain偏好/采样/并行。
 

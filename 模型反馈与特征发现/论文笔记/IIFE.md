@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # IIFE: Interaction Information Based Automated Feature Engineering
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“IIFE: Interaction Information Based Automated Feature Engineering”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 先按 τij=I(Fi;Y／Fj)-I(Fi;Y) 排特征对；每轮top-K对枚举二元变换，以当前池+单列CV选胜者，再为胜者试一元变换；新列加入池并更新与已有列的交互信息。
 

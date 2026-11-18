@@ -1,0 +1,197 @@
+Semantic Concept Steering Breaks the Explanation Drift Loop in Continual Learning (https://arxiv.org/abs/2610.33877)
+citeturn631academia12 [wordlim: 200] Published: 3 weeks ago; We introduce \textbf{C$^3$L} (Concept-Consistent Continual Learning), which breaks this loop by anchoring regularization to class-consistent semantic concepts (e.g., ``curved beak'', ``striped pattern'') discovered offline, independent of model state, providing (i) target independence from model drift, and (ii) cross-instance semantic consistency across every instance of a class.
+Title: Semantic Concept Steering Breaks the Explanation Drift Loop in Continual Learning
+Authors: Yehonatan Elisha, Oren Barkan, Noam Koenigstein
+Date: Sat Oct 24 19:37:59 2026
+
+Catastrophic forgetting in continual learning (CL) manifests not only as accuracy degradation but also as \emph{explanation drift}: models maintain predictive accuracy while silently shifting attention from diagnostic features to spurious correlations. This work identifies and resolves a previously overlooked structural flaw in explanation-aware CL: pixel-level saliency regularization derives supervision targets from the model's own frozen saliency maps, creating a \emph{self-referential drift loop} that actively reinforces spurious attention across tasks. We introduce \textbf{C$^3$L} (Concept-Consistent Continual Learning), which breaks this loop by anchoring regularization to class-consistent semantic concepts (e.g., ``curved beak'', ``striped pattern'') discovered offline, independent of model state, providing (i) target independence from model drift, and (ii) cross-instance semantic consistency across every instance of a class. We identify that our concept-based objective, combined with approximate LRP relevance conservation, induces a \emph{crowding-out effect}: since concept and background regions compete for the relevance of the same prediction, enforcing high relevance within concept regions implicitly suppresses spurious background correlations without explicit penalization. \method does not require human-annotated concept sets, as it employs a fully automated concept discovery and spatial grounding. Extensive evaluation across five benchmarks and over 20 baselines demonstrates state-of-the-art performance in accuracy, forgetting, explanation quality, spurious correlation mitigation, and out-of-distribution robustness.--------------------------------------------------------------------------------
+Probe-Enhanced Drift-Aware Model Updating for Compute-Efficient Sequential Recommendation (https://computer-life.org/index.php/ojs/article/view/62)
+citeturn631search0 [wordlim: 200] Published: 3 weeks ago; Crawled: 2 weeks ago; Sequential recommendation, Concept drift, Continual learning, Adaptive training budget, Recency replay, Update admission
+
+# Probe-Enhanced Drift-Aware Model Updating for Compute-Efficient Sequential Recommendation
+
+## Authors
+
+  * Zoe Huang School of Computing and Information, University of Pittsburgh, PA, USA
+
+## DOI:
+
+https://doi.org/10.54097/m7gp5307
+
+## Keywords:
+
+Sequential recommendation, Concept drift, Continual learning, Adaptive training budget, Recency replay, Update admission
+
+## Abstract
+
+Sequential recommenders must adapt to new interactions without repeatedly paying the cost of full-history retraining. Strict drift-triggered updating appears attractive, but can inadvertently suppress useful learning when marginal item frequencies are stable. We develop DAGR-P, a probe-enhanced update scheduler that performs a one-epoch new-data probe when a permutation drift screen is negative and allocates a longer, drift-dependent fine-tuning or recency-replay update otherwise. Candidate deployment follows a paired per-user validation rule. We implement the recency-replay update and the paired admission gate of the SPROUT compute-aware framework, and examine an additional user-matched drift detector. --------------------------------------------------------------------------------
+Class-Incremental Experience Replay for Continual Learning Under Concept Drift (https://openaccess.thecvf.com/content/CVPR2021W/CLVision/papers/Korycki_Class-Incremental_Experience_Replay_for_Continual_Learning_Under_Concept_Drift_CVPRW_2021_paper.pdf)
+citeturn631search13 [wordlim: 200] Crawled: 4 days ago; Figure 1: Three vital aspects of a holistic approach to continual learning: learning new classes, retaining previous knowledge, and adapting to concept drifts, illustrated by the example of a binary recommendation system (like or dislike). ... - **Realistic continual learning scenario under concept drift.
+<visual_element id="e1">
+Continual-learning diagram for a binary recommendation system. Green-bordered image clusters represent the “like” class and red-bordered clusters represent the “dislike” class. The sequence proceeds left to right: “Initial classes” (green and red clusters) → “1) New class batch” (stack of green-bordered images), with the green cluster labeled “Learn” and the red cluster “Remember”; then “2) New class batch” (stack of red-bordered images), with green clusters labeled “Remember” and red clusters labeled “Learn”; then “3) Drifting class batch” (stack of green-bordered images), with a green cluster labeled “Forget/update” and a red cluster labeled “Remember.” Other green clusters along the sequence are labeled “Remember.” Dotted arcs and arrows connect the clusters and batches.
+</visual_element>
+
+Figure 1: Three vital aspects of a holistic approach to continual learning: learning new classes, retaining previous knowledge, and adapting to concept drifts, illustrated by the example of a binary recommendation system (like or dislike).
+- **Realistic continual learning scenario under concept drift.** We discuss a realistic and illustrative learning scenario – continual preference learning and recommendation. As both users may acquire new preferences and their old preferences may change over time, this problem touches both avoiding catastrophic forgetting in incremental learning and the need for handling concept drift.
+
+## 2. Related works
+
+**Continual learning – robustness to forgetting.** The field of continual learning focuses on incremental incorporation of new information into the model, while preserving the knowledge learned on previous classes or tasks [18]. This leads to two challenges: how to grow model to make space for new knowledge and how to avoid catastrophic forgetting. Model growing is mainly discussed from the perspective of deep neural networks, where recent works suggest to either elastically add new neurons to the network [15], have a pretrained bigger structure that is incrementally populated [24], or use hypernetworks to control the accumulation of new data [26].
+--------------------------------------------------------------------------------
+Federated continual learning for task-incremental and class-incremental problems: A survey (https://www.sciencedirect.com/science/article/pii/S0957417425028945)
+citeturn631search1 [wordlim: 200] Published: 9 months ago; Crawled: 2 months ago; In continual learning, the term drift refers to changes in the received data, which are categorized into data drift and concept drift. ... If a concept drift occurs (Haque, Khan, & Baron, 2016), the previously learned concepts may not be valid for the new data, resulting in a deterioration of model performance.
+The main idea is to construct task-specific parameters. Parameter allocation, model decomposition, and modular networks are instances of this category. Parameter allocation specifies an isolated parameter subspace dedicated to each task throughout the fixed or dynamic size network (as seen in HAT Serra, Suris, Miron, & Karatzoglou, 2018). Model decomposition explicitly separates a model into task-sharing and expandable task-specific components (as seen in ACL Ebrahimi, Meier, Calandra, Darrell, & Rohrbach, 2020 and DyTox Douillard, Ramé, Couairon, & Cord, 2022). Modular network uses parallel sub-networks or sub-modules to learn incremental tasks in a differentiated manner (as seen in Progressive Networks Rusu et al., 2022 and Expert Gate Aljundi, Chakravarty, & Tuytelaars, 2017).
+
+In continual learning, the term drift refers to changes in the received data, which are categorized into data drift and concept drift. Data drift refers to shifts in the input distribution, while concept drift pertains to changes in concepts and decision boundaries. If a concept drift occurs (Haque, Khan, & Baron, 2016), the previously learned concepts may not be valid for the new data, resulting in a deterioration of model performance. In the best-case scenario, where the model has converged to optimal boundaries, data drift does not affect the model’s performance. However, due to limited access to samples, the model may not encounter the exact distribution of data during training, leading to a sub-optimal solution. Data drift may provide new samples that help the model improve its knowledge of data distribution and converge to better boundaries. This situation is also referred to as virtual concept drift. Fig. 1 illustrates different types of drift with simple representative examples. Algorithms may aim to adapt the model to data drift or concept drift. It is evident that the latter ones are more advanced and can typically be adapted for data drift cases.
+
+--------------------------------------------------------------------------------
+A practical guide to streaming continual learning (https://www.sciencedirect.com/science/article/pii/S0925231226003486)
+citeturn631search2 [wordlim: 200] Published: 7 months ago; Crawled: 2 months ago; Continual Learning (CL) and Streaming Machine Learning (SML) study the ability of agents to learn from a stream of non-stationary data. ... Unlike sporadic anomalies, concept drift reflects structural, often unforeseeable changes that can render previously learned models unsuitable. ... Particularly, Section 2 presents the streaming scenario and the associated problem of concept drift.
+
+## Neurocomputing
+
+Volume 674, 14 April 2026, 132951
+
+# A practical guide to streaming continual learning
+
+https://doi.org/10.1016/j.neucom.2026.132951Get rights and content
+
+## Highlights
+
+  * •
+
+We provide a brief background on Streaming Machine Learning (SML) and Continual Learning (CL), highlighting their similarities and differences.
+
+  * •
+
+We define the Streaming Continual Learning (SCL) scenario, which presents the opportunity to merge ideas from CL and SML into a unified paradigm.
+
+  * •
+
+We conduct an empirical evaluation showcasing the necessity of Streaming Continual Learning (SCL).
+
+## Abstract
+
+Continual Learning (CL) and Streaming Machine Learning (SML) study the ability of agents to learn from a stream of non-stationary data. Despite sharing some similarities, they address different and complementary challenges. While SML focuses on rapid adaptation after changes (concept drifts), CL aims to retain past knowledge when learning new tasks. 
+This streaming scenario challenges traditional machine learning paradigms, which often assume stationary data and bounded datasets. One of the most critical obstacles is concept drift [2], a phenomenon where the statistical properties of the data evolve due to underlying changes in the generative process (concept). Unlike sporadic anomalies, concept drift reflects structural, often unforeseeable changes that can render previously learned models unsuitable.
+
+Due to concept drifts, the solution cannot train a model offline on historical data, since the trained model may soon become obsolete after concept drifts. Conversely, one must continuously learn from the data stream, monitoring and detecting changes, and adapting to them as rapidly as possible. Moreover, when learning new concepts, the model may forget what it learned regarding the previous ones. This issue is particularly critical when the new concept just expands the learning problem in a new subdomain, without contradicting what has been observed during the previous concepts. --------------------------------------------------------------------------------
+Embrace concept drift : a novel solution for online continual learning (https://www.ros.hw.ac.uk/items/fc9d52b8-6cc6-48ef-bad8-55c0b6e241eb)
+citeturn631search3 [wordlim: 200] Published: 3.2 years ago; Crawled: last month; # Embrace concept drift : a novel solution for online continual learning ... There are two main problems to be addressed in online continual learning: the first one is catastrophic forgetting, a phenomenon where the model forgets the previously learned knowledge while learning new tasks; the second one is concept drift, a situation where the distribution of the data changes over time.
+
+# Embrace concept drift : a novel solution for online continual learning
+
+## Files
+
+YuW_0923_macsSS.pdf (7.21 MB)
+
+## Date
+
+2023-09
+
+## Authors
+
+Yu, Wei
+
+## Abstract
+
+Continual learning is a critical area of research in machine learning that aims to enable models to learn new information without forgetting the old knowledge. Online continual learning, in particular, addresses the challenges of learning from a stream of data in real-world environments where data can be unbounded and heterogeneous. There are two main problems to be addressed in online continual learning: the first one is catastrophic forgetting, a phenomenon where the model forgets the previously learned knowledge while learning new tasks; the second one is concept drift, a situation where the distribution of the data changes over time. These issues can further complicate the learning process, compared to traditional machine learning. In this thesis, we propose a general framework for online continual learning that leverages both regularization-based and memory-based methods to mitigate catastrophic forgetting and handle concept drift. --------------------------------------------------------------------------------
+Rethinking Continual Learning Through Self-Adaptive Learning (https://www.mdpi.com/2504-4990/8/9/257)
+citeturn631search4 [wordlim: 200] Published: 2 months ago; Crawled: 2 weeks ago; A SAL system would monitor drift statistics, predictive uncertainty, calibration, class frequencies, label availability, and recent intervention outcomes. ... Continual Learning  | Learn sequentially while limiting forgetting  | Tasks, batches, schedules, or predefined signals  | Usually limited; update logic is predefined  | Method-dependent  | Mainly accuracy, transfer, and forgetting  | Does not generally learn whether, when, or how adaptation policies should be instantiated
+Concept Drift Adaptation  | Detect and respond to distributional change  | Drift statistics, alarms, or performance degradation  | Partially; thresholds may adapt, but responses are usually predefined  | Commonly at the detection level  | False alarms, missed detections, and delay  | Focuses mainly on detecting change rather than regulating the appropriate response ... Meta-learning  | Learn procedures that adapt efficiently across tasks  | New tasks or episodes  | Usually learned during meta-training  | Possible  | Post-adaptation performance and adaptation speed  | Commonly assumes an adaptation episode and a stable meta-objective
+
+Area  | Core Objective  | Adaptation Trigger  | Strategies Regulated Online?  | Uncertainty Handled?  | Adaptation Behavior Evaluated?  | Main Limitation Relative to SAL
+--- | --- | --- | --- | --- | --- | ---
+Continual Learning  | Learn sequentially while limiting forgetting  | Tasks, batches, schedules, or predefined signals  | Usually limited; update logic is predefined  | Method-dependent  | Mainly accuracy, transfer, and forgetting  | Does not generally learn whether, when, or how adaptation policies should be instantiated
+Concept Drift Adaptation  | Detect and respond to distributional change  | Drift statistics, alarms, or performance degradation  | Partially; thresholds may adapt, but responses are usually predefined  | Commonly at the detection level  | False alarms, missed detections, and delay  | Focuses mainly on detecting change rather than regulating the appropriate response
+Online Learning  | Minimize sequential or cumulative loss  | Each observation or batch  | Update magnitude may vary, but updating is usually assumed  | Method-dependent  | Regret, cumulative loss, and accuracy  | Usually optimizes updates rather than deciding whether adaptation is warranted
+--------------------------------------------------------------------------------
+Action Centered Contextual Bandits (https://pmc.ncbi.nlm.nih.gov/articles/PMC5719505/)
+citeturn631search5 [wordlim: 200] Published: 9.0 years ago; Crawled: last month; In the theory of sequential decision-making, contextual bandit problems ([ref-type: bibr] Tewari & Murphy, 2017 [Source reference: [Source link 1]]) occupy a middle ground between multi-armed bandit problems ([ref-type: bibr] Bubeck & Cesa-Bianchi, 2012 [Source reference: [Source link 2]]) and full-blown reinforcement learning (usually modeled using Markov decision processes along with discounted or average reward optimality criteria ([ref-type: bibr] Sutton & Barto, 1998 [Source reference: [Source link 3]]; [ref-type: bibr] Puterman, 2005 [Source reference: [Source link 4]])). ... While the initial pilot study of HeartSteps micro-randomized the delivery of activity suggestions ([ref-type: bibr] Klasnja et al., 2015; [ref-type: bibr] Liao et al., 2015), delivery of activity suggestions is an excellent candidate for the use of contextual bandits, as the effect of delivering (vs. not) a suggestion at any given time is likely to be strongly influenced by the user’s current context, including location, time of day, and weather. ... In the mHealth setting, a contextual bandit must choose at each time point whether to deliver to the user a behavior-change intervention, and if so, what type of intervention to deliver.
+### 2.1 Probability-constrained optimal policy
+
+In the mHealth setting, a contextual bandit must choose at each time point whether to deliver to the user a behavior-change intervention, and if so, what type of intervention to deliver. Whether or not an intervention, such as an activity suggestion or a medication reminder, is sent is a critical aspect of the user experience. If a bandit sends too few interventions to a user, it risks the user’s disengaging with the system, and if it sends too many, it risks the user’s becoming overwhelmed or desensitized to the system’s prompts. Furthermore, standard contextual bandits will eventually converge to a policy that maps most states to a near-100% chance of sending or not sending an intervention. Such regularity could not only worsen the user’s experience, but ignores the fact that users have changing routines and cannot be perfectly modeled. We are thus motivated to introduce a constraint on the size of the probabilities of delivering an intervention. We constrain 0 < π_{min} ≤ 1 − ℙ(a_{t} = 0|s̄_{t}) ≤ π_{max} < 1, where ℙ(a_{t} = 0|s̄_{t}) is the conditional bandit-chosen probability of delivering an intervention at time t. --------------------------------------------------------------------------------
+CBA: Improving Online Continual Learning via Continual Bias Adaptor (https://openaccess.thecvf.com/content/ICCV2023/papers/Wang_CBA_Improving_Online_Continual_Learning_via_Continual_Bias_Adaptor_ICCV_2023_paper.pdf)
+citeturn631search14 [wordlim: 200] Crawled: 4 days ago; This validates the existence of feature distribution shifts and poses a challenging problem for online CL: how to accomplish a stable consolidation of past knowledge under these distribution shifts. ... Simultaneously, the original classifier is adjusted to fit an implicit posterior probability which tends to be a stable consolidation of previously learned knowledge across different tasks. ... **Continual learning settings.** Based on different task construction manners, continual learning mainly falls into three categories [40, 48]: Task-incremental learning (Task-IL), Domain-incremental learning (Domain-IL), and Class-incremental learning (Class-IL). ... Domain-IL focuses on the concept drift where the domain of each task is changing but with the same label space [17, 29, 39].
+- We evaluate the performance based on four rehearsal-based baselines with extensive experiments over various benchmarks. We show that the proposed method can effectively consolidate previously learned knowledge. This is also demonstrated by task-blurry online CL and offline CL settings.
+
+## 2. Related Work
+
+**Continual learning settings.** Based on different task construction manners, continual learning mainly falls into three categories [40, 48]: Task-incremental learning (Task-IL), Domain-incremental learning (Domain-IL), and Class-incremental learning (Class-IL). Specifically, Task-IL assumes the task identity is provided, which means the model can use the task index in both the training and testing stage. Domain-IL focuses on the concept drift where the domain of each task is changing but with the same label space [17, 29, 39]. This paper concentrates on the more challenging Class-IL, where the task indices are absent during testing [7, 22, 35, 49].
+
+From the training perspective, CL can be divided into offline and online CL. --------------------------------------------------------------------------------
+Practical considerations when designing an online learning algorithm for an app-based mHealth intervention (https://pmc.ncbi.nlm.nih.gov/articles/PMC13374849/)
+citeturn631search6 [wordlim: 200] Published: 5 months ago; Crawled: 2 weeks ago; This choice of learning timescale in LowSalt4Life is fast enough to ensure rapid convergence to a good intervention policy per participant but slow enough to ensure computational costs were not exorbitant. ... Contextual bandit algorithms enable personalized probabilistic maps to be built over time during the course of the study. ... To make our algorithm robust when we have both small amounts of data (i.e., at the start of the study, since data are collected sequentially) and higher order interaction terms (which may be important predictors of response to a notification), we use a combination of partial pooling and shrinkage priors. ... Even with partial pooling, a common issue for Bayesian logistic regression is separation, which occurs when a context variable perfectly predicts the binary reward.
+### Determining a meaningful timescale for optimization
+
+Because participants are enrolled in the study sequentially, the amount of potential information available to the learning algorithm gradually increases as the study progresses. As a result, little information will be available to the learning algorithm for the first few participants enrolled in the study, but a larger information base will be available for participants enrolled later in the study. A key consideration in designing a contextual bandit then becomes the appropriate timescale for the learning algorithm. In other words, how often is it appropriate to update our mapping π from the contextual environment to the randomization probability for each study participant? Our process for making these determinations is described below.
+
+In LS4L2, we identified two considerations that guided this choice. First, the reward and decision point timescales can inform the appropriate learning timescale. Based on historical data, we expected only a few (2–4) decision points every week per individual. --------------------------------------------------------------------------------
+Continual Prototype Evolution: Learning Online From Non-Stationary Data Streams (https://openaccess.thecvf.com/content/ICCV2021/papers/De_Lange_Continual_Prototype_Evolution_Learning_Online_From_Non-Stationary_Data_Streams_ICCV_2021_paper.pdf)
+citeturn631search15 [wordlim: 200] Crawled: 5 days ago; As an additional contribution, we propose the learner-evaluator framework that i) generalizes existing paradigms in continual learning, ii) introduces data incremental learning, and iii) models the bridge between continual learning and concept drift. ... The framework generalizes to both continual learning and concept drift with resources transparently defined as the horizon \(\mathcal{D}\) and operational memory \(\mathcal{M}\).
+As an additional contribution, we propose the learner-evaluator framework that i) generalizes existing paradigms in continual learning, ii) introduces data incremental learning, and iii) models the bridge between continual learning and concept drift. We obtain state-of-the-art performance by a significant margin on eight benchmarks, including three highly imbalanced data streams. Code is publicly available.¹
+
+¹ https://github.com/mattdl/ContinualPrototypeEvolution
+
+## Figure 1. Overview of the learner-evaluator framework
+
+<visual_element id="e1">
+Diagram of the learner-evaluator framework, showing two data-stream pathways and their interaction through operational memory and a shared model.
+
+**Upper pathway — Evaluator:**
+- Input data stream: \(S_{eval}\), represented as stacked data batches.
+- Time indices: \(t_j\) and \(t_{j+1}\).
+- Evaluator data horizon: \(\mathcal{D}_{eval,t_j}\).
+- Evaluator module, containing \(B_{eval}\).
+- The evaluator performs **evaluate** operations using the model \(f_\theta\).
+--------------------------------------------------------------------------------
+Systems and methods for context-aware anxiety interventions (https://patents.google.com/patent/US12488671B2/en)
+citeturn631search7 [wordlim: 200] Published: last year; Crawled: 2 months ago; The JITAI CBM-I delivery model used by the system may, for example, be based on the contextual multi-armed bandit recommendation algorithm instead of a full RL algorithm (e.g., Q-learning) to mitigate the reliance on large training data and on the assumption that the state space is perfectly known. ... In other words, r∈R is such an r that satisfies r(a), where e represents the user's feedback on the effectiveness of the intervention's timing (with 1 being poor and 5 being good). ... When the contextual bandit model chooses to deliver an intervention, the decision rule models may be solicited to define the content of the intervention based on participant's context.
+The flow that defines the content of the training materials may be dictated using a decision rule model, such as the one above. When the contextual bandit model chooses to deliver an intervention, the decision rule models may be solicited to define the content of the intervention based on participant's context. During a microdose intervention delivery, users may be asked about the timing of the event and the type of stressor. For the latter question, they may first be prompted to identify the broad category of stressor from a brief list (e.g., social interaction with friends, academic stressor, etc.), and then using a branching logic they may be presented with a list of events to select from within the broad category. For example, if the person chose social interaction with friends, they could then be asked to choose among a list of options. For example, going out for coffee or a meal, going to a party, or another social interaction. The training materials assigned for the microdose may then be pulled from a large pool and matched to the specific stressor and its temporal stage. For example, a socially anxious person may experience an increase in anxious arousal and report that the stressor is a date that may be occurring later that night.
+
+--------------------------------------------------------------------------------
+RETRACTED: Continual Learning Approach for Continuous Data Stream Analysis in Dynamic Environments (https://www.mdpi.com/2076-3417/13/14/8004)
+citeturn631search8 [wordlim: 200] Published: 2.9 years ago; Crawled: 3 weeks ago; This section defines the essential preliminaries and related research work associated with concept drift in continual learning. ... Catastrophic forgetting, also known as catastrophic interference, is a phenomenon where neural networks forget previously learned knowledge when trained on new, unrelated data. ... This is the first prototype-based statistical investigation of how continual concept drift impairs learning, with a categorization and neural network based on ReLU for estimating the generalization error.
+--------------------------------------------------------------------------------
+Concept Re-identification to Explain Online Continual Learning - ISLAB/CAISR (https://mw.hh.se/caisr/index.php?title=Concept_Re-identification_to_Explain_Online_Continual_Learning)
+citeturn631search9 [wordlim: 200] Crawled: last month; Summary  | This project aims to apply techniques from recurrent concept drifts to explain the predictions of Online Continual Learning methods. ... Halstead, B., Koh, Y.S., Riddle, P., Pechenizkiy, M., Bifet, A.: Combining diverse meta-features to accurately identify recurring concept drift in data streams.
+--------------------------------------------------------------------------------
+Supervised Learning from Data Streams: An Overview and Update (https://doi.org/10.1145/3737279)
+citeturn631search10 [wordlim: 200] Published: 1.4 years ago; Crawled: 2 weeks ago; False drift alarms can deteriorate the predictive accuracy of the learned models [138]. ... Drift detection usually implies model refreshment [106], and this in turn may offer a forgetting mechanism, increased diversity among ensemble members, better generalization through a simpler model and thus less overfitting, or better learning of the concept in course. ... And, in the opposing case of a stable concept, a slower learning strategy is likely to be the better strategy, especially if the concept is complex and thus requires a complex model to represent it. ... It can therefore be a sensible option to rescind any type of adaptation, and instead place the focus on anomaly detection and alerts for human intervention; and/or on general robustness to concept drift.
+--------------------------------------------------------------------------------
+Continual Learning Strategies for Non-Stationary Data Streams in Smart Cities (https://jisfc.com/index.php/jisfc/article/view/44)
+citeturn631search11 [wordlim: 200] Published: 4.1 years ago; Crawled: 2 weeks ago; continual learning, concept drift, catastrophic forgetting, smart city sensing, streaming data ... data-stream-mining work on concept drift and single-pass streaming classifiers, and the deep-learning continual-learning
+--------------------------------------------------------------------------------
+CLEAN: Psychometrically Consistent Incremental Cognitive Diagnosis under Concept-Space Expansion via Architectural Isolation (https://arxiv.org/abs/2610.02278)
+citeturn631academia16 [wordlim: 200] Published: last month; Therefore, we propose CLEAN (Continual Learning with Expandable and Architecturally Isolated Networks), a novel incremental CD framework supporting concept-space expansion while providing structural guarantees for pointwise invariance of historical diagnoses. ... Finally, to verify that this architectural design achieves invariance by construction, we formalize Representation Drift (RD) to quantify the perturbation of historical traits.
+--------------------------------------------------------------------------------
+STABLE: A Continual Learning Optimizer with Adaptive Drift Control (https://arxiv.org/abs/2611.10655)
+citeturn631academia17 [wordlim: 200] Published: last week; Title: STABLE: A Continual Learning Optimizer with Adaptive Drift Control
+--------------------------------------------------------------------------------
+Representation Drift in Continual Learning: LoRA versus N-gram Memory (https://arxiv.org/abs/2610.14921)
+citeturn631academia18 [wordlim: 200] Published: last month; Title: Representation Drift in Continual Learning: LoRA versus N-gram Memory ... We show that this forgetting is governed by drift on the learned tasks' own inputs, measured from the checkpoint at which each was learned, not by generic drift (Spearman rho=0.85; rho=0.71 on Llama-3-8B), and we derive the exact relations behind it: with a frozen head, every pairwise logit margin changes by the projection of drift onto a head-difference direction.
+--------------------------------------------------------------------------------
+Dataset shift (https://en.wikipedia.org/wiki/Dataset_shift)
+citeturn631search19 [wordlim: 200] Crawled: last week; Concept shift (also known as concept drift) is the change of the conditional relationship between inputs and outputs that renders previously learned patterns invalid over time. ... Detecting and mitigating such shifts is an active area of research, e.g., drift detection, domain adaptation, continual learning.
+--------------------------------------------------------------------------------
+Wendbine (https://www.reddit.com/r/Wendbine/comments/1wb2rjt/wendbine/)
+citeturn631reddit20 [wordlim: 200] Published: 2 months ago; This is particularly important in streaming systems, recommendation networks, and digital twins. ... Continual learning also intersects with concept drift. ... For Neural Operators, continual learning may mean adapting a learned solution operator as new physical regimes or geometries appear. ... The entire neural-network study sequence therefore converges on continual learning as a problem of preserving relational structure across model mutation. ... sequential learning → interference → catastrophic forgetting → stability–plasticity dilemma → replay → regularization → parameter isolation → modular architectures → representation drift → backward compatibility → concept drift → change-point detection → continual adaptation → model versioning → digital-twin lifecycle management.
+--------------------------------------------------------------------------------
+We need a better taxonomy for what people are calling "continual learning" (https://www.reddit.com/r/LocalLLaMA/comments/1w69cql/we_need_a_better_taxonomy_for_what_people_are/)
+citeturn631reddit21 [wordlim: 200] Published: 2 months ago; IMO, the problem is that it's a problem setting being used as if it named a mechanism. ... Here's how I'd break it down: long-context ICL, text optimization, recurrent latent memory, per-task test-time training, and online parametric continual fine-tuning ... The main challenges are finding good labels/rewards at test time and learning new information without destroying existing capabilities, using techniques such as replay, regularization, parameter isolation, or sparse and targeted updates. ... Then, with a lot of routing and teaching the model to use those memories injected into its hidden state, you get something kind of like continual learning.
+--------------------------------------------------------------------------------
+Incremental learning (https://en.wikipedia.org/wiki/Incremental_learning)
+citeturn631search22 [wordlim: 200] Crawled: last month; Recent work extends incremental or continual learning to generative AI systems, including large language models, multimodal models, and diffusion models, with the goal of updating capabilities over time without requiring full retraining for every change. ... Andreessen Horowitz has argued that continual learning could reduce the need for repeated large retraining runs by helping systems incorporate new information over time, although this remains an active research challenge rather than a solved production capability. ... A case study of incremental concept induction.
+--------------------------------------------------------------------------------
+Multi-armed bandit (https://en.wikipedia.org/wiki/Multi-armed_bandit)
+citeturn631search23 [wordlim: 200] Crawled: 4 days ago; * Adaptive epsilon-greedy strategy based on Bayesian ensembles (Epsilon-BMC): An adaptive epsilon adaptation strategy for reinforcement learning similar to VBDE, with monotone convergence guarantees. ... At each iteration an agent still has to choose between arms, but they also see a d-dimensional feature vector, the context vector they can use together with the rewards of the arms played in the past to make the choice of the arm to play. ... Many strategies exist that provide an approximate solution to the contextual bandit problem, and can be put into two broad categories detailed below.
+--------------------------------------------------------------------------------
+Survival analysis (https://en.wikipedia.org/wiki/Survival_analysis)
+citeturn631search24 [wordlim: 200] Crawled: 2 weeks ago; Survival analysis is a branch of statistics for analyzing the expected duration of time until one event occurs, such as death in biological organisms and failure in mechanical systems. ... The study of recurring events is relevant in systems reliability, and in many areas of social sciences and medical research. ...  time | n.risk | n.event | survival | std.err | lower 95% CI | upper 95% CI ... The standard error of the Kaplan–Meier product-limit estimate it is calculated using Greenwood's formula, and depends on the number at risk (n.risk in the table), the number of deaths (n.event in the table) and the proportion surviving (survival in the table).
+--------------------------------------------------------------------------------
+Representational drift (https://en.wikipedia.org/wiki/Representational_drift)
+citeturn631search25 [wordlim: 200] Crawled: 3 months ago; In neuroscience, representational drift is a phenomenon describing the gradual change in how the brain represents information over time, even when the information (and associated perception or behavior) itself remains constant. ... While stability is important for consistent recognition and recall, the brain's inherent plasticity and ongoing learning processes can lead to modifications in these representations. ... Over time, the same stimulus or concept might elicit a different, albeit potentially related, pattern of neural activation.
+--------------------------------------------------------------------------------
+Online machine learning (https://en.wikipedia.org/wiki/Online_machine_learning)
+citeturn631search26 [wordlim: 200] Crawled: last month; Continual learning means constantly improving the learned model by processing continuous streams of information.
+

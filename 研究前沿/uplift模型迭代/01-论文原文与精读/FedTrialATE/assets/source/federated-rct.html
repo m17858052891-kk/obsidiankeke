@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Federated ATE for Randomised Controlled Trials</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Federated ATE for Randomised Controlled
+Trials</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(dsFedAteClient)</span></code></pre></div>
+<p>Randomised Controlled Trials (RCTs) are the gold standard for
+estimating causal treatment effects, but individual trials are often
+limited in size or patient diversity, making multi-site analyses highly
+desirable. The obstacle is that individual-level data are typically
+siloed across institutions by privacy regulations and data governance
+policies, making naive data centralisation infeasible.
+<strong>DataSHIELD</strong> addresses this through federated analysis:
+each site returns only aggregate statistics so that raw records never
+leave their originating server. This vignette walks through four worked
+examples of federated Average Treatment Effect (ATE) estimation using
+the estimator of <span class="citation">Khellaf, Bellet, and Josse
+(2025)</span>, which fits arm-specific outcome models across sites and
+aggregates local plug-in G-formula estimates into a global ATE.</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgdmlld0JveD0iMCAwIDUwMCAyMzAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgogIDxtYXJrZXIgaWQ9ImFycm93RmVkIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjgiIHJlZlk9IjUiIG1hcmtlcldpZHRoPSI1IiBtYXJrZXJIZWlnaHQ9IjUiIG9yaWVudD0iYXV0by1zdGFydC1yZXZlcnNlIj4KICAgIDxwYXRoIGQ9Ik0yIDFMOCA1TDIgOSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPC9tYXJrZXI+CjwvZGVmcz4KCjwhLS0gU2l0ZSAxIC8gU2VydmVyIDEgLS0+CjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjExMCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNmMWVmZTgiIHN0cm9rZT0iIzVmNWU1YSIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHRleHQgeD0iNzUiIHk9IjMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMyYzJjMmEiPlNpdGUgMTwvdGV4dD4KPHRleHQgeD0iNzUiIHk9IjQ4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM1ZjVlNWEiPlNlcnZlciAxPC90ZXh0PgoKPHRleHQgeD0iNzUiIHk9IjgzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzVmNWU1YSI+4ouuPC90ZXh0PgoKPCEtLSBTaXRlIDIgLyBTZXJ2ZXIgMiAtLT4KPHJlY3QgeD0iMjAiIHk9IjkwIiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI2YxZWZlOCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8dGV4dCB4PSI3NSIgeT0iMTAzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMyYzJjMmEiPlNpdGUgMjwvdGV4dD4KPHRleHQgeD0iNzUiIHk9IjExOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjNWY1ZTVhIj5TZXJ2ZXIgMjwvdGV4dD4KCjx0ZXh0IHg9Ijc1IiB5PSIxNTMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNWY1ZTVhIj7ii648L3RleHQ+Cgo8IS0tIFNpdGUgSyAvIFNlcnZlciBLIC0tPgo8cmVjdCB4PSIyMCIgeT0iMTYwIiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI2YxZWZlOCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8dGV4dCB4PSI3NSIgeT0iMTczIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMyYzJjMmEiPlNpdGUgSzwvdGV4dD4KPHRleHQgeD0iNzUiIHk9IjE4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjNWY1ZTVhIj5TZXJ2ZXIgSzwvdGV4dD4KCjwhLS0gQW5hbHlzdCAvIENsaWVudCAtLT4KPHJlY3QgeD0iMzcwIiB5PSI5MCIgd2lkdGg9IjExMCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNmMWVmZTgiIHN0cm9rZT0iIzVmNWU1YSIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHRleHQgeD0iNDI1IiB5PSIxMDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzJjMmMyYSI+QW5hbHlzdDwvdGV4dD4KPHRleHQgeD0iNDI1IiB5PSIxMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzVmNWU1YSI+Q2xpZW50PC90ZXh0PgoKPCEtLSBBcnJvdzogU2l0ZSAxIOKGkiBBbmFseXN0IC0tPgo8cGF0aCBkPSJNMTMwIDQwIEMgMjIwIDQwIDI4MCAxMTAgMzcwIDExMCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIgbWFya2VyLWVuZD0idXJsKCNhcnJvd0ZlZCkiLz4KCjwhLS0gQXJyb3c6IFNpdGUgMiDihpIgQW5hbHlzdCAtLT4KPGxpbmUgeDE9IjEzMCIgeTE9IjExMCIgeDI9IjM3MCIgeTI9IjExMCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnJvd0ZlZCkiLz4KCjwhLS0gQXJyb3c6IFNpdGUgSyDihpIgQW5hbHlzdCAtLT4KPHBhdGggZD0iTTEzMCAxODAgQyAyMjAgMTgwIDI4MCAxMTAgMzcwIDExMCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIgbWFya2VyLWVuZD0idXJsKCNhcnJvd0ZlZCkiLz4KCjwhLS0gTGFiZWwgLS0+Cjx0ZXh0IHg9IjI1MCIgeT0iMTAxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzVmNWU1YSI+YWdncmVnYXRlZCBzdGF0aXN0aWNzPC90ZXh0PgoKPCEtLSBQcml2YWN5IG5vdGUgLS0+Cjx0ZXh0IHg9Ijc1IiB5PSIyMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjkiIGZpbGw9IiM1ZjVlNWEiIGZvbnQtc3R5bGU9Iml0YWxpYyI+aW5kaXZpZHVhbCBkYXRhIHN0YXlzIGxvY2FsPC90ZXh0Pgo8L3N2Zz4K" alt width="50%" style="display: block; margin: auto;" /></p>
+<p><strong>Organisation.</strong> The Estimator section introduces the
+notation and the three-step estimation procedure. Four examples then
+illustrate the method under progressively richer conditions: Example 1
+covers the baseline homogeneous covariate distributions setting and
+verifies that the federated estimator matches the centralised one;
+Example 2 shows how DataSHIELD’s <code>nfilter.glm</code> disclosure
+threshold governs whether estimation is feasible under extreme treatment
+imbalance; Example 3 extends the analysis to sites with heterogeneous
+covariate distributions; Example 4 addresses site-specific intercept
+shifts that would otherwise confound the unadjusted estimator.</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;dsFedAteClient&quot;</span>)  <span class="co"># client package (analyst machine)</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;dsFedAte&quot;</span>)        <span class="co"># server package (deployed on each data server)</span></span></code></pre></div>
+</div>
+<div id="estimator" class="section level2">
+<h2>Estimator</h2>
+<p>Consider <span class="math inline">\(n\)</span> individuals
+distributed across <span class="math inline">\(K\)</span> sites, with
+site <span class="math inline">\(k\)</span> holding <span class="math inline">\(n_k\)</span> observations (<span class="math inline">\(\sum_k n_k = n\)</span>). For individual <span class="math inline">\(i\)</span> in site <span class="math inline">\(k\)</span>, let <span class="math inline">\(X_{ki}
+\in \mathbb{R}^d\)</span> denote baseline covariates, <span class="math inline">\(W_{ki} \in \{0,1\}\)</span> the treatment
+indicator, and <span class="math inline">\(Y_{ki} \in
+\mathbb{R}\)</span> the observed outcome, related to the potential
+outcomes <span class="citation">(Rubin 1974)</span> by <span class="math inline">\(Y_{ki} = W_{ki}\,Y_{ki}^{(1)} +
+(1-W_{ki})\,Y_{ki}^{(0)}\)</span>.</p>
+<p>The quantity of interest is the <strong>Average Treatment
+Effect</strong> <span class="math display">\[\tau^\star =
+\mathbb{E}\!\left[Y^{(1)} - Y^{(0)}\right].\]</span></p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgdmlld0JveD0iMCAwIDQwMCAyNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxkZWZzPgo8bWFya2VyIGlkPSJhcnJvdzIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOCIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjUiIG1hcmtlckhlaWdodD0iNSIgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPgo8cGF0aCBkPSJNMiAxTDggNUwyIDkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmNWU1YSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L21hcmtlcj4KPC9kZWZzPgoKPCEtLSBOb2RlcyAtLT4KPHJlY3QgeD0iODAiIHk9IjMwIiB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjZjFlZmU4IiBzdHJva2U9IiM1ZjVlNWEiIHN0cm9rZS13aWR0aD0iMC41Ii8+Cjx0ZXh0IHg9IjExMCIgeT0iNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzJjMmMyYSI+SDwvdGV4dD4KCjxyZWN0IHg9IjI2MCIgeT0iMzAiIHdpZHRoPSI2MCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNmMWVmZTgiIHN0cm9rZT0iIzVmNWU1YSIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHRleHQgeD0iMjkwIiB5PSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNTAwIiBmaWxsPSIjMmMyYzJhIj5YPC90ZXh0PgoKPHJlY3QgeD0iODAiIHk9IjExMCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI2YxZWZlOCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjAuNSIvPgo8dGV4dCB4PSIxMTAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNTAwIiBmaWxsPSIjMmMyYzJhIj5XPC90ZXh0PgoKPHJlY3QgeD0iMTcwIiB5PSIxODAiIHdpZHRoPSI2MCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNmMWVmZTgiIHN0cm9rZT0iIzVmNWU1YSIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KPHRleHQgeD0iMjAwIiB5PSIyMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzJjMmMyYSI+WTwvdGV4dD4KCjwhLS0gQXJyb3dzIC0tPgo8IS0tIEgg4oaSIFcgLS0+CjxsaW5lIHgxPSIxMTAiIHkxPSI3MCIgeDI9IjExMCIgeTI9IjExMCIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnJvdzIpIiBmaWxsPSJub25lIi8+CjwhLS0gVyDihpIgWSAtLT4KPGxpbmUgeDE9IjEzMCIgeTE9IjE1MCIgeDI9IjE3NSIgeTI9IjE4NSIgc3Ryb2tlPSIjNWY1ZTVhIiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnJvdzIpIiBmaWxsPSJub25lIi8+CjwhLS0gWCDihpIgWSAtLT4KPGxpbmUgeDE9IjI3NSIgeTE9IjcwIiB4Mj0iMjE1IiB5Mj0iMTgwIiBzdHJva2U9IiM1ZjVlNWEiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93MikiIGZpbGw9Im5vbmUiLz4KPCEtLSBIIOKGkiBYIChuZXc6IGRpc3RyaWJ1dGlvbmFsIHNoaWZ0KSAtLT4KPGxpbmUgeDE9IjE0MCIgeTE9IjUwIiB4Mj0iMjYwIiB5Mj0iNTAiIHN0cm9rZT0iIzVmNWU1YSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyb3cyKSIgZmlsbD0ibm9uZSIvPgo8L3N2Zz4K" alt width="35%" style="display: block; margin: auto;" /></p>
+<p>Under an outcome model as given in the DAG above, for each arm <span class="math inline">\(w \in \{0,1\}\)</span>, an arm-specific linear
+model is fitted by <strong>federated linear regression</strong> — each
+site contributes its local cross-products of the design matrix and the
+solution is identical to the centralised one: <span class="math display">\[(\hat\alpha_w,\,\hat\beta_w) =
+\underset{\alpha,\,\beta}{\arg\min}
+  \sum_{k=1}^K \sum_{i:\,W_{ki}=w}
+  \bigl(Y_{ki} - \alpha - \beta^\top X_{ki}\bigr)^2.\]</span> No
+individual-level records are shared at any point. Each site <span class="math inline">\(k\)</span> then applies the shared coefficients
+via the <strong>plug-in G-formula</strong>: <span class="math display">\[\hat\tau_k = \frac{1}{n_k}\sum_{i=1}^{n_k}
+  \Bigl[
+    \bigl(\hat\alpha_1 + \hat\beta_1^\top X_{ki}\bigr) -
+    \bigl(\hat\alpha_0 + \hat\beta_0^\top X_{ki}\bigr)
+  \Bigr],\]</span> and the global estimate is the sample-size-weighted
+average <span class="math display">\[\hat\tau = \sum_{k=1}^K
+\frac{n_k}{n}\,\hat\tau_k.\]</span></p>
+<blockquote>
+<p><strong>Remark.</strong> In Example 4 we consider an outcome model as
+in the DAG above but with an additional arrow from the site indicator
+<span class="math inline">\(H\)</span> to <span class="math inline">\(Y\)</span>, known as <em>study effects</em> in the
+literature. In that setting the arm-specific regressions are also fitted
+over <span class="math inline">\(H\)</span> — by augmenting the design
+matrix with site-membership dummies — in order to absorb the site-level
+intercept shifts and obtain an unbiased estimate of <span class="math inline">\(\tau^\star\)</span>. See Example 4 for
+details.</p>
+</blockquote>
+</div>
+<div id="local-simulation-with-dslite" class="section level2">
+<h2>Local simulation with DSLite</h2>
+<p>All examples use <strong>DSLite</strong> to emulate a federated
+DataSHIELD infrastructure locally. In a real deployment each site would
+run a dedicated institutional server.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(dsFedAteClient)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">library</span>(dsFedAte)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">library</span>(DSLite)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; Loading required package: DSI</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; Loading required package: progress</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; Loading required package: R6</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Loading required package: rly</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>datashield_env <span class="ot">&lt;-</span> <span class="fu">new.env</span>(<span class="at">parent =</span> <span class="fu">emptyenv</span>())</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">options</span>(<span class="at">datashield.env =</span> datashield_env)</span></code></pre></div>
+</div>
+<div id="shared-parameters" class="section level2">
+<h2>Shared parameters</h2>
+<p>All four examples share the model structure parameters below.
+<code>sigma_noise</code> is the common noise standard deviation used in
+Examples 1–3; Example 4 uses arm-specific values defined in its own data
+section.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>K           <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>d           <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>sigma_noise <span class="ot">&lt;-</span> <span class="fl">1.0</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>alpha_0     <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">2</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>alpha_1     <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">1.85</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>beta_1 <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">1.75</span>, <span class="fl">0.5</span>,  <span class="at">by =</span> <span class="fl">0.25</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>beta_0 <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">1.8</span>,  <span class="fl">0.0</span>,  <span class="at">by =</span> <span class="fl">0.2</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>I_d <span class="ot">&lt;-</span> <span class="fu">diag</span>(d)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>J   <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">1</span>, <span class="at">nrow =</span> d, <span class="at">ncol =</span> d)</span></code></pre></div>
+</div>
+<div id="example-1-homogeneous-sites" class="section level2">
+<h2>Example 1 — Homogeneous sites</h2>
+<p>Five sites, balanced sample sizes, same covariate distribution
+everywhere. The federated estimator matches the centralised one
+exactly.</p>
+<div id="data" class="section level3">
+<h3>Data</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>n_per_study <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="sc">*</span> d</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>p_treatment <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.65</span>, <span class="fl">0.65</span>, <span class="fl">0.65</span>, <span class="fl">0.35</span>, <span class="fl">0.35</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>mu_X    <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>, d <span class="sc">%/%</span> <span class="dv">2</span>), <span class="fu">rep</span>(<span class="sc">-</span><span class="dv">1</span>, d <span class="sc">%/%</span> <span class="dv">2</span>))</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>Sigma_X <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> I_d <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> J</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>true_ATE <span class="ot">&lt;-</span> (alpha_1 <span class="sc">-</span> alpha_0) <span class="sc">+</span> <span class="fu">sum</span>(mu_X <span class="sc">*</span> (beta_1 <span class="sc">-</span> beta_0))</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>data_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, K)</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  X_k   <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(<span class="at">n =</span> n_per_study, <span class="at">mu =</span> mu_X, <span class="at">Sigma =</span> Sigma_X)</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  W_k   <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="at">n =</span> n_per_study, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">prob =</span> p_treatment[k])</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  Y_0   <span class="ot">&lt;-</span> alpha_0 <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_0 <span class="sc">+</span> <span class="fu">rnorm</span>(n_per_study, <span class="at">sd =</span> sigma_noise)</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>  Y_1   <span class="ot">&lt;-</span> alpha_1 <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_1 <span class="sc">+</span> <span class="fu">rnorm</span>(n_per_study, <span class="at">sd =</span> sigma_noise)</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>  Y_obs <span class="ot">&lt;-</span> W_k <span class="sc">*</span> Y_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> W_k) <span class="sc">*</span> Y_0</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>  df    <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> W_k, <span class="at">Y =</span> <span class="fu">as.vector</span>(Y_obs), X_k)</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  <span class="fu">colnames</span>(df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;W&quot;</span>, <span class="st">&quot;Y&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="fu">seq_len</span>(d)))</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  data_list[[k]] <span class="ot">&lt;-</span> df</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>}</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>pooled_data <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, data_list)</span></code></pre></div>
+</div>
+<div id="servers" class="section level3">
+<h3>Servers</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">options</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">datashield.privacyControlLevel =</span> <span class="st">&quot;banana&quot;</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">nfilter.glm                    =</span> <span class="fl">0.33</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  srv <span class="ot">&lt;-</span> DSLite<span class="sc">::</span><span class="fu">newDSLiteServer</span>(<span class="at">tables =</span> <span class="fu">list</span>(<span class="at">study_data =</span> data_list[[k]]))</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">config</span>(DSLite<span class="sc">::</span><span class="fu">defaultDSConfiguration</span>(<span class="at">include =</span> <span class="fu">c</span>(<span class="st">&quot;dsBase&quot;</span>, <span class="st">&quot;dsFedAte&quot;</span>)))</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">aggregateMethod</span>(<span class="st">&quot;localAteDS&quot;</span>, <span class="st">&quot;localAteDS&quot;</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="fu">assign</span>(<span class="fu">paste0</span>(<span class="st">&quot;dslite.server&quot;</span>, k), srv, <span class="at">envir =</span> datashield_env)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>}</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a></span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>builder <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">newDSLoginBuilder</span>()</span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>  builder<span class="sc">$</span><span class="fu">append</span>(</span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>    <span class="at">server =</span> <span class="fu">paste0</span>(<span class="st">&quot;study&quot;</span>, k),</span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>    <span class="at">url    =</span> <span class="fu">paste0</span>(<span class="st">&quot;dslite.server&quot;</span>, k),</span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>    <span class="at">table  =</span> <span class="st">&quot;study_data&quot;</span>,</span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a>    <span class="at">driver =</span> <span class="st">&quot;DSLiteDriver&quot;</span></span>
+<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a>  )</span>
+<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a>}</span>
+<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a>conns <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">datashield.login</span>(<span class="at">logins =</span> builder<span class="sc">$</span><span class="fu">build</span>(), <span class="at">assign =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-53"><a href="#cb6-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-54"><a href="#cb6-54" tabindex="-1"></a><span class="co">#&gt; Logging into the collaborating servers</span></span>
+<span id="cb6-55"><a href="#cb6-55" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.assign.table</span>(<span class="at">conns =</span> conns, <span class="at">table =</span> <span class="st">&quot;study_data&quot;</span>, <span class="at">symbol =</span> <span class="st">&quot;base&quot;</span>)</span></code></pre></div>
+</div>
+<div id="estimate" class="section level3">
+<h3>Estimate</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>outcome_name    <span class="ot">&lt;-</span> <span class="st">&quot;Y&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>treatment_name  <span class="ot">&lt;-</span> <span class="st">&quot;W&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>covariate_names <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="fu">seq_len</span>(d))</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>federated_ate <span class="ot">&lt;-</span> <span class="fu">ds.EstimateAte</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">datasources     =</span> conns,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">base_name       =</span> <span class="st">&quot;base&quot;</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">outcome_name    =</span> outcome_name,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">treatment_name  =</span> treatment_name,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="at">covariate_names =</span> covariate_names,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">heterogeneous   =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  <span class="at">quiet           =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ATE: %.4f  SE: %.4f  95%% CI: [%.4f, %.4f]  True ATE: %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>            federated_ate<span class="sc">$</span>ate, <span class="fu">sqrt</span>(federated_ate<span class="sc">$</span>variance),</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>            federated_ate<span class="sc">$</span>ci_lower, federated_ate<span class="sc">$</span>ci_upper, true_ATE))</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; ATE: -1.1694  SE: 0.0886  95% CI: [-1.3431, -0.9958]  True ATE: -1.1000</span></span></code></pre></div>
+<p>The federated ATE equals the centralised estimator to machine
+precision:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>pooled_treated <span class="ot">&lt;-</span> pooled_data[pooled_data<span class="sc">$</span>W <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>pooled_control <span class="ot">&lt;-</span> pooled_data[pooled_data<span class="sc">$</span>W <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>formula        <span class="ot">&lt;-</span> <span class="fu">paste0</span>(outcome_name, <span class="st">&quot; ~ &quot;</span>, <span class="fu">paste</span>(covariate_names, <span class="at">collapse =</span> <span class="st">&quot; + &quot;</span>))</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>m1             <span class="ot">&lt;-</span> <span class="fu">glm</span>(formula, <span class="at">family =</span> gaussian, <span class="at">data =</span> pooled_treated)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>m0             <span class="ot">&lt;-</span> <span class="fu">glm</span>(formula, <span class="at">family =</span> gaussian, <span class="at">data =</span> pooled_control)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>x_bar          <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(<span class="fu">as.matrix</span>(pooled_data[, covariate_names]))</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>pooled_ate     <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  (m1<span class="sc">$</span>coefficients[<span class="st">&quot;(Intercept)&quot;</span>] <span class="sc">-</span> m0<span class="sc">$</span>coefficients[<span class="st">&quot;(Intercept)&quot;</span>]) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="fu">sum</span>(x_bar <span class="sc">*</span> (m1<span class="sc">$</span>coefficients[covariate_names] <span class="sc">-</span> m0<span class="sc">$</span>coefficients[covariate_names]))</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>)</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="fu">isTRUE</span>(<span class="fu">all.equal</span>(pooled_ate, federated_ate<span class="sc">$</span>ate))</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.logout</span>(conns)</span></code></pre></div>
+</div>
+</div>
+<div id="example-2-disclosure-thresholds" class="section level2">
+<h2>Example 2 — Disclosure thresholds</h2>
+<p>Same model, but extreme treatment probabilities (0.9 / 0.1) produce
+very small arm sizes at some sites. With <span class="math inline">\(n_k
+= 200\)</span> and <span class="math inline">\(p = 0.1\)</span>, the
+expected minority arm has only 20 observations. The default
+<code>nfilter.glm = 0.33</code> blocks estimation because the GLM has
+<span class="math inline">\(d + 1 = 11\)</span> parameters and <span class="math inline">\(11/20 = 0.55 &gt; 0.33\)</span>.</p>
+<p>DataSHIELD enforces two distinct mechanisms: the <em>privacy control
+level</em> (<code>&quot;banana&quot;</code>, <code>&quot;permissive&quot;</code>, etc.)
+gates which functions may be called at all, while <code>nfilter.*</code>
+thresholds gate what values those functions will return. Both
+<code>localAteDS</code> and <code>addStudyIdDS</code> are permitted
+under <code>&quot;banana&quot;</code> (the default), so the privacy level is not
+the binding constraint. Raising <code>nfilter.glm</code> alone — while
+keeping <code>&quot;banana&quot;</code> — is sufficient to unblock estimation.</p>
+<div id="data-1" class="section level3">
+<h3>Data</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>p_treatment_2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.9</span>, <span class="fl">0.9</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>data_list_2 <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, K)</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  X_k   <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(<span class="at">n =</span> n_per_study, <span class="at">mu =</span> mu_X, <span class="at">Sigma =</span> Sigma_X)</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  W_k   <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="at">n =</span> n_per_study, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">prob =</span> p_treatment_2[k])</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  Y_0   <span class="ot">&lt;-</span> alpha_0 <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_0 <span class="sc">+</span> <span class="fu">rnorm</span>(n_per_study, <span class="at">sd =</span> sigma_noise)</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  Y_1   <span class="ot">&lt;-</span> alpha_1 <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_1 <span class="sc">+</span> <span class="fu">rnorm</span>(n_per_study, <span class="at">sd =</span> sigma_noise)</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  Y_obs <span class="ot">&lt;-</span> W_k <span class="sc">*</span> Y_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> W_k) <span class="sc">*</span> Y_0</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  df    <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> W_k, <span class="at">Y =</span> <span class="fu">as.vector</span>(Y_obs), X_k)</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="fu">colnames</span>(df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;W&quot;</span>, <span class="st">&quot;Y&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="fu">seq_len</span>(d)))</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  data_list_2[[k]] <span class="ot">&lt;-</span> df</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="default-settings-blocked" class="section level3">
+<h3>Default settings — blocked</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">datashield.privacyControlLevel =</span> <span class="st">&quot;banana&quot;</span>, <span class="at">nfilter.glm =</span> <span class="fl">0.33</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  srv <span class="ot">&lt;-</span> DSLite<span class="sc">::</span><span class="fu">newDSLiteServer</span>(<span class="at">tables =</span> <span class="fu">list</span>(<span class="at">study_data =</span> data_list_2[[k]]))</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">config</span>(DSLite<span class="sc">::</span><span class="fu">defaultDSConfiguration</span>(<span class="at">include =</span> <span class="fu">c</span>(<span class="st">&quot;dsBase&quot;</span>, <span class="st">&quot;dsFedAte&quot;</span>)))</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">aggregateMethod</span>(<span class="st">&quot;localAteDS&quot;</span>, <span class="st">&quot;localAteDS&quot;</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="fu">assign</span>(<span class="fu">paste0</span>(<span class="st">&quot;dslite.server2_&quot;</span>, k), srv, <span class="at">envir =</span> datashield_env)</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>}</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-33"><a href="#cb12-33" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-34"><a href="#cb12-34" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb12-35"><a href="#cb12-35" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-36"><a href="#cb12-36" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb12-37"><a href="#cb12-37" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb12-38"><a href="#cb12-38" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb12-39"><a href="#cb12-39" tabindex="-1"></a></span>
+<span id="cb12-40"><a href="#cb12-40" tabindex="-1"></a>builder2 <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">newDSLoginBuilder</span>()</span>
+<span id="cb12-41"><a href="#cb12-41" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb12-42"><a href="#cb12-42" tabindex="-1"></a>  builder2<span class="sc">$</span><span class="fu">append</span>(</span>
+<span id="cb12-43"><a href="#cb12-43" tabindex="-1"></a>    <span class="at">server =</span> <span class="fu">paste0</span>(<span class="st">&quot;study&quot;</span>, k),</span>
+<span id="cb12-44"><a href="#cb12-44" tabindex="-1"></a>    <span class="at">url    =</span> <span class="fu">paste0</span>(<span class="st">&quot;dslite.server2_&quot;</span>, k),</span>
+<span id="cb12-45"><a href="#cb12-45" tabindex="-1"></a>    <span class="at">table  =</span> <span class="st">&quot;study_data&quot;</span>,</span>
+<span id="cb12-46"><a href="#cb12-46" tabindex="-1"></a>    <span class="at">driver =</span> <span class="st">&quot;DSLiteDriver&quot;</span></span>
+<span id="cb12-47"><a href="#cb12-47" tabindex="-1"></a>  )</span>
+<span id="cb12-48"><a href="#cb12-48" tabindex="-1"></a>}</span>
+<span id="cb12-49"><a href="#cb12-49" tabindex="-1"></a>conns_2 <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">datashield.login</span>(<span class="at">logins =</span> builder2<span class="sc">$</span><span class="fu">build</span>(), <span class="at">assign =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-50"><a href="#cb12-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-51"><a href="#cb12-51" tabindex="-1"></a><span class="co">#&gt; Logging into the collaborating servers</span></span>
+<span id="cb12-52"><a href="#cb12-52" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.assign.table</span>(<span class="at">conns =</span> conns_2, <span class="at">table =</span> <span class="st">&quot;study_data&quot;</span>, <span class="at">symbol =</span> <span class="st">&quot;base&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">ds.EstimateAte</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="at">datasources     =</span> conns_2,</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">base_name       =</span> <span class="st">&quot;base&quot;</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">outcome_name    =</span> outcome_name,</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">treatment_name  =</span> treatment_name,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">covariate_names =</span> covariate_names,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">heterogeneous   =</span> <span class="cn">FALSE</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>)</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; MODEL FITTING TERMINATED AT FIRST ITERATION:</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt; Any values of 1 in the following tables denote potential disclosure risks</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt; please use the argument &lt;datasources&gt; to include only valid studies.</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt; Errors by study are as follows:</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; 00000</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; 0000000000000000000000000000000000000000000000000000000</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; 00000</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; 00000</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt; 00011</span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt; No errorsNo errorsNo errorsSTUDY DATA OR APPLIED MODEL INVALID FOR THIS SOURCESTUDY DATA OR APPLIED MODEL INVALID FOR THIS SOURCE</span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt; MODEL FITTING TERMINATED AT FIRST ITERATION:</span></span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt; Any values of 1 in the following tables denote potential disclosure risks</span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; please use the argument &lt;datasources&gt; to include only valid studies.</span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; Errors by study are as follows:</span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; 00000</span></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt; 0000000000000000000000000000000000000000000000000000000</span></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co">#&gt; 00000</span></span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a><span class="co">#&gt; 00000</span></span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a><span class="co">#&gt; 11100</span></span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a><span class="co">#&gt; STUDY DATA OR APPLIED MODEL INVALID FOR THIS SOURCESTUDY DATA OR APPLIED MODEL INVALID FOR THIS SOURCESTUDY DATA OR APPLIED MODEL INVALID FOR THIS SOURCENo errorsNo errors</span></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co">#&gt; Error in `.check_glm_validity()`:</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="co">#&gt; ✖ DataSHIELD blocked the GLM in 5 study/studies: study4, study5, study1,</span></span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a><span class="co">#&gt;   study2, study3.</span></span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a><span class="co">#&gt; ℹ At least one treatment subset in those studies has too few observations</span></span>
+<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a><span class="co">#&gt;   relative to the 11 model parameters.</span></span>
+<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a><span class="co">#&gt; ℹ DataSHIELD&#39;s nfilter.glm threshold requires each arm to have at least</span></span>
+<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a><span class="co">#&gt;   n_params / nfilter.glm observations (default: 11 / 0.33 = 34).</span></span>
+<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a><span class="co">#&gt; → Consider reducing the number of covariates, or exclude the affected studies</span></span>
+<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a><span class="co">#&gt;   via the `datasources` argument.</span></span></code></pre></div>
+</div>
+<div id="raised-glm-threshold-succeeds" class="section level3">
+<h3>Raised GLM threshold — succeeds</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">datashield.privacyControlLevel =</span> <span class="st">&quot;banana&quot;</span>, <span class="at">nfilter.glm =</span> <span class="fl">1.0</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  srv <span class="ot">&lt;-</span> DSLite<span class="sc">::</span><span class="fu">newDSLiteServer</span>(<span class="at">tables =</span> <span class="fu">list</span>(<span class="at">study_data =</span> data_list_2[[k]]))</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">config</span>(DSLite<span class="sc">::</span><span class="fu">defaultDSConfiguration</span>(<span class="at">include =</span> <span class="fu">c</span>(<span class="st">&quot;dsBase&quot;</span>, <span class="st">&quot;dsFedAte&quot;</span>)))</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">aggregateMethod</span>(<span class="st">&quot;localAteDS&quot;</span>, <span class="st">&quot;localAteDS&quot;</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="fu">assign</span>(<span class="fu">paste0</span>(<span class="st">&quot;dslite.server2_&quot;</span>, k), srv, <span class="at">envir =</span> datashield_env)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>}</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a>conns_2 <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">datashield.login</span>(<span class="at">logins =</span> builder2<span class="sc">$</span><span class="fu">build</span>(), <span class="at">assign =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a><span class="co">#&gt; Logging into the collaborating servers</span></span>
+<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.assign.table</span>(<span class="at">conns =</span> conns_2, <span class="at">table =</span> <span class="st">&quot;study_data&quot;</span>, <span class="at">symbol =</span> <span class="st">&quot;base&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>federated_ate_2 <span class="ot">&lt;-</span> <span class="fu">ds.EstimateAte</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="at">datasources     =</span> conns_2,</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">base_name       =</span> <span class="st">&quot;base&quot;</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">outcome_name    =</span> outcome_name,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">treatment_name  =</span> treatment_name,</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">covariate_names =</span> covariate_names,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>  <span class="at">heterogeneous   =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="at">quiet           =</span> <span class="cn">TRUE</span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ATE: %.4f  SE: %.4f  95%% CI: [%.4f, %.4f]  True ATE: %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>            federated_ate_2<span class="sc">$</span>ate, <span class="fu">sqrt</span>(federated_ate_2<span class="sc">$</span>variance),</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>            federated_ate_2<span class="sc">$</span>ci_lower, federated_ate_2<span class="sc">$</span>ci_upper, true_ATE))</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co">#&gt; ATE: -0.9875  SE: 0.0914  95% CI: [-1.1666, -0.8083]  True ATE: -1.1000</span></span></code></pre></div>
+<p>The standard error is larger than in Example 1: extreme treatment
+imbalance reduces the effective sample size for both arms. The privacy
+control level (<code>&quot;banana&quot;</code>) is unchanged throughout — only the
+GLM disclosure threshold was relaxed.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.logout</span>(conns_2)</span></code></pre></div>
+</div>
+</div>
+<div id="example-3-heterogeneous-covariate-distributions" class="section level2">
+<h2>Example 3 — Heterogeneous covariate distributions</h2>
+<p>Each site now recruits from a different patient population:
+covariates are drawn as <span class="math inline">\(X_{ki} \sim
+\mathcal{N}(\mu_k, \Sigma_k)\)</span> with site-specific mean <span class="math inline">\(\mu_k \in \mathbb{R}^d\)</span> and covariance
+<span class="math inline">\(\Sigma_k \in \mathbb{R}^{d \times
+d}\)</span>. Pass <code>heterogeneous = TRUE</code> to use the
+OLS-covariance-based variance formula, which is valid under
+distributional shift.</p>
+<div id="data-2" class="section level3">
+<h3>Data</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>n_list          <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">600</span>, <span class="dv">120</span>, <span class="dv">120</span>, <span class="dv">120</span>, <span class="dv">120</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>p_treatment_het <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.65</span>, <span class="fl">0.65</span>, <span class="fl">0.65</span>, <span class="fl">0.35</span>, <span class="fl">0.35</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>mu_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">rep</span>( <span class="fl">1.0</span>, d <span class="sc">/</span> <span class="dv">2</span>), <span class="fu">rep</span>(<span class="sc">-</span><span class="fl">1.0</span>, d <span class="sc">/</span> <span class="dv">2</span>)),</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">rep</span>(<span class="sc">-</span><span class="fl">1.0</span>, d <span class="sc">/</span> <span class="dv">2</span>), <span class="fu">rep</span>( <span class="fl">1.0</span>, d <span class="sc">/</span> <span class="dv">2</span>)),</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>  <span class="fu">rep</span>(<span class="dv">0</span>, d),</span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">rep</span>( <span class="fl">0.5</span>, d <span class="sc">/</span> <span class="dv">2</span>), <span class="fu">rep</span>(<span class="sc">-</span><span class="fl">1.0</span>, d <span class="sc">/</span> <span class="dv">2</span>)),</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">rep</span>( <span class="fl">1.2</span>, d <span class="sc">/</span> <span class="dv">2</span>), <span class="fu">rep</span>( <span class="fl">0.8</span>, d <span class="sc">/</span> <span class="dv">2</span>))</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a>)</span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a>Sigma_1    <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> I_d <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> J</span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>Sigma_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>  Sigma_1,</span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a>  <span class="dv">20</span> <span class="sc">*</span> Sigma_1 <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> I_d <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> J,</span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a>  <span class="fl">0.02</span> <span class="sc">*</span> Sigma_1 <span class="sc">+</span> <span class="fl">0.7</span>  <span class="sc">*</span> I_d,</span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a>  <span class="fl">1.0</span>  <span class="sc">*</span> Sigma_1 <span class="sc">+</span> <span class="fl">0.5</span>  <span class="sc">*</span> I_d <span class="sc">-</span> <span class="fl">0.15</span> <span class="sc">*</span> J,</span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a>  <span class="fl">1.5</span>  <span class="sc">*</span> Sigma_1 <span class="sc">+</span> <span class="fl">0.5</span>  <span class="sc">*</span> I_d <span class="sc">-</span> <span class="fl">0.15</span> <span class="sc">*</span> J</span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a>)</span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a></span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a>tau_k_vec    <span class="ot">&lt;-</span> <span class="fu">sapply</span>(mu_list, <span class="cf">function</span>(mu_k) (alpha_1 <span class="sc">-</span> alpha_0) <span class="sc">+</span> <span class="fu">sum</span>(mu_k <span class="sc">*</span> (beta_1 <span class="sc">-</span> beta_0)))</span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a>true_ATE_het <span class="ot">&lt;-</span> <span class="fu">sum</span>(n_list <span class="sc">*</span> tau_k_vec) <span class="sc">/</span> <span class="fu">sum</span>(n_list)</span>
+<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a>data_list_het <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, K)</span>
+<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a>  n_k   <span class="ot">&lt;-</span> n_list[k]</span>
+<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a>  X_k   <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(<span class="at">n =</span> n_k, <span class="at">mu =</span> mu_list[[k]], <span class="at">Sigma =</span> Sigma_list[[k]])</span>
+<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a>  W_k   <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="at">n =</span> n_k, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">prob =</span> p_treatment_het[k])</span>
+<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a>  Y_0   <span class="ot">&lt;-</span> alpha_0 <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_0 <span class="sc">+</span> <span class="fu">rnorm</span>(n_k, <span class="at">sd =</span> sigma_noise)</span>
+<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a>  Y_1   <span class="ot">&lt;-</span> alpha_1 <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_1 <span class="sc">+</span> <span class="fu">rnorm</span>(n_k, <span class="at">sd =</span> sigma_noise)</span>
+<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a>  Y_obs <span class="ot">&lt;-</span> W_k <span class="sc">*</span> Y_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> W_k) <span class="sc">*</span> Y_0</span>
+<span id="cb18-34"><a href="#cb18-34" tabindex="-1"></a>  df    <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> W_k, <span class="at">Y =</span> <span class="fu">as.vector</span>(Y_obs), X_k)</span>
+<span id="cb18-35"><a href="#cb18-35" tabindex="-1"></a>  <span class="fu">colnames</span>(df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;W&quot;</span>, <span class="st">&quot;Y&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="fu">seq_len</span>(d)))</span>
+<span id="cb18-36"><a href="#cb18-36" tabindex="-1"></a>  data_list_het[[k]] <span class="ot">&lt;-</span> df</span>
+<span id="cb18-37"><a href="#cb18-37" tabindex="-1"></a>}</span>
+<span id="cb18-38"><a href="#cb18-38" tabindex="-1"></a>pooled_data_het <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, data_list_het)</span></code></pre></div>
+</div>
+<div id="servers-1" class="section level3">
+<h3>Servers</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">datashield.privacyControlLevel =</span> <span class="st">&quot;banana&quot;</span>, <span class="at">nfilter.glm =</span> <span class="fl">0.33</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  srv <span class="ot">&lt;-</span> DSLite<span class="sc">::</span><span class="fu">newDSLiteServer</span>(<span class="at">tables =</span> <span class="fu">list</span>(<span class="at">study_data =</span> data_list_het[[k]]))</span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">config</span>(DSLite<span class="sc">::</span><span class="fu">defaultDSConfiguration</span>(<span class="at">include =</span> <span class="fu">c</span>(<span class="st">&quot;dsBase&quot;</span>, <span class="st">&quot;dsFedAte&quot;</span>)))</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">aggregateMethod</span>(<span class="st">&quot;localAteDS&quot;</span>, <span class="st">&quot;localAteDS&quot;</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a>  <span class="fu">assign</span>(<span class="fu">paste0</span>(<span class="st">&quot;dslite.server_het&quot;</span>, k), srv, <span class="at">envir =</span> datashield_env)</span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a>}</span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb19-20"><a href="#cb19-20" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-21"><a href="#cb19-21" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-22"><a href="#cb19-22" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb19-23"><a href="#cb19-23" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-24"><a href="#cb19-24" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-25"><a href="#cb19-25" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb19-26"><a href="#cb19-26" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-27"><a href="#cb19-27" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-28"><a href="#cb19-28" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb19-29"><a href="#cb19-29" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-30"><a href="#cb19-30" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-31"><a href="#cb19-31" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb19-32"><a href="#cb19-32" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-33"><a href="#cb19-33" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-34"><a href="#cb19-34" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb19-35"><a href="#cb19-35" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-36"><a href="#cb19-36" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb19-37"><a href="#cb19-37" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb19-38"><a href="#cb19-38" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb19-39"><a href="#cb19-39" tabindex="-1"></a></span>
+<span id="cb19-40"><a href="#cb19-40" tabindex="-1"></a>builder_het <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">newDSLoginBuilder</span>()</span>
+<span id="cb19-41"><a href="#cb19-41" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb19-42"><a href="#cb19-42" tabindex="-1"></a>  builder_het<span class="sc">$</span><span class="fu">append</span>(</span>
+<span id="cb19-43"><a href="#cb19-43" tabindex="-1"></a>    <span class="at">server =</span> <span class="fu">paste0</span>(<span class="st">&quot;study&quot;</span>, k),</span>
+<span id="cb19-44"><a href="#cb19-44" tabindex="-1"></a>    <span class="at">url    =</span> <span class="fu">paste0</span>(<span class="st">&quot;dslite.server_het&quot;</span>, k),</span>
+<span id="cb19-45"><a href="#cb19-45" tabindex="-1"></a>    <span class="at">table  =</span> <span class="st">&quot;study_data&quot;</span>,</span>
+<span id="cb19-46"><a href="#cb19-46" tabindex="-1"></a>    <span class="at">driver =</span> <span class="st">&quot;DSLiteDriver&quot;</span></span>
+<span id="cb19-47"><a href="#cb19-47" tabindex="-1"></a>  )</span>
+<span id="cb19-48"><a href="#cb19-48" tabindex="-1"></a>}</span>
+<span id="cb19-49"><a href="#cb19-49" tabindex="-1"></a>conns_het <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">datashield.login</span>(<span class="at">logins =</span> builder_het<span class="sc">$</span><span class="fu">build</span>(), <span class="at">assign =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb19-50"><a href="#cb19-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb19-51"><a href="#cb19-51" tabindex="-1"></a><span class="co">#&gt; Logging into the collaborating servers</span></span>
+<span id="cb19-52"><a href="#cb19-52" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.assign.table</span>(<span class="at">conns =</span> conns_het, <span class="at">table =</span> <span class="st">&quot;study_data&quot;</span>, <span class="at">symbol =</span> <span class="st">&quot;base&quot;</span>)</span></code></pre></div>
+</div>
+<div id="estimate-1" class="section level3">
+<h3>Estimate</h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>federated_ate_het <span class="ot">&lt;-</span> <span class="fu">ds.EstimateAte</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="at">datasources     =</span> conns_het,</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="at">base_name       =</span> <span class="st">&quot;base&quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="at">outcome_name    =</span> outcome_name,</span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>  <span class="at">treatment_name  =</span> treatment_name,</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>  <span class="at">covariate_names =</span> covariate_names,</span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>  <span class="at">heterogeneous   =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>  <span class="at">quiet           =</span> <span class="cn">TRUE</span></span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;ATE: %.4f  SE: %.4f  95%% CI: [%.4f, %.4f]  True ATE: %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>            federated_ate_het<span class="sc">$</span>ate, <span class="fu">sqrt</span>(federated_ate_het<span class="sc">$</span>variance),</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>            federated_ate_het<span class="sc">$</span>ci_lower, federated_ate_het<span class="sc">$</span>ci_upper, true_ATE_het))</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co">#&gt; ATE: -0.1953  SE: 0.1307  95% CI: [-0.4516, 0.0609]  True ATE: -0.3083</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>x_bar_het      <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(<span class="fu">as.matrix</span>(pooled_data_het[, covariate_names]))</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>pooled_trt_het <span class="ot">&lt;-</span> pooled_data_het[pooled_data_het<span class="sc">$</span>W <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>pooled_ctl_het <span class="ot">&lt;-</span> pooled_data_het[pooled_data_het<span class="sc">$</span>W <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>m1_het         <span class="ot">&lt;-</span> <span class="fu">glm</span>(formula, <span class="at">family =</span> gaussian, <span class="at">data =</span> pooled_trt_het)</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>m0_het         <span class="ot">&lt;-</span> <span class="fu">glm</span>(formula, <span class="at">family =</span> gaussian, <span class="at">data =</span> pooled_ctl_het)</span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>pooled_ate_het <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(</span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>  (m1_het<span class="sc">$</span>coefficients[<span class="st">&quot;(Intercept)&quot;</span>] <span class="sc">-</span> m0_het<span class="sc">$</span>coefficients[<span class="st">&quot;(Intercept)&quot;</span>]) <span class="sc">+</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>  <span class="fu">sum</span>(x_bar_het <span class="sc">*</span> (m1_het<span class="sc">$</span>coefficients[covariate_names] <span class="sc">-</span> m0_het<span class="sc">$</span>coefficients[covariate_names]))</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>)</span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a><span class="fu">isTRUE</span>(<span class="fu">all.equal</span>(pooled_ate_het, federated_ate_het<span class="sc">$</span>ate))</span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.logout</span>(conns_het)</span></code></pre></div>
+</div>
+</div>
+<div id="example-4-study-effects" class="section level2">
+<h2>Example 4 — Study effects</h2>
+<p>Sites differ in baseline outcome levels: a site-specific scalar <span class="math inline">\(h_k \in \mathbb{R}\)</span> shifts both potential
+outcomes at site <span class="math inline">\(k\)</span>, <span class="math display">\[Y_{ki}^{(w)} = \alpha_w + h_k + \beta_w^\top
+X_{ki} + \varepsilon_{ki}^{(w)}.\]</span> Because <span class="math inline">\(h_k\)</span> appears in both arms it cancels in
+<span class="math inline">\(Y^{(1)} - Y^{(0)}\)</span> and does not
+affect the ATE. However, when treatment probabilities are heterogeneous
+across sites, <span class="math inline">\(h_k\)</span> confounds the
+unadjusted estimator. The fix is to augment <span class="math inline">\(X_{ki}\)</span> with <span class="math inline">\(K-1\)</span> study-membership dummies <span class="math inline">\(H_{j,ki} = \mathbf{1}\{k = j\}\)</span>, <span class="math inline">\(j = 2, \ldots, K\)</span>, and estimate the
+federated GLMs on the extended design matrix, absorbing the shifts. Pass
+<code>study_effects = TRUE</code> to do this automatically.</p>
+<div id="data-3" class="section level3">
+<h3>Data</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>n_list        <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">600</span>, <span class="dv">300</span>, <span class="dv">300</span>, <span class="dv">300</span>, <span class="dv">300</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>h_k           <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">30</span>, <span class="dv">2</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a>p_treatment_3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.65</span>, <span class="fl">0.65</span>, <span class="fl">0.65</span>, <span class="fl">0.35</span>, <span class="fl">0.35</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>sigma_0       <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a>sigma_1       <span class="ot">&lt;-</span> <span class="fl">3.0</span></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a>tau_k_vec <span class="ot">&lt;-</span> <span class="fu">sapply</span>(mu_list, <span class="cf">function</span>(mu_k) (alpha_1 <span class="sc">-</span> alpha_0) <span class="sc">+</span> <span class="fu">sum</span>(mu_k <span class="sc">*</span> (beta_1 <span class="sc">-</span> beta_0)))</span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a>true_ATE  <span class="ot">&lt;-</span> <span class="fu">sum</span>(n_list <span class="sc">*</span> tau_k_vec) <span class="sc">/</span> <span class="fu">sum</span>(n_list)</span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a>data_list_3 <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, K)</span>
+<span id="cb24-13"><a href="#cb24-13" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb24-14"><a href="#cb24-14" tabindex="-1"></a>  n_k   <span class="ot">&lt;-</span> n_list[k]</span>
+<span id="cb24-15"><a href="#cb24-15" tabindex="-1"></a>  X_k   <span class="ot">&lt;-</span> <span class="fu">mvrnorm</span>(<span class="at">n =</span> n_k, <span class="at">mu =</span> mu_list[[k]], <span class="at">Sigma =</span> Sigma_list[[k]])</span>
+<span id="cb24-16"><a href="#cb24-16" tabindex="-1"></a>  W_k   <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="at">n =</span> n_k, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">prob =</span> p_treatment_3[k])</span>
+<span id="cb24-17"><a href="#cb24-17" tabindex="-1"></a>  Y_0   <span class="ot">&lt;-</span> alpha_0 <span class="sc">+</span> h_k[k] <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_0 <span class="sc">+</span> <span class="fu">rnorm</span>(n_k, <span class="at">sd =</span> sigma_0)</span>
+<span id="cb24-18"><a href="#cb24-18" tabindex="-1"></a>  Y_1   <span class="ot">&lt;-</span> alpha_1 <span class="sc">+</span> h_k[k] <span class="sc">+</span> X_k <span class="sc">%*%</span> beta_1 <span class="sc">+</span> <span class="fu">rnorm</span>(n_k, <span class="at">sd =</span> sigma_1)</span>
+<span id="cb24-19"><a href="#cb24-19" tabindex="-1"></a>  Y_obs <span class="ot">&lt;-</span> W_k <span class="sc">*</span> Y_1 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> W_k) <span class="sc">*</span> Y_0</span>
+<span id="cb24-20"><a href="#cb24-20" tabindex="-1"></a>  df    <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> W_k, <span class="at">Y =</span> <span class="fu">as.vector</span>(Y_obs), X_k)</span>
+<span id="cb24-21"><a href="#cb24-21" tabindex="-1"></a>  <span class="fu">colnames</span>(df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;W&quot;</span>, <span class="st">&quot;Y&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="fu">seq_len</span>(d)))</span>
+<span id="cb24-22"><a href="#cb24-22" tabindex="-1"></a>  data_list_3[[k]] <span class="ot">&lt;-</span> df</span>
+<span id="cb24-23"><a href="#cb24-23" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+<div id="servers-2" class="section level3">
+<h3>Servers</h3>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">datashield.privacyControlLevel =</span> <span class="st">&quot;banana&quot;</span>, <span class="at">nfilter.glm =</span> <span class="fl">0.33</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>  srv <span class="ot">&lt;-</span> DSLite<span class="sc">::</span><span class="fu">newDSLiteServer</span>(<span class="at">tables =</span> <span class="fu">list</span>(<span class="at">study_data =</span> data_list_3[[k]]))</span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">config</span>(DSLite<span class="sc">::</span><span class="fu">defaultDSConfiguration</span>(<span class="at">include =</span> <span class="fu">c</span>(<span class="st">&quot;dsBase&quot;</span>, <span class="st">&quot;dsFedAte&quot;</span>)))</span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">aggregateMethod</span>(<span class="st">&quot;localAteDS&quot;</span>, <span class="st">&quot;localAteDS&quot;</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>  srv<span class="sc">$</span><span class="fu">assignMethod</span>(<span class="st">&quot;addStudyIdDS&quot;</span>, <span class="st">&quot;addStudyIdDS&quot;</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a>  <span class="fu">assign</span>(<span class="fu">paste0</span>(<span class="st">&quot;dslite.server3_&quot;</span>, k), srv, <span class="at">envir =</span> datashield_env)</span>
+<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a>}</span>
+<span id="cb25-10"><a href="#cb25-10" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-11"><a href="#cb25-11" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb25-12"><a href="#cb25-12" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-13"><a href="#cb25-13" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-14"><a href="#cb25-14" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb25-15"><a href="#cb25-15" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-16"><a href="#cb25-16" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-17"><a href="#cb25-17" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb25-18"><a href="#cb25-18" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-19"><a href="#cb25-19" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-20"><a href="#cb25-20" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb25-21"><a href="#cb25-21" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-22"><a href="#cb25-22" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-23"><a href="#cb25-23" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb25-24"><a href="#cb25-24" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-25"><a href="#cb25-25" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-26"><a href="#cb25-26" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb25-27"><a href="#cb25-27" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-28"><a href="#cb25-28" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-29"><a href="#cb25-29" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb25-30"><a href="#cb25-30" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-31"><a href="#cb25-31" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-32"><a href="#cb25-32" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb25-33"><a href="#cb25-33" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-34"><a href="#cb25-34" tabindex="-1"></a><span class="co">#&gt; Warning in appendAggregateMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-35"><a href="#cb25-35" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring aggregate method &#39;localAteDS&#39; from</span></span>
+<span id="cb25-36"><a href="#cb25-36" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-37"><a href="#cb25-37" tabindex="-1"></a><span class="co">#&gt; Warning in appendAssignMethods(pack$Package, pack$Version,</span></span>
+<span id="cb25-38"><a href="#cb25-38" tabindex="-1"></a><span class="co">#&gt; as.character(dsProperties[1, : Ignoring assign method &#39;addStudyIdDS&#39; from</span></span>
+<span id="cb25-39"><a href="#cb25-39" tabindex="-1"></a><span class="co">#&gt; package &#39;dsRctFed&#39; because it is already defined by package &#39;dsFedAte&#39;!</span></span>
+<span id="cb25-40"><a href="#cb25-40" tabindex="-1"></a></span>
+<span id="cb25-41"><a href="#cb25-41" tabindex="-1"></a>builder3 <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">newDSLoginBuilder</span>()</span>
+<span id="cb25-42"><a href="#cb25-42" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(K)) {</span>
+<span id="cb25-43"><a href="#cb25-43" tabindex="-1"></a>  builder3<span class="sc">$</span><span class="fu">append</span>(</span>
+<span id="cb25-44"><a href="#cb25-44" tabindex="-1"></a>    <span class="at">server =</span> <span class="fu">paste0</span>(<span class="st">&quot;study&quot;</span>, k),</span>
+<span id="cb25-45"><a href="#cb25-45" tabindex="-1"></a>    <span class="at">url    =</span> <span class="fu">paste0</span>(<span class="st">&quot;dslite.server3_&quot;</span>, k),</span>
+<span id="cb25-46"><a href="#cb25-46" tabindex="-1"></a>    <span class="at">table  =</span> <span class="st">&quot;study_data&quot;</span>,</span>
+<span id="cb25-47"><a href="#cb25-47" tabindex="-1"></a>    <span class="at">driver =</span> <span class="st">&quot;DSLiteDriver&quot;</span></span>
+<span id="cb25-48"><a href="#cb25-48" tabindex="-1"></a>  )</span>
+<span id="cb25-49"><a href="#cb25-49" tabindex="-1"></a>}</span>
+<span id="cb25-50"><a href="#cb25-50" tabindex="-1"></a>conns_3 <span class="ot">&lt;-</span> DSI<span class="sc">::</span><span class="fu">datashield.login</span>(<span class="at">logins =</span> builder3<span class="sc">$</span><span class="fu">build</span>(), <span class="at">assign =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb25-51"><a href="#cb25-51" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb25-52"><a href="#cb25-52" tabindex="-1"></a><span class="co">#&gt; Logging into the collaborating servers</span></span>
+<span id="cb25-53"><a href="#cb25-53" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.assign.table</span>(<span class="at">conns =</span> conns_3, <span class="at">table =</span> <span class="st">&quot;study_data&quot;</span>, <span class="at">symbol =</span> <span class="st">&quot;base&quot;</span>)</span></code></pre></div>
+</div>
+<div id="unadjusted-biased" class="section level3">
+<h3>Unadjusted — biased</h3>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>federated_ate_unadj <span class="ot">&lt;-</span> <span class="fu">ds.EstimateAte</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  <span class="at">datasources     =</span> conns_3,</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a>  <span class="at">base_name       =</span> <span class="st">&quot;base&quot;</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a>  <span class="at">outcome_name    =</span> outcome_name,</span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>  <span class="at">treatment_name  =</span> treatment_name,</span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a>  <span class="at">covariate_names =</span> covariate_names,</span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a>  <span class="at">study_effects   =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>  <span class="at">heterogeneous   =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a>  <span class="at">quiet           =</span> <span class="cn">TRUE</span></span>
+<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Unadjusted ATE: %.4f   bias: %.4f   (true ATE: %.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>            federated_ate_unadj<span class="sc">$</span>ate,</span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a>            federated_ate_unadj<span class="sc">$</span>ate <span class="sc">-</span> true_ATE,</span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a>            true_ATE))</span>
+<span id="cb27-5"><a href="#cb27-5" tabindex="-1"></a><span class="co">#&gt; Unadjusted ATE: -4.3609   bias: -4.4484   (true ATE: 0.0875)</span></span></code></pre></div>
+</div>
+<div id="adjusted-unbiased" class="section level3">
+<h3>Adjusted — unbiased</h3>
+<p><code>heteroscedastic_arms = TRUE</code> estimates arm-specific noise
+variances <span class="math inline">\(\hat\sigma_0^2\)</span> and <span class="math inline">\(\hat\sigma_1^2\)</span> separately, giving a
+correctly specified standard error when <span class="math inline">\(\sigma_0 \neq \sigma_1\)</span>.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>federated_ate_adj <span class="ot">&lt;-</span> <span class="fu">ds.EstimateAte</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>  <span class="at">datasources          =</span> conns_3,</span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>  <span class="at">base_name            =</span> <span class="st">&quot;base&quot;</span>,</span>
+<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a>  <span class="at">outcome_name         =</span> outcome_name,</span>
+<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a>  <span class="at">treatment_name       =</span> treatment_name,</span>
+<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a>  <span class="at">covariate_names      =</span> covariate_names,</span>
+<span id="cb28-7"><a href="#cb28-7" tabindex="-1"></a>  <span class="at">study_effects        =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" tabindex="-1"></a>  <span class="at">heterogeneous        =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" tabindex="-1"></a>  <span class="at">heteroscedastic_arms =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" tabindex="-1"></a>  <span class="at">quiet                =</span> <span class="cn">TRUE</span></span>
+<span id="cb28-11"><a href="#cb28-11" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Adjusted ATE: %.4f  bias: %.4f  SE: %.4f  95%% CI: [%.4f, %.4f]  True ATE: %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>            federated_ate_adj<span class="sc">$</span>ate, federated_ate_adj<span class="sc">$</span>ate <span class="sc">-</span> true_ATE,</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>            <span class="fu">sqrt</span>(federated_ate_adj<span class="sc">$</span>variance),</span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>            federated_ate_adj<span class="sc">$</span>ci_lower, federated_ate_adj<span class="sc">$</span>ci_upper, true_ATE))</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a><span class="co">#&gt; Adjusted ATE: 0.0556  bias: -0.0319  SE: 0.1472  95% CI: [-0.2329, 0.3441]  True ATE: 0.0875</span></span></code></pre></div>
+<p>The adjusted estimate recovers the true ATE and the CI covers it.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a>DSI<span class="sc">::</span><span class="fu">datashield.logout</span>(conns_3)</span></code></pre></div>
+</div>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-khellaf2025" class="csl-entry">
+Khellaf, Rémi, Aurélien Bellet, and Julie Josse. 2025. <span>“Federated
+Causal Inference: Multi-Study ATE Estimation Beyond
+Meta-Analysis.”</span> In <em>AISTATS 2025-28th International Conference
+on Artificial Intelligence and Statistics</em>.
+</div>
+<div id="ref-rubin1974" class="csl-entry">
+Rubin, Donald B. 1974. <span>“Estimating Causal Effects of Treatments in
+Randomized and Nonrandomized Studies.”</span> <em>Journal of Educational
+Psychology</em> 66 (5): 688–701.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

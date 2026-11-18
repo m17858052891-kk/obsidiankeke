@@ -1,0 +1,284 @@
+From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs (https://arxiv.org/abs/2609.01240)
+citeturn628academia12 [wordlim: 200] Published: 2 months ago; Title: From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs ... Across industrial and public benchmarks, ReST achieves higher accuracy and scales more consistently along sequence length, depth, and width, where LLM-style Transformer blocks saturate.
+Title: From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs
+Authors: Jie Chen, Xiangqian Yu, Yanchao Lian, Tan Lu, Run Yang, Zhengchun Shang, Xing Wang, Cheng Chen, Ke Hu, Qiang Li, Tianjiu Yin, Xiaobing Liu
+Date: Tue Sep  1 13:40:36 2026
+
+Scaling Transformers has driven large gains in language modeling, but transplanting this to behavior-sequence modeling in production ranking is challenging: recommendation differs in signal quality, where behavior sequences are noisy, temporally irregular, and sparsely supervised, and in computation asymmetry, where each request scores many candidates against one shared user history under tight latency budgets. We propose ReST, a recommendation-native Transformer scaling framework. For signal quality, it introduces a sequence encoder with dual-gated attention, rotary positional and temporal embedding, stabilized residual normalization, and training-only auxiliary objectives. For computation asymmetry, it factorizes ranking into a heavy reusable encoder and a lightweight cross decoder with projection-free KV attention and token-specific parameterization, coupling user-level shared-prefix training with shared-prefix serving for compute-once, decode-many-times ranking. Across industrial and public benchmarks, ReST achieves higher accuracy and scales more consistently along sequence length, depth, and width, where LLM-style Transformer blocks saturate. A one-week online A/B test on a production advertising platform improves online AUC by 1.31% and lifts a core revenue metric by 11.93% within a 50 ms P99 budget; ReST has since been fully deployed in production, showing that behavior-sequence scaling remains a promising, under-exploited axis for production ranking.--------------------------------------------------------------------------------
+Scaling Laws | imdeepmind (https://imdeepmind.com/docs/ml/language-models/scaling-laws/)
+citeturn628search0 [wordlim: 200] Crawled: today; A compute-optimal model is a model configuration that achieves the lowest possible training or validation loss for a given computational budget. ... By repeating this process across different compute budgets, researchers can estimate how the optimal model size and training token count should grow as more computation becomes available.
+
+## Compute-Optimal Models​
+
+A compute-optimal model is a model configuration that achieves the lowest possible training or validation loss for a given computational budget.
+
+The important phrase is for a given computational budget.
+
+There is no single model size or dataset size that is optimal for every training run. The optimal configuration changes depending on how much computation is available.
+
+For a small compute budget, a relatively small model trained on a limited amount of data may be the best choice. For a larger compute budget, both the model size and the training dataset can be increased.
+
+The objective is not to build the largest possible model. It is to obtain the best possible model performance from the available computation.
+
+### Understanding the Optimization Problem​
+
+Suppose we want to train a language model with the lowest possible validation loss.
+
+We can represent the objective conceptually as:
+    
+    `
+    
+    Minimize: Model Loss
+    
+    Subject to: Training Compute ≤ Available Compute Budget
+--------------------------------------------------------------------------------
+TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning (https://borowiecki.dev/pdf/2609.00986)
+citeturn628search13 [wordlim: 200] Crawled: last week; Sequence-length scaling on the industrial dataset** ... The premise of generative-paradigm ranking is that ranking quality can be bought by FLOPs; the question is at what exchange rate.
+TGR Technical Report
+
+<visual_element id="e1">
+**Figure 3. Sequence-length scaling on the industrial dataset**
+
+Two side-by-side line charts compare HSTU and CCFormer at sequence lengths 500, 1000, and 2000.
+
+**Left chart: AUC (%)**
+- X-axis: Sequence Length (0.5k, 1k, 2k).
+- Y-axis: AUC (%), approximately 77.5–78.2.
+- Legend:
+  - Blue circles and dashed line: HSTU.
+  - Orange stars and dashed line: CCFormer.
+- Plotted values (approximately):
+  
+  | Sequence Length | HSTU | CCFormer |
+  |---|---:|---:|
+  | 0.5k | 77.54 | 77.72 |
+  | 1k | 77.66 | 77.94 |
+  | 2k | 77.72 | 78.17 |
+
+**Right chart: GAUC (%)**
+- X-axis: Sequence Length (0.5k, 1k, 2k).
+- Y-axis: GAUC (%), approximately 70.6–71.7.
+- Legend:
+  - Blue circles and dashed line: HSTU.
+  - Orange stars and dashed line: CCFormer.
+- Plotted values (approximately):
+
+  | Sequence Length | HSTU | CCFormer |
+  |---|---:|---:|
+  | 0.5k | 70.69 | 70.95 |
+  | 1k | 70.86 | 71.36 |
+  | 2k | 70.91 | 71.57 |
+
+Both charts show increasing performance with longer sequences. CCFormer outperforms HSTU at every sequence length, and the performance gap widens as sequence length increases.
+
+**Figure 3 caption:** Sequence-length scaling on the industrial dataset (lengths 500, 1000, 2000). CCFormer improves predictably with longer sequences and dominates HSTU at every length; with 0.5k behavior tokens it already matches the AUC and surpasses the GAUC of HSTU consuming 2k tokens.
+</visual_element>
+
+**Overall results.** CCFormer achieves the best score on every dataset and metric (Tables 2 and 3). On Taobao and KuaiRec it reaches 93.67% and 83.35% AUC, beating the strongest sequential baseline on each dataset (STCA and OneTrans, respectively) by 0.86 and 0.59 points, and it maintains a consistent margin over HSTU, OneTrans, and STCA when the KuaiRec sequence length is varied over {200, 500, 1000}. On the industrial dataset it improves over HSTU by +0.28 AUC and +0.50 GAUC points (1.01% and 2.40% relative)—a large margin at production scale, where 0.1%-level AUC moves are considered shippable—and still clears the strongest baseline STCA by +0.21 AUC and +0.41 GAUC points.
+
+**Hyperparameter robustness.** The two long-sequence-specific hyperparameter families are insensitive over wide ranges: varying the compression kernel *k* from 2 to 7 moves AUC only within 77.92–77.95%, and all tested (*m*, *n*) subspace group sizes outperform HSTU with limited variation. In practice, CCFormer transfers to new scenarios without delicate tuning.
+
+### 3.5. Scaling Behavior
+
+The premise of generative-paradigm ranking is that ranking quality can be bought by FLOPs; the question is at what exchange rate. We examine the two axes that matter most for sequential rankers—sequence length and model capacity—holding the hardware/software stack fixed and reporting GFLOPs alongside quality.
+
+**Sequence-length scaling.** As the industrial sequence length grows from 0.5k to 2k, CCFormer improves monotonically from 77.72% to 78.17% AUC and from 70.95% to 71.57% GAUC, with average relative gains over HSTU of 1.08% AUC and 2.37% GAUC across length settings—and the margin *widens* as sequences lengthen (Figure 3). Most strikingly, **CCFormer with 0.5k behavior tokens already matches the AUC and surpasses the GAUC of HSTU with 2k tokens**: subspace token mixing extracts expressive patterns from the full history, while hierarchical compression preserves a large receptive field at a fraction of the cost.
+
+**Model-size scaling.** Varying the feature dimensionality over {128, 256, 512} (Table 4), CCFormer again scales predictably (77.65% → 78.13% AUC, 70.76% → 71.52% GAUC, average relative gains of 1.02% AUC and 1.93% GAUC over HSTU at matched capacity) while consuming roughly half the GFLOPs of HSTU at every capacity point—at *d* = 128 it comes within
+
+13--------------------------------------------------------------------------------
+On the Equivalence of Optimal Recommendation Sets and Myopically Optimal Query Sets (https://research.google/pubs/on-the-equivalence-of-optimal-recommendation-sets-and-myopically-optimal-query-sets/)
+citeturn628search1 [wordlim: 200] Crawled: 3 weeks ago; We show that, somewhat surprisingly, in both cases, there is no tradeoff to be made between good recommendations and good queries: we prove that the optimal recommendation set of size k is also an optimal choice query of size k. ... Our results also allow us to design efficient algorithms to compute optimal query/recommendation sets.
+Due to inherent uncertainty about a user's true preferences, often a set of recommendations is presented to the user at each stage. Conceptually, a set of recommendations can also be viewed as choice query, in which the user indicates which option is most preferred from that set.
+Because of the potential tension between making a good set recommendation and asking an informative choice query, we explore the connection between the two. We consider two different models of preference uncertainty and optimization: (a) a Bayesian framework in which a posterior over user utility functions is maintained, optimal recommendations are assessed using expected utility, and queries are assessed using expected value of information; and (b) a minimax-regret framework in which user utility uncertainty is strict (represented by a polytope), recommendations are made using the minimax-regret robustness criterion, and queries are assessed using worst-case regret reduction. We show that, somewhat surprisingly, in both cases, there is no tradeoff to be made between good recommendations and good queries: we prove that the optimal recommendation set of size k is also an optimal choice query of size k. We also examine the case where user responses to choice queries are error prone (using both constant and mixed multinomial logit noise models) showing the results are robust to this form of noise.
+In both frameworks, our theoretical results have practical consequences for the design of interactive recommenders. Our results also allow us to design efficient algorithms to compute optimal query/recommendation sets. We develop several such algorithms (both exact and approximate) for both settings and provide empirical validation of their performance.--------------------------------------------------------------------------------
+AI602_Lec3 (https://alinlab.kaist.ac.kr/resource/2026_FALL_AI602/AI602_Lec3.pdf)
+citeturn628search14 [wordlim: 200] Crawled: last week;   - Choosing the strategy per question, which the authors call compute-optimal, beats best-of-N with up to 4x less compute.
+# Spend the Budget by Difficulty
+**Verifiers and compute-optimal allocation**
+
+**The best way to spend a per-question compute budget depends on how hard the question is**
+
+- With PaLM 2-S* on MATH and a PRM scoring the candidates, the authors ask how to spend a fixed budget per question: on sequential revisions of one answer, on parallel samples, or on a mix [Snell et al., 2024].
+- The answer depends on difficulty: easy questions do best with sequential revisions, while harder ones want a mix of sequential and parallel samples.
+  - Choosing the strategy per question, which the authors call compute-optimal, beats best-of-N with up to 4x less compute.
+
+## Compute Optimal Revisions
+
+<visual_element id="e1">
+
+**Line chart: Compute Optimal Revisions**
+
+- **Chart title:** Compute Optimal Revisions
+- **X-axis:** Generation Budget
+  - Logarithmic-style powers-of-two labels: 2¹, 2³, 2⁵, 2⁷.
+- **Y-axis:** MATH Accuracy (%)
+  - Visible tick labels: 20, 25, 30, 35, 40, 45.
+
+**Legend (upper-left):**
+- Black dashed line: Majority
+- Black solid line: Best-of-N Weighted
+- Blue markers/line: Compute Optimal
+- Red markers/line: Parallel
+
+**Plotted trends:**
+
+Four curves are visible, with solid and dashed variants for the blue and red strategies.
+
+- **Solid blue (Compute Optimal):** Starts at approximately 18.5% accuracy and increases steadily with generation budget, reaching approximately 44% at the largest budget.
+- **Solid red (Parallel):** Starts at approximately 18.5%, initially follows the blue curve closely, then increases more slowly, reaching approximately 40.4% at the largest budget.
+- **Dashed blue:** Starts at approximately 18.5% and rises to approximately 38.5%.
+- **Dashed red:** Starts at approximately 18.5% and rises to approximately 36.5%.
+
+The solid blue curve achieves the highest final accuracy. The gap between compute-optimal and parallel allocation becomes more pronounced at larger generation budgets.
+
+**Caption:** MATH accuracy against budget for compute-optimal and parallel revisions, by two selection rules · *Snell et al., 2024*
+
+</visual_element>
+
+**Footer:** Algorithmic Intelligence Lab  
+**Page:** 29--------------------------------------------------------------------------------
+Scaling Laws — notes.swasilewski.com (https://notes.swasilewski.com/Concepts/Scaling-Laws)
+citeturn628search2 [wordlim: 200] Published: 2 months ago; Crawled: 2 months ago; The thesis of modern Generative Recommendation (and especially LRMs) is that recommendation can be made to follow a scaling law — by reframing the stream of user actions as a token stream and using architectures (notably HSTU) built for very long histories. ... Strong for industrial main-feed ranking. ... Combined with world knowledge, NL understanding, reasoning, and creative generation, scaling law is one of the five enduring advantages of generative recommendation.
+
+Sep 08, 2026 5 min read
+
+  * generative-rec
+  * llm
+  * exam-topic
+
+# Scaling Laws
+
+## Definition
+
+> Scaling Law
+> 
+> A scaling law is the empirical regularity that model quality (e.g. loss, accuracy) improves predictably and monotonically as you increase three resources — data, compute (FLOPs), and parameters — with no early plateau. For LLMs this is the central reason “bigger = reliably better.” Classical recommenders historically did not exhibit this: past a point, enlarging them barely helped. The thesis of modern Generative Recommendation (and especially LRMs) is that recommendation can be made to follow a scaling law — by reframing the stream of user actions as a token stream and using architectures (notably HSTU) built for very long histories.
+
+## Intuition
+
+> Why recommenders used to plateau
+> 
+> A classical discriminative recommender learns a scoring function f(user,item) over a fixed candidate pool. Stacking more layers or features gives diminishing returns: the supervision signal (a single clicked item per example) and the fixed output space cap how much extra capacity can help. --------------------------------------------------------------------------------
+# Scaling Laws (https://www.cs.umd.edu/~miyyer/cmsc723/notes/scaling_laws.pdf)
+citeturn628search15 [wordlim: 200] Crawled: 2 weeks ago; # Scaling Laws
+# Scaling Laws
+
+- KV cache
+- Scaling laws
+
+---
+
+## Scaling laws
+
+**Observation:**
+- Bigger models trained on more data are better than smaller ones.
+
+**Three variables:**
+
+- **N:** # of params
+- **D:** # of training tokens
+- **C:** Training compute in FLOPs
+
+**Question:**
+
+Given fixed budget C, what are the optimal values of N, D?--------------------------------------------------------------------------------
+An Industrial-Scale Sequential Recommender for LinkedIn Feed Ranking (https://sex8x8.com/__proxy/arxiv.org/pdf/2602.12354)
+citeturn628search16 [wordlim: 200] Published: 2 months ago; Crawled: 2 weeks ago; Running header: An Industrial-Scale Sequential Recommender for LinkedIn Feed Ranking ... Among these, increasing sequence length exhibits the most consistent scaling behavior across metrics (including Long Dwell AUC and Contributions AUC).
+Running header: An Industrial-Scale Sequential Recommender for LinkedIn Feed Ranking  
+Conference header: CIKM ’26, November 07–11, 2026, Rome, Italy
+
+<visual_element id="e1">
+**Figure 2. Scaling of Long Dwell AUC as a function of training FLOPs**
+
+Scatter plot showing Long-dwell AUC (% change vs. production) as a function of training FLOPs for different sequence lengths in Feed SR.
+
+- **X-axis:** log10 training FLOPs.
+  - Tick values: 17.25, 17.50, 17.75, 18.00, 18.25, 18.50, 18.75, 19.00.
+- **Y-axis:** Long-dwell AUC (%) change vs. production.
+  - Tick values: −1.0%, −0.5%, 0.0%, 0.5%, 1.0%.
+- **Legend (sequence length and point color):**
+  - Seq=32: blue.
+  - Seq=64: orange.
+  - Seq=128: green.
+  - Seq=256: red.
+  - Seq=512: purple.
+  - Seq=1024: brown.
+  - Production model: blue dashed horizontal line at 0.0%.
+
+The plotted points show generally increasing Long-dwell AUC improvements with increasing training FLOPs and sequence length. The blue dashed production-model baseline represents zero change.
+--------------------------------------------------------------------------------
+ECHO: Efficient Cascade with Homogeneous Operators for Distillation-Guided 100K-Sequence Modeling (https://arxiv.org/abs/2610.28569)
+citeturn628academia17 [wordlim: 200] Published: 4 weeks ago; Modeling lifetime user behavior sequences is essential for capturing long-range preferences in industrial recommendation, yet 100K-length user sequences make target-aware ranking prohibitively expensive. Search-based methods that retrieve from raw sequences incur candidate-dependent costs that grow with sequence length, whereas latent compression methods reduce computation at the expense of item-level addressability.
+Title: ECHO: Efficient Cascade with Homogeneous Operators for Distillation-Guided 100K-Sequence Modeling
+Authors: Wenhao Li, Qinglin Jia, Chenghou Jin, Zihong Xian, Jiezhou Ji, Yanzhi Liu, Zezheng Wang, Ruiming Tang, Chaoyi Ma, Zhaojie Liu, Wenwu Ou
+Date: Tue Oct 20 17:28:16 2026
+
+Modeling lifetime user behavior sequences is essential for capturing long-range preferences in industrial recommendation, yet 100K-length user sequences make target-aware ranking prohibitively expensive. Search-based methods that retrieve from raw sequences incur candidate-dependent costs that grow with sequence length, whereas latent compression methods reduce computation at the expense of item-level addressability. We propose ECHO (Efficient Cascade with Homogeneous Operators), a framework that balances efficiency and fine-grained retrieval by retaining a subset of original event records per user via a Distilled Selector (DS) and retrieving a smaller set of target-relevant records per candidate via a Target-aware Fine-grained Retriever (TFR). DS is supervised by a candidate-aware full-history teacher via per-target distillation, enabling target-aware user-level selection without incurring full-history computation for every candidate. The retriever and target-attention scorer share the teacher's learned relevance parameters, ensuring consistent relevance estimation across the cascade. At a sequence length of L = 100K, ECHO reduces online sequence-branch FLOPs by approximately 160x compared with a representative end-to-end model. Three deployment optimizations, including common user inputs, compact record encoding, and key-side projection absorption, further reduce memory, storage, and data-movement overhead. Experiments on KuaiRand-1K and an industrial-scale short-video platform demonstrate relative GAUC improvements of 0.113%-1.520% over state-of-the-art (SOTA) baselines across multiple tasks. Furthermore, online A/B testing shows a 0.613% improvement in app usage time.--------------------------------------------------------------------------------
+Actions Speak Louder than Words: Trillion-Parameter Sequ... (https://bytez.com/docs/arxiv/2402.17152/paper)
+citeturn628search3 [wordlim: 200] Published: 2.7 years ago; Crawled: 2 weeks ago; In contrast to language modeling (Kaplan et al., 2020), sequence length play a significantly more important role in GRs, and it’s important to scale up sequence ... Scalability: DLRMs vs GRs in large-scale industrial settings across retrieval (top, middle) and ranking (bottom). ... This is perhaps the most important advantage of our proposed method, as we’ve shown for the first time that scaling law from LLMs may also apply to large-scale recommendation systems.
+We observe this phenomenon across three orders of magnitude, up till the largest models we were able to test (8,192 sequence length, 1,024 embedding dimension, 24 layers of HSTU), at which point the total amount of compute we used (normalized over 365 days as we use a standard streaming training setting) is close to the total training compute used by GPT-3 (Brown et al., 2020) and LLaMa-2 (Touvron et al., 2023b), as shown in Figure 1. Within a reasonable range, the exact model hyperparameters play less important roles compared to the total amount of training compute applied. In contrast to language modeling (Kaplan et al., 2020), sequence length play a significantly more important role in GRs, and it’s important to scale up sequence
+
+Image: image
+
+Figure 7. Scalability: DLRMs vs GRs in large-scale industrial settings across retrieval (top, middle) and ranking (bottom). +0.005 in HR and -0.001 in NE represent significant improvements.
+
+length and other parameters in tandem. This is perhaps the most important advantage of our proposed method, as we’ve shown for the first time that scaling law from LLMs may also apply to large-scale recommendation systems.
+
+--------------------------------------------------------------------------------
+From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs — The Commonplace (https://commonplace.workforcefutures.net/paper/arxiv%3A2609.01240)
+citeturn628search4 [wordlim: 200] Published: 2 months ago; Crawled: last month;   * Cost-effective scaling axis: scaling the sequence encoder (compute amortized across candidates) can be a higher-ROI alternative to scaling per-candidate decoding or blindly increasing model size everywhere. ... Sample Primary evaluation on a large-scale, anonymized industrial TikTok Shop Ads dataset (proprietary; relative AUC reported against a production DLRM baseline), plus public benchmark evaluations on MovieLens-1M, MovieLens-20M, and Amazon-Books cast to pointwise CVR prediction; includes a one-week online randomized A/B experiment on a production advertising platform (50 ms P99 latency constraint). ... Output Quality  | positive  | Ranking accuracy as model sequence length, depth, and hidden dimension increase  | Reading fidelity high Study strength medium  | not reported 0.18
+## Data & Methods
+
+  * Problem: pointwise conversion-rate (CVR) prediction (binary classification) in large-scale ad ranking; training loss is BCE over observed conversions.
+  * Primary dataset: large-scale, anonymized industrial dataset from TikTok Shop Ads (exact scale withheld for confidentiality). Evaluation vs. a production DLRM baseline; reported metric is relative AUC delta.
+  * Public benchmarks: MovieLens-1M, MovieLens-20M, Amazon-Books. These were cast into pointwise chronological CVR-style prediction for comparability; reported AUC and log loss.
+  * Baselines: target-aware attention methods (e.g., DIN, STCA), causal LLaMA-style Transformers, HSTU, and an encoder–decoder Transformer baseline.
+  * Key architectural / algorithmic methods:
+    * Encoder T: causal self-attention with SwiGLU FFN modified by DGA, RoPE+RoTE, SRN.
+    * Cross decoder C: small set of semantic query tokens, projection-free KV attention, TSP for per-token parameters, bounded sigmoid output gates.
+    * Training: L_total = L_ce (main BCE) + λ_seq L_seq (aux sequence CVR) + λ_align L_align (sigmoid contrastive alignment). ## Assessment
+
+Paper Type descriptive Evidence Strength medium — The paper presents comprehensive offline evaluations (industrial dataset + three public benchmarks), ablation studies, and — importantly — a one-week online randomized A/B test that causally attributes short-run business metric changes to the model deployment; however, the online test is a single, proprietary deployment of limited duration and detail, and public economic/generalization evidence is indirect. Methods Rigor high — Design combines principled architecture changes (gating, temporal embeddings, normalization), system-level co-design (shared-prefix training/serving), multiple ablations, public-benchmark evaluations, and an online randomized A/B test; reproducibility is limited by proprietary industrial data and some implementation details withheld. Sample Primary evaluation on a large-scale, anonymized industrial TikTok Shop Ads dataset (proprietary; relative AUC reported against a production DLRM baseline), plus public benchmark evaluations on MovieLens-1M, MovieLens-20M, and Amazon-Books cast to pointwise CVR prediction; includes a one-week online randomized A/B experiment on a production advertising platform (50 ms P99 latency constraint). --------------------------------------------------------------------------------
+Scaling laws literature review | Epoch AI (https://proxy.goincop1.workers.dev/https/epoch.ai/publications/scaling-laws-literature-review)
+citeturn628search5 [wordlim: 200] Published: 3.8 years ago; Crawled: 2 months ago; I have collected a database of scaling laws for different tasks and architectures, and reviewed dozens of papers in the scaling law literature. ...   * I have collected a database of scaling laws for different tasks and architectures, and reviewed dozens of papers in the scaling law literature.
+--------------------------------------------------------------------------------
+Scaling Laws (https://www.theorempath.com/topics/scaling-laws)
+citeturn628search6 [wordlim: 200] Published: 3 months ago; Crawled: today; Scaling-law claims are useful only when the fitted object and the extrapolated object match. ... This ladder is why the page treats scaling laws as fitted engineering regularities, not laws of nature.
+--------------------------------------------------------------------------------
+SequenceO1: End-to-End Ultra-Long (100K) Sequence Modeling in Recommendation with Low-Rank Caching | alphaXiv (https://www.alphaxiv.org/sr/abs/2609.08443)
+citeturn628search7 [wordlim: 200] Published: 2 months ago; Crawled: 6 days ago; # SequenceO1: End-to-End Ultra-Long (100K) Sequence Modeling in Recommendation with Low-Rank Caching ... Modeling long-term user behavior is central to sequential recommendation and billion-scale industrial recommender systems, yet production ranking models operate under strict latency, memory, communication, and training-throughput constraints. ... Existing approaches based on history truncation, multi-stage behavior retrieval, compressed lifelong histories, or train-short/infer-long extrapolation either weaken end-to-end optimization or retain substantial length-dependent cost.
+--------------------------------------------------------------------------------
+Scaling Laws in Transformer Models: From Kaplan to Chinchilla and Beyond (https://www.scixa.com/article?lang=en&slug=scaling-laws-in-transformer-models)
+citeturn628search8 [wordlim: 200] Published: 2 months ago; Crawled: 4 weeks ago; Before committing to the full-scale run, train a small model (1/10th scale) and verify that the loss matches the scaling law prediction. ... Overtraining — Training a model on more tokens than the Chinchilla recommendation, to reduce inference cost at the expense of pretraining compute. ... Personal opinion: The strategic and policy implications of the scaling laws are the most underdiscussed aspect of scaling law research.
+--------------------------------------------------------------------------------
+Scaling Laws — Technologies & Tricks (https://www.chengjianglong.com/ml/F-Scaling_Laws_SOTA_Updated.html)
+citeturn628search9 [wordlim: 200] Crawled: 3 weeks ago;   * Research direction: where is improvement most efficient? ... > Frontier model design is now driven by scaling-law math: Chinchilla-optimal for training compute, Snell-style inference-compute scaling for capability, µP for hyperparameter transfer, and native sparse / MoE for active-vs-total parameter trade-offs. ... Foundational LLM scaling-laws paper.
+--------------------------------------------------------------------------------
+Scaling Laws -- Nikolenko -- April 16, 2025 (https://cms.sergeynikolenko.ru/uploads/2025_04_16_Nikolenko_Scaling_laws_in_ML_fa000fa5d3.pdf)
+citeturn628search18 [wordlim: 200] Crawled: 2 weeks ago; 9. business_ethics ... 11. computer_science ... 36. us_foreign_policy ... 43. international_law ... 53. professional_law
+--------------------------------------------------------------------------------
+Exploiting Feature-invariant Scaling Laws for Efficient A/B Experimentation in Recommendation Systems (https://arxiv.cnoctave.top/pdf/2611.13539)
+citeturn628search19 [wordlim: 200] Published: last week; Crawled: 5 days ago; However, running full-scale experiments (e.g., full-model training with online data) for every feature change is prohibitively computationally intensive, while the result from a single small-scale experiment is often misleading. ... Recommender Systems, Scaling laws, Model and Data Scaling
+--------------------------------------------------------------------------------
+Unlocking Scaling Law in Industrial Recommendation Systems with a  Three-step Paradigm based Large User Model (https://www.alphaxiv.org/abs/2502.08309v1)
+citeturn628search10 [wordlim: 200] Published: 1.8 years ago; Crawled: 3 weeks ago; This research presents a significant advancement in industrial recommendation systems by introducing a three-step paradigm based on a Large User Model that successfully unlocks scaling laws. ... The demonstrated scaling properties indicate that recommendation systems can benefit from increased model size and sequence length in ways similar to large language models, opening new avenues for improving recommendation performance in industrial settings.
+--------------------------------------------------------------------------------
+IsoCompute Playbook: Optimally Scaling Sampling Compute for RL Training of LLMs (https://isocompute.novo.pub/)
+citeturn628search11 [wordlim: 200] Crawled: 2 weeks ago; Zhoujun Cheng ^{Image: UC San Diego Image: MBZUAI-IFM * } Yutao Xie ^{Image: UC San Diego * } Yuxiao Qu ^{Image: Carnegie Mellon University * } Amrith Setlur ^{Image: Carnegie Mellon University * } Shibo Hao ^{Image: UC San Diego Image: MBZUAI-IFM } Varad Pimpalkhute ^{Image: MBZUAI-IFM } Tongtong Liang ^{Image: UC San Diego } Feng Yao ^{Image: UC San Diego } Zhengzhong Liu ^{Image: MBZUAI-IFM } Eric Xing ^{Image: MBZUAI-IFM Image: Carnegie Mellon University } Virginia Smith ^{Image: Carnegie Mellon University } Ruslan Salakhutdinov ^{Image: Carnegie Mellon University } Zhiting Hu ^{Image: UC San Diego } Taylor Killian ^{Image: MBZUAI-IFM } Aviral Kumar ^{Image: Carnegie Mellon University } ... Modulo compute-optimality, a larger value of $n$n coupled with as many sequential update steps as needed, should in principle, result in higher values for both best@k and worst@k on a training dataset. ... When jointly optimizing across all hyperparameters ($n, B_{\text{problem}}, M$n,B problem​,M), the compute-optimal value of $n$n still increases with $C$C, similar to the findings from Questions 1 & 2. ... This provides the practical recommendation for users.
+--------------------------------------------------------------------------------
+Revisiting scaling laws for reward optimization (https://arxiv.org/abs/2609.38526)
+citeturn628academia20 [wordlim: 200] Published: last month; Scaling laws for optimization against reward models in AI alignment have pinned down how performance depends on optimization effort---measured by a KL-divergence budget relative to a reference policy. ... Our scaling law provides an excellent fit (R2 from 97\% to 99\%), outperforms alternative specifications, and remains robust across model sizes, noise, and optimization procedures (best-of-$N$ or policy tilting).
+--------------------------------------------------------------------------------
+Hinted Scaling Laws (https://arxiv.org/abs/2611.02270)
+citeturn628academia21 [wordlim: 200] Published: 2 weeks ago; On the Delphi pretraining ladder, a hinted scaling law fit on models trained with at most $10^{20}$ FLOPs forecasts the GSM8K accuracy of a $10^{23}$ FLOP model (25.9%) to within 3 percentage points; a standard scaling law under-forecasts it by 13 percentage points when fit on the same models and by 12 even with models up to $10^{22}$ FLOPs in the fit. ... Our results suggest that hinting is a general primitive for improving the accuracy and cost of downstream scaling laws and other prediction tasks in model development.
+--------------------------------------------------------------------------------
+Neural scaling law (https://en.wikipedia.org/wiki/Neural_scaling_law)
+citeturn628search22 [wordlim: 200] Crawled: 5 days ago; The Chinchilla scaling law analysis for training transformer language models suggests that for a given training compute budget ($C$), to achieve the minimal pretraining loss for that budget, the number of model parameters ($N$) and the number of training tokens ($D$) should be scaled in equal proportions, $Nopt(C)∝C0.5,Dopt(C)∝C0.5$. ... Another strand of research studies how to deal with limited data, as according to Chinchilla scaling laws, the training dataset size for the largest language models already approaches what is available on the internet. found that augmenting the dataset with a mix of "denoising objectives" constructed from the dataset improves performance. studies optimal scaling when all available data is already exhausted (such as in rare languages), so one must train multiple epoches over the same dataset (whereas Chinchilla scaling requires only one epoch). ... "Beyond neural scaling laws: beating power law scaling via data pruning". arXiv:2206.14486 [cs.LG]. ... Science.
+--------------------------------------------------------------------------------
+Quantum computing scaling laws (https://en.wikipedia.org/wiki/Quantum_computing_scaling_laws)
+citeturn628search23 [wordlim: 200] Crawled: 2 months ago; The most important scaling laws in quantum computing are Rose's law, Neven's law, and Schoelkopf's law.
+--------------------------------------------------------------------------------
+Compute (machine learning) (https://en.wikipedia.org/wiki/Compute_%28machine_learning%29)
+citeturn628search24 [wordlim: 200] Crawled: 3 months ago; After 2020, compute growth began to slow down, with the compute needed for the largest AI models continuing to slow down in 2023. ... By training over 400 language models of various parameter and token size, they found that "for compute-optimal training", the model size and the number of training tokens should ideally be scaled equally: for every doubling of model size the number of training tokens should also be doubled.
+

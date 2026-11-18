@@ -1,0 +1,2576 @@
+{
+  "content": [
+    {
+      "anchor": "4cc9afb5-62b8-4fcb-8efa-b611a0c55617",
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "一、背景",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "12c01b67-b09c-496f-a5f7-37d831837ce7",
+      "attrs": {
+        "level": 1
+      },
+      "type": "heading"
+    },
+    {
+      "anchor": "ae8f683b-65b4-49bb-9d59-bf8cf6a8b9fc",
+      "attrs": {
+        "level": 1
+      },
+      "type": "heading"
+    },
+    {
+      "anchor": "f90677e4-b563-4980-bdcb-45921661723a",
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "二、离线阈值选取",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "cfb63618-8017-48bc-a4f0-1fb2476c9d8d",
+      "content": [
+        {
+          "text": "数据口径",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "56a3a52c-485b-4276-8896-b5387ed7be5e",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "de818293-a741-4a39-997e-be828cbdcd5d",
+                  "content": [
+                    {
+                      "text": "指标",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "41f30f5c-f336-4ef7-b105-cb88d14dc8f7",
+                  "content": [
+                    {
+                      "text": "计算逻辑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "80c1cf8b-55ff-4532-8634-0ecc545402b7",
+                  "content": [
+                    {
+                      "text": "换车阈值",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e3aa7db5-6264-46f7-a571-d9ec88338ac0",
+                  "content": [
+                    {
+                      "text": "设定秒数，如 60 秒",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "95e02504-a2b8-4a06-810e-d39c8f1d5423",
+                  "content": [
+                    {
+                      "text": "会触发订单占比",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "b05404ce-e894-47ed-a920-e360fa83a8b0",
+                  "content": [
+                    {
+                      "text": "杀端时长 >= 阈值 / 全部订单",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "49257f26-aae4-410c-9bba-882773d0b0f0",
+                  "content": [
+                    {
+                      "text": "触发订单最终取消率",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e1c01cda-bf08-4d91-97f2-7f87edceea1d",
+                  "content": [
+                    {
+                      "text": "杀端时长 >= 阈值 且 is_cancel=1 / 杀端时长 >= 阈值",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "105a3bbd-9735-447b-abe7-51729659e5a0",
+                  "content": [
+                    {
+                      "text": "覆盖取消单占比",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "62468705-2fe7-4997-95f3-f9428eadb415",
+                  "content": [
+                    {
+                      "text": "杀端时长 >= 阈值 且 is_cancel=1 / 全部 is_cancel=1",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "ac443406-f3ab-4549-9e4b-ac317632bd6a",
+                  "content": [
+                    {
+                      "text": "正常单误换占比",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "21a6033e-cbb2-4138-9e76-634e99f5987d",
+                  "content": [
+                    {
+                      "text": "杀端时长 >= 阈值 且 is_cancel=0 且 is_reassign=0 / 全部订单",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "e1776d42-5b93-4af2-b964-5f888756c3f9",
+      "content": [
+        {
+          "text": "取数sql：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "43268244-a53c-40d9-84bc-2cffeaf41b0e",
+      "attrs": {
+        "language": "PlainText",
+        "name": "0826～0901有杀端行为的订单是否取消或改派"
+      },
+      "content": [
+        {
+          "text": "select \n    a.order_id,\n    a.hxz_get_kill_end_exist,\n    a.hxz_get_kill_end_duration_s,\n    b.is_cancel,\n    b.is_reassign\nfrom (\n    SELECT  \n        order_id,\n        max(feature['hxz_get_kill_end_exist']) as hxz_get_kill_end_exist,\n        max(feature['hxz_get_kill_end_duration_s']) as hxz_get_kill_end_duration_s\n    FROM    experience_data.jury_strategy_public_middleware_v2\n    WHERE   concat_ws('-', year, month, day) BETWEEN '2026-08-26' AND '2026-09-01'\n        AND process_id = 10644\n        AND strategy_version = '4.17'\n        and feature['hxz_get_kill_end_duration_s'] > 0\n    group by order_id\n) as a \ninner join (\n    select \n        order_id,\n        max(is_td_cancel) as is_cancel,\n        max(is_td_reassign) as is_reassign\n    from \n        kflower_dw.dwd_kf_trd_unity_order_di\n    where dt between '2026-08-26' AND '2026-09-02'\n        and is_hxz = 1\n    group by order_id\n)as b\non a.order_id = b.order_id",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "c668aebe-8fbb-4ef6-aaca-c43a8d6d6c44",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "8db24e1e-78e7-49a4-b4e0-960ae24e6c1f",
+                  "content": [
+                    {
+                      "text": "换车阈值",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "03bf851c-796f-4b91-9462-e4d597a893a6",
+                  "content": [
+                    {
+                      "text": "触发订单数",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ed4f9a46-7b6c-4ea8-8857-75e037109d71",
+                  "content": [
+                    {
+                      "text": "会触发订单占比",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "49a98dd0-6aae-4391-97b5-1f3180d8722f",
+                  "content": [
+                    {
+                      "text": "触发订单最终取消率",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "c9ac9bfc-0178-4bae-a04d-8bb68972d0e0",
+                  "content": [
+                    {
+                      "text": "覆盖取消单占比",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2a4b0395-70a8-475d-95d8-38dfe655198a",
+                  "content": [
+                    {
+                      "text": "正常单误换占比",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "72f42ae6-f798-40b7-8ef6-45fd6f14213a",
+                  "content": [
+                    {
+                      "text": "正常单误换数",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "28e7e662-7564-45e2-b739-2ef257b16f82",
+                  "content": [
+                    {
+                      "text": "30s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f3a27072-c241-4fcd-9613-fb7aeb332a63",
+                  "content": [
+                    {
+                      "text": "6620",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "c0de5603-94a6-46ae-b1b7-abd99b179815",
+                  "content": [
+                    {
+                      "text": "50.6%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d59d9577-c866-4f9d-b499-31726d887a5f",
+                  "content": [
+                    {
+                      "text": "73.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "1069ed73-cd24-425f-b7c2-736daabbccfc",
+                  "content": [
+                    {
+                      "text": "68.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "80574261-5456-4327-ad68-64124303f14c",
+                  "content": [
+                    {
+                      "text": "12.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "22c5abb5-7f85-44fc-aec0-8e9944d2817d",
+                  "content": [
+                    {
+                      "text": "1585",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "8750c28e-6196-4852-8265-7f296b239a4a",
+                  "content": [
+                    {
+                      "text": "35s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f8025026-8aef-4332-92a2-217bf8defe29",
+                  "content": [
+                    {
+                      "text": "6281",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ab9ced7b-6b6c-480c-801a-39aa3e2b9888",
+                  "content": [
+                    {
+                      "text": "48.0%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "0b366682-20a1-48de-b50f-eb73105d32fe",
+                  "content": [
+                    {
+                      "text": "74.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d0329efb-b7f6-4537-a33f-38ea519e86cc",
+                  "content": [
+                    {
+                      "text": "65.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "253e99d4-9c36-41ad-a4ea-5547ef2d686d",
+                  "content": [
+                    {
+                      "text": "11.0%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "8efb6449-62c0-4474-808b-842579cad4b5",
+                  "content": [
+                    {
+                      "text": "1435",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "b5d6ada0-8f2c-4285-9706-6a2f62db7b97",
+                  "content": [
+                    {
+                      "text": "40s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5b8faf21-36be-4f74-9af8-284902b564ef",
+                  "content": [
+                    {
+                      "text": "5869",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2ae89e93-1fd0-4dba-b444-4f53fb381ba4",
+                  "content": [
+                    {
+                      "text": "44.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "dba6cee3-13d5-4deb-958b-fdd7d89eac3d",
+                  "content": [
+                    {
+                      "text": "75.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "6da8c077-b4de-4502-9b56-1cf1f2539af8",
+                  "content": [
+                    {
+                      "text": "62.4%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "38e3a10b-4877-455e-8e58-82c55259b081",
+                  "content": [
+                    {
+                      "text": "9.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "bb94d3e8-f1a2-473c-b835-56aad667f11c",
+                  "content": [
+                    {
+                      "text": "1272",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "241614a4-9614-4626-8839-fa245788549e",
+                  "content": [
+                    {
+                      "text": "45s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "659ee781-2322-40b7-a693-e2fb9b7a20cb",
+                  "content": [
+                    {
+                      "text": "5535",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3e5c5138-7ba4-42e2-bcf8-4fe11e70543f",
+                  "content": [
+                    {
+                      "text": "42.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "b37244c9-8d46-40df-a507-08568530d2fb",
+                  "content": [
+                    {
+                      "text": "76.4%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ec120d43-83ac-4a59-ab9a-71ef6b13f946",
+                  "content": [
+                    {
+                      "text": "59.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "99da082e-fec8-4f62-abbc-f6e1e9d8abeb",
+                  "content": [
+                    {
+                      "text": "8.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "7ec943f1-ceed-4545-976d-17a301707d32",
+                  "content": [
+                    {
+                      "text": "1143",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "a065b553-5129-48e6-b1a6-34e4e47dfcb1",
+                  "content": [
+                    {
+                      "text": "50s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "7230af54-5e48-4d0b-80d2-068c7ad3b74e",
+                  "content": [
+                    {
+                      "text": "5164",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d6fa8e75-173c-4fef-872d-c9d55257f6a6",
+                  "content": [
+                    {
+                      "text": "39.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "9ed7a740-efbd-4ec2-9dbf-5b722c3c03e9",
+                  "content": [
+                    {
+                      "text": "77.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "672185e4-4593-4c04-af80-5c78d1a76588",
+                  "content": [
+                    {
+                      "text": "56.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e83f05a3-24f3-41ea-969a-e383ae371ee6",
+                  "content": [
+                    {
+                      "text": "7.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "631124eb-eff3-4063-9449-fd37f0bd5876",
+                  "content": [
+                    {
+                      "text": "1014",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "0a122d68-a162-4398-b9af-0f0c8bb6edc3",
+                  "content": [
+                    {
+                      "text": "55s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "682e6dfd-f614-4be3-b813-f3ed74471a98",
+                  "content": [
+                    {
+                      "text": "4821",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "0f52e66c-88b5-4312-a10a-edc2f1516761",
+                  "content": [
+                    {
+                      "text": "36.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "a15ce169-de0c-4619-a4df-93c4dca6ae55",
+                  "content": [
+                    {
+                      "text": "78.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f5b5ab76-62bf-434e-856b-161674413ed2",
+                  "content": [
+                    {
+                      "text": "53.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "72bd1a73-ff6a-430e-b370-d7394bbf0cbd",
+                  "content": [
+                    {
+                      "text": "6.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3942ab3f-dd5b-4890-bd28-5ae4cd5074a3",
+                  "content": [
+                    {
+                      "text": "907",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "7cfaa87e-163a-4ab8-90c8-6fc240bcaccd",
+                  "content": [
+                    {
+                      "text": "60s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d2425f43-74ad-4bce-99ad-517335841c4e",
+                  "content": [
+                    {
+                      "text": "4543",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "bdb66524-e5fd-4309-bbfc-27fd56d72f37",
+                  "content": [
+                    {
+                      "text": "34.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5e2a82cd-831b-4106-85fb-a5a8c4afc74e",
+                  "content": [
+                    {
+                      "text": "79.2%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ab648c78-8cf5-4bd1-95c0-be479fc5a35f",
+                  "content": [
+                    {
+                      "text": "50.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "054eecb4-0d4a-4785-8789-93d290550eb7",
+                  "content": [
+                    {
+                      "text": "6.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "6c208826-8ae0-484a-bde5-e90847648ceb",
+                  "content": [
+                    {
+                      "text": "819",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "978fd0a2-41f6-4e69-863c-fc2d7a896e04",
+                  "content": [
+                    {
+                      "text": "65s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d7f4a418-d0af-4d3c-a592-87240274a6c4",
+                  "content": [
+                    {
+                      "text": "4220",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "14361bbf-0f3c-476b-9235-5d4d85043ba6",
+                  "content": [
+                    {
+                      "text": "32.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3d77828d-4811-460b-bd49-500fc986b174",
+                  "content": [
+                    {
+                      "text": "80.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "de4540b9-c582-464a-b793-7e0f2a83abe0",
+                  "content": [
+                    {
+                      "text": "47.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "0b98e260-a44b-4b29-8627-2351e136407c",
+                  "content": [
+                    {
+                      "text": "5.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "31aad072-e3f1-483a-91eb-2ddc847b8191",
+                  "content": [
+                    {
+                      "text": "722",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "b54dc14c-355e-441d-823b-89ce651ddd4d",
+                  "content": [
+                    {
+                      "text": "70s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "c40b38d1-587b-477a-a97c-0be7f217ee5c",
+                  "content": [
+                    {
+                      "text": "3910",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e0df4ef6-d89d-4a29-8808-87c9f2b1284e",
+                  "content": [
+                    {
+                      "text": "29.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "a90c4199-43df-4a4f-ba6c-38826169df92",
+                  "content": [
+                    {
+                      "text": "80.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "a9bf7f53-0563-408a-8196-d8295752711a",
+                  "content": [
+                    {
+                      "text": "44.6%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "34019e72-962c-4661-88c6-9ce7f7d59526",
+                  "content": [
+                    {
+                      "text": "4.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5126b66e-be2b-4c30-a744-eeea6d447fae",
+                  "content": [
+                    {
+                      "text": "642",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "be87a5d3-aeef-4ffd-a5c0-a0d41ee99a66",
+                  "content": [
+                    {
+                      "text": "75s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "912a4573-ec3a-4677-9bcb-a2f1da2e5a91",
+                  "content": [
+                    {
+                      "text": "3609",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "72c1d0eb-e76f-46a3-a6a6-1c2936c64fd1",
+                  "content": [
+                    {
+                      "text": "27.6%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ded9ea1d-e321-4d5a-8ebc-7dfa6e5c52a9",
+                  "content": [
+                    {
+                      "text": "81.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5e66594c-2fc0-43eb-8c88-8f3b41091d84",
+                  "content": [
+                    {
+                      "text": "41.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2083fc9e-b212-4e4f-875e-2d800e951865",
+                  "content": [
+                    {
+                      "text": "4.4%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "9eaba52d-8609-4a10-866c-68253cabb9c8",
+                  "content": [
+                    {
+                      "text": "570",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "b4bd85b5-6699-4938-a865-ea56e1b46cfb",
+                  "content": [
+                    {
+                      "text": "80s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "79b6ed7e-0818-405a-bc07-a4244de86925",
+                  "content": [
+                    {
+                      "text": "3330",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e27145a5-be61-47e0-a900-d9b1e12bcc2e",
+                  "content": [
+                    {
+                      "text": "25.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "9eda16a9-48f6-4142-8a6b-77e1722aeff4",
+                  "content": [
+                    {
+                      "text": "82.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "95f66b7c-8ad2-4aaa-b0e0-2e3dfb3cb7e5",
+                  "content": [
+                    {
+                      "text": "38.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3b5913b7-b4a3-4bcb-a139-7ad86747c990",
+                  "content": [
+                    {
+                      "text": "3.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2a1e8f62-5da9-4964-a470-f4b295cb61de",
+                  "content": [
+                    {
+                      "text": "494",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "a689ccab-d7d8-4594-9057-200a7843d5e6",
+                  "content": [
+                    {
+                      "text": "85s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2ec90b0d-e1a6-4fae-ba2d-80c8898808f9",
+                  "content": [
+                    {
+                      "text": "3005",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "0b6c1717-48be-4002-bb98-274e928cc4aa",
+                  "content": [
+                    {
+                      "text": "23.0%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "bd02f46b-251d-449b-bef2-dc2b6cb86fbe",
+                  "content": [
+                    {
+                      "text": "83.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "95b4f865-63f0-4d1b-8b78-c4b4ea2dc13c",
+                  "content": [
+                    {
+                      "text": "35.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "95b1d649-6f0a-4585-9e09-cdf911bd5c64",
+                  "content": [
+                    {
+                      "text": "3.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "c578006c-9fbc-49cb-8bda-bd272344d404",
+                  "content": [
+                    {
+                      "text": "410",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "d6ec91c6-a758-4b3c-8972-3b348db15bb2",
+                  "content": [
+                    {
+                      "text": "90s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "cd0b6588-b70d-4e4b-9c78-66e012d6c9ae",
+                  "content": [
+                    {
+                      "text": "2715",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "7610b9d1-f774-44c7-83d1-ff1bd4a51e0d",
+                  "content": [
+                    {
+                      "text": "20.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5d5db9ee-aeb8-4f77-859e-6ded9b115b8b",
+                  "content": [
+                    {
+                      "text": "84.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e0699518-84c3-4ed4-a6fe-af2001e3c258",
+                  "content": [
+                    {
+                      "text": "32.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "dca0a5a4-1d65-4951-904f-2b2973866d60",
+                  "content": [
+                    {
+                      "text": "2.6%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "cd0dafcc-eb35-461a-bf11-92550560f857",
+                  "content": [
+                    {
+                      "text": "346",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "58ca5013-cdec-4f71-8248-bfc9b862e8b9",
+                  "content": [
+                    {
+                      "text": "95s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "7655f972-4598-49e3-a70a-52ab3976831e",
+                  "content": [
+                    {
+                      "text": "2367",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "778172ae-35e4-4578-a881-5e384611b63b",
+                  "content": [
+                    {
+                      "text": "18.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "6dd44249-d3d7-4f54-b58d-3d8828c590e7",
+                  "content": [
+                    {
+                      "text": "85.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "def0f35d-1d7a-4df5-848f-9eb49c1c6c5b",
+                  "content": [
+                    {
+                      "text": "28.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "7e5efc65-00cb-4220-98e6-525fc24846d0",
+                  "content": [
+                    {
+                      "text": "2.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "77d62742-a89c-4676-a0d6-f357041337b8",
+                  "content": [
+                    {
+                      "text": "272",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "be0e6285-8b21-4175-a8fe-abc52b715082",
+                  "content": [
+                    {
+                      "text": "100s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "bc51e18d-5457-4239-b5af-9c02b54d04b1",
+                  "content": [
+                    {
+                      "text": "2020",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5a8213e1-0bfe-460b-a6e2-90c39339caf3",
+                  "content": [
+                    {
+                      "text": "15.4%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "b7857516-0740-402a-bcbd-50844c077f14",
+                  "content": [
+                    {
+                      "text": "87.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "476120ad-ccab-4983-a689-301445ff039f",
+                  "content": [
+                    {
+                      "text": "25.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5d1cdef4-3270-47e5-bdac-9af642968c73",
+                  "content": [
+                    {
+                      "text": "1.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "fe69e1b8-21c5-44bd-899b-71e7e5f1bd0b",
+                  "content": [
+                    {
+                      "text": "193",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "9169ac2c-6463-40ac-bbfd-23557db8dfaf",
+                  "content": [
+                    {
+                      "text": "105s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "717b3acb-2c70-4aec-9574-3e6bdadf4509",
+                  "content": [
+                    {
+                      "text": "1953",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "9c377f71-505f-4f05-bd2d-225789c69514",
+                  "content": [
+                    {
+                      "text": "14.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "97674d5c-e2c3-43c6-9389-92c779deb006",
+                  "content": [
+                    {
+                      "text": "87.7%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e296dbb6-bde4-4b85-a38c-5ea79b0266b5",
+                  "content": [
+                    {
+                      "text": "24.2%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "84fff257-c486-416a-9a57-50dac769f4ac",
+                  "content": [
+                    {
+                      "text": "1.4%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "cdcb9248-6b99-4278-b1c5-da54e30b64e4",
+                  "content": [
+                    {
+                      "text": "189",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "fc52258b-115f-4f91-b098-c0d5b24434f0",
+                  "content": [
+                    {
+                      "text": "110s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "df428b9e-f789-4ac2-8a61-141056877f75",
+                  "content": [
+                    {
+                      "text": "1896",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "fc8c9543-ab87-4614-94f6-9b669c624044",
+                  "content": [
+                    {
+                      "text": "14.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "67a01798-d472-4c65-b837-a218f8d31a44",
+                  "content": [
+                    {
+                      "text": "87.9%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f4625f89-844e-4107-aa45-4dd20e1d113b",
+                  "content": [
+                    {
+                      "text": "23.5%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "4fcbc37e-db3c-4dad-904d-647b81a574db",
+                  "content": [
+                    {
+                      "text": "1.4%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "25a4b818-0107-428d-bad7-e6c71ff58e54",
+                  "content": [
+                    {
+                      "text": "180",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "5c9bb0b9-8cb3-4ce6-b40f-a65423a15e7b",
+                  "content": [
+                    {
+                      "text": "115s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3bd40295-b0b1-4499-a977-f298caee9846",
+                  "content": [
+                    {
+                      "text": "1838",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "6a761766-0fd6-4788-b5b4-24ce1e24f484",
+                  "content": [
+                    {
+                      "text": "14.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "43c7d8e8-5769-4754-a6ea-0afad086e2cd",
+                  "content": [
+                    {
+                      "text": "88.0%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "20997072-9e93-44a8-9ec2-7a269be6b520",
+                  "content": [
+                    {
+                      "text": "22.8%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "4b29144a-5dbf-4986-a345-81a4606ef065",
+                  "content": [
+                    {
+                      "text": "1.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "12134849-58bf-410d-8965-b5d84dac3778",
+                  "content": [
+                    {
+                      "text": "172",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "65c23f21-ef77-4246-8182-d2321b5d9380",
+                  "content": [
+                    {
+                      "text": "120s",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "720d598f-d32b-424f-b263-6b329fcf49ab",
+                  "content": [
+                    {
+                      "text": "1778",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d8864444-48bb-40cf-8d2a-3d7d07e8bef2",
+                  "content": [
+                    {
+                      "text": "13.6%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ddd1a52f-cf0f-479f-a190-a27e10c60b0a",
+                  "content": [
+                    {
+                      "text": "88.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "882ccfb9-43fb-41d7-931f-eb0cfd5ae126",
+                  "content": [
+                    {
+                      "text": "22.1%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "63e12949-fcac-4095-a06d-ee95b38898ed",
+                  "content": [
+                    {
+                      "text": "1.3%",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "8e8cf98e-dc4f-4e41-bd03-cf8d8361ca07",
+                  "content": [
+                    {
+                      "text": "165",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "3cc490ce-7468-4876-892c-ee078040e53b",
+      "type": "paragraph"
+    },
+    {
+      "anchor": "93aadafd-5c87-4750-bbb8-470e9569997b",
+      "type": "paragraph"
+    },
+    {
+      "anchor": "0bbf6e3b-27b6-499e-8418-1adc6746924e",
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "三、线上实验",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    }
+  ],
+  "format": "agent-readable-json",
+  "operation": "pull",
+  "sections": [
+    {
+      "anchor": "4cc9afb5-62b8-4fcb-8efa-b611a0c55617",
+      "headingText": "一、背景",
+      "index": 0,
+      "level": 1,
+      "path": [
+        "一、背景"
+      ]
+    },
+    {
+      "anchor": "12c01b67-b09c-496f-a5f7-37d831837ce7",
+      "headingText": "",
+      "index": 1,
+      "level": 1,
+      "path": [
+        ""
+      ]
+    },
+    {
+      "anchor": "ae8f683b-65b4-49bb-9d59-bf8cf6a8b9fc",
+      "headingText": "",
+      "index": 2,
+      "level": 1,
+      "path": [
+        ""
+      ]
+    },
+    {
+      "anchor": "f90677e4-b563-4980-bdcb-45921661723a",
+      "headingText": "二、离线阈值选取",
+      "index": 3,
+      "level": 1,
+      "path": [
+        "二、离线阈值选取"
+      ]
+    },
+    {
+      "anchor": "0bbf6e3b-27b6-499e-8418-1adc6746924e",
+      "headingText": "三、线上实验",
+      "index": 11,
+      "level": 1,
+      "path": [
+        "三、线上实验"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,12 @@ tags: [模型架构, 特征交叉, RankMixer, MLP-Mixer, PCVRHyFormer, 面试]
 
 # RankMixer：用受约束的 MLP 做 Token 与 Channel 交互
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 推荐排序与特征表示**。保留“RankMixer：用受约束的 MLP 做 Token 与 Channel 交互”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/推荐排序与特征表示/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > RankMixer 的核心不是“MLP 一定比 Transformer 强”，而是在精排中 token 数量固定且不大时，用 MLP-Mixer 风格的交替混合，替代一次昂贵、内容自适应的全局 Self-Attention。它是特征交互模块，不负责替代长行为序列编码。
 
 ## 1. 它在 PCVRHyFormer 的什么位置？

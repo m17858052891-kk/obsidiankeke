@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # SymboLLM-FE: LLM-Accelerated Symbolic Regression for Automated Feature Engineering on Tabular Data
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“SymboLLM-FE: LLM-Accelerated Symbolic Regression for Automated Feature Engineering on Tabular Data”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 按与目标的Spearman相关排序，用扩展滑窗提出子集；符号回归提供‘子集—公式—得分’结构，再给LLM生成/改写特征程序，结合下游反馈迭代。
 

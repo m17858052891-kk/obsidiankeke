@@ -1,0 +1,414 @@
+Helsinki 25 Seminar Talk (https://blogs.helsinki.fi/language-technology/files/2025/03/Helsinki-25-Seminar-Talk.pdf)
+citeturn617search12 [wordlim: 200] Crawled: last week; **Diagram structure:** A circular self-training loop connects prediction generation and correctness feedback.
+# Potential Directions: Self-training & Exploration
+
+<visual_element id="e1">
+**SELF-TRAINING LOOP**
+
+1. **Sample a problem, generate 16 predictions**
+2. A model generates predictions.
+3. **feedback: is result correct?**
+   - Feedback is represented by a sequence of correctness indicators: ✗ ✓ ✗ ✗ ... ✗ ✓
+4. The feedback is used to generate **training data**.
+5. Training data branches into two variants:
+
+**Variant - SFT:**
+- prediction 2
+- prediction 5
+- ...
+- prediction 16
+
+**Variant - Preferences:**
+- prediction 2 > prediction 1
+- prediction 2 > prediction 3
+- ...
+- prediction 16 > prediction 15
+
+**Diagram structure:** A circular self-training loop connects prediction generation and correctness feedback. The resulting training data branches downward into two approaches: SFT (individual predictions) and Preferences (pairwise prediction comparisons).
+</visual_element>
+
+**Figure 1:** Schema of self-training that we apply to provide the model with training feedback to its predictions. In the offline variant, the model generates all predictions in a single round. In the online variant, the training data is continuously generated.
+
+Kadlčík* & Štefánik*: [Self-training Language Models for Arithmetic Reasoning](Self-training Language Models for Arithmetic Reasoning). EMNLP Findings 2024.
+
+Page 46--------------------------------------------------------------------------------
+2025-04-ccf (https://qingkeai.online/upload/pdf/20250419.pdf)
+citeturn617search13 [wordlim: 200] Crawled: 2 weeks ago; A self-training feedback loop consisting of the following components, arranged from left to right:
+The Hong Kong University of Science and Technology
+
+# What Matters in Self-Improving
+
+<visual_element id="e1">
+
+**Self-improving process diagram**
+
+A self-training feedback loop consisting of the following components, arranged from left to right:
+
+1. **Robot (model)** — generates data.
+2. **Generate** — arrow pointing from the robot to a rounded rectangular box labeled **Data**.
+3. **Filter** — arrow pointing from the **Data** box to a rounded rectangular box labeled **Good Data**.
+4. **Good Data** — filtered data retained for self-training.
+5. **Self-training** — a large curved feedback arrow runs from the **Good Data** box, curves upward across the top, and points back toward the robot (model).
+
+Flow:
+**Robot → Generate → Data → Filter → Good Data → Self-training → Robot**
+
+The diagram illustrates a model generating candidate data, filtering it to retain good data, and using that good data for further self-training.
+
+</visual_element>
+
+1. The model needs to be able to generate good responses when sampling multiple candidates
+
+   **Exploration**
+
+2. The reward function needs to be able to distinguish good responses from bad ones
+
+   **Exploitation**
+
+**Self-improving will not work if either exploration or exploitation lags behind – balance is important!**
+
+18--------------------------------------------------------------------------------
+A survey of active learning in collaborative filtering recommender systems (https://www.sciencedirect.com/science/article/pii/S1574013715300150)
+citeturn617search0 [wordlim: 200] Published: 10.6 years ago; Crawled: last month; The main contributions of this article are: (a) novel dimensions for classification of active learning strategies in collaborative filtering, i.e., personalization and hybridization; (b) a comprehensive analysis and classification of more than 25 strategies (see Fig. 4) as well as the brief description of their potential pros and cons; (c) a sub-classification of the strategies for an even better and more informative description and discrimination, e.g., static combined-heuristic or adaptive combined-heuristic strategies; (d) a discussion of the evaluation methods and metrics employed by the research community.
+
+The remainder of the article is structured as follows: Section  2 briefly reviews the main recommendation techniques; Section  3 focuses on collaborative filtering techniques and discusses some open issues in this area; Section  4 describes a general model of active learning; Section  5 concentrates on the application of active learning to collaborative filtering and describes in detail several active learning strategies; Section  6 illustrates and discusses evaluation methods for active learning in collaborative filtering; Section  7 provides a summary comparison of the performances of the reviewed strategies; finally, Section  8 discusses a number of new topics that may need to be studied further and concludes this survey article.
+
+## Computer Science Review
+
+Date: May 2016
+
+Pages: 29-50
+
+Volume: Volume 20
+
+View accessibility information
+
+## Published by: Elsevier
+
+Review article
+
+Get rights and content
+
+# 
+
+Survey
+
+A survey of active learning in collaborative filtering recommender systems
+
+Author links open overlay panel Mehdi Elahi ^{a}, Francesco Ricci ^{b}, Neil Rubens ^{c}
+
+10.1016/j.cosrev.2016.05.002
+
+## Abstract
+
+In collaborative filtering recommender systems user’s preferences are expressed as ratings for items, and each additional rating extends the knowledge of the system and affects the system’s recommendation accuracy. In general, the more ratings are elicited from the users, the more effective the recommendations are. However, the usefulness of each rating may vary significantly, i.e., different ratings may bring a different amount and type of information about the user’s tastes. Hence, specific techniques, which are defined as “active learning strategies”, can be used to selectively choose the items to be presented to the user for rating. In fact, an active learning strategy identifies and adopts criteria for obtaining data that better reflects users’ preferences and enables to generate better recommendations.
+
+So far, a variety of active learning strategies have been proposed in the literature. In this article, we survey recent strategies by grouping them with respect to two distinct dimensions: personalization, i.e., whether the system selected items are different for different users or not, and, hybridization, i.e., whether active learning is guided by a single criterion (heuristic) or by multiple criteria. In addition, we present a comprehensive overview of the evaluation methods and metrics that have been employed by the research community in order to test active learning strategies for collaborative filtering. Finally, we compare the surveyed strategies and provide guidelines for their usage in recommender systems.
+
+## Keywords
+
+Recommender systems
+
+;
+
+Collaborative filtering
+
+;
+
+Active learning
+
+;
+
+Rating elicitation
+
+;
+
+Preference elicitation
+--------------------------------------------------------------------------------
+Automating Algorithm Experiments With ALGator: From Problem Modeling to Reproducible Results (https://onlinelibrary.wiley.com/doi/abs/10.1002/spe.70020)
+citeturn617search1 [wordlim: 200] Published: 1.1 years ago; Crawled: 2 months ago; This work aims to establish a formal and reproducible framework for algorithm experimentation and to provide a practical platform that enables researchers to model problems, execute experiments, and share results transparently. ... We propose a comprehensive experimentation model that formalizes all key entities of algorithm evaluation, including inputs, outputs, test cases, test sets, parameters, algorithms, and performance indicators. ... This approach promotes transparency, facilitates independent verification, and enables researchers to extend existing experiments with new test cases and performance metrics, advancing the reproducibility and reliability of empirical algorithm evaluation. ... First, there is the issue of algorithm selection. ... For the original author of the research, the framework offers tools to define an experimental project by specifying the problem definition, input and output formats, algorithms, test sets, and evaluation metrics, and by executing these experiments on a controlled set of computing resources while automatically generating result presentations.
+
+Volume 56, Issue 1 pp. 26-41
+
+RESEARCH ARTICLE
+
+Open Access
+
+# Automating Algorithm Experiments With ALGator: From Problem Modeling to Reproducible Results
+
+First published: 25 September 2025
+
+https://doi.org/10.1002/spe.70020Digital Object Identifier (DOI)
+
+view metrics
+
+Funding: The author received no specific funding for this work.
+
+## ABSTRACT
+
+### Background
+
+Theoretical algorithm analysis provides fundamental insights into algorithm complexity but relies on simplified and often outdated computational models. Experimental algorithmics complements this approach by evaluating the empirical performance of algorithm implementations on real data and modern computing platforms. However, the absence of standardized, reproducible experimental environments limits the reliability and comparability of results.
+
+### Objective
+
+This work aims to establish a formal and reproducible framework for algorithm experimentation and to provide a practical platform that enables researchers to model problems, execute experiments, and share results transparently.
+--------------------------------------------------------------------------------
+How Usable is Automated Feature Engineering for Tabular Data? - SmallData (https://www.smalldata-initiative.de/publications/how-usable-is-automated-feature-engineering-for-tabular-data/)
+citeturn617search2 [wordlim: 200] Published: 1.2 years ago; Crawled: last month; # How Usable is Automated Feature Engineering for Tabular Data? ... Each column represents a feature, and features can be combined or transformed to create new, more informative features.
+
+# How Usable is Automated Feature Engineering for Tabular Data?
+
+URL:
+
+http://arxiv.org/abs/2508.13932
+
+Publication date:
+
+2025/08/19
+
+Authors:
+
+Bastian Schäfer, Lennart Purucker, Maciej Janowski, Frank Hutter
+
+Repository:
+
+arXiv
+
+Abstract:
+
+Tabular data, consisting of rows and columns, is omnipresent across various machine learning applications. Each column represents a feature, and features can be combined or transformed to create new, more informative features. Such feature engineering is essential to achieve peak performance in machine learning. Since manual feature engineering is expensive and time-consuming, a substantial effort has been put into automating it. Yet, existing automated feature engineering (AutoFE) methods have never been investigated regarding their usability for practitioners. Thus, we investigated 53 AutoFE methods. We found that these methods are, in general, hard to use, lack documentation, and have no active communities. Furthermore, no method allows users to set time and memory constraints, which we see as a necessity for usable automation. Our survey highlights the need for future work on usable, well-engineered AutoFE methods.
+
+Keywords: Automated Machine Learning, Tabular Data--------------------------------------------------------------------------------
+Research Square (https://assets-eu.researchsquare.com/files/rs-3280704/v1_covered_22eaf952-9160-4982-bee9-60deb5ab60cc.pdf)
+citeturn617search14 [wordlim: 200] Crawled: 5 days ago; Research Square ... **Keywords:** Recommendations, Exploration-Exploitation, Active Learning
+Research Square
+
+Preprints are preliminary reports that have not undergone peer review.  
+They should not be considered conclusive, used to inform clinical practice, or referenced by the media as validated information.
+
+# Integrating Optimized Item Selection with Active Learning for Continuous Exploration in Recommender Systems
+
+**Serdar Kadioglu**  
+serdar.kadioglu@fmr.com
+
+Fidelity Investments (United States)
+
+**Bernard Klevnhans**  
+Fidelity Investments (United States)
+
+**Xin Wang**  
+Fidelity Investments (United States)
+
+---
+
+**Research Article**
+
+**Keywords:** Recommendations, Exploration-Exploitation, Active Learning
+
+**Posted Date:** August 25th, 2023
+
+**DOI:** https://doi.org/10.21203/rs.3.rs-3280704/v1
+
+**License:** © ℹ This work is licensed under a Creative Commons Attribution 4.0 International License.  
+Read Full License
+
+**Additional Declarations:** No competing interests reported.
+
+---
+
+**Version of Record:** A version of this preprint was published at Annals of Mathematics and Artificial Intelligence on April 5th, 2024. See the published version at https://doi.org/10.1007/s10472-024-09941-x.--------------------------------------------------------------------------------
+Automating Algorithm Experiments With ALGator: From Problem Modeling to Reproducible Results (https://onlinelibrary.wiley.com/doi/full/10.1002%2Fspe.70020)
+citeturn617search3 [wordlim: 200] Published: 1.1 years ago; Crawled: yesterday; This model supports an automated experimentation pipeline encompassing test case generation, algorithm execution, output validation, and results presentation. ... A case study on array-sorting algorithms demonstrated the practical utility of our approach. ... These findings align in trend, but not in magnitude, with previously published results, underscoring the importance of experiment design and environment reproducibility. ... Future work will involve expanding the range of implemented problem domains, refining the model to cover more advanced experimental scenarios, and fostering a broader community of users contributing to open, verifiable algorithmic research.
+## 5 Conclusions
+
+This paper addressed the growing need for rigorous and reproducible practices in EA. While theoretical algorithm analysis offers invaluable insights, it often relies on simplified and sometimes outdated computational models that may not reflect real-world performance. In contrast, EA provides empirical evidence of algorithm behavior on actual input data and real hardware. However, the lack of standardized environments for conducting and verifying such experiments poses a significant barrier to transparency and collaboration.
+
+To mitigate this, we proposed a formal model for algorithm evaluation, which introduces clearly defined entities such as inputs, outputs, test cases, test sets, algorithms, input parameters, and evaluation indicators. This model supports an automated experimentation pipeline encompassing test case generation, algorithm execution, output validation, and results presentation. An important role in this model is played by the Test Set Iterator and the Experiment Crawler processes. The former systematically traverses predefined sets of generating parameters to produce corresponding test cases, while the latter dynamically creates and executes test cases based on parameter space exploration and intermediate results.
+
+We also presented ALGator, an open-source system that implements this model and enables collaborative development and evaluation of algorithmic solutions. ALGator facilitates public sharing of experimental setups and results, thereby promoting verifiability, repeatability, and extensibility in algorithm evaluation. Researchers can contribute new algorithms, test cases, or performance indicators, building upon existing experiments without redundancy.
+
+A case study on array-sorting algorithms demonstrated the practical utility of our approach. Specifically, we revisited performance claims about Yaroslavskiy's Quicksort compared to Hoare's implementation. While earlier claims suggested Yaroslavskiy's superiority in general, our experiments—conducted on both randomly ordered arrays and arrays with varying repetition ratios—showed more nuanced results. Notably, Hoare's version often outperformed Yaroslavskiy's on random input without duplicates, while the latter excelled when duplicate values were prevalent. These findings align in trend, but not in magnitude, with previously published results, underscoring the importance of experiment design and environment reproducibility.
+
+In conclusion, the combination of a formal experimental model and its practical implementation in ALGator represents a step forward in standardizing and democratizing EA. Future work will involve expanding the range of implemented problem domains, refining the model to cover more advanced experimental scenarios, and fostering a broader community of users contributing to open, verifiable algorithmic research.
+
+## Author Contributions
+
+Tomaž Dobravec: conceptualization, methodology, data curation, investigation, software, resources, validation, visualization, writing–original draft, writing–review and editing.
+
+--------------------------------------------------------------------------------
+Self-Training | DistilledPatterns (https://distilledpatterns.org/patterns/self-training/)
+citeturn617search4 [wordlim: 200] Published: 10 months ago; Crawled: 2 months ago; Stricter filtering reduces this feedback loop but accepts fewer pseudo-labels. ...   * Active Learning — selects unlabeled examples to send for human labeling, while Self-Training Loop reuses the model’s own predictions as training labels.
+
+# Self-Training
+
+Pattern
+
+Iteratively use selected model predictions as pseudo-labels for unlabeled data, retrain the model, and regenerate those labels with the updated model.
+
+Also known as: self-training loop · pseudo-labeling loop · iterative pseudo-labeling · pseudo-label refinement · teacher-student self-training
+
+## Problem
+
+Training may start with only a small labeled dataset while a much larger pool of unlabeled examples is available for the same task. Expanding the labeled set manually can be too slow or expensive, leaving most of the available data unused.
+
+A model trained on the available labels can generate labels for this unlabeled pool, but prediction quality varies across examples. The model is usually most reliable on cases it already handles confidently, while many of its remaining errors occur on cases where its predictions are unreliable. Adding those incorrect model-generated labels to training can reinforce existing errors instead of correcting them.
+
+## Core Idea
+
+Use the current model to assign preliminary labels, called pseudo-labels, to unlabeled examples that meet a reliability criterion. --------------------------------------------------------------------------------
+AutoGluon Tabular - Feature Engineering - AutoGluon 1.6.1 documentation (https://auto.gluon.ai/stable/tutorials/tabular/tabular-feature-engineering.html)
+citeturn617search5 [wordlim: 200] Crawled: last week;     predictor = TabularPredictor(label='class', problem_type='multiclass').fit(train_data) ... Numeric columns, both integer and floating point, currently have no automated feature engineering. ... If the MultiModal option is enabled, then text columns are processed using a full Transformer neural network model with pretrained NLP models.
+## Problem Type Detection¶
+
+If the user does not specify whether the problem is a classification problem or a regression problem, the ‘label’ column is examined to try to guess. Several things point towards a regression problem : the values are floating point non-integers, and there are a large amount of unique values. Within classification, both multiclass and binary (n=2 categories) are detected. For details see `utils/utils.py`.
+
+To override the automatic inference, explicitly pass the problem_type (one of ‘binary’, ‘regression’, ‘multiclass’) to `TabularPredictor()`. For example:
+    
+    predictor = TabularPredictor(label='class', problem_type='multiclass').fit(train_data)
+    
+
+## Automatic Feature Engineering¶
+
+## Numerical Columns¶
+
+Numeric columns, both integer and floating point, currently have no automated feature engineering.
+
+## Categorical Columns¶
+
+Since many downstream models require categories to be encoded as integers, each categorical feature is mapped to monotonically increasing integers.
+--------------------------------------------------------------------------------
+A multi-objective evolutionary approach towards automated online controlled experiments (https://www.sciencedirect.com/science/article/pii/S0164121223000985)
+citeturn617search6 [wordlim: 200] Published: 3.2 years ago; Crawled: 2 months ago; In this paper, we describe the Variant Creation and Evaluation (VCE) problem in A/B testing and propose MOVSW (Multi-Objective Variant Selection W rapper) that utilizes Multi-Objective Evolutionary Algorithm (MOEA) to automate the process of creating and selecting variants as launch candidates in A/B testing. ... Wu received the B.S. and M.S. degree in Computer Science from Shanghai Jiao Tong University, China, in 2012 and 2015, respectively. ... Additionally, a number of open problems still remain that could facilitate and enable automated experimentation, e.g., determining which A/B tests to prioritize at execution (Goswami et al., 2015), and automatically generating insights related to the rationale and cause of experiment results to experiment developers to guide product development (Xu et al., 2015). ... From our study we derived three interesting lines for future research: strengthen the adoption of statistical methods in A/B testing, improving the process of A/B testing, and enhancing the automation of A/B testing.
+
+## Journal of Systems and Software
+
+Volume 203, September 2023, 111703
+
+# A multi-objective evolutionary approach towards automated online controlled experiments☆
+
+https://doi.org/10.1016/j.jss.2023.111703Get rights and content
+
+## Highlights
+
+  * •
+
+The Variant Creation and Evaluation (VCE) problem in A/B testing is described.
+
+  * •
+
+We present a methodology to automatically create and select variants in A/B testing.
+
+  * •
+
+A Multi-Objective Variant Selection Wrapper (MOVSW) is proposed.
+
+  * •
+
+A case study is conducted to compare five MOEAs and three baseline methods on MOVSW.
+
+  * •
+
+Results show that MOEA/D achieves superior performance compared with other alternatives.
+
+## Abstract
+
+Due to the complexity of the web and mobile software applications, engineers rely heavily on A/B testing (i.e., online controlled experiments) to evaluate and measure the impact of the new changes. However, creating and evaluating A/B tests is a time-consuming, error-prone, and costly manual activity. --------------------------------------------------------------------------------
+Jason-Weston-Reasoning-Alignment-Berkeley-Talk (https://rdi.berkeley.edu/adv-llm-agents/slides/Jason-Weston-Reasoning-Alignment-Berkeley-Talk.pdf)
+citeturn617search15 [wordlim: 200] Crawled: 5 days ago; **Diagram: Iterative self-training process**
+
+The diagram shows a two-stage training pipeline, followed by a feedback loop that produces the next iteration of the model.
+# Goal: An AI that "trains" itself as much as possible
+
+- Creates new tasks to train on (challenges itself)
+- Evaluates whether it gets them right ("self-rewarding")
+- Updates itself based on what it understood
+
+**Research question:** *can this help it become superhuman?*
+
+## Self-Instruction creation
+
+## Instruction following training
+
+<visual_element id="e1">
+
+**Diagram: Iterative self-training process**
+
+The diagram shows a two-stage training pipeline, followed by a feedback loop that produces the next iteration of the model.
+
+### Stage 1: Self-Instruction creation
+(Orange background, left side)
+
+Flow from left to right:
+
+1. **Generated new prompts**
+   - Dataset: \(\{x_i\}\)
+   - Represented by a green database cylinder.
+
+2. **Seed model (for \(t=1\))**
+   - Model: \(M_t\)
+   - Receives the generated prompts.
+   - Represented by a blue model box.
+
+3. **Generate responses**
+   - Model \(M_t\) generates multiple responses:
+   \[
+   \left\{
+   \begin{array}{c}
+   y_i^1\\
+   \vdots\\
+   y_i^k
+   \end{array}
+   \right.
+--------------------------------------------------------------------------------
+Semantics–Search Oriented Automated Feature Engineering (https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7111828)
+citeturn617search7 [wordlim: 200] Published: 4 months ago; Crawled: 2 months ago; Download This Paper ... Automated feature engineering (AutoFE) constructs feature transformations for tabular models, typically via a search over operator libraries and composition templates. ... Keywords: Automated Feature Engineering, LLM-assisted Feature Engineering, Tabular Data Learning, High-order Feature Generation, Search Space Pruning
+--------------------------------------------------------------------------------
+Quantitative control and recording of materials-synthesis processes using an automated experimentation platform (https://arxiv.org/abs/2609.14928)
+citeturn617academia16 [wordlim: 200] Published: 2 months ago; In this study, we constructed a simple, easy-to-deploy automated experimentation platform that focuses not on full autonomy but on the reliable automation and quantitative recording of experimental processes. Specifically, commercially available instruments such as robot arms, electric pipettes, web cameras, and an electronic balance are combined, components such as fixtures are fabricated with a 3D printer, and the instruments are operated by control code generated by an AI agent based on a large language model.
+--------------------------------------------------------------------------------
+LLM-Guided Automated Feature Engineering for Time Series Data with Temporal Leakage Control (https://doi.org/10.3390/ai7070245)
+citeturn617search8 [wordlim: 200] Published: 4 months ago; Crawled: 2 weeks ago; Existing automated feature engineering methods, including LLM-based approaches such as CAAFE and OCT-Tree and established libraries such as tsfresh and Featuretools, can generate useful features for general tabular data but do not explicitly address temporal availability constraints in time series settings. ... The framework guides an LLM to generate structured feature engineering configurations, applies temporally valid transformations, performs feature selection, and evaluates the selected features using predictive models. ... These findings suggest that combining LLM reasoning with explicit temporal constraints is a practical direction for automated feature engineering in time series tabular machine learning. ... Table 1.
+--------------------------------------------------------------------------------
+Automating the practice of science: Opportunities, challenges, and implications (https://pmc.ncbi.nlm.nih.gov/articles/PMC11804648/)
+citeturn617search9 [wordlim: 200] Published: 1.8 years ago; Crawled: last month; This problem of experimental design is closely related to the problem of active learning in machine learning research ([ref-type: bibr] 2 [Source reference: [Source link 38]], [ref-type: bibr] 38 [Source reference: [Source link 39]][ref-type: bibr] [Source reference: [Source link 40]]–[ref-type: bibr] 40 [Source reference: [Source link 41]]), which seeks to identify data points that can best inform a machine learning model when included as training data. A prominent active learning method used for scientific practice is Bayesian optimal experimental design, which has been successfully applied in various fields, including psychology ([ref-type: bibr] 36 [Source reference: [Source link 42]], [ref-type: bibr] 37 [Source reference: [Source link 43]], [ref-type: bibr] 41 [Source reference: [Source link 44]], [ref-type: bibr] 42 [Source reference: [Source link 45]]), neuroscience ([ref-type: bibr] 43 [Source reference: [Source link 46]]), physics ([ref-type: bibr] 44 [Source reference: [Source link 47]], [ref-type: bibr] 45 [Source reference: [Source link 48]]), biology ([ref-type: bibr] 46 [Source reference: [Source link 49]], [ref-type: bibr] 47 [Source reference: [Source link 50]]), chemistry ([ref-type: bibr] 48 [Source reference: [Source link 51]], [ref-type: bibr] 49 [Source reference: [Source link 52]]), materials science ([ref-type: bibr] 50 [Source reference: [Source link 53]][ref-type: bibr] [Source reference: [Source link 54]]–[ref-type: bibr] 52 [Source reference: [Source link 55]]), and engineering ([ref-type: bibr] 53 [Source reference: [Source link 56]]). ... While automated experimental design methods can facilitate efficient data collection and strong inferences, their efficacy can be compromised if the underlying assumptions are violated or if the scientific model is incorrectly specified ([ref-type: bibr] 55 [Source reference: [Source link 58]][ref-type: bibr] [Source reference: [Source link 59]]–[ref-type: bibr] 57 [Source reference: [Source link 60]]).
+--------------------------------------------------------------------------------
+Self-Training: A Survey | alphaXiv (https://www.alphaxiv.org/ro/abs/2202.12040)
+citeturn617search10 [wordlim: 200] Published: 1.8 years ago; Crawled: 3 days ago; We examine the impact of significant self-training features on various methods, using different general and image classification benchmarks, and we discuss our ideas for future research in self-training. ... Rather than one cutoff for all classes, thresholds vary with each class's estimated learning status, improving use of weakly learned classes. ^{[p11]} ... Unlabeled examples become training material only through a feedback loop, so the central decisions are which guesses to admit and how to keep imperfect guesses from reinforcing themselves.
+--------------------------------------------------------------------------------
+Breaking the Feedback Loop in Self-Training — Lacuna (https://lacuna.tiptreesystems.com/direction/breaking-the-feedback-loop-in-self-training/txn_1043dc8dba7344a2aefcccba4a2e2666)
+citeturn617search11 [wordlim: 200] Crawled: 2 months ago; By introducing these external or structural "sanity checks," researchers have turned self-training from a risky feedback loop into a robust engine for learning from the unlabeled world. ... Mitigating Confirmation Bias in Semi-Supervised Learning 670 papers · 742 concepts Mitigating Confirmation Bias in Unsupervised Domain Adaptation 136 papers · 150 concepts Mitigating Error Propagation in Iterative Self Training 248 papers · 260 concepts Mitigating Bias in Self Improving Language Models 13 papers · 22 concepts Controlling Semantic Drift in Iterative Entity Expansion 122 papers · 144 concepts Breaking the Feedback Loop in Imbalanced Semi-Supervised Learning 181 papers · 238 concepts Recursive Self-Improvement through Model-Generated Synthetic Data 22 papers · 25 concepts The Performance Ceiling of Recursive Self-Training 41 papers · 50 concepts Overcoming Systematic Bias in Algorithmic Silver Labels 97 papers · 101 concepts Balancing Quality and Quantity in Semi-Supervised Pseudo-Labeling 64 papers · 74 concepts The Initialization Bottleneck of Iterative Refinement 97 papers · 102 concepts Calibrating Deep Networks for Reliable Uncertainty Estimation 790 papers · 824 concepts
+--------------------------------------------------------------------------------
+SPARC: Evidence-guided adaptive model composition for materials discovery (https://arxiv.org/abs/2611.19050)
+citeturn617academia17 [wordlim: 200] Published: 4 days ago; Title: SPARC: Evidence-guided adaptive model composition for materials discovery ... Closed-loop experimentation requires more than selecting the next experiment. ... In an automated alkaline oxygen-evolution-reaction campaign, 8 of 11 SPARC-selected experiments reached overpotentials below 300 mV, with a best value of 242 mV, compared with 18 of 125 initial experiments.
+--------------------------------------------------------------------------------
+SymboLLM-FE: LLM-Accelerated Symbolic Regression for Automated Feature Engineering on Tabular Data (https://arxiv.org/abs/2608.28408)
+citeturn617academia18 [wordlim: 200] Published: 2 months ago; Title: SymboLLM-FE: LLM-Accelerated Symbolic Regression for Automated Feature Engineering on Tabular Data ... In this paper, we combine symbolic regression with LLMs for feature engineering (SymboLLM-FE) to solve these challenges.
+--------------------------------------------------------------------------------
+Zhang et al.’s tool in that our tool’s random orderings do not interleave test methods from different test classes. An ordering that interleaves tests from test classes would not be produced by popular testing frameworks, such as JUnit. Our study (Section VI) shows that first randomizing the test classes and then the test methods within each test class can detect the most flaky tests overall. (https://mir.cs.illinois.edu/winglam/publications/2019/LamETAL19iDFlakies.pdf)
+citeturn617search19 [wordlim: 200] Published: 7.7 years ago; Crawled: 5 days ago; In addition to our core tool, our framework offers automated experimentation using our tool. ... We wrap the experimental runs into Docker images to increase the reproducibility of our results. Furthermore, we make our framework publicly available [7], allowing researchers to easier use our tool in their research experiments on flaky tests. ... Moreover, techniques that shorten time of regression testing—including test-suite reduction [48], [50], [51], [54], test selection [15], [23], [37], [44], [45], [47], [52], [55], and test parallelization [4]—select only a subset of tests to run and could additionally expose failures of OD tests.
+--------------------------------------------------------------------------------
+Temperature, Not Knowledge: What Recursive Self-Training and Its Remedies Do to a Language Model's Confidence (https://arxiv.cnoctave.top/pdf/2611.01059)
+citeturn617search20 [wordlim: 200] Crawled: last week; We study a five-round self-training loop on Qwen3-1.7B, using three seeds per compared method, and distinguish confidence *temperature* (drift from a calibrated starting point) from *discrimination* (ranking correct answers above incorrect ones). ... When the recursion runs for several rounds, the model can collapse: the learned distribution narrows, rare content disappears, and eventually task performance falls (Shumailov et al., 2024; Alemohammad et al., 2024; Dohmatob et al., 2024). ... For TIFAI’s confidence-aware losses skip or down-weight the tokens a model already predicts with high confidence, on the grounds that overconfidence in self-generated data causes feedback loops that degrade performance (Zibakhsh Shabgahi et al., 2026).
+--------------------------------------------------------------------------------
+Temperature, Not Knowledge: What Recursive Self-Training and Its Remedies Do to a Language Model's Confidence (https://arxiv.org/abs/2611.01059)
+citeturn617academia21 [wordlim: 200] Published: 2 weeks ago; We study a five-round self-training loop on Qwen3-1.7B, using three seeds per compared method, and distinguish confidence temperature (drift from a calibrated starting point) from discrimination (ranking correct answers above incorrect ones).
+--------------------------------------------------------------------------------
+Active learning (machine learning) (https://en.wikipedia.org/wiki/Active_learning_%28machine_learning%29)
+citeturn617search22 [wordlim: 200] Crawled: 3 days ago; * List of datasets for machine learning research ... * Active Learning and Bayesian Optimization: a Unified Perspective to Learn with a Goal, Francesco Di Fiore, Michela Nardelli, Laura Mainini, https://arxiv.org/abs/2303.01560v2
+--------------------------------------------------------------------------------
+Active learning (https://en.wikipedia.org/wiki/Active_learning)
+citeturn617search23 [wordlim: 200] Crawled: today; A Review of the Research", Prince (2004) found that "there is broad but uneven support for the core elements of active, collaborative, cooperative and problem-based learning" in engineering education. ... A 2019 study by Deslauriers et al. claimed that students have a biased perception of active learning and they feel they learn better with traditional teaching methods than active learning activities.
+--------------------------------------------------------------------------------
+Recommender system (https://en.wikipedia.org/wiki/Recommender_system)
+citeturn617search24 [wordlim: 200] Crawled: yesterday; "Active Learning in Recommender Systems". ... "A survey of active learning in collaborative filtering recommender systems". ... Proceedings of the 25th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR 2002).
+--------------------------------------------------------------------------------
+Cold start (recommender systems) (https://en.wikipedia.org/wiki/Cold_start_%28recommender_systems%29)
+citeturn617search25 [wordlim: 200] Crawled: last month; "Active Learning in Recommender Systems".
+--------------------------------------------------------------------------------
+Active Learning in Higher Education (https://en.wikipedia.org/wiki/Active_Learning_in_Higher_Education)
+citeturn617search26 [wordlim: 200] Crawled: 5 months ago; Active Learning in Higher Education
+--------------------------------------------------------------------------------
+Proactive learning (https://en.wikipedia.org/wiki/Proactive_learning)
+citeturn617search27 [wordlim: 200] Crawled: 1.4 years ago; *  Donmez, P., Carbonell, J.G.: Proactive Learning: Cost-Sensitive Active Learning with Multiple Imperfect Oracles, in Proceedings of the 17th ACM Conference on Information and Knowledge Management (CIKM '08), Napa Valley 2008. https://www.cs.cmu.edu/~pinard/Papers/cikm0613-donmez.pdf
+

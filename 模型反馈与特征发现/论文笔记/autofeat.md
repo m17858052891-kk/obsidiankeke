@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # The autofeat Python Library for Automated Feature Engineering and Selection
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“The autofeat Python Library for Automated Feature Engineering and Selection”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 先交替一元变换与二元组合扩展较大候选池，SymPy化简/Pint单位约束，再多轮子采样稀疏线性选择与noise filtering。
 

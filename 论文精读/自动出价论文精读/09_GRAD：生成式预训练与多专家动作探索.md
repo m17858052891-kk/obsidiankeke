@@ -12,6 +12,12 @@ created: 2026-08-19
 
 # GRAD：生成式预训练与多专家动作探索
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“GRAD：生成式预训练与多专家动作探索”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 论文：[Generative Large-Scale Pre-trained Models for Automated Ad Bidding Optimization](https://arxiv.org/abs/2508.02002)  
 PDF：[arXiv PDF](https://arxiv.org/pdf/2508.02002)  
 会议：KDD 2026  

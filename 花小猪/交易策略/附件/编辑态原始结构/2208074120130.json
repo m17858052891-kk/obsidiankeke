@@ -1,0 +1,210 @@
+{
+  "content": [
+    {
+      "anchor": "dadcc2ba-af2f-4bad-a845-aacc305b008e",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "0、背景",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "58b753fb-4735-4242-99e2-b9fc064ab41e",
+      "content": [
+        {
+          "text": "5月15～5月17日竞争人群超花较多，考虑到淡旺季转换以及竞争人群中四类竞争子人群占比持续占比高于平时，对城市竞争人群总占比、四类竞争子人群在竞争人群中的占比重新进行测算和分析，确保后续能够准执行补贴率。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "e4609006-1dd2-42b5-aa2c-27f69c95e6ff",
+      "type": "paragraph"
+    },
+    {
+      "anchor": "df1207c1-0b5e-4273-acb9-f8077f139422",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "1、实验人群14d双冒GMV占比",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "bdf853af-7cec-44da-88f3-bd665aa081a9",
+      "content": [
+        {
+          "text": "在ACTI每周策略日常更新时，会使用实验城市人群14d双冒的gmv占比来进行业务给的补贴率->实际求解用补贴率的换算",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "53cc013e-c571-42f9-9d7b-3e33d361995b",
+      "content": [
+        {
+          "text": "选取3月17日和5月19日（均为周二）分别在接下来一周（周五～周四）gmv占比进行对比。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d0dd8c8f-b16c-49e4-9d76-9dd3b456d975",
+      "attrs": {
+        "language": "PlainText",
+        "name": "测算sql"
+      },
+      "content": [
+        {
+          "text": "--新竞争人群新城市 4天gmv\nwith cp_pid as (\n    select\n        distinct passenger_id,\n        'compete_group_all' as cp_tag\n    from\n        kflower_strategy.competition_pid_tag\n    where\n        dt = '2026-03-18' -- 本周三的日期\n        and is_14d_sm = 1\n        and city_id in (5,6,13,14,16,18,19,26,32,38,71,138,153,156,167,226,254,256,22,72,40,59,50,33,41)\n        and new_finish_life_cycle not in (8,9,10)\n),\nfinish as (\n    select\n        passenger_id,\n        week_type,\n        count(distinct a.order_id) as finish_cnt,\n        sum(gmv) as gmv\n    from\n        (\n            select\n                distinct passenger_id,\n                order_id,\n                start_city_id as city_id,\n                case\n                    when dayofweek(dt) in (1,6,7) then 'weekend'\n                    else 'weekday'\n                end as week_type,\n                gmv_amt as gmv\n            from\n                kflower_dw.dwd_kf_trd_unity_order_di\n            where\n                -- 这里是本周五到下周四的日期，模拟我们实际上会使用本周三的人群去对本周五到下周四进行离线绑券\n                dt between '2026-03-20' \n                and '2026-03-26'\n                and is_hxz = 1\n                and is_td_finish = 1\n                and start_city_id in (\n                    5,6,13,14,16,18,19,26,32,38,71,138,153,156,167,226,254,256,22,72,40,59,50,33,41\n                )\n        ) a\n    group by\n        passenger_id,\n        week_type\n)\nselect\n    week_type,\n    cp_tag,\n    sum(finish_cnt) as finish_cnt,\n    sum(gmv) as gmv\nfrom\n    (\n        select\n            finish.passenger_id as passenger_id,\n            finish.week_type as week_type,\n            nvl(b.cp_tag,0) as cp_tag,\n            finish_cnt,\n            gmv\n        from\n            finish\n            left join \n            (select distinct passenger_id,cp_tag from cp_pid) b on finish.passenger_id = b.passenger_id\n    ) a\ngroup by\n    week_type,\n    cp_tag;",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "0b7af026-1b9b-4e14-9f10-6c7a35ba2fd9",
+      "content": [
+        {
+          "text": "3月17日实验城市14d双冒人群在接下来一周的gmv占比：38%",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "149af47f-cefe-4634-ab0d-3a2edb540785",
+      "content": [
+        {
+          "text": "5月19日实验城市14d双冒人群在接下来一周的gmv占比：39.2%",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "cc39db08-4217-439a-ac0b-e4f57cb1fb82",
+      "type": "paragraph"
+    },
+    {
+      "anchor": "bb7a41d5-5ff9-4b2e-a69a-d8696aa9cba5",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "2、14d双冒竞争人群总数",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "48a345f4-9aa2-45f8-b88a-08e0c769a190",
+      "attrs": {
+        "language": "PlainText",
+        "name": "实验城市竞争人群总人数测算sql"
+      },
+      "content": [
+        {
+          "text": "  select\n      count(distinct passenger_id) as p_cnt\n  from\n      kflower_strategy.competition_pid_tag\n  where\n      dt = '2026-03-17'\n      and is_14d_sm = 1\n      and city_id in (${city_lst})\n      and new_finish_life_cycle not in (8,9,10) -- 去除新流",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "d5e4799a-de06-4c96-acdb-85e5d2605716",
+      "content": [
+        {
+          "text": "3月17日实验城市14d双冒人群总数：3094050",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "248e1db5-8c28-4a21-8299-1a42736ed1df",
+      "content": [
+        {
+          "text": "5月19日实验城市14d双冒人群总数：3018729",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "17886055-b644-4130-b900-0ef014078666",
+      "type": "paragraph"
+    },
+    {
+      "anchor": "a40b70dc-96b8-45f9-b1bd-23b84344edd7",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "3、四类竞争人群数量和总占比",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "c76c04ac-3089-4f6c-ad72-71618d42f80e",
+      "type": "paragraph"
+    }
+  ],
+  "format": "agent-readable-json",
+  "operation": "pull",
+  "sections": [
+    {
+      "anchor": "dadcc2ba-af2f-4bad-a845-aacc305b008e",
+      "headingText": "0、背景",
+      "index": 0,
+      "level": 2,
+      "path": [
+        "0、背景"
+      ]
+    },
+    {
+      "anchor": "df1207c1-0b5e-4273-acb9-f8077f139422",
+      "headingText": "1、实验人群14d双冒GMV占比",
+      "index": 3,
+      "level": 2,
+      "path": [
+        "1、实验人群14d双冒GMV占比"
+      ]
+    },
+    {
+      "anchor": "bb7a41d5-5ff9-4b2e-a69a-d8696aa9cba5",
+      "headingText": "2、14d双冒竞争人群总数",
+      "index": 10,
+      "level": 2,
+      "path": [
+        "2、14d双冒竞争人群总数"
+      ]
+    },
+    {
+      "anchor": "a40b70dc-96b8-45f9-b1bd-23b84344edd7",
+      "headingText": "3、四类竞争人群数量和总占比",
+      "index": 15,
+      "level": 2,
+      "path": [
+        "3、四类竞争人群数量和总占比"
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ topics: ["论文阅读", "推荐系统"]
 status: "维护中"
 ---
 
-[[00-首页|返回首页]] · [[00-导航/知识地图|知识地图]] · [[00-导航/论文阅读|论文阅读]]
+[[00-首页#论文阅读|首页 · 论文阅读]] · [[00-首页#知识地图|知识地图]]
 
 # 论文精读
 
@@ -15,7 +15,7 @@ status: "维护中"
 
 - [[论文精读/OneTrans/OneTrans：统一特征交互与序列建模|OneTrans：统一特征交互与序列建模]] — S/NS token 统一因果 Transformer、混合参数、金字塔堆叠、跨请求 KV Cache。
 - [[论文精读/HyFormer/HyFormer：CTR中的序列建模与特征交互|HyFormer：CTR 中的序列建模与特征交互]] — Query Decoding 与 Query Boosting 逐层交替，多序列独立解码。
-- [[论文精读/HSTU/HSTU：生成式推荐与层次序列转导单元|HSTU：生成式推荐与层次序列转导单元]] — GR 任务重构、HSTU、Stochastic Length、M-FALCON，含技术附录。
+- [[面试准备/tmall-hstu/02-HSTU序列建模|HSTU 的淘宝项目实现]] — 多行为事件序列、相对时间偏置和编码层。
 
 ## 因果建模与优惠券分配
 

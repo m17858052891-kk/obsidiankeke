@@ -1,0 +1,332 @@
+Beyond Time as Context: Joint Item-Time Prediction for Sequential Recommendation | IEEE Journals & Magazine | IEEE Xplore (https://ieeexplore.ieee.org/abstract/document/11626509)
+citeturn625search0 [wordlim: 200] Published: 3 months ago; Crawled: 5 days ago; Time-aware sequential recommendation aims to predict which item a user will purchase, while temporal information helps characterize evolving user preferences and item dep...
+
+# Beyond Time as Context: Joint Item-Time Prediction for Sequential Recommendation
+
+Publisher: IEEE
+
+## Abstract:
+
+Time-aware sequential recommendation aims to predict which item a user will purchase, while temporal information helps characterize evolving user preferences and item dep...Show More
+
+## Metadata
+
+## Abstract:
+
+Time-aware sequential recommendation aims to predict which item a user will purchase, while temporal information helps characterize evolving user preferences and item dependencies based on historical interactions. Existing time-aware sequential recommendation models often use temporal information mainly as auxiliary features such as time intervals or cyclical patterns extracted from purchase records. In this work, we propose a recommendation-oriented perspective in which temporal signals are explicitly modeled as an additional learning objective to support item recommendation, rather than being used only as contextual features. Within a unified framework, our approach jointly learns next-item prediction together with the expected time of the next interaction, where item recommendation remains the primary objective and temporal prediction provides explicit temporal supervision for representation learning and reranking. Specifically, we propose a unified Item–Time Dual Recommendation framework named ITDRec. Built on a standard time-aware sequential backbone, ITDRec jointly learns next-item prediction and candidate-conditioned future time estimation within a unified architecture. To support this formulation, ITDRec employs a time decoder with a candidate-aware Chronological Preference Mapping (CPM) module based on cross-attention, together with three complementary time predictors for modeling temporal signals from multiple perspectives. Extensive experiments on multiple real-world datasets demonstrate that ITDRec consistently and significantly outperforms strong baselines on item recommendation. Additional results on time prediction show that the temporal branch learns meaningful temporal patterns that provide useful signals for the recommendation task.
+
+Published in: IEEE Transactions on Knowledge and Data Engineering ( Volume: 38, Issue: 10, October 2026)
+
+Page(s): 6363 - 6376
+
+Date of Publication: 28 July 2026
+
+ISSN Information:
+
+DOI: 10.1109/TKDE.2026.3717641--------------------------------------------------------------------------------
+A time-aware self-attention based neural network model for sequential recommendation (https://www.sciencedirect.com/science/article/pii/S1568494622009437)
+citeturn625search1 [wordlim: 200] Published: 3.9 years ago; Crawled: 2 months ago; In this paper, we propose a Time-Aware Transformer for Sequential Recommendation (TAT4SRec), an SA-based neural network model which utilizes the temporal information and captures users’ preferences more precisely. ... To the best of our knowledge, in existing SA-based sequential recommendation models, only TiSASRec [1] uses temporal information, which was a nice attempt in related research.
+
+## Applied Soft Computing
+
+Date: January 2023
+
+Article: 109894
+
+Volume: Volume 133
+
+View accessibility information
+
+## Published by: Elsevier
+
+Research article
+
+Get rights and content
+
+# A time-aware self-attention based neural network model for sequential recommendation
+
+Author links open overlay panel Yihu Zhang ^{a}, Bo Yang ^{a}, Haodong Liu ^{a}, Dongsheng Li ^{b}
+
+10.1016/j.asoc.2022.109894
+
+Access through your organizationPurchase PDF
+
+## Highlights
+
+  * •
+
+A self-attention-based sequential recommendation (SR) model, TAT4SRec, is proposed.
+
+  * •
+
+An encoder–decoder structure is proposed to utilize the temporal information.
+
+  * •
+
+Two modules are designed to process continuous and discrete data, respectively.
+
+  * •
+
+Experimental results show that TAT4SRec outperforms the state-of-the-art SR models.
+
+  * •
+
+The encoder–decoder structure may be utilized to introduce other side information.
+
+## Abstract
+
+Sequential recommendation is one of the hot research topics in recent years. Various sequential recommendation models have been proposed, of which Self-Attention (SA)-based models are shown to have state-of-the-art performance. However, most of the existing SA-based sequential recommendation models do not make use of temporal information, i.e., timestamps of user–item interactions, except for an initial attempt (Li et al., 2020). In this paper, we propose a Time-Aware Transformer for Sequential Recommendation (TAT4SRec), an SA-based neural network model which utilizes the temporal information and captures users’ preferences more precisely. TAT4SRec has two salient features: (1) TAT4SRec utilizes an encoder–decoder structure to model timestamps and interacted items separately and this structure appears to be a better way of making use of the temporal information. (2) in the proposed TAT4SRec, two different embedding modules are designed to transform continuous data (timestamps) and discrete data (item IDs) into embedding matrices respectively. Specifically, we propose a window function-based embedding module to preserve the continuous dependency contained in similar timestamps. Finally, extensive experiments demonstrate the effectiveness of the proposed TAT4SRec over various state-of-the-art MC/RNN/SA-based sequential recommendation models under several widely-used metrics. Furthermore, experiments are also performed to show the rationality of the different proposed structures and demonstrate the computation efficiency of TAT4SRec. The promising experimental results make it possible to apply TAT4SRec in various online applications.
+
+Moreover, SA-based models enjoy a faster computational speed than MC/RNN-based models because self-attention mechanism is suitable for parallel acceleration [14], [21]. Due to the above benefits, recent models in sequential recommender systems are predominantly based on self-attention mechanism with various architectures like SASRec [14] and FDSA [20].
+
+However, in our research, we observe that most of the existing SA-based sequential recommendation models have one common drawback, i.e., they do not make use of the temporal information (i.e., timestamps of user–item interactions). Most existing SA-based sequential recommendation models only use the order of each element in the user–item interaction sequence by introducing positional embedding [14], [17]. We argue that by incorporating the timestamps, an SA-based sequential recommendation model may capture more complicated sequential dependencies over the users’ historical interaction sequence, therefore may achieve better model performance. The above argument is quite straightforward, and here we give a simple example to illustrate it. Fig. 1 shows a record (sequence) of a user’s interaction on an e-commerce website, the n axis shows the order of the items and the t axis shows the timestamps of user–item interactions. It can be seen that in this specific example, if we only consider the order of items (the n axis), the intervals between items are equal; whereas if we consider the interaction time intervals (the t axis), the intervals are different. Obviously the adoption of both the order and temporal information may help a SA-based model to better capture a user’s behavior patterns.
+
+In this paper, we propose a Time-Aware Transformer for Sequential Recommendation (TAT4SRec), a new SA-based sequential recommendation model involving temporal information (timestamps). Our model has the following salient features: (1) The proposed TAT4SRec makes use of the temporal information (timestamps) in the model. To the best of our knowledge, in existing SA-based sequential recommendation models, only TiSASRec [1] uses temporal information, which was a nice attempt in related research. 
+Empirical studies are conducted to show the characteristics of TAT4SRec under different hyper-parameter settings and explore the compact of different key components in the proposed TAT4SRec. Furthermore, we conduct comparative experiments on two datasets used widely in related research [1], [22], [23], [24]. The experimental results demonstrate that the proposed TAT4SRec outperforms existing sequential recommendation models including MC/RNN/SA-based models consistently.
+
+The main contributions of this paper can be summarized as follows:
+
+  * •
+
+We propose a Time-Aware Transformer for Sequential Recommendation (TAT4SRec), which incorporates temporal information to better capture users’ preferences.
+
+  * •
+
+For the proposed TAT4SRec, an encoder–decoder structure is designed to process timestamps and interacted items respectively. This structure of modeling timestamps and interacted items separately is shown to utilizes temporal information better than existing method [1].
+
+  * •
+
+We propose a window function-based embedding module for timestamps, which can better preserve the continuous characteristics of timestamps and can be applicable when introducing other continuous data (e.g., the price of items)
+
+  * •
+
+The encoder–decoder structure proposed in this paper provides an alternative direction for future sequential recommendation models to introduce other side information (e.g., product categories, reviews, locations, etc.)
+
+The rest of this paper is organized as follows. A series of related works are introduced in Section 2. Section 3 presents the definitions and details of the TAT4SRec. Section 4 reports the results of the experiments on evaluation of the effectiveness and computational efficiency of our model. Conclusions and future work are drawn in Section 5.
+
+--------------------------------------------------------------------------------
+T-RoPE: Time-Aware Rotary Position Embedding for Sequential Recommendation (https://arxiv.org/abs/2609.30576)
+citeturn625academia12 [wordlim: 200] Published: last month; We revisit this choice and propose T-RoPE, a time-aware RoPE for sequential generative recommendation that replaces index-only rotation with timestamp-based angles, learnable temporal coefficients, multiscale frequency banks, shifted query alignment, and non-stationary key rotation.
+Title: T-RoPE: Time-Aware Rotary Position Embedding for Sequential Recommendation
+Authors: Yang Liu, Noel Loo, Ali Khanafer, Shuying Sun, Akshay Soni, Zhong Wu, Linjun Yang
+Date: Thu Sep 24 21:39:12 2026
+
+Large-scale recommenders increasingly adopt the sequential generative recipe behind large language models, bringing the Transformer into recommendation along with design choices made for text, including Rotary Position Embedding (RoPE). In language models, RoPE encodes token indices for relative position reasoning, but in recommendation, an interaction index records only event order, saying nothing about elapsed time, behavioral cycles across scales, or calendar phase. We revisit this choice and propose T-RoPE, a time-aware RoPE for sequential generative recommendation that replaces index-only rotation with timestamp-based angles, learnable temporal coefficients, multiscale frequency banks, shifted query alignment, and non-stationary key rotation. We prove that standard RoPE, even on timestamps, remains time-translation invariant and cannot distinguish seasonal contexts, and that T-RoPE breaks this invariance while preserving the RoPE interface. Across five public benchmarks, T-RoPE achieves the best result on every metric on every dataset, improving over the strongest baseline by 78--130\% in HR@10 on the sparse PixelRec data and 8--12\% across metrics on Amazon Books. On an industrial-scale e-commerce dataset with more than 6B interactions, it improves every metric over the HSTU + Time RAB backbone by 13--82\%, with ablations attributing the largest gains to multiscale frequencies ($+56\%$ NDCG@50) and non-stationary keys ($+4\%$). An online A/B test in the Shop app yields positive lifts in conversion rate ($+0.33\%$) and order count ($+0.63\%$). We also provide forward and backward algorithms whose added cost is linear in sequence length and head dimension, keeping time-aware RoPE practical for large generative recommenders.--------------------------------------------------------------------------------
+Flow-based Time-aware Causal Structure Learning for Sequential Recommendation (https://www.ijcai.org/proceedings/2025/389)
+citeturn625search2 [wordlim: 200] Published: 1.3 years ago; Crawled: last month; # Flow-based Time-aware Causal Structure Learning for Sequential Recommendation
+
+# Flow-based Time-aware Causal Structure Learning for Sequential Recommendation
+
+# Flow-based Time-aware Causal Structure Learning for Sequential Recommendation
+
+## Hangtong Xu, Yuanbo Xu, Huayuan Liu, En Wang
+
+Proceedings of the Thirty-Fourth International Joint Conference on Artificial Intelligence
+
+Main Track. Pages 3498-3506. https://doi.org/10.24963/ijcai.2025/389
+
+PDF BibTeX
+
+Sequential models aim to predict future interactions based on users' historical interaction sequences. Traditional sequential methods primarily focus on capturing intra-historical sequence dependencies, overlooking the influence of unobserved confounders in recommendation scenarios. Recent studies incorporate time as additional information helps the model capture dynamic user preferences. However, time is just the external manifestation of the influence of confounders but not the actual cause of the dynamic of user preference. Additionally, improperly integrating time with item embeddings can obstruct the model's ability to capture sequence dependencies. To address these challenges, we first revisit the sequential recommendation problem from a causal perspective and incorporate confounders as a new task. We propose a new framework—Flow-based Time-aware Causal Structure for Sequential Recommendation (FCSRec)—explicitly incorporating unobserved confounders' influence in the recommendation process. Specifically, we use Normalizing Flows to learn the causal graph of confounders and incorporate time information as conditional info to capture confounders' time-sensitive representations. To balance the influence of confounders and sequence dependencies, we introduce a classifier-free training paradigm by randomly masking the influence of confounders during training to encourage the model to learn both sequence dependencies and confounders' influence equally. We validate FCSRec on manifold real-world datasets, and experimental results show that FCSRec outperforms several state-of-the-art methods in recommendation performance. Our code is available at Code-link.
+
+Keywords:
+
+Data Mining: DM: Recommender systems--------------------------------------------------------------------------------
+Preprint – IJCAI 2025: This is the accepted version made available for conference attendees. (https://ijcai-preprints.s3.us-west-1.amazonaws.com/2025/325.pdf)
+citeturn625search13 [wordlim: 200] Crawled: last week; # Flow-based Time-aware Causal Structure Learning for Sequential Recommendation
+Preprint – IJCAI 2025: This is the accepted version made available for conference attendees.  
+**Do not cite.** The final version will appear in the IJCAI 2025 proceedings.
+
+# Flow-based Time-aware Causal Structure Learning for Sequential Recommendation
+
+**Hangtong Xu**, **Yuanbo Xu***, **Huayuan Liu** and **En Wang***
+
+MIC Lab, College of Computer Science and Technology, Jilin University
+
+{xuht24, liuhy5522}@mails.jlu.edu.cn, {yuanbox, wangen}@jlu.edu.cn
+
+## Abstract
+
+Sequential models aim to predict future interactions based on users’ historical interaction sequences. Traditional sequential methods primarily focus on capturing intra-historical sequence dependencies, overlooking the influence of unobserved confounders in recommendation scenarios. Recent studies incorporate time as additional information to help the model capture dynamic user preferences. However, time is just the external manifestation of the influence of confounders but not the actual cause of the dynamic of user preference. Additionally, improperly integrating time with item embeddings can obstruct the model’s ability to capture sequence dependencies. To address these challenges, we first dissect the sequential recommendation problem from a causal perspective and incorporate confounders as a new task. We propose a new framework—Flow-based Time-aware Causal Structure for Sequential Recommendation (FCSRec)—explicitly incorporating unobserved confounders’ influence in the recommendation process. Specifically, we use Normalizing Flows to learn the causal graph of confounders and incorporate time information as conditional info to capture confounders’ time-sensitive representations. To balance the influence of confounders and sequence dependencies, we introduce a classifier-free training paradigm by randomly masking the influence of confounders during training to encourage the model to learn both sequence dependencies and confounders’ influence equally. We validate FCSRec on manifold real-world datasets, and experimental results show that FCSRec outperforms several state-of-the-art methods in recommendation performance. Our code is available at Code-link.
+--------------------------------------------------------------------------------
+Information Processing & Management, vol.57, no.3, pp.102228-1-102228-21, May, 2020. (https://www.iit.comillas.edu/documentacion/revista/IIT-20-244R_preview/Time_and_sequence_awareness_in_similarity_metrics_for_recommendation.pdf)
+citeturn625search14 [wordlim: 200] Crawled: 5 days ago; # Time and sequence awareness in similarity metrics for recommendation ... We first present an improved version of a similarity metric between users using a temporal decay function, then, we propose an adaptation of the Longest Common Subsequence algorithm to be used as a time-aware similarity metric, and we also redefine the neighborhood-based recommenders to be interpreted as ranking fusion techniques where the neighbor interaction sequence can be exploited by considering the last common interaction between the neighbor and the user.
+Information Processing & Management, vol.57, no.3, pp.102228-1-102228-21, May, 2020.
+
+# Time and sequence awareness in similarity metrics for recommendation
+
+**P. Sánchez Pérez; A. Bellogín**
+
+## Abstract-
+
+Modeling the temporal context efficiently and effectively is essential to provide useful recommendations to users. In this work, we focus on improving neighborhood-based approaches where we integrate three different mechanisms to exploit temporal information. We first present an improved version of a similarity metric between users using a temporal decay function, then, we propose an adaptation of the Longest Common Subsequence algorithm to be used as a time-aware similarity metric, and we also redefine the neighborhood-based recommenders to be interpreted as ranking fusion techniques where the neighbor interaction sequence can be exploited by considering the last common interaction between the neighbor and the user.
+
+We demonstrate the effectiveness of these approaches by comparing them with other state-of-the-art&nbsp;Matrix Factorization,&nbsp;Markov Chains&nbsp;under two realistic time-aware evaluation methodologies (per user and community-based). We use several&nbsp;
+
+**Index Terms-** Recommender systems; Time-aware; Sequence; Neighborhood; Collaborative filtering
+
+Due to copyright restriction we cannot distribute this content on the web. However, clicking on the next link, authors will be able to distribute to you the full version of the paper:
+
+[Request full paper to the authors](#)
+
+If you institution has a electronic subscription to Information Processing & Management, you can download the paper from the journal website:
+
+[Access to the Journal website](#)
+
+## Citation:
+
+Sánchez, P.; Bellogín, A. "Time and sequence awareness in similarity metrics for recommendation", Information Processing & Management, vol.57, no.3, pp.102228-1-102228-21, May, 2020.--------------------------------------------------------------------------------
+Self-Attention Based Time-Rating-Aware Context Recommender System (https://onlinelibrary.wiley.com/doi/10.1155/2022/9288902)
+citeturn625search3 [wordlim: 200] Published: 4.2 years ago; Crawled: last month; Research Article ... To better capture users’ preferences, some sequential recommendation models propose time-aware attention networks to capture users’ long-term and short-term intentions.
+
+Yongjian Zhang
+
+  * orcid.org/0000-0003-3986-6867
+
+College of Computer and Information Science Chongqing Normal University, Chongqing, China
+
+Zhixin Liu, 
+
+Zhixin Liu
+
+  * orcid.org/0000-0001-7201-2121
+
+College of Computer and Information Science Chongqing Normal University, Chongqing, China
+
+Yumin Dong, 
+
+Corresponding Author
+
+Yumin Dong
+
+  * dym@cqnu.edu.cn
+
+  * orcid.org/0000-0002-4857-325X
+
+College of Computer and Information Science Chongqing Normal University, Chongqing, China
+
+Search for more papers by this author
+
+First published: 17 September 2022
+
+Academic Editor: G. Thippa Reddy
+
+## Abstract
+
+The sequential recommendation can predict the user’s next behavior according to the user’s historical interaction sequence. To better capture users’ preferences, some sequential recommendation models propose time-aware attention networks to capture users’ long-term and short-term intentions. However, although these models have achieved good results, they ignore the influence of users on the rating information of items. --------------------------------------------------------------------------------
+Time-Aware Enhancement Dynamic Graph Neural Networks for Sequential Recommendation Algorithm. (https://openurl.ebsco.com/contentitem/gcd%3A180575036?crl=c&id=ebsco%3Agcd%3A180575036&jrnl=10028331&sid=ebsco%3Aplink%3Acrawler-gcd)
+citeturn625search4 [wordlim: 200] Published: 2.9 years ago; Crawled: last month; # Time-Aware Enhancement Dynamic Graph Neural Networks for Sequential Recommendation Algorithm.
+
+Peer reviewed|
+
+Academic Journal
+
+# Time-Aware Enhancement Dynamic Graph Neural Networks for Sequential Recommendation Algorithm.
+
+By: CHEN Wanzhi; WANG Jun Published in: Journal of Computer Engineering & Applications, 2024, v. 60, n. 20, p. 142, doi. 10.3778/j.issn.1002-8331.2307-0012
+
+Authors
+    
+
+## CHEN Wanzhi; WANG Jun
+
+Abstract
+    
+
+## The existing graph neural network sequence recommendation methods only focus on the temporal information of sequences without considering the time interval information of sequences, and only use single-task mode for sequence recommendation, ignoring the auxiliary tasks that can enhance the data and improve the generalization ability, which will lead to the dynamic interaction preferences of users and interaction time information cannot be captured clearly. To alleviate the impact of these problems, a dynamic graph neural network sequence recommendation algorithm with enhanced time awareness (TaDGSR) is proposed, which has two advantages. Firstly, the method constructs a sequence as a dynamic graph with temporal information, incorporates time interval information and adds a time-gated attention network module to enhance the utilization of temporal information while capturing the higher-order dynamic connections between sequences. --------------------------------------------------------------------------------
+Sequence Recommendation for Mobile Application via Time Interval-Aware Attention and Contrastive Learning (https://onlinelibrary.wiley.com/doi/10.1002/cpe.70585)
+citeturn625search5 [wordlim: 200] Published: 9 months ago; Crawled: 2 months ago; # Sequence Recommendation for Mobile Application via Time Interval-Aware Attention and Contrastive Learning ... However, existing sequence recommendation methods primarily consider the sequential order of historical App interactions, overlooking the time intervals between applications.
+
+Correspondence: Junyi Chen (junyichen006@gmail.com)
+
+Ziming Xie (zimingxie0330@gmail.com)
+
+Search for more papers by this author
+
+Wenyu Zhao, 
+
+Wenyu Zhao
+
+
+First published: 27 January 2026
+
+https://doi.org/10.1002/cpe.70585Digital Object Identifier (DOI)
+
+view metrics
+
+Read the full text
+
+  * References
+  *   * Information
+
+CITE
+
+### ABSTRACT
+
+Mobile application recommendation has emerged as a pivotal domain within the realm of personalized recommendation systems. Traditional mobile application sequence recommendation approaches are predominantly dedicated to the pursuit of sophisticated sequence encoders to achieve more precise representations. However, existing sequence recommendation methods primarily consider the sequential order of historical App interactions, overlooking the time intervals between applications. This oversight hinders the model's capability to fully unearth the temporal correlations in user behavior, consequently limiting the accuracy and personalization of mobile application recommendations. --------------------------------------------------------------------------------
+TimeWeaver: Time-Aware Sequential Recommender System via Dual-Stream Temporal Network (https://www.mdpi.com/2079-8954/13/10/857)
+citeturn625search6 [wordlim: 200] Published: 1.1 years ago; Crawled: last month; Initially, research on time-aware sequential recommender systems centered on modeling time intervals. ... The objective of time-aware sequential recommendation is to predict the item a user is most likely to interact with at the next timestep, given the user’s historical item sequence {S}_{u} and timestamp sequence {T}_{u}.
+Section 4 presents our extensive experimental evaluation, including comparisons with state-of-the-art baselines, ablation studies, and hyperparameter analysis. Finally, we conclude the paper and outline potential future work in Section 5.
+
+The main contributions of this paper are as follows:
+
+  * We propose a novel convolutional mechanism and a dual-stream network architecture to effectively model the diverse evolution of user behaviors across long- and short-term timescales. This architecture enables the model to retain long-term historical patterns while precisely capturing recent changes in user interests.
+
+  * To address the issue of insufficient temporal sensitivity, we introduce a positional encoding calibration method based on temporal features. This approach adjusts the global temporal offset of positional encodings via a learnable scaling factor, which embeds the temporal distribution properties of the data into the sequence representation. This significantly enhances the model’s sensitivity to temporal dynamics.
+
+  * We have developed a prototype tool, which is available at https://github.com/AraVio/TimeWeaver (accessed on 27 September 2025). Extensive experiments on three public datasets demonstrate that TimeWeaver outperforms existing state-of-the-art methods across various evaluation metrics. Furthermore, through ablation studies and visualization analyses, we verify the effectiveness of our proposed dual-stream architecture, modern convolutional structure, and time-aware augmentation mechanism.
+
+--------------------------------------------------------------------------------
+GitHub - deezer/sigir23-mojito: Source code from the SIGIR 2023 article "Attention Mixtures for Time-Aware Sequential Recommendation" by V.A. Tran, G. Salha-Galvan, B. Sguerra, and R. Hennequin · GitHub (https://github.com/deezer/sigir23-mojito)
+citeturn625search7 [wordlim: 200] Published: 3.9 years ago; Crawled: last month; This repository provides our Python code to reproduce experiments from the paper Attention Mixtures for Time-Aware Sequential Recommendation, accepted for publication in the proceedings of the 46th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR 2023).
+--------------------------------------------------------------------------------
+TME-PSR: Time-aware, Multi-interest, and Explanation Personalization… (https://lacuna.tiptreesystems.com/work/tme-psr-time-aware-multi-interest-and-explanation)
+citeturn625search8 [wordlim: 200] Published: 10 months ago; Crawled: 3 weeks ago; # TME-PSR: Time-aware, Multi-interest, and Explanation Personalization for Sequential Recommendation
+--------------------------------------------------------------------------------
+Time-Aware LSTM Neural Networks for Dynamic Personalized Recommendation on Business Intelligence (https://www.sciopen.com/article/10.26599/TST.2023.9010025?issn=1007-0214)
+citeturn625search9 [wordlim: 200] Published: 3.2 years ago; Crawled: last month; # Time-Aware LSTM Neural Networks for Dynamic Personalized Recommendation on Business Intelligence ... Recently, deep neural network-based sequential recommendation models gained considerable attention.
+--------------------------------------------------------------------------------
+Microsoft Word - 26-36_A Novel Recommendation Algorithm  Based on Time-aware.doc (https://www.jestr.org/downloads/Volume13Issue6/fulltext51362020.pdf)
+citeturn625search15 [wordlim: 200] Crawled: 2 weeks ago; Therefore, the effects of time factors on user preference, as well as the novelty and accuracy of the recommended items, have become key to novelty recommendation research. To increase novelty based on recommendation accuracy, a novel recommendation algorithm based on time-aware was proposed.
+--------------------------------------------------------------------------------
+TLSAN: Time-aware long- and short-term attention network for next-item recommendation (https://www.sciencedirect.com/science/article/abs/pii/S0925231221002605)
+citeturn625search10 [wordlim: 200] Published: 5.4 years ago; Crawled: last month; Research article ... Specifically, as for the next item recommendation task, we have the following three observations: 1) users’ sequential behavior records aggregate at time positions (“time-aggregation”), 2) users have personalized taste that is related to the “time-aggregation” phenomenon (“personalized time-aggregation”), and 3) users’ short-term interests play an important role in the next item prediction/recommendation. ... We propose a Time-aware Long- and Short-term Attention Network (TLSAN) to capture users’ temporal preferences from their historical behavior sequences for accurate next item recommendation.
+--------------------------------------------------------------------------------
+TME-PSR: Time-aware, Multi-interest, and Explanation Personalization for Sequential Recommendation (https://papers.cool/arxiv/2604.09439)
+citeturn625search11 [wordlim: 200] Published: 7 months ago; Crawled: last week; In this paper, we propose a sequential recommendation model that integrates Time-aware personalization, Multi-interest personalization, and Explanation personalization for Personalized Sequential Recommendation (TME-PSR).
+--------------------------------------------------------------------------------
+CCFormer: Efficient Cross-Field Interaction and Hierarchical Sequence Compression for Industrial Recommendation at Tencent (https://arxiv.cnoctave.top/pdf/2607.28070)
+citeturn625search16 [wordlim: 200] Published: 2 weeks ago; Crawled: 2 weeks ago; Industrial candidate-ranking systems must combine long user behavior histories with heterogeneous user and item features under strict computational budgets. ... In this work, we study history-conditioned candidate ranking rather than next-item retrieval over an entire item catalog. ... Representative strategies for reducing the cost of long-sequence recommendation include sequence compression, selective retrieval or truncation, and sparse interaction patterns [20, 25, 38].
+--------------------------------------------------------------------------------
+Query- and Candidate-Aware Long User Sequence Modeling for Sponsored Product Ranking in Search (https://borowiecki.dev/pdf/2611.11675)
+citeturn625search17 [wordlim: 200] Published: last week; Crawled: 6 days ago; Search ranking presents an additional challenge: the current query expresses immediate intent, while a candidate product determines which parts of a user’s long-term history are relevant. We present a production sequence framework for sponsored-product ranking that combines retrieval behavior with two retrieval channels over long-term history: candidate-nearest-neighbor retrieval and query-nearest-neighbor retrieval.
+--------------------------------------------------------------------------------
+Decoupled Temporal Encoding for Generative Recommendation (https://sex8x8.com/__proxy/arxiv.org/pdf/2608.16274)
+citeturn625search18 [wordlim: 200] Published: 2 months ago; Crawled: 2 weeks ago; ### 2.2 Time-Aware Sequential Recommendation
+--------------------------------------------------------------------------------
+ChronicleRec: Pre-training Temporally Anchored Tokens for Lifelong User Modeling (https://arxiv.org/abs/2609.12375)
+citeturn625academia19 [wordlim: 200] Published: 2 months ago; Modeling ultra-long user behavior sequences is crucial for industrial recommendation and online advertising, yet directly feeding thousands of historical actions into ranking models is computationally prohibitive, while truncation discards long-range signals. ... Recent target-independent compression methods enable cached user summaries, but often append query tokens at the sequence end and use bidirectional encoding, producing unordered and redundant summaries that overlook temporal structure.
+--------------------------------------------------------------------------------
+MuSeR: Scalable Long-sequence Recommendation with Multi-interest Modeling (https://arxiv.org/abs/2609.23677)
+citeturn625academia20 [wordlim: 200] Published: last month; Ultra-long user behavior sequences carry rich signals of stable and diverse preferences, yet industrial recommender systems typically truncate histories to a few hundred actions under strict latency and memory budgets, leaving long-term interests under-utilized. ... We present Multi-interest Sequence Representation (MuSeR), a retrieval framework built on the deployed MGS system, which integrates three components: (i) hierarchical temporal compression, which retains recent actions at full resolution while progressively pooling older segments, so that per-user histories of $10^{4}$-$10^{5}$ interactions fit within a fixed serving budget; (ii) disentangled multi-query interest extraction with orthogonality regularization; and (iii) multimodal semantic alignment, which augments sparse item IDs with textual summaries distilled from a large language model.
+--------------------------------------------------------------------------------
+SequenceO1: End-to-End Ultra-Long (100K) Sequence Modeling in Recommendation with Low-Rank Caching (https://arxiv.org/abs/2609.08443)
+citeturn625academia21 [wordlim: 200] Published: 2 months ago; Modeling long-term user behavior is central to sequential recommendation and billion-scale industrial recommender systems, yet production ranking models operate under strict latency, memory, communication, and training-throughput constraints. ... Existing approaches based on history truncation, multi-stage behavior retrieval, compressed lifelong histories, or train-short/infer-long extrapolation either weaken end-to-end optimization or retain substantial length-dependent cost.
+--------------------------------------------------------------------------------
+Empfehlungsdienst (https://de.wikipedia.org/wiki/Empfehlungsdienst)
+citeturn625search22 [wordlim: 200] Crawled: 9 months ago; B. den Kontext (kontextsensitive Empfehlungsdienste), den zeitlichen Verlauf (englisch time-aware Recommender Systems) oder demografische Daten des Benutzers sowie Merkmale zu den Objekten mit ein.
+--------------------------------------------------------------------------------
+Temporal information retrieval (https://en.wikipedia.org/wiki/Temporal_information_retrieval)
+citeturn625search23 [wordlim: 200] Crawled: 2 weeks ago; ## Time-aware retrieval/ranking models (T-RModels) ... In TAIA 2012: Proceedings of the Time-Aware Information Access Workshop associated to SIGIR2012: 35th Annual International ACM SIGIR 2012 Conference on Research and Development in Information Retrieval.
+--------------------------------------------------------------------------------
+B. F. Skinner (https://en.wikipedia.org/wiki/B._F._Skinner)
+citeturn625search24 [wordlim: 200] Crawled: 2 months ago; Most behavior of humans cannot easily be described in terms of individual responses reinforced one by one, and Skinner devoted a great deal of effort to the problem of behavioral complexity. Some complex behavior can be seen as a sequence of relatively simple responses, and here Skinner invoked the idea of "chaining". ... That is, a discriminative stimulus is also a "conditioned reinforcer". ... However, Skinner recognized that a great deal of behavior, especially human behavior, cannot be accounted for by gradual shaping or the construction of response sequences.
+--------------------------------------------------------------------------------
+Operant conditioning (https://en.wikipedia.org/wiki/Operant_conditioning)
+citeturn625search25 [wordlim: 200] Crawled: 2 days ago; This may cause difficulties for behavioral therapy, because behaviors learned in the therapeutic setting may fail to occur in other situations. ... This results in the sequence "noise – turn-around – light – press lever – food". ... The form of this behavior is then gradually changed across successive trials by reinforcing behaviors that approximate the target behavior more and more closely. ... Noncontingent reinforcement may be used in an attempt to reduce an undesired target behavior by reinforcing multiple alternative responses while extinguishing the target response. ... This experiment is said to involve classical conditioning because a neutral CS (conditioned stimulus) is paired with the aversive US (unconditioned stimulus); this idea underlies the two-factor theory of avoidance learning described below.
+--------------------------------------------------------------------------------
+Recommender system (https://en.wikipedia.org/wiki/Recommender_system)
+citeturn625search26 [wordlim: 200] Crawled: yesterday; In the context of social media, search engines, and other online services, a recommender system for a given service might sometimes informally but erroneously be referred to as the service's "algorithm". ... Collaborative filtering approaches build a model from a user's past behavior (e.g., items previously purchased or selected and/or numerical ratings given to those items) as well as similar decisions made by other users. ... In practice, diverse approval is the most common operationalization; implementations differ in whether the groups of users are fixed in advance or learned from the data, and in how diversity of approval is quantified. ... The best-known deployment of bridging-based ranking is Community Notes (originally called Birdwatch) on X, formerly Twitter, in which contributors attach explanatory notes to potentially misleading posts and rate one another's notes. ... "Reinforcement Learning to Optimize Long-term User Engagement in Recommender Systems". ... A Probabilistic Analysis of the Effectiveness of Popularity in Recommender Systems (PDF). 41st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR 2018).
+--------------------------------------------------------------------------------
+Time-aware long short-term memory (https://en.wikipedia.org/wiki/Time-aware_long_short-term_memory)
+citeturn625search27 [wordlim: 200] Craw...

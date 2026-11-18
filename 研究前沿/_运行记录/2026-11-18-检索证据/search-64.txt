@@ -1,0 +1,265 @@
+contextual-bandit | Noise (https://noise.getoto.net/tag/contextual-bandit/)
+citeturn627search0 [wordlim: 200] Published: 2.2 years ago; Crawled: last month; We aim to update the bandit policy shortly after making a recommendation while also defining the proxy reward function based on all user feedback, including delayed feedback.
+### Challenge: Delayed Feedback
+
+User feedback used in the proxy reward function is often delayed or missing. For example, a member may decide to play a recommended show for just a few minutes on the first day and take several weeks to fully complete the show. This completion feedback is therefore delayed. Additionally, some user feedback may never occur; while we may wish otherwise, not all members provide a thumbs-up or thumbs-down after completing a show, leaving us uncertain about their level of enjoyment.
+
+Image
+
+We could try and wait to give a longer window to observe feedback, but how long should we wait for delayed feedback before computing the proxy rewards? If we wait too long (e.g., weeks), we miss the opportunity to update the bandit policy with the latest data. In a highly dynamic environment like Netflix, a stale bandit policy can degrade the user experience and be particularly bad at recommending newer items.
+
+#### Solution: predict missing feedback
+
+We aim to update the bandit policy shortly after making a recommendation while also defining the proxy reward function based on all user feedback, including delayed feedback. --------------------------------------------------------------------------------
+Contextual Bandits with Budgeted Information Reveal (https://pmc.ncbi.nlm.nih.gov/articles/PMC11503011/)
+citeturn627search1 [wordlim: 200] Published: 2.6 years ago; Crawled: 2 weeks ago; In this work, we provide an algorithm for deciding the “optimal” timing for the revealer to take action when the number of actions that it can take is limited. ... Furthermore, by introducing the novel learning constraint in the primal-dual algorithm, we are able to separate out the effect of delayed feedback in the bandit learning loss (defined in § 2), removing the dependency of the delayed feedback effect on the context dimension. ... Studies in (iii) include both delayed feedback in MAB [Joulani et al., 2013, Bistritz et al., 2019, Pike-Burke et al., 2018] and contextual bandit [Zhou et al., 2019, Vernade et al., 2020, Keyvanshokooh et al., 2024], where the delay patterns mostly fall into bounded delays or stochastic delays.
+### Figure 1:
+
+Image: Figure 1:
+
+Open in a new tab
+
+A depiction of the problem breakdown in the electronic toothbrush application, which we extensively investigate in our experiments. In our problem reformulation, it is equally valid to view the recommender as residing on the intervention-delivery device.
+
+### Our Contributions
+
+In this work, we provide an algorithm for deciding the “optimal” timing for the revealer to take action when the number of actions that it can take is limited. We focus on the special case where the recommender acts 1) as a linear contextual bandit algorithm when the revealer opts to reveal information and 2) as a multi-armed bandit (MAB) algorithm when no additional information is revealed to the recommender (due to the missing context). We show that our problem can be decomposed into two parts: 1) an online primal-dual optimization algorithm addressing the decision of the revealer, and 2) a contextual bandit learning algorithm with delayed feedback modeling the decision of the recommender.
+This additional level of learning helps our algorithms achieve a better performance.
+
+Studies in (iii) include both delayed feedback in MAB [Joulani et al., 2013, Bistritz et al., 2019, Pike-Burke et al., 2018] and contextual bandit [Zhou et al., 2019, Vernade et al., 2020, Keyvanshokooh et al., 2024], where the delay patterns mostly fall into bounded delays or stochastic delays. However, in our problem, the delayed patterns are structured: unless the revealer takes an action, the recommender received no additional information. While applying algorithms from (iii) in our problem setting is feasible, our algorithm offers a significantly stronger theoretical guarantee. The order of our regret bound is tight (optimal) up to a logarithmic factor [Chu et al., 2011]. Also, the delayed feedback only impacts our regret bound by an additive factor of ${\sum }_{t=1}^{T} {\beta }_{t}$, which is of order $𝒪\left(\sqrt{T}\right)$. Therefore, unlike Zhou et al. [2019] and Vernade et al. [2020], our theoretical result removes the dependency of the delayed feedback effect on the context dimension $d$.
+--------------------------------------------------------------------------------
+Contextual Bandits, Explained for Engineers · ×marble · ×marble (https://timesmarble.com/blog/contextual-bandits-explained-engineers)
+citeturn627search2 [wordlim: 200] Published: 5 months ago; Crawled: 2 months ago; A contextual bandit also sees a feature vector describing the situation and picks the arm that's best for that context. ... Contextual bandits under delayed feedback provides formal regret bounds.
+They're "A/B testing that learns while it serves" — the policy continuously shifts traffic toward better-performing arms in each context.
+
+### When should I use contextual bandits instead of A/B testing?
+
+Use contextual bandits when the reward arrives fast (seconds to minutes), traffic exceeds roughly `1000` decisions per arm per day, the action space is `5-100` arms, and the optimal action depends on user context. Use A/B testing when rewards are delayed days, you need a defensible single lift number, traffic is small, or the decision is high-stakes and irreversible.
+
+### What's the difference between multi-armed bandits and contextual bandits?
+
+A multi-armed bandit picks among arms based only on the history of rewards. A contextual bandit also sees a feature vector describing the situation and picks the arm that's best for that context. Contextual bandits subsume non-contextual ones — they reduce to standard multi-armed bandits when the context is constant.
+
+### Is Thompson sampling better than epsilon-greedy?
+
+In most production settings, yes. Thompson sampling explores proportional to uncertainty — wider posteriors get pulled more. Epsilon-greedy explores uniformly with fixed probability, wasting budget on confirmed losers. Chapelle and Li's empirical evaluation shows Thompson matches or beats epsilon-greedy and UCB methods across Yahoo and Microsoft ad benchmarks.
+
+### Can contextual bandits handle delayed rewards?
+
+Yes, with care. Naive implementations bias the posterior pessimistically because not-yet-arrived rewards look like zero. The standard fix is to hold pulls pending until the reward window closes, then commit. Contextual bandits under delayed feedback provides formal regret bounds. If your reward arrives more than a few hours later, an A/B test is often more practical.
+
+--------------------------------------------------------------------------------
+Contextual Bandits under Delayed Feedback (https://www.academia.edu/79025431/Contextual_Bandits_under_Delayed_Feedback)
+citeturn627search3 [wordlim: 200] Published: 8.4 years ago; Crawled: last week; In many of these applications, the ratio between time horizon of the learner and the average delay is between 5 and 10, which makes the delayed feedback problem extremely relevant in practice. ... Indeed, as long as the learner is awaiting a feedback, the context and action must be stored in order to allow the future 1 possible update. ... For t ≥ t0 , we write   t−1 X t−1 X θ̂tb = Vt−1 b̃t + ǫt,m where b̃t = Ys,s+m As , and ǫt,m = (Ys,t − Ys,s+m )As . s=1 s=t−m+1 Algorithm 1 DeLinUCB : a contextual bandit algorithm for ambiguous delayed feedback Input: Horizon T (optional), conﬁdence level δ > 0.
+[2011], Chu et al. [2011], Zhou [2015] and delays have been identiﬁed as a major problem in online applications Chapelle [2014]. We give an overview of the existing literature in the ﬁeld in Section 6. However, to the best of our knowledge, no algorithm was able to address this problem given the requirements deﬁned above. In the following, we consider a censored contextual bandit problem: after a piece of content is displayed on a page, the user may or may not decide to react (e.g., click, buy a product). In the negative case, no signal will ever be sent to the system. This means that the system will wait for the feedback even if it never comes. On top of preventing the update of the parameters, delays also imply non-negligible memory costs. Indeed, as long as the learner is awaiting a feedback, the context and action must be stored in order to allow the future 1 possible update. For that reason, it is common practice to impose a cut oﬀ time after which the stored objects are discarded and the rewards associated with too long delays are never considered.  The system constraints ﬁx a cut oﬀ time m > 0 that corresponds to the longest waiting time allowed for each action made. The learning proceeds as follows: 1. The learner observes the contextualized actions At = (a1,t , . . . , aKt ,t ); 2. An action At is chosen from At ; 3. An acknowledgment indicator Ct ∼ B(pc ) is generated independently of the past and accounts for the event that the chosen action was actually evaluated by the customer. The parameter pc does not depend on the action taken and it is also unknown. 4. Conditionally on Ct = 1, two random variables are generated but not immediately observed: 4.a. a reward Xt following the linear assumption: Xt = ATt θ∗ + ηt , where θ∗ is an unknown vector and ηt is an independent centered random noise discussed later; 4.b. an action-independent delay Dt ∼ CDF(τ ). As in Vernade et al. [2017], for all i ≥ 0, τi = P(Dt ≤ i) characterize the delay distribution in a non-parametric fashion. However, as opposed to their setting, we do not require a prior knowledge of these parameters. 5. The observation of Xt is postponed to t′ = t + Dt if Dt ≤ m, we then say that the action At converts. Otherwise it will never be observed and the system will have to process it accordingly. As long as the observation Xt is not observed, the learner sees a 0 which can be mistaken for a reward. Remark 1. The acknowledgment variables Ct are here to stand for actions that are never converted for external reasons non-related to the taken action. It is equivalent to assuming that the delay associated to these actions is larger than m. We made this choice to align with the model of Chapelle [2014] but our bandit algorithm is agnostic to pc . From the moment an action is made at round s, a sequence of random variables is generated that model the available observation at round t ≥ s: Ys,t = Cs 1{Ds ≤ min{m, t − s}}Xs Indeed, as long as t ≤ s + m, the action chosen at time s is still awaiting conversion and the conditional expectation of Ys,t is E[Ys,t |As ] = pc τt−s ATs θ∗ ≤ pc τm ATs θ∗ . (1) 2 The goal of the learner is to sequentially make actions in order to minimize the expected cumulated regret after T rounds, XT XT R(T ) = rt = E[θ∗T A∗t − θ∗T At ] t=1 t=1 where A∗t is such that A∗t= arg max a∈At θ∗T a. A main diﬃculty here is that when one observes Ys,t at time t with t − s < m, there is an ambiguity on whether Xs = 0, or whether Cs 1{Ds ≤ min(m, t − s)} is 0 while Xs is not 0. If we were to know the value of Cs 1{Ds ≤ min(m, t − s)}, the problem would be much easier. This is illustrated as a warm-up in Section 3.1. The setting of this paper addresses a harder problem where rewards are ambiguous. Speciﬁcally, the learner does not observe Cs 1{Ds ≤ min(m, t − s)}. For this case, we propose two alternative ways of constructing and controlling an estimator of θ∗ that make use of the sequential observations in a diﬀerent manner.--------------------------------------------------------------------------------
+[2608.11560] When Offline Evaluation Misleads: A Diagnostic Protocol for Reward and Policy Selection in Delayed-Feedback Contextual Bandits - Academus scientific article reader (https://academ.us/article/2608.11560/)
+citeturn627search4 [wordlim: 200] Crawled: 2 months ago; # When Offline Evaluation Misleads: A Diagnostic Protocol for Reward and Policy Selection in Delayed-Feedback Contextual Bandits ... Teams therefore train the bandit on a fast proxy reward, and separately must judge whether a contextual bandit is worth its complexity over sending one best message.
+
+# When Offline Evaluation Misleads: A Diagnostic Protocol for Reward and Policy Selection in Delayed-Feedback Contextual Bandits
+
+Sang Su Lee, Vineeth Loganathan, Shishir Dash, Vijay Raghavan
+
+* * *
+
+## Abstract
+
+Personalizing marketing messages with contextual multi-armed bandits (CMABs) drives real business value, yet the objective that ultimately matters - a downstream conversion - is observed only weeks later, too late to drive online learning. Teams therefore train the bandit on a fast proxy reward, and separately must judge whether a contextual bandit is worth its complexity over sending one best message. Settling both decisions with the usual offline checks - a batch off-policy estimate, a marginal arm-discrimination test, a confidence interval - can mislead systematically under delayed feedback. We give an ordered diagnostic protocol that screens a reward-and-policy candidate on two axes, alignment (does optimizing the reward move the north-star?) and learnability (can the bandit identify the reward-optimal policy?), before trusting any reported lift. --------------------------------------------------------------------------------
+Online relocating and matching of ride-hailing services: A model-based modular approach (https://www.sciencedirect.com/science/article/abs/pii/S1366554524001911)
+citeturn627search5 [wordlim: 200] Published: 2.3 years ago; Crawled: last month; This study proposes an innovative model-based modular approach (MMA) to dynamically optimize order matching and vehicle relocation in a ride-hailing platform. ... The advent of mobile communication technologies has enabled transportation network companies, such as Uber, Didi, and Lyft, to invest significantly in the development of accessible ride-hailing transport services via online platforms, thereby transforming the manner in which individuals travel (Shaaban and Kim, 2016).
+
+## Transportation Research Part E: Logistics and Transportation Review
+
+Date: August 2024
+
+Article: 103600
+
+Volume: Volume 188
+
+View accessibility information
+
+## Published by: Elsevier
+
+Research article
+
+Get rights and content
+
+# Online relocating and matching of ride-hailing services: A model-based modular approach
+
+Author links open overlay panel Chang Gao ^{a}, Xi Lin ^{b}, Fang He ^{a}, Xindi Tang ^{c}
+
+10.1016/j.tre.2024.103600
+
+Access through your organizationPurchase PDF
+
+## Highlights
+
+  * •
+
+Integrated optimization of matching and relocation strategy for ride-hailing services.
+
+  * •
+
+A model-based modular approach with a two-layer and lightweight modeling structure.
+
+  * •
+
+A polynomial-time Lagrangian relaxation method for solving large-scale instances.
+
+  * •
+
+Numerical studies on the realistic dataset to validate the superior performance.
+
+  * •
+
+Sensitivity analyses to verify the high level of robustness against demand variation.
+--------------------------------------------------------------------------------
+Two-Stage Batch Matching in Ride-Hailing Systems (https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7405918)
+citeturn627search6 [wordlim: 200] Published: last month; Crawled: 2 weeks ago; # Two-Stage Batch Matching in Ride-Hailing Systems ... Ride-hailing platforms commonly batch match temporarily held passengers and idle vehicles.
+
+# Two-Stage Batch Matching in Ride-Hailing Systems
+
+71 Pages Posted: 8 Sep 2026 Last revised: 25 Sep 2026
+
+## Xiyitao Zhu
+
+University of Illinois at Urbana-Champaign
+
+## Hai Wang
+
+Singapore Management University
+
+## Lavanya Marla
+
+University of Illinois at Urbana-Champaign
+
+Date Written: June 15, 2026
+
+### Abstract
+
+Ride-hailing platforms commonly batch match temporarily held passengers and idle vehicles. The batch matching interval and matching radius address temporal and spatial matching frictions, respectively. Ride-hailing systems, however, may suffer from the wild goose chase (WGC), an inefficient equilibrium associated with insufficient vehicle supply and excessive long-distance pick-up. Motivated by this WGC-related inefficiency, we study whether waiting beyond batch-level temporal pooling can be used as a platform-controlled operational resource within batch matching, focusing on the efficient-equilibrium branch rather than switching between equilibria. We introduce two time-based levers—a pre-matching hold duration T_1 and a post-initial-assignment hold duration T_2—that induce a framework separating each passenger's waiting into two stages by initial-assignment confirmation. --------------------------------------------------------------------------------
+Systems and methods for updating creatives generation models (https://patents.google.com/patent/US10979369B1)
+citeturn627search7 [wordlim: 200] Published: 5.6 years ago; Crawled: last month;   * a contextual bandit is a machine learning model that can learn a policy for selecting an action given a context, based on rewards received from an environment. ...   * the operations can further include updating, in response to receiving the feedback indication, a feedback value for the email message stored in a delay buffer. ...   * the system trains the contextual bandit using delayed feedback.
+  * the disclosed embodiments are directed to an email campaign system that uses a contextual bandit to generate email messages based on context.
+  * the system trains the contextual bandit using delayed feedback.
+  * the system associates each message with default feedback.
+  * the system may then update this default feedback in response to subsequent feedback indications concerning the message.
+  * contextual bandits update a policy based on a reward upon receipt of the reward. Actions are selected, given contexts, based on the current value of the policy. But such implementations may assume that when or whether a reward is received is uncorrelated with the value of the reward. When these assumptions are violated, the contextual bandit may be selecting current messages based on an incorrect policy. For example, an optimal action, given a context, may still generate negative feedback. If this feedback is received immediately, while positive feedback is delayed, the contextual bandit may (at least initially) undervalue this optimal action. --------------------------------------------------------------------------------
+Will the Order Be Canceled? Order Cancellation Probability Prediction Based on Deep Residual Model (https://trid.trb.org/View/2111874)
+citeturn627search8 [wordlim: 200] Published: 3.5 years ago; Crawled: last month; We find that the cancellation probability of online ride-hailing orders is highly correlated with the travel time of the online taxi, the distance between vehicle and passengers, road congestion conditions, and alternative transportation resources around the passengers. Second, a deep residual network-based ride-hailing order cancellation probability prediction model (DeepOCP) is designed to predict the probability of a user canceling an answered online-hailing order.
+Finally, the Didi Chengdu Express public data set is used to test the model’s effectiveness. This paper is the first study to use a deep-learning model to predict the cancellation probability of online ride-hailing orders.
+
+  * Record URL:
+    * https://doi.org/10.1177/03611981221144279
+  * Availability:
+    * Find a library where document is available. Order URL: http://worldcat.org/issn/03611981
+  * Supplemental Notes:
+    * Haokai Sun https://orcid.org/0000-0002-7777-3429© National Academy of Sciences: Transportation Research Board 2023.
+  * Authors:
+    * Sun, Haokai
+    * (Open Researcher and Contributor ID) 0000-0002-7777-3429
+    * Lv, Zhiqiang
+    * Li, Jianbo
+    * Xu, Zhihao
+    * (Open Researcher and Contributor ID) 0000-0002-4246-7544
+    * Sheng, Zhaoyu
+    * (Open Researcher and Contributor ID) 0000-0002-1824-8253
+  * Publication Date: 2023-6
+
+## Language
+
+  * English
+
+## Media Info
+
+  * Media Type: Web
+  * Features: References;
+  * Pagination: pp 142-160
+  * Serial:
+    * Transportation Research Record: Journal of the Transportation Research Board
+    * Volume: 2677
+    * Issue Number: 6
+    * Publisher: Sage Publications, Incorporated
+    * ISSN: 0361-1981
+    * EISSN: 2169-4052
+    * Serial URL: http://journals.sagepub.com/home/trr
+
+## Subject/Index Terms
+
+  * TRT Terms: Computer online services; Predictive models; Probability; Ridesourcing; Taxi services
+  * Subject Areas: Economics; Highways;
+
+## Filing Info
+
+  * Accession Number: 01872708
+  * Record Type: Publication
+  * Files: TRIS, TRB, ATRI
+  * Created Date: Feb 7 2023 9:22AM--------------------------------------------------------------------------------
+Understanding Contextual Bandits. A contextual bandit is a machine… | by lzhangstat | Oct, 2026 | Medium (https://lzhangstat.medium.com/understanding-contextual-bandits-7aa31db2fde5)
+citeturn627search9 [wordlim: 200] Published: last month; Crawled: 2 weeks ago; For some context-action pairs, importance weights explode and estimates become unreliable. ...   * Delayed rewards. Purchase may happen hours or days after offer exposure. ... ## Contextual bandit architecture ...                  │ Bandit Policy     │
+
+### Training pipeline
+
+Build the logged dataset, Split temporally, Train the reward model using historical logged interactions, Construct candidate policy, Evaluate offline
+
+### What can go wrong offline?
+
+  * No overlap. For some context-action pairs, importance weights explode and estimates become unreliable.
+  * Reward model extrapolation. Your model predicts “This customer probably loves free dessert” even though almost no similar customers ever received it. That’s dangerous.
+  * Policy shift. The new policy may choose actions much more aggressively than historical policy. π / μ becomes huge.
+  * Delayed rewards. Purchase may happen hours or days after offer exposure. You need well-defined attribution windows.
+  * Leakage. Features must correspond to information available at decision time.
+  * Changing environment. Customer behavior, seasonality, pricing, promotions, and competitors change. So yesterday’s logs may not perfectly represent tomorrow’s traffic.
+
+## Contextual bandit architecture
+--------------------------------------------------------------------------------
+GitHub - AryanSahu0108/ride-hailing-cancellation-analysis: Product analytics case study analyzing 148K+ ride bookings to diagnose cancellations, prioritize opportunities, and design experiments · GitHub (https://github.com/AryanSahu0108/ride-hailing-cancellation-analysis)
+citeturn627search10 [wordlim: 200] Crawled: last month; Cancellation rate is essentially flat across vehicle type, time of day, peak/non-peak, and pickup location (all Cramér's V < 0.04 at N=148,767). ... Five named rider reasons cover every rider cancellation: Wrong Address (22.6%), Change of plans (22.4%), Driver not moving toward pickup (22.3%), Driver asked to cancel (21.9%), AC not working (11.0%). ... Treated as a generic ride-hailing operations export.
+--------------------------------------------------------------------------------
+Uplifting conversion across the acquisition funnel with personalization using contextual bandits on AWS — 哲见 · WISE AI (https://www.spke.com/en/ai/article/964)
+citeturn627search11 [wordlim: 200] Published: last month; Crawled: last month; Content optimized for starts tends to attract a broad audience, yet approval depends on whether the offer genuinely suits the applicant. ...             self.app_start_bandit.update(arm, context, r_start)
+            self.app_submit_bandit.update(arm, context, r_submit) ... Handling delayed feedback.
+--------------------------------------------------------------------------------
+US00000010979369B120210413 (https://patentimages.storage.googleapis.com/f6/a3/0a/cd05a0ccb3590f/US10979369.pdf)
+citeturn627search12 [wordlim: 200] Crawled: 4 days ago; Machine learning model **304** can be a contextual bandit model that increases a probability of recommending a template based on a context. ... In other words, bandit orchestrator **301** cannot retrieve feedback data from the delay buffer **305** unless a delay time associated with the feedback data has elapsed since mailing of the email message.
+--------------------------------------------------------------------------------
+Multi-Armed Bandit Problems under Delayed Feedback (https://www.scispace.com/pdf/multi-armed-bandit-problems-under-delayed-feedback-20xx565zna.pdf)
+citeturn627search13 [wordlim: 200] Crawled: today; In the stochastic setting, and when the information is delayed by a fixed delay of \(\tau\), Dudik et al. (2011) show that the penalty in the regret due to the delays is an additive term of \(O(\sqrt{N\log(Kn^2)})\tau\) where \(N\) is the size of the set of policies \(\Pi\). This gives a direct result for the stochastic MAB problem, as the MAB problem is a special case of the contextual bandit problem when \(|\mathcal{X}|=1\) and \(\Pi=\{\pi_1,\ldots,\pi_K\}\), \(\pi_k(x)=k\), \(1\leq k\leq K\). ... Another work that concerns the bandit setting with delayed feedback is by György et al.
+--------------------------------------------------------------------------------
+as the *Context*. This means, the *Context* influences the rewards probability distribution for each arm. This is known as the *Contextual Bandit* problem, which we formalize below: (https://web.stanford.edu/~ashlearn/RLForFinanceBook/chapter14.pdf)
+citeturn627search14 [wordlim: 200] Published: 46.9 years ago; Crawled: 5 days ago; Here in the Contextual Bandit problem, the algorithms work with function approximations for the rewards probability distributions where each function approximation takes as input a pair of (Context, Action).
+--------------------------------------------------------------------------------
+Z. Zhou et al. (https://acris.aalto.fi/ws/portalfiles/portal/121697378/1_s2.0_S0968090X23003157_main.pdf)
+citeturn627search15 [wordlim: 200] Published: last week; Crawled: last week; *Transportation Research Part C 156 (2023) 104326* ... - Decision: **Ridehailing or Ridesharing? ... - Matching travellers with vehicles feeds into **Updating vehicle status**. ... For the successfully matched travellers, the platform generates a service menu, which is comprised of discounts and detour time for a shared trip and trip fee, and expected waiting time for both solo (ride-hailing) and shared trips.
+--------------------------------------------------------------------------------
+Zixian Liu
+
+**Contextual Bandit Mechanism: Optimal (https://www.bu.edu/econ/files/2024/10/2025-REDBOOK.pdf)
+citeturn627search16 [wordlim: 200] Crawled: 2 weeks ago; **Contextual Bandit Mechanism: Optimal Delegation in the Experimentation Cycle** (Job Market Paper) (*with Liang Zhong*) ... We model this as a contextual bandit problem, where the experimentation yields success that follows a state-dependent Poisson process.
+--------------------------------------------------------------------------------
+International Journal for Research in Applied Science & Engineering Technology (IJRASET) (https://www.ijraset.com/best-journal/predictive-analytics-of-cab-cancellation-behaviour-in-urban-india-using-ml-techniques-a-multiplatform-comparative-study)
+citeturn627search17 [wordlim: 200] Crawled: last week; Leveraging unsupervised K-Means clustering for the drivers, zones and consumers, alongside supervised Random Forest, Logistic Regression and Gradient Boosting classification models, the study achieves perfect accuracy in predicting the cancellations (AUC = 1.00), and the predicted wait time occurs as the major predictor of cancellation behaviour (feature importance: 73.34%). ... **Keywords—** Cab Cancellation, K-Means Clustering, Random Forest, Gradient Boosting, Investment Analysis, Urban Mobility, Ride-Hailing, Feature Importance, Behavioural Analytics, Smart City
+--------------------------------------------------------------------------------
+Contextual Non-Convex Bandit Optimization with Two-Point Feedback (https://arxiv.org/abs/2611.18965)
+citeturn627academia18 [wordlim: 200] Published: 4 days ago; Title: Contextual Non-Convex Bandit Optimization with Two-Point Feedback ... At every round, the learner observes the context then picks two actions, observes the difference between their losses, and incurs their mean.
+--------------------------------------------------------------------------------
+RideBench: A Large-Scale Exogenous-Aware Benchmark for Ride-Hailing Time Series Forecasting (https://arxiv.org/abs/2610.11164)
+citeturn627academia19 [wordlim: 200] Published: last month; We release Ride-Hailing, a large-scale ride-hailing time series dataset synthesized from DiDi's marketplace data across 200 spatial areas. ... Built upon Ride-Hailing, we introduce RideBench, a comprehensive benchmark for exogenous-aware ride-hailing forecasting, covering both regular week-ahead forecasting and long-horizon 8-week-ahead forecasting with up to 2,688 prediction steps.
+--------------------------------------------------------------------------------
+Dynamic Matching with Abandonment: Optimal Guarantees via Static Priority Policies (https://arxiv.org/abs/2610.12991)
+citeturn627academia20 [wordlim: 200] Published: last month; Title: Dynamic Matching with Abandonment: Optimal Guarantees via Static Priority Policies ... We study stochastic dynamic matching with abandonment, a fundamental model in which agents of different types arrive over time, may abandon the market while waiting, and can be matched in pairs for rewards that depend on their types.
+--------------------------------------------------------------------------------
+DynamAuction: A Reinforcement Learning Environment for Repeated Auctions with Dynamic Value (https://arxiv.org/abs/2611.14000)
+citeturn627academia21 [wordlim: 200] Published: last week; Despite the empirical importance of such effects, especially in display advertising, the algorithmic literature on repeated auctions has largely focused on the learning problem, by treating each opportunity as a contextual bandit, while sidestepping the planning problem induced by the dependence of current value on past wins. ... The environment supports first- and second-price auctions, non-homogeneous Poisson arrivals, delayed feedback, saturation, and recency effects.
+--------------------------------------------------------------------------------
+Multi-armed bandit (https://en.wikipedia.org/wiki/Multi-armed_bandit)
+citeturn627search22 [wordlim: 200] Crawled: 4 days ago; The dueling bandit variant was introduced by Yue et al. (2012) to model the exploration-versus-exploitation tradeoff for relative feedback. ... Pilarski et al. later extended this work in "Delayed Reward Bernoulli Bandits: Optimal Policy and Predictive Meta-Algorithm PARDI" to create a method of determining the optimal policy for Bernoulli bandits when rewards may not be immediately revealed following a decision and may be delayed. ... Over time, the learner's aim is to collect enough information about how the context vectors and rewards relate to each other, so that it can predict the next best arm to play by looking at the feature vectors. ... Many strategies exist that provide an approximate solution to the contextual bandit problem, and can be put into two broad categories detailed below. ... *   Michal Valko; Nathan Korda; Rémi Munos; Ilias Flaounas; Nello Cristianini (2013), Finite-Time Analysis of Kernelised Contextual Bandits, 29th Conference on Uncertainty in Artificial Intelligence (UAI 2013) and (JFPDA 2013)., arXiv:1309.6869, Bibcode:2013arXiv1309.6869V
+--------------------------------------------------------------------------------
+Ridesharing company (https://en.wikipedia.org/wiki/Ridesharing_company)
+citeturn627search23 [wordlim: 200] Crawled: today; Although the term "ridesharing" is used by many international news sources, in January 2015, the Associated Press Stylebook, the authority that sets many of the news industry's grammar and word use standards, officially adopted the term "ride-hailing" to describe the services offered by these companies, claiming that "ridesharing" doesn't accurately describe the services since not all rides are shared, and "ride-sourcing" only is accurate when drivers provide rides for income. ... The term "ride-sharing" has also been defined to refer to on-demand carpooling or shared transport, whereas "ride-hailing" has been defined as the hiring of a private driver for personal transportation. ... * Ride sharing privacy ... Using an agent-based model developed to simulate real Uber and Lyft trips that have occurred in the city of Chicago, they found that the rapid rematching speed of Uber and Lyft drivers after a cancellation drastically reduces the effect of that cancellation on a rider's wait time.
+--------------------------------------------------------------------------------
+Shared transport (https://en.wikipedia.org/wiki/Shared_transport)
+citeturn627search24 [wordlim: 200] Crawled: last month; Transportation experts have called these services "ridesourcing" or "ridehailing" to distinguish these services from ridesharing and to clarify that drivers do not share a destination with their passengers. Ridehailing companies have spread around the world and include: Uber, Lyft, Ola Cabs, DiDi, Grab, Gett, Cabify, Careem, Easy Taxi, and Fasten, among others. ... These services allow dynamic matching and route variation in real time as passengers request pickups.
+--------------------------------------------------------------------------------
+Thompson sampling (https://en.wikipedia.org/wiki/Thompson_sampling)
+citeturn627search25 [wordlim: 200] Crawled: 4 months ago; Thompson sampling, named after William Rae Thompson, is a heuristic for choosing actions that address the exploration-exploitation dilemma in the multi-armed bandit problem. ... It was subsequently rediscovered numerous times independently in the context of multi-armed bandit problems. ... A Double Thompson Sampling (D-TS) algorithm has been proposed for dueling bandits, a variant of traditional MAB, where feedback comes in the form of pairwise comparison.
+

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>NEWS</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="../../../CRAN_web.css" />
+</head>
+<body>
+<h1 id="causaldef-0.3.0">causaldef 0.3.0</h1>
+<h2
+id="corrections-to-decision-theoretic-bounds-numerical-outputs-change">Corrections
+to decision-theoretic bounds (numerical outputs change)</h2>
+<p>A full re-check of the companion manuscript found that two constants
+used by the policy-bound utilities were wrong; counterexamples are in
+the manuscript (Zenodo concept DOI 10.5281/zenodo.18367346, version
+5).</p>
+<ul>
+<li><strong><code>policy_regret_bound()</code></strong>: the transfer
+penalty is now 2·|A|·M·δ (4Mδ for a binary treatment with
+covariate-dependent policies; 2Mδ when comparing fixed actions via
+<code>policy_type = "constant"</code>). Versions up to 0.2.1 reported
+Mδ, which does not bound the regret: with two actions and no covariates
+the worst-case regret can be 2Mδ while the simulated regret is 0. The
+minimax floor is now (M/4)δ (previously (M/2)δ, which is false; 1/4 is
+sharp). New arguments <code>n_actions</code> and
+<code>policy_type</code>; new fields <code>value_error</code>,
+<code>transfer_multiplier</code> and <code>floor_multiplier</code>.
+<code>obs_regret</code> is the regret computed under the adjusted
+(simulated) interventional laws.</li>
+<li><strong><code>policy_regret_bound_vc()</code></strong>: now
+implements the corrected finite-sample bound for
+inverse-propensity-weighted empirical welfare maximization with a known
+propensity in [η, 1 − η]: 4Mδ + C (M/η)(√(v/n) + √(log(1/ξ)/n)). The new
+argument <code>eta</code> is required. <code>obs_regret</code> is
+ignored, with a warning.</li>
+<li><strong><code>rkhs_rate_bound()</code></strong>: now returns the
+rate (nη)^(−β/(2β + d_W + d_Y)), with the new argument <code>d_y</code>
+(0 for finite outcome spaces). The previous formula ignored the outcome
+dimension and misplaced η. <code>xi</code> is retained but unused.</li>
+<li><strong><code>plot.policy_bound()</code></strong>
+(<code>type = "safety_curve"</code>) and the plumber
+<code>/policy-bound</code> endpoint use the corrected constants.</li>
+<li><strong><code>confounding_frontier()</code> documentation</strong>:
+the closed-form lower bound now shows the factor 1/2 from the two-point
+method. The computed frontier was already correct.</li>
+</ul>
+<h2 id="other">Other</h2>
+<ul>
+<li>The <code>confounding_frontier()</code> examples use smaller grids,
+so they run in about 2.5 s instead of 16 s.</li>
+<li>The manuscript is cited by its concept DOI 10.5281/zenodo.18367346,
+which always resolves to the latest version.</li>
+</ul>
+<h1 id="causaldef-0.2.1">causaldef 0.2.1</h1>
+<h2 id="bug-fixes">Bug Fixes</h2>
+<ul>
+<li><strong><code>confounding_frontier()</code> /
+<code>.tv_distance_normal()</code></strong>: Fixed a numerical bug in
+the closed-form crossing-point TV computation that returned values near
+0 instead of near 1 when both Gaussian components have very small
+standard deviations relative to their mean separation (a near-degenerate
+point-mass regime where the quadratic discriminant loses precision).
+Replaced with integration split into pieces sized to each component’s
+own sd. Verified against an independently-constructed cross-check across
+3000 random cases spanning 8 orders of magnitude in sd (max discrepancy
+~4e-8); the function’s default usage range within
+<code>confounding_frontier()</code> was never affected by this bug.</li>
+</ul>
+<h2 id="documentation">Documentation</h2>
+<ul>
+<li>Removed an unspecified “universal constant” phrase from
+<code>rkhs_rate_bound()</code> and <code>confounding_frontier()</code>
+documentation (the underlying manuscript bound was found to not hold
+with any single universal constant for large <code>sigma_A</code> and
+was replaced with an explicit, unconditional bound).</li>
+<li>Hedged interpretive guidance in the README and vignettes.</li>
+<li>Reworded documentation, README, and vignettes to reduce narrative
+over-attribution to “Le Cam” (e.g. “Le Cam deficiency” to “deficiency”,
+“Le Cam’s theory” to “the classical theory of statistical experiment
+comparison”), while keeping the Le Cam &amp; Yang (2000) bibliography
+citation. No functional code changes from this item.</li>
+</ul>
+<h1 id="causaldef-0.2.0">causaldef 0.2.0</h1>
+<h2 id="major-changes">Major Changes</h2>
+<h3 id="new-estimation-methods">New Estimation Methods</h3>
+<ul>
+<li><p><strong>TMLE (Targeted Maximum Likelihood Estimation)</strong>:
+Added <code>method = "tmle"</code> for doubly-robust estimation using
+the <code>tmle</code> package with SuperLearner.</p></li>
+<li><p><strong>MatchIt Integration</strong>: Proper propensity score
+matching via <code>method = "matching"</code> using the
+<code>MatchIt</code> package with nearest neighbor matching.</p></li>
+<li><p><strong>Causal Forests (grf)</strong>: Added
+<code>method = "grf"</code> for heterogeneous treatment effect
+estimation using Generalized Random Forests.</p></li>
+<li><p><strong>Cox IPTW for Survival</strong>: Added
+<code>method = "cox_iptw"</code> for survival outcomes, implementing
+stabilized inverse probability weighted Cox models on compatible
+survival runtimes.</p></li>
+</ul>
+<h3 id="new-identification-methods">New Identification Methods</h3>
+<ul>
+<li><p><strong>Front-Door Kernel</strong>
+(<code>frontdoor_effect()</code>): Implements the front-door kernel
+existence result (<code>thm:frontdoor</code>) with a plugin estimator
+and a heuristic front-door deficiency proxy.</p></li>
+<li><p><strong>Transport Deficiency</strong>
+(<code>transport_deficiency()</code>): Measures distribution shift
+between source and target populations with proxy diagnostics.</p></li>
+<li><p><strong>Instrumental Variables</strong>
+(<code>iv_effect()</code>): IV support with 2SLS and Wald estimators,
+plus weak instrument diagnostics and validity tests via
+<code>test_instrument()</code>.</p></li>
+</ul>
+<h3 id="new-outcome-types">New Outcome Types</h3>
+<ul>
+<li><strong>Competing Risks</strong>
+(<code>causal_spec_competing()</code>): Full support for time-to-event
+data with multiple event types. Implements cause-specific and
+subdistribution hazard estimation via
+<code>estimate_deficiency_competing()</code>.</li>
+</ul>
+<h3 id="performance-improvements">Performance Improvements</h3>
+<ul>
+<li><p><strong>Parallel Bootstrap</strong>: New
+<code>parallel = TRUE</code> argument in
+<code>estimate_deficiency()</code> enables parallel processing via
+<code>future.apply</code> for faster inference with large bootstrap
+samples.</p></li>
+<li><p><strong>Stabilized IPTW Weights</strong>: Propensity scores are
+now bounded to [0.01, 0.99] to prevent extreme weights.</p></li>
+</ul>
+<h3 id="commercial-features">Commercial Features</h3>
+<ul>
+<li><p><strong>Shiny Dashboard</strong>
+(<code>run_causaldef_app()</code>): Interactive web application for
+deficiency analysis with data upload, method comparison, and report
+export.</p></li>
+<li><p><strong>Standalone Deployment</strong>
+(<code>create_shiny_app_files()</code>): Generate app files for
+shinyapps.io or Shiny Server deployment.</p></li>
+<li><p><strong>REST API</strong> (<code>create_plumber_api()</code>,
+<code>run_causaldef_api()</code>): Full REST API via plumber for SaaS
+deployment. Includes endpoints for deficiency estimation, policy bounds,
+confounding frontiers, and transport analysis. Docker-ready.</p></li>
+</ul>
+<h3 id="new-vignettes">New Vignettes</h3>
+<ul>
+<li><p><code>negative_controls.Rmd</code>: Comprehensive guide to using
+negative control diagnostics with the negative control bound
+(<code>thm:nc_bound</code>).</p></li>
+<li><p><code>policy_learning.Rmd</code>: Guide to safe policy learning
+with decision-theoretic bounds and the safety floor concept.</p></li>
+</ul>
+<h3 id="infrastructure">Infrastructure</h3>
+<ul>
+<li>Added comprehensive demo script:
+<code>inst/examples/complete_demo.R</code></li>
+<li>Added pkgdown configuration for documentation website</li>
+<li>Added new test suites for all new functions</li>
+<li>Expanded DESCRIPTION suggests to include: <code>tmle</code>,
+<code>MatchIt</code>, <code>grf</code>, <code>SuperLearner</code>,
+<code>future.apply</code>, <code>shiny</code>, <code>cmprsk</code>,
+<code>plumber</code>, <code>jsonlite</code></li>
+</ul>
+<h2 id="bug-fixes-1">Bug Fixes</h2>
+<ul>
+<li>Fixed weight normalization in <code>matching</code> method</li>
+<li>Improved fallback handling when optional packages fail</li>
+<li>Clarified package semantics so theorem-backed bounds, computable
+proxies, sensitivity diagnostics, and heuristic modules are labeled
+distinctly</li>
+<li>Disabled unsupported <code>frontdoor(method = "dr")</code> and
+<code>iv_effect(method = "liml")</code></li>
+<li>Reworked <code>nc_diagnostic()</code> into permutation-based
+screening plus <code>kappa</code>-sensitivity bounds</li>
+<li>Added explicit survival runtime guards for older R versions where
+<code>survival</code> internals require <code>base::deparse1</code></li>
+<li>Made <code>policy_regret_bound()</code> method selection explicit
+and recorded optimistic post-selection when used</li>
+</ul>
+<hr />
+<h1 id="causaldef-0.1.3">causaldef 0.1.3</h1>
+<ul>
+<li>Initial CRAN submission version</li>
+<li>Core functions: <code>causal_spec()</code>,
+<code>causal_spec_survival()</code>, <code>estimate_deficiency()</code>,
+<code>nc_diagnostic()</code>, <code>confounding_frontier()</code>,
+<code>policy_regret_bound()</code></li>
+<li>Basic methods: <code>unadjusted</code>, <code>iptw</code>,
+<code>aipw</code></li>
+<li>Four vignettes covering methodology and survival analysis</li>
+</ul>
+<hr />
+<h1 id="causaldef-0.1.0">causaldef 0.1.0</h1>
+<ul>
+<li>Initial development version</li>
+<li>Implements Le Cam deficiency theory for causal inference</li>
+<li>Based on Akdemir (2026) “Constraints on Causal Inference as
+Experiment Comparison”</li>
+</ul>
+</body>
+</html>

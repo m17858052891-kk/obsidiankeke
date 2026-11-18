@@ -1,0 +1,2210 @@
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "元信息",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "作者：Dong Yao, Caizhi Tang, Qing Cui, Longfei Li",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "发表：CIKM 2024, CCF-B",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "论文链接：https://arxiv.org/abs/2410.21343",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "ACM DOI：https://doi.org/10.1145/3627673.3679593",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "本地 PDF：/Users/didi/Desktop/2026/v3_workspace/cift/paper/2024_combining_incomplete_observational_and_randomized_data_for_hte.pdf",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "筛选原因：原清单标注为 CIKM 2024，属于 CCF-B；arXiv 题录也标注 Accepted by CIKM2024。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "摘要总结",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文研究的是 RCT 与观察数据融合估计 HTE/CATE 时，一个经常被忽略但很现实的问题：观察数据可能不完整，即只包含 treatment group 或 control group 的一侧。已有 RHC、IntR、CorNet 等融合方法通常需要完整观察数据，至少需要 OBS 中 treatment/control 两侧都存在，才能训练观察效应估计器、propensity model 或 shared representation。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "作者提出 CIO，即 Combining Incomplete Observational data and randomized data。CIO 的核心是两阶段：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "构造 pseudo-experimental group 与 pseudo-control group，先估计观察数据中的 confounding bias function；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "用该 bias function 作为 residual correction 修正 OBS outcome，再把可用 OBS 数据和全部 RCT 数据一起训练 HTE estimator。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "text": "论文的重要价值在于，它不要求 OBS treatment/control 完整，也不需要预训练 propensity score；在 OBS 缺一侧的场景下，仍可用 RCT 的完整 treatment/control 信息支撑融合估计。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "引言与研究动机",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "HTE 估计在医疗、营销、流行病学等场景中很重要。观察数据便宜、规模大，但 treatment assignment 可能有 hidden confounding；RCT 无混杂但成本高、样本小。融合两类数据是自然方向。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "已有融合方法的限制是对完整 OBS 数据的依赖：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "RHC 先用观察数据训练有偏 effect estimator，再用 RCT 去偏；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Integrative R-learner 需要联合建模 HTE 和 confounding function，并通常需要 propensity 相关信息；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CorNet 需要观察数据支持 representation 或 data-specific heads 的学习。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "但现实中经常只有一侧 OBS。例如新药刚上市时，观察数据可能主要是未治疗人群；营销新策略刚上线时，历史日志可能只覆盖旧策略或只覆盖被触达用户。这时完整 treatment/control 观察结构不存在，传统数据融合方法难以直接使用。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "方法细节",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "问题设定与假设",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文考虑二元 treatment：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "T \\in \\{0, 1\\}"
+                  },
+                  "type": "mathquill"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "S = 1"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 表示 RCT 数据；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "S = 0"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 表示 OBS 数据；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "目标是估计 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\tau(X) = \\mathbb{E}[Y(1) - Y(0) \\mid X]"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "RCT 满足 consistency、ignorability 与 overlap，因此可以识别 HTE。OBS 不假设 treatment assignment ignorable，因为它可能存在 hidden confounding。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "作者定义 OBS 中的 confounding bias function：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "c(X)\n=\n\\mathbb{E}[Y \\mid X, T = 1, S = 0]\n-\n\\mathbb{E}[Y \\mid X, T = 0, S = 0]\n-\n\\tau(X)"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "如果 OBS 无混杂，则 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "c(X) = 0"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "统一 outcome 表达",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "对 RCT：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "Y =\n\\mathbb{E}[Y \\mid X, T = 0, S = 1]\n+\nT\\tau(X)\n+\n\\epsilon_r"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "对 OBS：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "Y =\n\\mathbb{E}[Y \\mid X, T = 0, S = 0]\n+\nT[\\tau(X) + c(X)]\n+\n\\epsilon_o"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "合并后：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "Y =\nT[\\tau(X) + (1 - S)c(X)]\n+\n\\mu_0(X)\n+\n\\epsilon"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "其中：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\mu_0(X) = \\mathbb{E}[Y \\mid X, T = 0, S]"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "关键是 OBS treated 样本中多了 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "c(X)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 偏差项，而 RCT 样本没有。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "CIO 的偏差识别",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "CIO 构造一个 dummy treatment：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "D = T(1 - S)"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "也就是说，只有 OBS treated 样本被视为 pseudo-experimental group，其他样本，包括 RCT treated/control，被视为 pseudo-control group。这样就可以把估计 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "c(X)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 转化为一个 effect estimation 问题。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "第一阶段，训练两个 regression function：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "p_1(x)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：拟合 OBS treated data；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "p_0(x)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：拟合全部 RCT data；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "然后估计：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\hat{\\tau}_c(x) = \\hat{p}_1(x) - \\hat{p}_0(x)"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "这里 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat{\\tau}_c(x)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 被解释为 confounding bias function。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "HTE 估计阶段",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "第二阶段固定 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat{\\tau}_c(x)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，对 OBS treated outcome 做校正：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\tilde{y}_i^{ot}\n=\ny_i^{ot}\n-\n\\hat{\\tau}_c(x_i^{ot})"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "然后把校正后的 OBS treated、OBS control、RCT treated、RCT control 一起用于训练：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "f_1(x)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：treatment outcome model；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "f_0(x)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：control outcome model；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "最终 HTE 估计为：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\hat{\\tau}(x) = \\hat{f}_1(x) - \\hat{f}_0(x)"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "如果 OBS control 缺失，仍可使用 RCT control 训练 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "f_0"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "；如果 OBS treated 缺失，则可以反转 treatment assignment，使方法对称适配另一侧缺失。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "与已有方法的差异",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "CIO 不需要：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "从完整 OBS 中先训练 effect estimator；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "预先训练 propensity model；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "OBS 同时包含 treatment/control 两侧；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "观察数据满足无混杂。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "它真正依赖的是 RCT 的无混杂信息，以及通过 pseudo group 学到的 OBS 偏差残差。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "实验总结",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "实验设置",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "论文使用一个 synthetic dataset 和两个 semi-synthetic real-world dataset：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Simulation：协变量全模拟，RCT 200、OBS 3000、test 1000，维度 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "p = 5"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "STAR：使用 Tennessee STAR 教育实验的真实协变量，模拟 outcome 和 treatment effect；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "NSW：National Supported Work Demonstration，天然适合测试 OBS 不完整场景，RCT 样本与 PSID observational controls 结合。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "基线包括：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "SF_OS：只用 OBS；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "SF_RCT：只用 RCT；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "SI：简单融合 OS 与 RCT；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "RHC；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Integrative R-learner；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CorNet；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CIO 与 CIO-IO，其中 CIO-IO 表示 OBS 缺失一侧时的变体。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "底层模型包括 Ridge、Random Forest、TARNet。评价指标是 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\sqrt{\\mathrm{PEHE}}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，即个体效应估计误差。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "主要结果",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "在 preliminary trials 中，作者选取 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "p_r = 0.2"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 的 RCT 数据与全部 OBS 融合。结果显示：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "只用 OBS 效果差，说明 hidden confounding 明显；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "SI 简单合并数据改善有限，因为没有去偏；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "RHC、IntR 能改善，但依赖完整 OBS，在不完整场景下不可用或效果不稳；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CIO 在 Simulation 和 STAR 上用 Ridge、RF、TARNet 大多取得最优或接近最优结果；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "在 OBS control 缺失时，CIO-IO 仍优于只用 RCT，说明它确实能利用不完整 OBS。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "论文报告的代表性结果包括：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Simulation/Ridge：CIO ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "5.75 \\pm 0.34"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，优于 IntR ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "7.68 \\pm 0.34"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "、RHC ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "14.62 \\pm 6.18"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "、SI ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "21.43 \\pm 1.06"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "STAR/Ridge：CIO ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "2.36 \\pm 0.48"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，优于 IntR ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "8.52 \\pm 0.71"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "、RHC ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "9.70 \\pm 2.68"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "STAR/TARNet：CIO ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "3.54 \\pm 1.38"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，优于 CorNet ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "7.00 \\pm 1.01"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 与 IntR ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "4.93 \\pm 1.81"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "RCT 样本量敏感性",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "作者改变训练中 RCT 数据比例 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "p_r"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，从 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 0.1
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 到 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": 1
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。随着 RCT 增加，各方法 PEHE 普遍下降；但 CIO 在 Ridge 和 RF 下持续优于其他融合方法。即使去掉 OBS control，CIO-IO 仍表现稳定。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "混杂强度敏感性",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "作者通过参数 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\beta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 增强 OBS 中 confounding bias。结果显示：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "SI 随 confounding 增强迅速恶化；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "RHC、IntR 等去偏方法下降较慢；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "CIO 在较强 confounding 下仍保持较低 PEHE，说明 residual correction 有效。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "OBS 缺失比例与 treatment 反转",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "作者改变 OBS control 数量，测试从极少控制样本到较多控制样本的性能变化。CIO 在不同 OBS control 数量下均优于基线。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "对于 treatment group 缺失的场景，作者通过反转 treatment assignment 测试 CIO。Simulation 和 STAR 上，original 与 inverse 的性能基本接近，说明 CIO 对缺失哪一侧具有一定对称鲁棒性。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "创新点、局限与启发",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "创新点：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "将 OBS 不完整问题作为一等问题处理，而不是假设数据天然完整；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "用 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "D = T(1-S)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 构造 pseudo treatment，从另一个角度估计 confounding bias；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "将 confounding bias 作为 outcome residual correction，而不是要求先完整估计 OBS CATE；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "方法可兼容 Ridge、RF、TARNet 等多种底层 learner。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "局限：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "论文主要讨论二元 treatment，多 treatment 需要扩展；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "偏差函数估计仍依赖 RCT 与 OBS 的协变量可比性；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "半合成实验较多，真实业务中的 hidden confounding 结构可能更复杂；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "对 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "S \\perp Y \\mid X"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": " 等基础假设需要谨慎审计。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "对 CIFT 的启发：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "对价格/补贴/折扣策略，新策略刚上线时 OBS 可能只覆盖某一侧 treatment，CIO 很适合作为冷启动融合思路；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "可把“历史日志只有旧价格”或“只有被补贴商户”视为 incomplete OBS，而不是直接丢弃；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "可以借鉴 CIO 的 pseudo group 思路，用 RCT 全样本构造偏差校正项，再修正 OBS outcome；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "在 CIFT 中需要进一步扩展到多 treatment，并处理 treatment cost、budget constraint 等决策目标。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    }
+  ],
+  "format": "agent-readable-json",
+  "operation": "pull",
+  "sections": [
+    {
+      "anchor": "",
+      "headingText": "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+      "index": 0,
+      "level": 1,
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "元信息",
+      "index": 1,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "元信息"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "摘要总结",
+      "index": 8,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "摘要总结"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "引言与研究动机",
+      "index": 14,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "引言与研究动机"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "方法细节",
+      "index": 21,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "方法细节"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "问题设定与假设",
+      "index": 22,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "方法细节",
+        "问题设定与假设"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "统一 outcome 表达",
+      "index": 32,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "方法细节",
+        "统一 outcome 表达"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "CIO 的偏差识别",
+      "index": 42,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "方法细节",
+        "CIO 的偏差识别"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "HTE 估计阶段",
+      "index": 52,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "方法细节",
+        "HTE 估计阶段"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "与已有方法的差异",
+      "index": 61,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "方法细节",
+        "与已有方法的差异"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "实验总结",
+      "index": 68,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "实验总结"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "实验设置",
+      "index": 69,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "实验总结",
+        "实验设置"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "主要结果",
+      "index": 83,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "实验总结",
+        "主要结果"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "RCT 样本量敏感性",
+      "index": 94,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "实验总结",
+        "RCT 样本量敏感性"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "混杂强度敏感性",
+      "index": 96,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "实验总结",
+        "混杂强度敏感性"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "OBS 缺失比例与 treatment 反转",
+      "index": 101,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "实验总结",
+        "OBS 缺失比例与 treatment 反转"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "创新点、局限与启发",
+      "index": 104,
+      "level": 2,
+      "parentSectionAnchor": "",
+      "path": [
+        "Combining Incomplete Observational and Randomized Data for Heterogeneous Treatment Effects",
+        "创新点、局限与启发"
+      ]
+    }
+  ]
+}

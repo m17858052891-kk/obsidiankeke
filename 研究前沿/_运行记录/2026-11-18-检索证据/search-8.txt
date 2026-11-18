@@ -1,0 +1,311 @@
+Advances and challenges of multi-task learning method in recommender systems: A survey (https://www.sciencedirect.com/science/article/pii/S0925231225031820)
+citeturn616search0 [wordlim: 200] Published: 8 months ago; Crawled: 2 months ago; Despite its success, MTRSs face significant challenges, most notably negative transfer and data sparsity in long-tail behaviors. ... Most of these works either focus on generic MTL methodology with limited coverage of recommendation applications, or concentrate on specific RS paradigms (e.g., deep learning, reinforcement learning, cross-domain RS, or conversational RS) while only briefly touching on multi-objective or multi-task modeling. ... In contrast, this survey aims to provide a more unified and forward-looking treatment of multi-task learning-based RSs (MTRSs) by jointly analyzing task relations, model architectures (including LLM-based MTRSs), optimization strategies, and learning paradigms, and by explicitly linking them to core recommendation challenges.
+
+## Neurocomputing
+
+Volume 670, 14 March 2026, 132510
+
+# 
+
+Survey paper
+
+Advances and challenges of multi-task learning method in recommender systems: A survey
+
+https://doi.org/10.1016/j.neucom.2025.132510Get rights and content
+
+## Abstract
+
+Multi-task learning (MTL) has been widely applied to modern RSs, enabling the simultaneous optimization of diverse user feedback such as clicks, purchases, and dwell time. Despite its success, MTRSs face significant challenges, most notably negative transfer and data sparsity in long-tail behaviors. To provide a holistic view of solutions to these challenges, this survey presents a systematic review of the MTRSs landscape. We first articulate the motivation behind MTRSs, analyzing how task dependencies and conflicts necessitate specialized modeling. Subsequently, we introduce a hierarchical taxonomy centered on three pillars: (1) Architecture Paradigms, which classify methods into parameter sharing (e.g., Mixture-of-Experts) to alleviate interference, transfer learning (e.g., cascading structures) to address sparsity, adversarial learning for robust representation, and the recent LLM-based architectures; (2) Optimization Strategies, which examine loss balancing and gradient conflict techniques to achieve Pareto optimality.(--------------------------------------------------------------------------------
+OneTrans: Unified Feature Interaction and Sequence Modeling with One Transformer in Industrial Recommender - TAAC 2026 Docs (https://puiching-memory.github.io/TAAC_2026/papers/onetrans/)
+citeturn616search1 [wordlim: 200] Crawled: today; OneTrans uses a unified tokenizer that maps sequential features into S-tokens and non-sequential features into NS-tokens. ... By stacking blocks and applying pyramid truncation to the sequential side, the model progressively distills long histories into compact higher-order information inside the non-sequential tokens. ...   * Sequence-feature interaction between behavioral evidence and static/contextual signals.
+
+## 3. Methodology¶
+
+Before presenting the architecture, the paper defines the industrial ranking task. For each user \(u\), the recall stage returns a candidate set. The ranking model then predicts a score for candidate item \(i\):
+
+\[ \hat{y}_{u,i} = f\left(i \mid \mathcal{NS}, \mathcal{S}; \Theta\right), \]
+
+where \(\mathcal{NS}\) is the set of non-sequential features, \(\mathcal{S}\) is the set of user behavior sequences, and \(\Theta\) are trainable parameters. Typical predictions include CTR and CVR:
+
+\[ \begin{aligned} \mathrm{CTR}_{u,i} &= P\left(\mathrm{click}=1 \mid \mathcal{NS}, \mathcal{S}; \Theta\right), \\ \mathrm{CVR}_{u,i} &= P\left(\mathrm{conv}=1 \mid \mathrm{click}=1, \mathcal{NS}, \mathcal{S}; \Theta\right). \end{aligned} \]
+
+### 3.1 Framework Overview¶
+
+OneTrans uses a unified tokenizer that maps sequential features into S-tokens and non-sequential features into NS-tokens. The initial token sequence is:
+
+\[ \mathbf{X}^{(0)} = \[\text{S-tokens}; \text{NS-tokens}\] \in \mathbb{R}^{(L_S + L_{NS}) \times d}. \]
+
+The S-side contains \(L_S\) sequential tokens, the NS-side contains \(L_{NS}\) non-sequential tokens, and every token has dimension \(d\). Learnable [SEP] tokens are inserted between different user-behavior sequences.
+
+The backbone then applies stacked OneTrans blocks. For block \(n\), the update is:
+
+\[ \mathbf{Z}^{(n)} = \mathrm{MixedMHA}\left(\mathrm{Norm}(\mathbf{X}^{(n-1)})\right) + \mathbf{X}^{(n-1)}, \]
+
+\[ \mathbf{X}^{(n)} = \mathrm{MixedFFN}\left(\mathrm{Norm}(\mathbf{Z}^{(n)})\right) + \mathbf{Z}^{(n)}. \]
+
+MixedMHA and MixedFFN use shared parameters for sequential tokens and token-specific parameters for non-sequential tokens. A unified causal mask ensures autoregressive attention: sequential tokens can see only earlier sequential positions, while non-sequential tokens can attend over all earlier positions, including the full sequential history. By stacking blocks and applying pyramid truncation to the sequential side, the model progressively distills long histories into compact higher-order information inside the non-sequential tokens.
+
+The paper highlights four kinds of interaction that happen within the same stack:
+
+  * Intra-sequence interaction within a behavior sequence.
+  * Cross-sequence interaction across multiple behavior sequences.
+  * Multi-source feature interaction across user, item, and context attributes.
+  * Sequence-feature interaction between behavioral evidence and static/contextual signals.
+
+
+--------------------------------------------------------------------------------
+When Does Aggregating Multiple Skills with Multi-Task Learning Work? A Case Study in Financial NLP (https://aclanthology.org/2023.acl-long.412/)
+citeturn616search2 [wordlim: 200] Published: 3.4 years ago; Crawled: 3 weeks ago; ## When Does Aggregating Multiple Skills with Multi-Task Learning Work? ... However, MTL does not always work – sometimes negative transfer occurs between tasks, especially when aggregating loosely related skills, leaving it an open question when MTL works.
+
+## When Does Aggregating Multiple Skills with Multi-Task Learning Work? A Case Study in Financial NLP
+
+Jingwei Ni, Zhijing Jin, Qian Wang, Mrinmaya Sachan, Markus Leippold
+
+##### Abstract
+
+Multi-task learning (MTL) aims at achieving a better model by leveraging data and knowledge from multiple tasks. However, MTL does not always work – sometimes negative transfer occurs between tasks, especially when aggregating loosely related skills, leaving it an open question when MTL works. Previous studies show that MTL performance can be improved by algorithmic tricks. However, what tasks and skills should be included is less well explored. In this work, we conduct a case study in Financial NLP where multiple datasets exist for skills relevant to the domain, such as numeric reasoning and sentiment analysis. Due to the task difficulty and data scarcity in the Financial NLP domain, we explore when aggregating such diverse skills from multiple datasets with MTL can work. --------------------------------------------------------------------------------
+When Multi-Task Learning Works -- And When It Doesn’t · Hazy Research (https://hazyresearch.stanford.edu/blog/2020-03-01-multi_task_transfer_learning)
+citeturn616search3 [wordlim: 200] Published: 6.7 years ago; Crawled: 3 weeks ago; > Multi-task learning applied to heterogeneous task data can often result in suboptimal models (or negative transfer in more technical terms). ... Figure 2: A sentiment analysis model can benefit from multi-task learning by learning from multiple related datasets.
+Mar 1, 2020 · 8 min read
+
+# When Multi-Task Learning Works -- And When It Doesn’t
+
+Sen Wu, Hongyang Zhang and Chris Ré.
+
+> Multi-task learning applied to heterogeneous task data can often result in suboptimal models (or negative transfer in more technical terms). We provide conceptual insights to explain why negative transfer happens. Based on the explanation, we propose methods to improve multi-task training. Based on our work in ICLR’20.
+
+One of the most powerful ideas in deep learning is that sometimes you can take the knowledge learned from one task and apply that knowledge to help another task. For example, maybe a neural network has learned to recognize objects like cats and then help you do a better job finding other objects such as leopards. This is transfer learning, where you learn from task A, and then transfer that to task B. In multi-task learning, you start off simultaneously trying to have one neural network learn several tasks at the same time. --------------------------------------------------------------------------------
+Multi-Task Learning by Maximizing Statistical Dependence (https://openaccess.thecvf.com/content_cvpr_2018/papers/Mejjati_Multi-Task_Learning_by_CVPR_2018_paper.pdf)
+citeturn616search12 [wordlim: 200] Crawled: 4 days ago; multi-task learning algorithm (regMTL) [9] assumes that all tasks are related in the sense that the corresponding parameters are *similar* to each other. ... One approach to address negative transfer is to group multiple related tasks.
+multi-task learning algorithm (regMTL) [9] assumes that all tasks are related in the sense that the corresponding parameters are *similar* to each other. This can be instantiated by a regularization function that measures the pairwise parameter differences:
+
+\[
+\mathcal{R}_2(\{w^i\}_{i=1}^{L})=\sum_{i=1}^{L}\left\|w^i-\sum_{j=1}^{L}w^j\right\|^2. \tag{2}
+\]
+
+As one of the first MTL approaches, this algorithm has been successfully applied to the cases when task dependences are known a priori. However, in many practical applications, such full dependence among all tasks is not guaranteed: Some tasks might be related while some others not. In this case, naïvely penalizing all pairwise deviations can deteriorate the performance of some tasks (called negative transfer).
+
+One approach to address negative transfer is to group multiple related tasks. For instance, Jayaraman et al. [12] assume such grouping to be known a priori and enforce attributes from the same group to have features that uniquely describe this group. Furthermore, their algorithm assumes full dependence between multiple tasks, and therefore it is vulnerable to negative transfer which we explicitly tackle by introducing sparsity on the dependence estimates. Our use of FSIC does not require the estimation of any probability density, and no prior needs to be introduced. This makes our algorithm applicable to ranking and regression problems where the target variables take continuous values.
+
+### 3. MTL by dependence maximization
+
+Suppose we are given \(L\) different learning tasks \(\mathcal{T}=\{T^i\}_{i=1}^{L}\), where the \(i\)-th task \(T^i\) is provided with \(l(i)\) training data points \(\{(x_k^i,y_k^i)\}_{k=1}^{l(i)}\subset\mathcal{X}^i\times\mathcal{Y}^i\subset\mathbb{R}^{m(i)}\times\mathbb{R}\) sampled from an underlying probability distribution \(P_{x_i y_i}\). Our goal is to learn a task estimator \(\mathcal{F}=\{f^i\}_{i=1}^{L}\) where the \(i\)-th member \(f^i:\mathcal{X}^i\to\mathcal{Y}^i\) specializes on \(T^i\). Since the best form of the estimator depends on the specific task at hand, we do not assume that all estimators in \(\mathcal{F}\) share the same parametric form. Therefore, it is possible that \(f^1\) is a deep neural network (DNN) while \(f^2\) is a Gaussian process (GP) estimator.
+
+3466--------------------------------------------------------------------------------
+Cross-Domain Recommendation: Challenges, Progress, and Prospects (https://ijcai.org/proceedings/2021/639)
+citeturn616search4 [wordlim: 200] Published: 5.3 years ago; Crawled: today; This is the negative transfer problem that the transferred data/knowledge may negatively affect the recommendation performance in the target domain. ... To target CH2 and CH3, the existing embedding-based transfer approaches employ some classical machine learning models, e.g., multi-task learning, transfer learning, clustering, deep neural networks, relational learning, and semi-supervised learning, to map or share embeddings, e.g., user/item latent factors, learned by CF-based models across domains. ... Embedding -Based Transfer  | Multi-task learning  | [Singh and Gordon, 2008]  | Ratings & item details  | Multiple relations
+
+## 2.4 Multi-Target CDR
+
+Inspired by dual-target CDR, in a multi-target CDR scenario, the researchers aim to improve the recommendation accuracy in multiple domains simultaneously. The core idea of multitarget CDR is to leverage more auxiliary information from more domains to achieve a further improvement of recommendation performance. The problem of multi-target CDR can be defined as follows.
+
+Definition 4 Multi-Target Cross-Domain Recommendation: Given the multiple domains 1 to n, including user sets {U 1 , ..., U n } and item sets {V 1 , ..., V n }, multi-target CDR is to improve the recommendation accuracy in all domains simultaneously by leveraging their observed information.
+
+To achieve multi-target CDR, in addition to the challenges in single-target CDR and dual-target CDR scenarios, there is a new challenge as follows.
+
+Avoiding negative transfer (CH6). In a multi-target CDR scenario, the recommendation performance in some domains may decline as more domains, especially sparser domains, join in. This is the negative transfer problem that the transferred data/knowledge may negatively affect the recommendation performance in the target domain. --------------------------------------------------------------------------------
+Multi-Task Distillation: Towards Mitigating the Negative Transfer in Multi-Task Learning | IEEE Conference Publication | IEEE Xplore (https://ieeexplore.ieee.org/document/9506618/)
+citeturn616search5 [wordlim: 200] Published: 5.2 years ago; Crawled: 2 months ago; # Multi-Task Distillation: Towards Mitigating the Negative Transfer in Multi-Task Learning
+
+# Multi-Task Distillation: Towards Mitigating the Negative Transfer in Multi-Task Learning
+
+Publisher: IEEE
+
+Abstract
+
+Authors
+
+Figures
+
+## Abstract:
+
+In this paper, we propose a novel mechanism for alleviating the negative transfer in multi-task learning. Multi-task learning aims to learn the general meta-knowledge via...Show More
+
+## Metadata
+
+## Abstract:
+
+In this paper, we propose a novel mechanism for alleviating the negative transfer in multi-task learning. Multi-task learning aims to learn the general meta-knowledge via sharing inductive bias for improving generalization ability. However, there exists a negative transfer problem in MTL, in which the performance improvement of a specific task leads to performance degradation of other tasks. Multi-task learning is essentially a multi-objective problem because of the task competition, necessitating a trade-off in individual optimality. Inspired by knowledge distillation, a set of task-specific teacher models can transfer the knowledge to a student multi-task model, without signicifantly loss in performance. --------------------------------------------------------------------------------
+A Review of Click-Through Rate Prediction Using Deep Learning (https://www.mdpi.com/2079-9292/14/18/3734)
+citeturn616search6 [wordlim: 200] Published: 1.2 years ago; Crawled: today; A major direction emerging from these studies is the integration of multimodal and cross-domain approaches as the foundation for next-generation CTR prediction. ... These methods are most valuable for multi-service platforms (e.g., Taobao, Amazon) where sparsity in one domain can be mitigated by knowledge transfer.
+Image
+
+Figure 9. The performance of FO-FTRL-DCN [132] compared with that of Base-DCN [27] and DCN follows that of the regularized leader (FTRL-DCN) mechanism in terms of logloss and AUC. (a) The performance of the methods for 40 iterations in terms of the logloss value. (b) The performance of the methods for 40 iterations in terms of AUC.
+
+Cross-domain approaches (e.g., CTNet [121], DDCDR [124]) emphasize the need for continual learning and knowledge transfer to address sparsity and dynamic environments. Multimodal frameworks such as HyperCTR [96] and ASKAT [76] demonstrate the benefits of fusing text, images, and behavior logs, which not only improve accuracy but also enhance robustness against cold-start scenarios. A major direction emerging from these studies is the integration of multimodal and cross-domain approaches as the foundation for next-generation CTR prediction.
+
+Table 6 shows representative cross-domain CTR methods. These methods are most valuable for multi-service platforms (e.g., Taobao, Amazon) where sparsity in one domain can be mitigated by knowledge transfer. They are less suitable when domains are highly heterogeneous or user overlap is minimal. However, cross-domain models often rely heavily on overlapping users across domains (DASL, MAN), face negative transfer (CTNet), and require large labeled datasets (DDCDR).
+
+Image
+
+Table 6. Summary of representative cross-domain CTR methods.
+
+--------------------------------------------------------------------------------
+Graziani et al. (https://assets-eu.researchsquare.com/files/rs-744740/v1_covered.pdf)
+citeturn616search13 [wordlim: 200] Crawled: 5 days ago; In (b) no connection exists between the tasks, hence the multi-task approach may result in negative transfer, providing only sub-optimal models for all the tasks. ... additional task introduces an inductive bias in the model optimization that leads to more general and robust representations than traditional or multimodal learning. ... No local minima are shared in this case and a negative transfer may happen without positive improvements to the performance.
+Graziani et al.
+
+<visual_element id="e1">
+Figure 1, three panels illustrating multi-task learning:
+
+- **(a)** Main task M has a set of local minima: {a, b}. Auxiliary task A has another set: {a, c}. Two overlapping circles (M in red, A in blue) share minimum **a**; **b** lies in M only and **c** in A only. Text: “Optimization is likely to end up on ‘a’.”
+- **(b)** Main task M has a set of local minima: {a, b}. Auxiliary task A has another set: {c}. The red M circle contains **a** and **b**; the separate blue A circle contains **c**. “Negative transfer” is labeled between them. Text: “No benefits from multi-task.”
+- **(c)** Main task M has a set of local minima: {a, b, c}. Auxiliary task A has another set: {a, c}. Adversarial task C has another set: {c}. The overlapping red, blue, and orange circles show **a** in M and A, **b** in M only, and **c** in all three. The expression shown is **(M ∩ A) ∩ ¬(C)**. Text: “Optimization is likely to end up on ‘a’ and not on ‘c’.”
+</visual_element>
+--------------------------------------------------------------------------------
+Dissecting AI (https://dissecting-ai.dev/papers/public/097015bd-15b0-4824-9721-fff39016b4b2)
+citeturn616search7 [wordlim: 200] Published: 7 months ago; Crawled: last month; # OneTrans: Unified Feature Interaction and Sequence Modeling with One Transformer in Industrial Recommender ... The core research question is: Can a unified Transformer architecture simultaneously model user behavior sequences and feature interactions while preserving the efficiency and scalability required for industrial deployment?
+
+# OneTrans: Unified Feature Interaction and Sequence Modeling with One Transformer in Industrial Recommender
+
+│
+
+├─ source: arXiv:2510.26104
+
+├─ added: March 25, 2026
+
+Lecture·loading...
+
+│
+
+├─
+
+AI Summary · AI-generated Image: AI-generated ▾
+
+### Problem & Motivation
+
+Industrial recommendation systems (RecSys) typically employ a cascaded ranking architecture, where a recall stage selects candidate items from a billion-scale corpus, followed by a ranking stage that scores each candidate using Deep Learning Recommendation Models (DLRMs). The ranking stage conventionally relies on two distinct modules: sequence modeling (e.g., DIN [35], LONGER [1]) for encoding user behavior sequences, and feature interaction (e.g., DCNv2 [27], Wukong [32], RankMixer [37]) for learning high-order crosses among non-sequential features such as user profiles, item attributes, and contextual signals. This encode-then-interaction pipeline (Fig. 1(a)) suffers from two critical limitations: (1) Bidirectional information flow is restricted — static and contextual features cannot dynamically shape sequence representations, and vice versa, leading to suboptimal feature synergy; (2) Fragmented execution and latency — separate modules prevent unified optimization and hinder the adoption of LLM-style system optimizations (e.g., KV caching, memory-efficient attention, mixed precision), which are essential for scaling efficiently.
+--------------------------------------------------------------------------------
+Multi-Scenario and Multi-Task Aware Feature Interaction for Recommendation System (https://doi.org/10.1145/3651312)
+citeturn616search8 [wordlim: 200] Published: 2.6 years ago; Crawled: 2 weeks ago; Hard Sharing and Cross-Stitch schemes suffer from negative transfer to varying degrees compared to Parallel DNNs. ... This is because the Hard Sharing method at the bottom or the Cross-Stitch method of static linear fusion features are not flexible enough to achieve fine-grained knowledge co-existence for multi-task and multi-scenario learning. ... In addition, as baselines specifically customized for multi-scenario & multi-task recommendation, AESM\(^2\), PEPNet, and HiNet achieve the best overall performance among all the baselines.
+Performance Comparison in Tenrec Dataset
+
+We bold the best result and underline the suboptimal result in each column.
+
+(i)
+
+Hard Sharing and Cross-Stitch schemes suffer from negative transfer to varying degrees compared to Parallel DNNs. For instance, on the AliExpress dataset (ALL), Hard Sharing outperforms Parallel DNNs on the CTR task, while CTCVR is inferior to Parallel DNNs, and Cross-Stitch is just the opposite. This is because the Hard Sharing method at the bottom or the Cross-Stitch method of static linear fusion features are not flexible enough to achieve fine-grained knowledge co-existence for multi-task and multi-scenario learning. STAR can be regarded as a proficient fusion of Hard Sharing and Cross-Stitch that shares a common bottom and leverages the multiplication of scenario-specific network weights with center-shared network weights during model output to assimilate knowledge from varied scenarios. Therefore, STAR is also subject to the seesaw effect. That is, the performance of one task improves while the performance of another task decreases.
+--------------------------------------------------------------------------------
+Deep multi-task learning: a review of concepts, methods, and cross-domain applications (https://doi.org/10.1007/s41060-025-00892-y)
+citeturn616search9 [wordlim: 200] Published: 11 months ago; Crawled: 6 days ago; On adding a new task multimodal inputs must retrain the network, as it may require performance of architectural changes. ... Transfer learning and multi-task learning can involve heterogeneous tasks, such as classification, segmentation, or regression, and both can share features and parameters across tasks [19]. ... Because multiple tasks are learned together, a model can often be trained faster than training separate models for each individual task. ... One major challenge is negative transfer, which occurs when tasks are too different or conflicting, causing the shared learning process to affect the performance when trained jointly [51, 52, 56]. ... This enables more flexible and scalable multi-task models that can better generalize to unseen or evolving tasks, making meta-learning a promising direction for future multi-task learning research.
+In soft parameter sharing, there is no explicit sharing of parameters; instead, the models for different tasks are encouraged to have similar parameters through regularization. This approach is particularly useful when negative transfer occurs between tasks, necessitating reduced sharing [19]. Various optimization techniques are employed to achieve effective soft parameter sharing. This allows for greater flexibility in accommodating task-specific nuances while maintaining knowledge sharing. Figure 5 illustrates the architecture of soft parameter sharing.
+
+Fig. 5
+
+Image: Fig. 5
+
+Full size image
+
+The architecture of soft parameter sharing
+
+In soft parameter sharing it differs, the overall loss function for soft parameter sharing is given by:
+
+$$ {\varvec{L}} = \mathop \sum \limits_{{\left\{ {{\varvec{t}} = 1} \right\}}}^{{ {\varvec{T}}}} {\varvec{L}}_{{\varvec{t}}} \user2{\alpha R}\left( {{\varvec{W}}_{1} , {\varvec{W}}_{2} , \ldots , {\varvec{W}}_{{\varvec{T}}} } \right) $$
+
+(4)
+
+where:
+
+\({\sum }_{\left\{{\varvec{t}}=1\right\}}^{{\varvec{T}}}{{\varvec{L}}}_{{\varvec{t}}}\): aggregates the task-specific losses, \({{\varvec{L}}}_{t}\) be the loss function for task\({\varvec{t}}\),\(\boldsymbol{\alpha }{\varvec{R}}\left({{\varvec{W}}}_{1}, {{\varvec{W}}}_{2}, \dots , {{\varvec{W}}}_{{\varvec{T}}}\right)\): A regularization term is added to the loss function to encourage the task-specific parameters \({{\varvec{W}}}_{T}\) to remain similar across tasks (similarity does not mean that all task parameters are identical, they are only allowed to deviate when needed to account for task-specific nuances.), and \(\boldsymbol{\alpha }\) is a hyperparameter controlling the strength of regularization.
+
+To conclude this section, we provide a comparison between hard parameters and soft parameters sharing. Table 1 presents a comparison between them.
+
+Table 1 Hard parameter sharing and soft parameter sharing comparison
+
+One major challenge is negative transfer, which occurs when tasks are too different or conflicting, causing the shared learning process to affect the performance when trained jointly [51, 52, 56].
+
+Task imbalance is another problem, where some tasks may dominate the learning process due to larger datasets, stronger gradients, or simpler objectives, leading to poor performance on low-resource or complex tasks. [53].
+
+Furthermore, Architectural Complexity, designing suitable architectures that allow for both shared and task-specific components, is non-trivial, especially when tasks differ in modality, structure, or scale [10].
+
+Another one of the most significant limitations of MTL is the sensitivity of hyperparameters. Unlike single-task models, multi-task learning systems often require fine-tuning of various hyperparameters, such as task-specific weights, learning rates, and optimization strategies [94, 95]. This additional layer of complexity can significantly increase the effort required during the model development phase, as finding the optimal balance between tasks is critical to avoid poor performance or negative transfer.
+--------------------------------------------------------------------------------
+MLoRA: Multi-Domain Low-Rank Adaptive Network for CTR Prediction (https://www.alphaxiv.org/abs/2408.08913)
+citeturn616search10 [wordlim: 200] Published: 2.3 years ago; Crawled: last month; E-commerce platforms, such as Alibaba and Amazon, operate across multiple domains with diverse user behaviors and product categories, making multi-domain CTR prediction particularly challenging.
+Submitted 14 Aug 2024
+
+en
+
+# MLoRA: Multi-Domain Low-Rank Adaptive Network for CTR Prediction
+
+Northwestern Polytechnical UniversityImageAlibaba Group
+
+ZY
+
+Zhiming Yang
+
+HG
+
+Haining GaoDehong Gao
+
+LY
+
+Luwei Yang
+
+LY
+
+Libin Yang
+
+XC
+
+Xiaoyan Cai
+
+WN
+
+Wei NingGuannan Zhang
+
+## Abstract
+
+Click-through rate (CTR) prediction is one of the fundamental tasks in the industry, especially in e-commerce, social media, and streaming media. It directly impacts website revenues, user satisfaction, and user retention. However, real-world production platforms often encompass various domains to cater for diverse customer needs. Traditional CTR prediction models struggle in multi-domain recommendation scenarios, facing challenges of data sparsity and disparate data distributions across domains. Existing multi-domain recommendation approaches introduce specific-domain modules for each domain, which partially address these issues but often significantly increase model parameters and lead to insufficient training. In this paper, we propose a Multi-domain Low-Rank Adaptive network (MLoRA) for CTR prediction, where we introduce a specialized LoRA module for each domain. This approach enhances the model's performance in multi-domain CTR prediction tasks and is able to be applied to various deep-learning models. We evaluate the proposed method on several multi-domain datasets. Experimental results demonstrate our MLoRA approach achieves a significant improvement compared with state-of-the-art baselines. Furthermore, we deploy it in the production environment of the Alibaba.COM. The online A/B testing results indicate the superiority and flexibility in real-world production environments. The code of our MLoRA is publicly available.
+
+## Introduction
+
+Click-Through Rate (CTR) prediction is a fundamental task in modern recommendation systems, critical for enhancing user experience and driving business revenue. E-commerce platforms, such as Alibaba and Amazon, operate across multiple domains with diverse user behaviors and product categories, making multi-domain CTR prediction particularly challenging.
+
+Image: MLoRA Architecture Figure 1: The overall architecture of the MLoRA framework, showing the shared backbone network (in blue) and domain-specific LoRA modules (in green).
+
+The challenge of multi-domain CTR prediction stems from two key issues: data sparsity within individual domains and significant variations in data distributions across domains. Conventional approaches to this problem either train separate models for each domain (suffering from insufficient data) or train a unified model on combined data (failing to capture domain-specific nuances).
+
+This paper introduces MLoRA (Multi-Domain Low-Rank Adaptive Network), a novel approach that effectively addresses these challenges by applying Low-Rank Adaptation (LoRA) to multi-domain CTR prediction. MLoRA enables efficient learning of domain-specific knowledge while maintaining a shared backbone model across all domains, resulting in significant performance improvements with minimal additional parameters.
+
+--------------------------------------------------------------------------------
+A Unified Framework for Multi-Domain CTR Prediction via Large Language  Models (https://www.alphaxiv.org/abs/2312.10743)
+citeturn616search11 [wordlim: 200] Published: 2.1 years ago; Crawled: last month; Multi-Domain CTR (MDCTR) prediction aims to solve this by learning from multiple domains simultaneously.
+Submitted 26 Sept 2024
+
+en
+
+# A Unified Framework for Multi-Domain CTR Prediction via Large Language Models
+
+ImageCity University of Hong Kong Huawei Noah’s Ark LabZichuan FuXiangyang LiChuhan WuYW Yichao WangKuicai DongXiangyu ZhaoMengchen ZhaoHuifeng Guo+1 more
+
+## Abstract
+
+Click-Through Rate (CTR) prediction is a crucial task in online recommendation platforms as it involves estimating the probability of user engagement with advertisements or items by clicking on them. Given the availability of various services like online shopping, ride-sharing, food delivery, and professional services on commercial platforms, recommendation systems in these platforms are required to make CTR predictions across multiple domains rather than just a single domain. However, multi-domain click-through rate (MDCTR) prediction remains a challenging task in online recommendation due to the complex mutual influence between domains. --------------------------------------------------------------------------------
+# Removing Hidden Confounding in Recommendation: A Unified Multi-Task Learning Approach (https://vprover.floc-conference.org/publications/preprint/wVgR/download)
+citeturn616search14 [wordlim: 200] Crawled: last week; # Removing Hidden Confounding in Recommendation: A Unified Multi-Task Learning Approach ... Then, we propose a unified multi-task learning approach to remove hidden confounding, which uses a few unbiased ratings to calibrate the learned nominal propensities and nominal error imputations from biased data.
+--------------------------------------------------------------------------------
+CRLoMTL: Conflict-Resolution through Low-rank matrices for Multi-Task Learning (https://arxiv.org/abs/2610.36337)
+citeturn616academia15 [wordlim: 200] Published: 3 weeks ago; Multi-task learning (MTL) improves model efficiency by sharing representations across related vision tasks, but it often suffers from negative transfer when task updates interfere with one another.
+--------------------------------------------------------------------------------
+cs330_multitask_transfer_2023 (https://cs330.stanford.edu/materials/cs330_multitask_transfer_2023.pdf)
+citeturn616search16 [wordlim: 200] Crawled: 2 weeks ago; # Challenge #1: Negative transfer ... Gradient Surgery for Multi-Task Learning.
+--------------------------------------------------------------------------------
+cs330_transfer_meta_learning (https://web.stanford.edu/class/cs330/lecture_slides/cs330_transfer_meta_learning.pdf)
+citeturn616search17 [wordlim: 200] Crawled: 2 weeks ago; **Transfer learning is a valid solution to multi-task learning.
+--------------------------------------------------------------------------------
+Quantifying Task Priority for Multi-Task Optimization (https://openaccess.thecvf.com/content/CVPR2024/papers/Jeong_Quantifying_Task_Priority_for_Multi-Task_Optimization_CVPR_2024_paper.pdf)
+citeturn616search18 [wordlim: 200] Crawled: 5 days ago; Our results consistently reveal substantial enhancements in multi-task performance when compared to prior research. ... **Optimization for MTL** aims to mitigate negative transfer between tasks. ... Problem Definition for Multi-task Learning
+--------------------------------------------------------------------------------
+Teacher-guided multi-task learning for integrated plasma monitoring on EAST (https://arxiv.org/abs/2610.41134)
+citeturn616academia19 [wordlim: 200] Published: 2 weeks ago; This paper integrates tokamak plasma disruption prediction, Edge-Localized Mode (ELM) monitoring, Multifaceted Asymmetric Radiation From the Edge (MARFE) detection, and H/L-mode identification into a unified Multi-Task Learning (MTL) model. ... This performance degradation is the well-known issue of negative transfer.
+--------------------------------------------------------------------------------
+Personalized Task Dependency Graphs for Mitigating Signal Erosion in Multi-Task Recommendation (https://arxiv.org/abs/2609.04862)
+citeturn616academia20 [wordlim: 200] Published: 2 months ago; Title: Personalized Task Dependency Graphs for Mitigating Signal Erosion in Multi-Task Recommendation ... Existing Multi-Task Learning (MTL) methods typically enforce uniform dependency strengths across a static conversion funnel, overlooking how task correlations naturally vary based on item characteristics.
+--------------------------------------------------------------------------------
+Conflict-Aware Multi-Teacher On-Policy Distillation in Aligned Action Spaces for Cross-Game Generalization (https://arxiv.org/abs/2611.21094)
+citeturn616academia21 [wordlim: 200] Published: yesterday; While multi-teacher on-policy distillation (MOPD) mitigates offline exposure bias and single-game reinforcement learning (RL) overfitting, scaling it to autoregressive VLMs faces two bottlenecks. ... Second, multi-teacher policy conflict arises as source teachers under incompatible dynamics issue contradictory closed-loop corrections, causing negative transfer. ... On GameWorld's temporal and directional transfer suites with Qwen3.5-4B, CAMOPD achieves 26/30 (86.7%) and 24/30 (80.0%) Task-1 zero-shot success on unseen GeoDash and Doodle Jump, outperforming prompting, weight-merging, and multi-task baselines.
+--------------------------------------------------------------------------------
+Multi-task learning (https://en.wikipedia.org/wiki/Multi-task_learning)
+citeturn616search22 [wordlim: 200] Crawled: 3 weeks ago; Multi-task learning (MTL) is a subfield of machine learning in which multiple learning tasks are solved at the same time, while exploiting commonalities and differences across tasks. ... Multitask Learning is an approach to inductive transfer that improves generalization by using the domain information contained in the training signals of related tasks as an inductive bias. ... Such group-adaptive learning has numerous applications, from predicting financial time-series, through content recommendation systems, to visual understanding for adaptive autonomous agents. ... This phenomenon is commonly referred to as negative transfer. ... A model of inductive bias learning" Journal of Artificial Intelligence Research 12:149--198, On-line paper
+

@@ -1,0 +1,5614 @@
+{
+  "content": [
+    {
+      "anchor": "ab4e343c-bffe-4579-ab0a-49a2fa59b18e",
+      "content": [
+        {
+          "text": "论文：Bi-Level Decision-Focused Causal Learning for Large-Scale Marketing Optimization: Bridging Observational and Experimental Data",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "737f381f-4402-4798-8f72-93086add84e1",
+      "content": [
+        {
+          "text": "会议：NeurIPS 2025",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "8f678fc5-5183-4d5d-b693-5d76450e112c",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "1. 一句话总结",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "ad5d3063-f8e0-4f24-be38-ddfb20805b1e",
+      "content": [
+        {
+          "text": "Bi-DFCL 不改变最终线上模型“预测每个 treatment 的收益和成本，再做预算分配”的形式；它改变的是训练 Target 的方式：让海量但有偏的 OBS 提供规模，让稀缺但无偏的 RCT 用最终决策质量来校正 OBS 中缺失反事实标签的融合方式。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "25e456ed-f4b8-4c1d-af14-8f5e1fd062a3",
+      "content": [
+        {
+          "text": "最短的因果链是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "cafb4b7b-f002-4ed0-bf6f-738c4b29b86b",
+      "attrs": {
+        "language": "PlainText"
+      },
+      "content": [
+        {
+          "text": "Bridge φ\n→ OBS 反事实伪标签\n→ Target 的临时最优参数 θ*(φ)\n→ 预测结果面 r̂、ĉ\n→ 预算分配策略 z*\n→ RCT 上的无偏决策价值\n→ 反向更新 Bridge φ。",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "17240653-23e7-4a66-bb3e-2da1a686f939",
+      "content": [
+        {
+          "text": "因此它不是三张预测结果面相加，也不是线上将三个网络串行运行；它是一个训练期双层优化框架。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "78ed972b-4f30-4b6c-8352-b6435d18b551",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "2. 解决的矛盾",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "7be6b645-57f6-444a-b280-bedb3d91372c",
+      "content": [
+        {
+          "text": "营销/发券中，对个体 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "和动作",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，真实但不可同时观测的结果是： ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " r_{ij}=\\text{收益},\\qquad c_{ij}=\\text{成本}.  "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "80c881e9-c377-44fe-8bf9-909bba93cbe3",
+      "content": [
+        {
+          "text": "同一个人只能实际拿到一个动作 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "t_i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，日志中只看得到：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "(x_i,t_i,r_{i,t_i},c_{i,t_i})."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "97728a15-c747-4baa-bcc7-bf9f0cec7451",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "60c7cf9f-b92a-43ba-86e2-44554babdcbb",
+                  "content": [
+                    {
+                      "text": "数据",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "cc19376d-4fc9-479e-bae9-8ba197c81c0f",
+                  "content": [
+                    {
+                      "text": "treatment 如何产生",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "d8cbaffa-5ef5-4fd3-9242-b9bf5905172c",
+                  "content": [
+                    {
+                      "text": "能提供什么",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "bafbad7d-892c-4376-87c5-57daa66552ae",
+                  "content": [
+                    {
+                      "text": "主要问题",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "d8c92113-e2f3-4ad9-9647-53fb6d8960df",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "RCT，\\mathcal D_{\\rm RCT}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "a9ec55a6-06e9-4a03-bb14-6cb671a0ec73",
+                  "content": [
+                    {
+                      "text": "随机分配",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "fb7194e5-d2fc-4901-9c02-752388fc692a",
+                  "content": [
+                    {
+                      "text": "无偏的事实结果；可无偏评估策略价值",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "9e217696-0d4e-402e-a9ff-57f994114994",
+                  "content": [
+                    {
+                      "text": "贵、样本少、对细分人群和多券档的结果面方差高",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "938157ff-b607-41b4-8c37-53eef37b8974",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "OBS，\\mathcal D_{\\rm OBS}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "27691db5-72f9-49cf-8cf2-d046bbe23aeb",
+                  "content": [
+                    {
+                      "text": "旧策略选择",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "262e4e51-b448-4faa-9d46-64553ec45ea3",
+                  "content": [
+                    {
+                      "text": "大样本、丰富场景、稳定的特征覆盖",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "560d74dd-4c81-4174-ba73-5ee245fe204a",
+                  "content": [
+                    {
+                      "text": "选择偏差与混杂：高券后订单高，不代表高券造成订单高",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "820bc86d-5e1c-41ff-87ab-e158df4cbf58",
+      "content": [
+        {
+          "text": "DFCL 已经处理“预测 MSE 最小不等于预算策略最好”。Bi-DFCL 再处理：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "1bd1f9a7-387d-49fa-ab4c-8854a2b16217",
+      "content": [
+        {
+          "anchor": "a5b93c74-66ee-498a-a900-826f092d7630",
+          "content": [
+            {
+              "text": "若仅用 RCT，方向可信但学不稳；若让 OBS 直接决定反事实，又可能把旧策略偏差写进结果面。怎样让 RCT 决定 OBS 应被怎样使用？",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "anchor": "a4ca14e5-7aef-4ef8-a127-f218dcc33896",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "2.1 RCT 与 OBS 的偏差-方差矛盾",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "d73f5784-f9f1-47ed-a0e0-1997a3def1e1",
+      "content": [
+        {
+          "anchor": "19a2c1af-7b1e-40e6-8884-b3d27f4491e6",
+          "content": [
+            {
+              "anchor": "6b46711e-fb24-4672-b0e7-e7367e5a13d7",
+              "content": [
+                {
+                  "text": "RCT：低偏差、高方差。treatment 是随机分配的，因此券额与用户原本的购买意愿不系统相关。它可以无偏地估计干预带来的增量；但实验昂贵，按用户类型和券档继续切分后，每个局部结果面的估计会不稳定。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "888d3e82-e83a-4f87-9104-01814c161ad7",
+      "content": [
+        {
+          "anchor": "32cfd022-c011-454d-991f-1f64c6471d9a",
+          "content": [
+            {
+              "anchor": "2e660de1-b41b-4207-8857-51c4949d7e6f",
+              "content": [
+                {
+                  "text": "OBS：低方差、高偏差。历史日志规模大、特征覆盖广，拟合通常更稳定；但旧策略会选择性地给某些用户发券，导致用户原本的购买意愿、场景和券额混在一起。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "b942e375-2267-4c74-aefa-25b7c4e34059",
+      "content": [
+        {
+          "text": "例如旧策略只给高活跃用户发 10 元券，OBS 中可能观察到：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathbb E[Y\\mid T=10] > \\mathbb E[Y\\mid T=0]."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "ec3c1d8b-f6a3-4126-9350-378e37af0a49",
+      "content": [
+        {
+          "text": "这只说明“实际拿到 10 元券的人订单更多”，不等于券本身带来了正向增量：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathbb E[Y(10)-Y(0)] > 0."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d8740906-3724-4d4f-a882-ab46150eb0a6",
+      "content": [
+        {
+          "text": "前一个是带混杂的观测相关性，后一个才是我们希望用于资源分配的因果效应。于是：只用 RCT，方向可信但对细粒度人群和多券档的决策容易抖动；只用 OBS，结果平滑却可能稳定地学到旧策略偏差。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "e8c859f3-4a4e-4d8d-a361-65b6a741b54e",
+      "content": [
+        {
+          "text": "Bi-DFCL 的分工正是：让 OBS 提供样本规模与特征覆盖，让 RCT 上无偏的最终决策质量决定 OBS 反事实信息应被如何相信。它不只是把两份数据拼接训练，而是让 RCT 的上层决策损失反向校正 Bridge 对 OBS 伪标签的融合比例。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "33c70794-f7a1-4118-87b5-de50134d26b8",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "2.2 为什么百万级 RCT 仍可能“不够”？",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "cea5fd17-f3c1-4592-bc44-a2fd98274179",
+      "content": [
+        {
+          "text": "“RCT 样本够不够”没有一个固定的总样本阈值。关键不是总人数，而是每个需要决策的“用户类型 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\times"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "券档",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\times"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 场景”单元中，有多少随机分配样本和有效结果。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "cd55cfaf-6b4f-4fda-9937-7df3e3904e47",
+      "content": [
+        {
+          "text": "粗略地说，某个局部单元的有效样本量会随以下切分迅速减少：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " N_{\\mathrm{effective}}  \\approx  \\frac{N_{\\mathrm{RCT}}}{\\text{treatment 数}}  \\times \\text{人群占比}  \\times \\text{结果事件率}.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "40d2af9a-adfe-4f7a-8e72-32acb067bbcb",
+      "content": [
+        {
+          "text": "例如 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "220"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "万 RCT 样本分到",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "8"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "个券档后，平均每档约",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "27.5"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "万；若某类用户只占",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "2\\%"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，该券档约剩 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "5{,}500"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "人；若目标事件率为",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "1\\%"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，真正观察到的正反馈约只有 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "55"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "个。对于“该类用户是否应发这档券、发券的增量收益是否值得预算”的判断，这个信号可能仍有很大方差。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "8934a592-0846-4835-bf8f-7a4b0f6a2c98",
+      "content": [
+        {
+          "text": "论文的 Marketing Data I 正好说明了这一点：它使用约",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "222"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "万 RCT 训练样本和约",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "2{,}220"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "万 OBS 样本。作者将 RCT-only 模型作为无偏参考，但仍将其性能限制归因于相对较小样本量带来的高方差；在大规模 OBS 与适量 RCT 融合后，EOM 更高。这里的“样本不足”是相对于 8 个 treatment、180 个特征和预算分配任务的细粒度结果面而言，不是说",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "222"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "万在绝对数量上很少。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "906078e3-9db6-487e-a4b9-dde991c1ccfc",
+      "content": [
+        {
+          "text": "因此，判断 RCT 是否足够，更应看决策稳定性而不是一个固定数字：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "3d583ab4-de6e-4095-8240-4cb9dbbf9311",
+      "content": [
+        {
+          "anchor": "751a239f-da51-48b4-a587-f6f8201db11c",
+          "content": [
+            {
+              "anchor": "a4e08ab6-fd2f-487b-b02a-439ad1960c99",
+              "content": [
+                {
+                  "text": "关键券档、人群和场景是否都有随机曝光与有效正反馈，而不是存在近零覆盖的单元。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "3afe4b87-712c-45b3-93f5-0d7af7f6ae85",
+      "content": [
+        {
+          "anchor": "3c2facf8-a87a-4aa8-af4d-f608b694e6ad",
+          "content": [
+            {
+              "anchor": "2c82a110-dafb-43de-ada5-78a46434ed44",
+              "content": [
+                {
+                  "text": "将 RCT 随机切分或重采样后，预算分配策略在独立 RCT 上的 EOM / AUCC 置信区间是否足够窄，选人和选券是否频繁翻转。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "17e56a22-f23b-432e-a279-7a333974683b",
+      "content": [
+        {
+          "anchor": "a49fa487-19bf-435b-b4ac-943919927d4b",
+          "content": [
+            {
+              "anchor": "95eaff4a-d23c-4636-af8a-a0bc49f4c42f",
+              "content": [
+                {
+                  "text": "继续增加 RCT 后，独立 RCT 上的 EOM 是否已基本不再提升；若仍持续提升，说明方差仍是瓶颈。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "3c6530db-501f-4455-8614-c8b63bff30cd",
+      "content": [
+        {
+          "text": "如果只做传统两组均值检验，每个 treatment arm 的样本量通常还与要检测的最小增量效果",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\delta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、结果方差 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\sigma^2"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、显著性水平和统计功效有关：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "7e27a973-b359-4015-8528-b7d741e59903",
+      "content": [
+        {
+          "attrs": {
+            "latex": "n_{\\mathrm{per\\ arm}}\n\n\\approx\n\n\\frac{2(z_{1-\\alpha/2}+z_{1-\\beta})^2\\sigma^2}{\\delta^2}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "16c80a56-56aa-4eeb-9d32-89132410da7b",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "3. 下游优化什么：Target 输出不是最终券档",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "519b7b8a-2302-4f47-8989-f81e2416a3df",
+      "content": [
+        {
+          "text": "Target 对每个个体、每个 treatment 输出完整结果面：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal F_\\theta(x_i)\n\n=\\{(\\hat r_{ij},\\hat c_{ij})\\}_{j=1}^{M}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "c7c62961-2995-4497-8f52-fca93d86d0be",
+      "content": [
+        {
+          "text": "例如券档为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\{0,2,4,6\\}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 元，Target 输出四组收益/成本预测；它不直接分类出 4 元券。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "32667f7a-fff1-4459-8c7b-16849a1b60f3",
+      "content": [
+        {
+          "text": "最终动作来自一个全局预算分配问题：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "80c6e50e-41dd-4b9a-b1c0-c9f79eded404",
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\begin{aligned}\n\n\\max_z\\quad&\\sum_i\\sum_jz_{ij}\\hat r_{ij}\\\\\n\n\\text{s.t.}\\quad&\\sum_i\\sum_jz_{ij}\\hat c_{ij}\\le B,\\\\\n\n&\\sum_jz_{ij}=1,\\quad z_{ij}\\in\\{0,1\\}.\n\n\\end{aligned}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "311946d0-3095-4c25-b7bf-74f81176b80a",
+      "content": [
+        {
+          "attrs": {
+            "latex": "z_{ij}=1"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "才表示“给",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "选了",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "”。通常把不干预/0 元券作为成本为 0 的一个动作，因此每人仍恰好选一个动作。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "befea763-6e1b-4350-8675-3c68433a5bad",
+      "content": [
+        {
+          "text": "分配器可通过影子价格 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\lambda^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 实现近似求解：先比较",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "g_{ij}=\\hat r_{ij}-\\lambda^*\\hat c_{ij},"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "aacf862b-317f-4b83-b0dd-b8d5901d8e0c",
+      "content": [
+        {
+          "text": "再选择每个人净价值最高的档位。若预测总成本超预算，提高 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\lambda"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "；若预算仍有余量，降低 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\lambda"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。二分搜索可找到使成本接近 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "B"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "的",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\lambda^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。这对应 Figure 2 右侧红框中的 Operation Research：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z^*(\\hat r,\\hat c)=\\mathcal A(H(\\hat r,\\hat c))."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "65cfdf53-e365-4a8b-8542-8e873723457d",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "4. Figure 2：图中每一块在回答什么",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "7e125cf4-e14e-4253-8475-eab278c4c0e4",
+      "content": [
+        {
+          "attrs": {
+            "size": 162184,
+            "src": "https://didoc.didichuxing.com/api/uploadfile?b=didoc2-upload-file-prod&k=images%2F1786004183534%2F9kk7spUN-1IYZtaTaJDYX%2FPasted_image_20260730214003.png&filename=Pasted+image+20260730214003.png"
+          },
+          "type": "image"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "5562473a-364e-416d-af04-ed9f45e1c8ba",
+      "content": [
+        {
+          "text": "从左到右是三段不同性质的计算：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "776c2b6d-7e4d-4038-b0f1-da1de41ff979",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "b83d006f-3cee-4401-aac2-0b3d4ab67846",
+                  "content": [
+                    {
+                      "text": "图中区域",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "eb47b327-e9f5-4fe0-a0b0-3ee226cd3956",
+                  "content": [
+                    {
+                      "text": "输入",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "54f45419-d29f-44ed-a349-3c3f670b1ab0",
+                  "content": [
+                    {
+                      "text": "做的事",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "530ee035-4158-4a11-9bd0-797d8ed1945f",
+                  "content": [
+                    {
+                      "text": "输出",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "a12a565d-9baf-4300-96ae-6cfbf8d6f256",
+                  "content": [
+                    {
+                      "text": "谁被更新",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "7e6989bd-9e85-4f25-ba20-aca53a633bc8",
+                  "content": [
+                    {
+                      "text": "左：Lower-level Optimization",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "fe46be5e-b516-4f4d-b6b5-dfaa64d6623c",
+                  "content": [
+                    {
+                      "text": "OBS、Teacher、Bridge",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "b6116956-c011-4cf2-a8f2-d053bb50a92b",
+                  "content": [
+                    {
+                      "text": "构造事实/反事实标签，训练 Target 的预测能力",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "75341b7b-bd2a-4187-8dd2-b87d22a30966",
+                  "content": [
+                    {
+                      "text": "临时 Target 参数 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\hat\\theta(\\phi)"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "e94afae6-c8cb-4ec8-816c-68d46f561d34",
+                  "content": [
+                    {
+                      "text": "临时更新 Target；正式下层阶段更新 Target",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "684c7c14-3dee-400e-93fc-c232df0995bb",
+                  "content": [
+                    {
+                      "text": "中：Implicit Differentiation",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "1260a4d7-5e11-4352-bf2e-316e6cc24fef",
+                  "content": [
+                    {
+                      "text": "下层最优条件与上层梯度",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5af1a6d3-6269-4c88-93b1-8d2c4c14ee6a",
+                  "content": [
+                    {
+                      "text": "计算“Bridge 改一点，最优 Target 会怎样变”",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "89d1d2e5-ba58-47fe-ae52-9beb605fdcc4",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "d\\theta^*/d\\phi"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": "的作用结果",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5eda387e-be11-42c4-b6eb-0212d423dcfe",
+                  "content": [
+                    {
+                      "text": "为更新 Bridge 提供链式梯度",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "e17af41e-1e24-424d-8fc5-bfaefceca9c8",
+                  "content": [
+                    {
+                      "text": "右：Upper-level Optimization",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "db8aa70d-762b-4589-a60a-299f380dca6f",
+                  "content": [
+                    {
+                      "text": "临时 Target、RCT、预算分配器",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "b5840b33-838e-40cd-b6d1-a5727cfa9e62",
+                  "content": [
+                    {
+                      "text": "评估“这种伪标签融合训练出来的策略是否真更好”",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "8ee2e7ed-d17d-4d94-ab18-06294ee53fe7",
+                  "content": [
+                    {
+                      "text": "决策损失\\mathcal L_{\\rm DL}及其对结果面的梯度",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "b1dbfee2-a952-4eab-84e6-752999ced6ea",
+                  "content": [
+                    {
+                      "text": "更新 Bridge",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "f5ce9bf9-045c-463c-9c0a-041163cc5585",
+      "content": [
+        {
+          "text": "需要注意图的两类箭头：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "a80bdcd6-e51b-4e8e-82ff-374022823aa5",
+      "content": [
+        {
+          "anchor": "2b6c4aa9-a1b7-44bb-b1c6-b2af96851b34",
+          "content": [
+            {
+              "anchor": "ee517b1e-af05-4cf1-bd89-055bf534fe15",
+              "content": [
+                {
+                  "text": "实线从左到右：前向计算和数值传递；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "cc9fe990-fa7a-43fd-9525-ab21d496c6f1",
+      "content": [
+        {
+          "anchor": "64bd8540-c151-48ff-8dab-3d5127a6dd43",
+          "content": [
+            {
+              "anchor": "e9119247-9474-4939-ad44-3a7e93e63091",
+              "content": [
+                {
+                  "text": "从右回到左/中间的偏导箭头：训练信号和梯度传递。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "31a385dc-6460-42d3-b98a-bc50f7625bab",
+      "content": [
+        {
+          "text": "接下来按图的顺序走完整一轮。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "5f1d8e4b-2243-41a9-9de5-58ec86b79099",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "f06a99e9-3254-46d2-9bab-7ff066a02488",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "5.1 Teacher：只提供 RCT 锚点，不直接上线",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "43b083c0-d8b8-4e95-8cb3-7971c992f1f8",
+      "content": [
+        {
+          "text": "先在 RCT 上用普通预测损失预训练 Teacher",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal F_\\psi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，再冻结：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "OBS，\\mathcal D_{\\rm OBS}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "fe69fc5b-1c4a-43af-9ad9-11332ed24e19",
+      "content": [
+        {
+          "text": "它的作用不是保证每个格子绝对正确，而是提供一个相对无偏的参考点：由于 treatment 随机，Teacher 不容易把“旧策略偏好给谁发券”误学成券效。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "12f46100-2c03-415c-8c98-d999620e63c5",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "5.2 Bridge：两个 gate，融合两张已有预测表",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "2db6cf0c-f612-41d2-9e09-b2be4c1801db",
+      "content": [
+        {
+          "text": "Bridge ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal G_\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "不是第三张收益/成本结果面。对样本",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、动作 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，它输出：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "2c93d9c6-4f11-46fa-843d-917fc7b45707",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\begin{aligned}  w^r_{ij}&=\\operatorname{sigmoid}(\\mathcal G^r_\\phi(i,j)),\\\\  w^c_{ij}&=\\operatorname{sigmoid}(\\mathcal G^c_\\phi(i,j)).  \\end{aligned}   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "3380cd72-0aa7-4181-b8ec-667ee4c02a63",
+      "content": [
+        {
+          "text": "随后融合 Teacher 与当前 Target 的预测：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "b3c85347-2fb1-4462-846e-1d010a2e6219",
+      "content": [
+        {
+          "attrs": {
+            "latex": " \\begin{aligned}  r^{\\rm cf}_{ij}  &=w^r_{ij}\\hat r^{\\rm pre}_{ij}+(1-w^r_{ij})\\hat r_{ij},\\\\  c^{\\rm cf}_{ij}  &=w^c_{ij}\\hat c^{\\rm pre}_{ij}+(1-w^c_{ij})\\hat c_{ij}.  \\end{aligned}   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "2c4c0f94-363f-4c41-aa4e-99bb82803613",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "ad83a24b-30a3-4955-9855-8f9d8a987e04",
+                  "content": [
+                    {
+                      "text": "gate 值",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "a025d41e-db97-464a-8a1f-902bd0c01085",
+                  "content": [
+                    {
+                      "text": "融合含义",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "1fcd147a-c775-4ba0-b6b3-b3f6b096f88b",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "w=1"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "cc3cc790-8c9f-465c-a885-ab49c92a06a3",
+                  "content": [
+                    {
+                      "text": "完全采用 Teacher 预测",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "3e6b9b47-d3ba-43a9-ae9e-cac294aaeade",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "w=0"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "4d42e43a-aa11-4616-9ef6-e03140afc663",
+                  "content": [
+                    {
+                      "text": "完全采用当前 Target 预测",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "9901d4ad-50cd-4ee0-b9ac-938af94d9867",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "0<w<1"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "85cb9773-90ce-42cc-a9c5-ba4cb65643f6",
+                  "content": [
+                    {
+                      "text": "两者软融合",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "e8fcb5b5-94cd-4caa-a09e-8cdc0efd7bae",
+      "content": [
+        {
+          "text": "收益与成本各用一个 gate，因为“谁会下单”的偏差模式与“券会不会核销、实际花多少钱”的偏差模式不必相同。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "bba99073-b013-4eda-ba55-8e53d197ccad",
+      "content": [
+        {
+          "text": "例如 OBS 中有一位高活跃用户，旧策略经常给其 8 元券且他常下单。Teacher 依据 RCT 认为 8 元券收益为",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "0.20"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，当前 Target 受旧策略偏差影响预测为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "0.50"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。若 Bridge 给出 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "w^r=0.8"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "b528401b-a055-4601-adfc-d7ab6ef934af",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  r^{\\rm cf}=0.8\\times0.20+0.2\\times0.50=0.26.   \n"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "7668c2f7-620d-4be9-af86-7ce65f0448e1",
+      "content": [
+        {
+          "text": "Target 便不会被 OBS 中“高券后订单高”的表象直接推向 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "0.50"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "c3194c48-19a9-4c69-ac95-a5c7487847e1",
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "这不是“检索相似历史样本的真实标签”",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "2e16bb34-6725-4613-90d7-d5837b828a95",
+      "content": [
+        {
+          "text": "Bridge 生成的反事实伪标签，不是为当前 OBS 样本找一个历史上相似的人，再将那个相似人的事实结果搬过来。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "9e0ca8f2-0e2c-49fb-801c-6f25f77db660",
+      "content": [
+        {
+          "text": "若当前 OBS 样本 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 实际拿到 8 元券，则日志只提供：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "baac6a77-faff-46b0-8ea2-308c8301258d",
+      "content": [
+        {
+          "attrs": {
+            "latex": "(x_i,t_i=8,r_{i,8},c_{i,8})."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d61e8811-3f22-4dd0-8829-782af5f7e25c",
+      "content": [
+        {
+          "text": "其中 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "r_{i,8},c_{i,8}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 是当前样本自己的事实标签，直接用于下层训练；但它拿 0、3、5 元券会怎样，历史里并没有这个人的真实结果。对某个未执行动作，例如 5 元券，实际计算是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "7536cdd5-bad2-47e6-8b4d-6c60e8e76ae7",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\begin{aligned}  \\hat r^{\\rm pre}_{i,5}  &=\\text{Teacher 输入同一个 }x_i\\text{ 后，对 5 元券的反事实预测},\\\\  \\hat r_{i,5}  &=\\text{当前 Target 输入同一个 }x_i\\text{ 后，对 5 元券的反事实预测},\\\\  r^{\\rm cf}_{i,5}  &=w^r_{i,5}\\hat r^{\\rm pre}_{i,5}  +(1-w^r_{i,5})\\hat r_{i,5}.  \\end{aligned}   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "39a541ed-a942-4963-b64c-ac6db5731a36",
+      "content": [
+        {
+          "text": "因此正确的数据流是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "52ceed68-7775-4a10-9cb5-c8bd39ac493c",
+      "attrs": {
+        "language": "PlainText"
+      },
+      "content": [
+        {
+          "text": "同一个 OBS 样本的特征 x_i\n→ Teacher / Target 分别预测“该样本若执行未发生动作”的结果\n→ Bridge 融合两份预测\n→ 形成该样本的反事实伪标签。",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "92caf73c-34b9-458a-bd29-b100175ac607",
+      "content": [
+        {
+          "text": "Teacher 与 Target 在训练时当然会从大量历史样本中学习“哪些特征模式的人对哪档券反应相近”，所以预测会间接利用群体相似性；但论文没有显式做 nearest-neighbor 检索，也没有把别人的事实标签直接当成当前人的反事实标签。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "85e91e45-572e-49a7-a53d-3fc19ce27225",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "5.3 Lower-level Prediction Loss：OBS 如何真正更新 Target",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "bf2e2908-e25c-40c2-a2b3-3bd581348f4e",
+      "content": [
+        {
+          "text": "对 OBS 样本的事实动作 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "t_i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，有日志真实标签，Target 直接拟合：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "(r_{i,t_i},c_{i,t_i})."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "170956a0-226f-4367-9ddd-75954fc2cdcd",
+      "content": [
+        {
+          "text": "对未执行的动作 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "j\\ne t_i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，没有真实反事实标签，则让 Target 拟合 Bridge 给出的伪标签：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "  (r^{\\rm cf}_{ij},c^{\\rm cf}_{ij}).   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "7d87ce2d-bcf4-41b0-949d-53ab098435da",
+      "content": [
+        {
+          "text": "用平方损失表示，下层目标可理解为：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d4b4bc16-83a3-44c0-8045-1872f1d6fbd4",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\begin{aligned}  \\mathcal L_{\\rm PL}(\\phi,\\theta;\\mathcal D_{\\rm OBS})  =&\\ \\mathbb E_{i}\\bigl[  (r_{i,t_i}-\\hat r_{i,t_i})^2  +(c_{i,t_i}-\\hat c_{i,t_i})^2  \\bigr]\\\\  &+\\mathbb E_{i}\\sum_{j\\ne t_i}\\bigl[  (r^{\\rm cf}_{ij}-\\hat r_{ij})^2  +(c^{\\rm cf}_{ij}-\\hat c_{ij})^2  \\bigr].  \\end{aligned}   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "a72ca7d6-9745-44a6-8f4d-b8ddbb2b14fa",
+      "content": [
+        {
+          "text": "这就是 Figure 2 左侧粉色框 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal L_{\\rm PL}(\\phi,\\theta;\\mathcal D_{\\rm OBS})"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d9ac5954-e312-4e57-affd-b5f4c09298ef",
+      "content": [
+        {
+          "anchor": "8117bcd6-a953-4495-bed0-4c7325624ec4",
+          "content": [
+            {
+              "anchor": "51ba36b7-2413-4f57-8c21-f74e2f765f5b",
+              "content": [
+                {
+                  "text": "它对 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\theta"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "可微，因此普通反向传播可以更新 Target；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "d5ac9ad3-58f1-4184-9e5d-5f3c809e9120",
+      "content": [
+        {
+          "anchor": "edc3ac5f-3db6-47f2-a19d-a05374820a1e",
+          "content": [
+            {
+              "anchor": "e0b57797-7cf5-45f4-9645-5061dd5e6c02",
+              "content": [
+                {
+                  "text": "它的标签中含 Bridge 输出，所以它也依赖",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\phi"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "27f0afe9-d4d4-49f1-a734-73e960e8b2b2",
+      "content": [
+        {
+          "anchor": "df1b7250-6025-4070-9a87-a7d6c7129ceb",
+          "content": [
+            {
+              "anchor": "e5ccf5e9-6291-49e0-892a-efd5d9586d61",
+              "content": [
+                {
+                  "text": "但在下层优化中，直接被最小化的是 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\theta"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，不是让 Bridge 只为降低 OBS 拟合误差而随意调整。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "ad1c3366-e118-4559-aa26-b4e12a856b7c",
+      "content": [
+        {
+          "text": "给定 Bridge，真正想得到的下层最优 Target 为：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "bb4f305e-0b44-4b39-86bf-990eec0e6b5f",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\theta^*(\\phi)  =\\arg\\min_\\theta\\mathcal L_{\\rm PL}(\\phi,\\theta;\\mathcal D_{\\rm OBS}).   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "9e8e5e72-5f13-4aea-98b2-7cca552d3305",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "5.4 当前 Target 的预测到底来自 哪里？",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "3a51623a-a916-4b6e-9585-3655aba0fea4",
+      "content": [
+        {
+          "text": "当前 Target 的参数主要由 OBS 下层损失训练；但它不是“只拟合 OBS 事实标签”的普通 OBS-only 模型。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "982dd82b-b2f0-4deb-a066-17bc73611484",
+      "content": [
+        {
+          "text": "在图左的 OBS batch 上，当前 Target 的预测是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d7563928-c16f-4c5e-a1f9-6d79c26c4b1b",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  (\\hat r_{ij}^{\\rm OBS},\\hat c_{ij}^{\\rm OBS})  =\\mathcal F_\\theta(x_i^{\\rm OBS},j).  "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "cbd220fd-0853-441b-8b97-68984d917ed3",
+      "content": [
+        {
+          "text": "它通过两类监督被更新：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "b4b2ef5a-a09c-4be5-8896-fb4b34381067",
+      "content": [
+        {
+          "anchor": "50b92e9b-c8c2-466e-9753-026c95530a5b",
+          "content": [
+            {
+              "anchor": "2aec75ed-d6ff-4cd5-85f9-cddb1a55c7a0",
+              "content": [
+                {
+                  "text": "OBS 已执行动作的真实事实标签；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "61eafe21-7701-4c50-9f3a-9f2c4a8807c5",
+      "content": [
+        {
+          "anchor": "cd910c22-9fb9-44a6-bb9c-a28a466fcc8e",
+          "content": [
+            {
+              "anchor": "9697a7a6-cc30-4cc5-b87d-28a64fabf3fa",
+              "content": [
+                {
+                  "text": "对 OBS 未执行动作，由 Bridge 融合 Teacher 与当前 Target 得到的反事实伪标签。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "da03c8fd-474b-4b6c-9700-f3fcf238829e",
+      "content": [
+        {
+          "text": "因此可将它称为“以 OBS 为主要训练数据、受 RCT 间接校正的 Target”。它既不同于只用 RCT 训练的 Teacher，也不同于完全忽略 RCT 的 OBS-only outcome 模型。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "8307b5cf-a81a-494a-bb1c-7b34aacae411",
+      "content": [
+        {
+          "text": "到了图右上层，参数不变的临时 Target 会被应用到 RCT 用户特征 上：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "ba3d8241-262c-4cf0-97c3-681905ff7e49",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  (\\hat r_{ij}^{\\rm RCT},\\hat c_{ij}^{\\rm RCT})  =\\mathcal F_{\\hat\\theta}(x_i^{\\rm RCT},j).  "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "8e22ff46-fd38-4d12-ac89-633a6a00f0de",
+      "content": [
+        {
+          "text": "这里不是再用 RCT 对 Target 做一轮 MSE 监督训练；而是把“由 OBS 教出来的临时 Target”拿到无偏 RCT 上，检查它经过预算分配后的策略是否有效。若效果不好，RCT 梯度更新的是 Bridge，Bridge 再改变下一轮 OBS 训练 Target 时使用的反事实伪标签。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "f161675b-57d7-44b4-a03a-88e9a31ccdf4",
+      "attrs": {
+        "language": "PlainText"
+      },
+      "content": [
+        {
+          "text": "OBS：直接训练 Target 的结果面。\nRCT：不直接用预测 MSE 教 Target；通过决策质量间接教 Bridge。\nBridge：改变 OBS 的伪标签，从而在下一轮间接改变 Target。",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "233f9cd5-22c9-49a0-83b9-05551565545b",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "6. 为什么复制 Target",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "cf6ab6c6-f14b-4aa8-bc6a-dba3deb7744c",
+      "attrs": {
+        "title": "例子"
+      },
+      "content": [
+        {
+          "anchor": "53448ef1-1cba-4b1f-b9f9-d0989062b0a1",
+          "content": [
+            {
+              "text": "假设用户 A 在 OBS 中实际领过 0 元券；对未实际发出的 8 元券，Teacher 预测增量收益为",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "latex": 4
+              },
+              "type": "mathquill"
+            },
+            {
+              "text": "，当前 Target 预测为 ",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "latex": 12
+              },
+              "type": "mathquill"
+            },
+            {
+              "text": "。若 Bridge 给出 ",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "latex": "w^r_{A,8}=0.8"
+              },
+              "type": "mathquill"
+            },
+            {
+              "text": "，则用于训练的反事实收益标签约为：",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "anchor": "a4b60fba-69c8-4068-85cb-4ad8c38ec7db",
+          "content": [
+            {
+              "attrs": {
+                "latex": "\\tilde r_{A,8}=0.8\\times4+0.2\\times12=5.6."
+              },
+              "type": "mathquill"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "anchor": "a3ee2cd4-cab0-4934-8634-ac27df4110cd",
+          "content": [
+            {
+              "text": "这会让临时 Target 在第 1 步更新时，不再把“8 元券收益 12”当作唯一学习方向，而是向 ",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "latex": 5.6
+              },
+              "type": "mathquill"
+            },
+            {
+              "text": "靠近；后续",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "latex": "K-1"
+              },
+              "type": "mathquill"
+            },
+            {
+              "text": "步仍会受这类融合标签、事实标签及其他 OBS 样本共同影响。完成",
+              "type": "text"
+            },
+            {
+              "attrs": {
+                "latex": "K"
+              },
+              "type": "mathquill"
+            },
+            {
+              "text": "步后，得到的是一张新的、受当前 Bridge 影响的临时收益/成本表，而不是只改变了 A 的一个数。",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        },
+        {
+          "anchor": "407cb1b7-7b05-4cfa-9b36-55ca273c1d4c",
+          "content": [
+            {
+              "text": "接着将这张表用于 RCT 用户的预算分配。若它仍倾向把大量 8 元券给高活跃、原本就容易下单的人，而 RCT 的无偏结果显示真实增量很小，右侧决策损失就会变差。随后梯度会推动 Bridge 调整：例如在这类用户和券档上减少对当前 Target 的盲目信任，或学习到更合适的融合比例。",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "expand"
+    },
+    {
+      "anchor": "f2ba2822-d603-4e7a-94cd-2554869b2341",
+      "content": [
+        {
+          "text": "若要知道 Bridge 的某个 gate 是否好，必须知道：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "2c895b58-30a0-40c0-a213-dade88a0dcef",
+      "content": [
+        {
+          "anchor": "b550f7da-8c6b-4818-89d1-82439e5fb7f2",
+          "content": [
+            {
+              "text": "“如果我用这个 Bridge 生成伪标签，并让 Target 真正在 OBS 上学一段时间，Target 最终会变成什么样？”",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "anchor": "42cf4774-95fa-42c1-b3a0-05abd8a3eb9c",
+      "content": [
+        {
+          "text": "这个“学完后的 Target”就是 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta^*(\\phi)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。但每次更新 Bridge 都把 Target 完全训练到收敛会很贵。因此 Figure 2 中先复制 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal F_\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "到",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal F_{\\hat\\theta}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，在副本上做 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "K"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 次 assumed update：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "fae38b74-5aab-4848-91c8-677c0d9dbb1a",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\begin{aligned}  \\hat\\theta^{(0)}&=\\theta,\\\\  \\hat\\theta^{(k+1)}  &=\\hat\\theta^{(k)}  -\\eta\\nabla_\\theta  \\mathcal L_{\\rm PL}(\\phi,\\hat\\theta^{(k)};\\mathcal D_{\\rm OBS}),\\\\  \\hat\\theta(\\phi)&=\\hat\\theta^{(K)}.  \\end{aligned}   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "ec5e6c47-c7a9-419c-bf11-fd77b8fd1403",
+      "content": [
+        {
+          "text": "这里的 assumed 不是伪造数据，而是假设 Target 会沿当前下层损失更新若干步，用副本近似“若 Bridge 取当前参数，Target 将来会被训练成什么样”。此阶段不修改正式部署候选的 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "a130eb72-21d1-47e5-8f5d-cedd1f3fc07c",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "6.1 它实际在替 Bridge 回答什么问题",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "8f764dd3-5d14-47e9-b01c-19c2489ef9dc",
+      "content": [
+        {
+          "text": "Bridge 的 gate ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "w"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 不是一个可以单独用“预测误差小不小”判断好坏的量。它决定了反事实伪标签更偏向 Teacher 还是当前 Target；伪标签又会进入 OBS 的下层训练；因此 Bridge 真正需要回答的是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "2b2e0aff-a791-4a3e-b53d-773e954beee9",
+      "content": [
+        {
+          "anchor": "01f2e0d4-b8d9-498a-82c7-4993c64f8621",
+          "content": [
+            {
+              "text": "若我采用当前这套 gate，让 Target 继续在 OBS 上学习，最后形成的收益/成本预测表，经过真实预算分配后是否更好？",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "anchor": "92b0f08c-48b7-4688-ba5c-31e8d9588997",
+      "content": [
+        {
+          "text": "可把依赖关系写成：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "6b4a3767-120b-4f93-b21f-9524371dfd0e",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\phi  \\longrightarrow  \\text{Bridge 融合的反事实伪标签}  \\longrightarrow  \\theta^*(\\phi)  \\longrightarrow  \\bigl(\\hat r,\\hat c\\bigr)  \\longrightarrow  z^*  \\longrightarrow  \\mathcal L_{\\rm DL}.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "dde5932e-2ae8-43ac-a516-2fb97f317b31",
+      "content": [
+        {
+          "text": "其中 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta^*(\\phi)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "表示：在 Bridge 参数为",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "时，Target 若充分按下层 prediction loss 训练后会到达的参数。**真正想比较的是最右端的决策质量，而不只是某一格伪标签看起来是否合理。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "bbae5e29-9f36-4a81-aff0-0fc4331d8a97",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "6.2 为什么不能直接把正式 Target 训练到收敛再评估",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "c673bb0c-7f2a-4705-9197-0eb1c666bd98",
+      "content": [
+        {
+          "text": "理论上，可以每尝试一组 Bridge 参数",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，都重新训练一个 Target 至收敛，再在 RCT 上跑预算分配并比较结果；但这样每更新一次 Bridge 都要完成一次完整的 Target 训练，代价无法接受。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "56cb5a1f-9eb3-4d3c-b17b-999c2209b6ca",
+      "content": [
+        {
+          "text": "论文因此不直接得到精确的 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta^*(\\phi)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，而从当前正式 Target ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "复制一个临时副本",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，只模拟 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "K"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "步下层训练，以",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat\\theta^{(K)}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "作为局部近似。这里的 assumed 表示“假设接下来按当前下层目标训练",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "K"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "步会怎样”，不是假造新的 OBS 或 RCT 数据。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "1e048373-d19a-4a64-813a-d33bd6097fed",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "6.4 副本和正式 Target 各自负责什么",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "d166d1de-51a9-475b-8fe3-c44ac2040f18",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "d6c50992-29c9-4843-b06d-c5a9b13d6485",
+                  "content": [
+                    {
+                      "text": "对象",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "0c67a67e-6040-4810-b96d-9e56594e29bf",
+                  "content": [
+                    {
+                      "text": "是否真正部署/保留",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "358c67bc-d76a-4f36-bd5f-e0becf9ffc0c",
+                  "content": [
+                    {
+                      "text": "作用",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "c7dee0f8-73b4-4ee8-93aa-354f2526b399",
+                  "content": [
+                    {
+                      "text": "正式 Target",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal F_\\theta"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ff6a950c-a286-41d0-8246-0ec6c5ae4671",
+                  "content": [
+                    {
+                      "text": "是",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2dd576e6-ffdc-4031-9126-81da43c188d7",
+                  "content": [
+                    {
+                      "text": "持续接受 OBS 下层训练；训练结束后作为线上收益、成本预测模型。",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "055a8e2b-d13f-4a45-8e14-c133e6debe45",
+                  "content": [
+                    {
+                      "text": "临时副本",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal F_{\\hat\\theta}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "110292f0-6a87-434f-9898-f223a168cb90",
+                  "content": [
+                    {
+                      "text": "否",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ca5e47d7-5ccb-4d58-b24c-eb759435eb7c",
+                  "content": [
+                    {
+                      "text": "从当前",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\theta"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": "拷贝后做",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "K"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": "步模拟，用来衡量“当前 Bridge 会把 Target 带向哪里”。",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "3e4a56cc-b197-4a33-8032-6222e7007843",
+                  "content": [
+                    {
+                      "text": "Teacher",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal F_{\\theta^T}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "65f091d5-20b1-4eda-aa1d-b1013eecca45",
+                  "content": [
+                    {
+                      "text": "否",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "ea86740e-f1e8-4345-955d-e1a40b7204fe",
+                  "content": [
+                    {
+                      "text": "已由 RCT 预训练并冻结，为 Bridge 的伪标签融合提供相对无偏的预测参照。",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "13b2114c-2d4b-4f76-82a3-a1da0597db35",
+      "content": [
+        {
+          "text": "因此，图中的 Model Snapshot",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal F_{\\hat\\theta}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "不是 Teacher，也不是第二个将要上线的 Target；它是 Bridge 上层训练时的一次“试运行结果”。等 Bridge 根据 RCT 信号更新后，才会用更新后的 Bridge 重新构造 OBS 伪标签，真正更新正式 Target",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "91620bf1-493b-40b9-b422-76e3af8390e8",
+      "content": [
+        {
+          "text": "然后，副本 Target 输出：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "(\\hat r,\\hat c)=\\mathcal F_{\\hat\\theta(\\phi)}(x)."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "9aedf72b-f2f3-48bc-82ff-45454090d056",
+      "content": [
+        {
+          "text": "这就是图中间 Model Snapshot ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathcal F_{\\hat\\theta}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "的来源。它把 Bridge 的影响转化为一个可在 RCT 上检验的完整结果面。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "168f939a-18a8-46a7-bb4d-312d8943d71e",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "7. 图右：RCT 如何把“预测表”变成“决策质量”",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "f2c4b384-2b52-4ed5-8830-323e52965042",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "7.1 分配器的前向传导",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "35a79a17-e1f3-48b4-97df-1fce9294a5db",
+      "content": [
+        {
+          "text": "临时 Target 的",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat r,\\hat c"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 进入预算分配器：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "e4602059-5e84-4b02-9902-87778a164e72",
+      "content": [
+        {
+          "attrs": {
+            "latex": "z^*(\\hat r,\\hat c)=\\mathcal A(H(\\hat r,\\hat c))."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "f3f55c28-831a-4d76-a655-f550680cb748",
+      "content": [
+        {
+          "text": "这一步只使用预测结果面来选择策略；它不使用 RCT 的真实结果替模型“作弊”选动作。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "0bd1146e-3ff5-491d-9c93-cb43506b3187",
+      "content": [
+        {
+          "text": "随后才用 RCT 评价策略 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。在 RCT 中，用户 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "只随机实际执行了",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "t_i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，因此利用 IPW 构造无偏的策略价值估计：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "563af4a0-5303-4f21-b560-c16e4494b165",
+      "content": [
+        {
+          "attrs": {
+            "latex": " \\mathcal L_{\\rm DL}  =-\\mathbb E_{i,t_i}  \\left[  \\frac{N}{N_{t_i}}  z^*_{i,t_i}r_{i,t_i}  \\right].   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "3bb1f585-6dc8-42fe-8b84-10e76f43fb22",
+      "content": [
+        {
+          "text": "其中：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "190891ca-29c8-4edb-be46-c74a7ce6df2d",
+      "content": [
+        {
+          "anchor": "bc486de0-0372-4a5c-9f12-63a70614f3e2",
+          "content": [
+            {
+              "anchor": "0b43b916-5e18-4891-acc3-42670cedecd5",
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "z^*_{i,t_i}"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：新策略是否恰好选择了 RCT 中实际随机到的动作；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "6232f74d-7eca-4ca5-9764-f8657f9d99bf",
+      "content": [
+        {
+          "anchor": "0a8e4dc2-46d5-4ef0-8e1a-d91639c97ed3",
+          "content": [
+            {
+              "anchor": "0b0c5e9c-da83-49be-9cd2-3a27122be471",
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "r_{i,t_i}"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：该事实动作下的真实收益；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "5ca96d26-006b-4bbd-b575-e65a189fdcbd",
+      "content": [
+        {
+          "anchor": "20071046-6bc2-4b1a-b907-11a2f5b73362",
+          "content": [
+            {
+              "anchor": "80ea3ca2-7f89-4251-9c10-3222e04fcbbe",
+              "content": [
+                {
+                  "attrs": {
+                    "latex": "N/N_{t_i}"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "：按实验组规模校正，使“只观察一个动作”的 RCT 样本可无偏估计策略价值；",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "e1bca39d-cee9-4772-b5a0-3349ca030149",
+      "content": [
+        {
+          "anchor": "6988f0d1-af38-4736-bf13-08415e952b0f",
+          "content": [
+            {
+              "anchor": "1484912c-b0d1-486b-9178-976c235f806c",
+              "content": [
+                {
+                  "text": "负号表示训练最小化损失等价于最大化策略收益。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "73a6ec59-60d2-4dfb-a806-f1b601b2e500",
+      "content": [
+        {
+          "text": "这对应 Figure 2 最右侧的 “Unbiased Estimation of ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " \\mathcal L_{\\rm DL}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "”。它衡量的不是“Target 数值 MSE 小不小”，而是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "93ca9cc3-64ca-4675-92f1-6ade80794b87",
+      "content": [
+        {
+          "anchor": "9cd5eaa4-6a04-42f3-bc8e-faa477876e0b",
+          "content": [
+            {
+              "text": "当前 Bridge 诱导出的 Target，经过真实预算分配后，在无偏 RCT 上是否做出了更赚钱的资源配置。",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "anchor": "3966f2dd-1493-4ca4-92ec-2ff7b9bac340",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "7.2 为什么这里不能直接反传？",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "b7422ab0-29be-4196-bc52-b1bff03b517d",
+      "content": [
+        {
+          "text": "分配器内部含：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "c903b324-0ea0-4022-8523-9f880aac8db3",
+      "content": [
+        {
+          "attrs": {
+            "latex": "z^*_{ij}\n\n=\\mathbb 1\\left[\n\nj=\\arg\\max_k(\\hat r_{ik}-\\lambda^*\\hat c_{ik})\n\n\\right],"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "1582a749-6b78-46e2-a363-246803815b51",
+      "content": [
+        {
+          "text": "而 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\lambda^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "又由预算搜索得到。argmax 是离散跳变：大多数小扰动不会改变动作，梯度为零；越过边界时动作突然翻转。故 Figure 2 中从 Decision Loss 经过分配器回到",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat r,\\hat c"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 的箭头，不能由普通自动微分直接得到。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "78ebd7f6-ba8a-4567-baa3-09735c5d5284",
+      "content": [
+        {
+          "text": "论文用 PPL 或 PIFD 为这条箭头提供可用的近似梯度。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d574725d-9010-422c-99d2-61e7d22b2524",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "7.3 对应 Figure 2 黑色向左箭头：这才是“决策损失回传到临时 Target”",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "ca885f7a-380a-4a0f-b14b-bc076342daa2",
+      "content": [
+        {
+          "text": "截图中从右向左的两条黑箭头属于上层决策损失的反向梯度，方向与前向计算相反。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "e3308159-1dd9-464c-a741-494194c73577",
+      "content": [
+        {
+          "text": "前向时，数据从左向右流：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "232b52a3-a080-4470-b477-863472e668ff",
+      "content": [
+        {
+          "attrs": {
+            "latex": " \\hat\\theta  \\longrightarrow  (\\hat r,\\hat c)  \\longrightarrow  z^*(\\hat r,\\hat c)  \\longrightarrow  \\mathcal L_{\\rm DL}.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "8341b21c-a6ad-4147-92d5-c8bd2e3975ff",
+      "content": [
+        {
+          "text": "反向时，图中箭头表达的链式法则是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "729ffde9-3931-4560-ba93-98f71551a1e5",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\frac{\\partial\\mathcal L_{\\rm DL}}{\\partial\\hat\\theta}  =  \\underbrace{  \\frac{\\partial\\mathcal L_{\\rm DL}}{\\partial z^*}  }_{\\text{右侧箭头：策略好坏对动作的信号}}  \\cdot  \\underbrace{  \\frac{\\partial z^*}{\\partial(\\hat r,\\hat c)}  }_{\\text{经过预算分配器的梯度，离散且困难}}  \\cdot  \\underbrace{  \\frac{\\partial(\\hat r,\\hat c)}{\\partial\\hat\\theta}  }_{\\text{临时 Target 的普通网络反传}}. "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "4f15c865-9c50-4aea-9eb0-1c451ff3d1fd",
+      "content": [
+        {
+          "text": "Figure 2 左边那条标为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\partial z^*(\\hat r,\\hat c)/\\partial\\hat\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "的箭头，可以看作后两项合并后的记号：临时 Target 参数变一点，会先改变",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat r,\\hat c"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，再经分配器改变 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z^*"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。右边标为 ",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "b56ba054-ba62-4bcb-8bb9-57c3094b2f75",
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\partial\\mathcal L_{\\rm DL}/\\partial z^*(\\hat r,\\hat c)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "的箭头，则表示“当前硬分配策略的好坏”传给动作层的训练信号。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "c01cf6c0-ab46-48b0-96ea-7d49bf01c5b1",
+      "content": [
+        {
+          "text": "其中最难的就是中间项",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\partial z^*/\\partial(\\hat r,\\hat c)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：它含预算搜索与离散 argmax，不能由普通自动微分获得。PPL 或 PIFD 解决的正是 Figure 2 右半边这条梯度路径。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "61423855-ace3-41a3-bd59-16823a490722",
+      "content": [
+        {
+          "text": "但这两条箭头只让梯度回到临时 Target ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，还没有回到 Bridge。之后 Figure 2 中间的 Implicit Differentiation 再计算：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "d7bc7a44-50ce-4555-a766-55ad4ec2bd75",
+      "content": [
+        {
+          "attrs": {
+            "latex": " \\frac{d\\mathcal L_{\\rm DL}}{d\\phi}  =  \\frac{\\partial\\mathcal L_{\\rm DL}}{\\partial\\hat\\theta}  \\cdot  \\frac{d\\hat\\theta(\\phi)}{d\\phi}.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "307df8df-d0a5-4046-9114-db2f4c617484",
+      "content": [
+        {
+          "text": "因此整张图的梯度传导可分成两段：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "f65220f3-4814-4a16-af55-0253a760d0dc",
+      "attrs": {
+        "language": "PlainText"
+      },
+      "content": [
+        {
+          "text": "图右黑箭头：Decision Loss → 分配器 → 临时 Target\n               由 PPL / PIFD 解决离散决策的梯度问题\n\n图中隐式微分：临时 Target → Bridge\n               由 implicit differentiation 解决双层依赖问题",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "5924b6ff-49eb-42fe-a371-7fd13db66d09",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "8. PPL 与 PIFD：怎样让图右的决策梯度回到结果面",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "2154f320-50aa-4adf-b0eb-9882ee45aa5f",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "8.1 PPL：以软策略近似硬分配",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "cb0ee88a-a6bc-4f83-9b6e-3fbbdb24a403",
+      "content": [
+        {
+          "text": "PPL 将硬 one-hot 动作放松为带温 softmax 概率：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "7e8c8184-2279-404f-bc76-f03c435e7476",
+      "content": [
+        {
+          "attrs": {
+            "latex": "z'_{ij}\n\n=\\frac{\\exp[(\\hat r_{ij}-\\lambda^*\\hat c_{ij})/\\tau]}\n\n{\\sum_k\\exp[(\\hat r_{ik}-\\lambda^*\\hat c_{ik})/\\tau]}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "dbc5a0da-abfd-48f6-80f9-69707430931b",
+      "content": [
+        {
+          "text": "再将 RCT 中事实动作的概率带入策略价值：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "fcda438b-636a-4e13-bf7a-7bcd47164ca4",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\mathcal L_{\\rm PPL}  =-\\mathbb E_{i,t_i}  \\left[  \\frac{N}{N_{t_i}}z'_{i,t_i}r_{i,t_i}  \\right].   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "b6234568-c117-4ed3-b666-0fca6c0a1e85",
+      "content": [
+        {
+          "text": "因为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z'"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "对",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\hat r,\\hat c"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 连续可导，得到：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "4d763d2f-cc4a-4e90-8a16-9bc104b88831",
+      "attrs": {
+        "language": "PlainText"
+      },
+      "content": [
+        {
+          "text": "L_PPL → z' → (r̂, ĉ) → 临时 Target θ̂。",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "anchor": "6d9d13c4-2d91-4a60-b594-d09d3eb81a75",
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\tau"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 大时平滑但与硬策略差距更大；",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\tau"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 小时更像 argmax，但概率更容易饱和。PPL 的本质是“用可导的软分配，学习 RCT 上期望更高的策略”。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "8c8f0441-b7e7-4af6-abc4-96b0512f2e41",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "8.2 PIFD：真实评分保持硬分配，有限差分估计方向",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "d8351d4b-d74f-4eaf-b5f1-5e0cd7084dd1",
+      "content": [
+        {
+          "text": "PIFD 不将真实评价替换为软策略。它仍用原始 hard decision loss 判断策略好坏，再问：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "f5d0a71d-aa7d-46ef-8d7d-fb67b32ae709",
+      "content": [
+        {
+          "anchor": "59dd29ac-e49f-4534-b478-a0aa8963fcbf",
+          "content": [
+            {
+              "text": "若将某个预测或动作偏好轻微改变，重新运行真实预算分配器后，RCT 决策损失变好了还是变坏了？",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    },
+    {
+      "anchor": "92b59371-dbf1-4110-b515-4b7f8515cfab",
+      "content": [
+        {
+          "text": "最朴素的有限差分形式是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "959a24f3-5051-45db-8799-6c314774226f",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\frac{\\partial\\mathcal L_{\\rm DL}}{\\partial\\hat r_{ij}}  \\approx  \\frac{  \\mathcal L_{\\rm DL}(\\hat r+\\epsilon e_{ij},\\hat c)  -\\mathcal L_{\\rm DL}(\\hat r,\\hat c)}  {\\epsilon}.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "790c2a9b-67ac-4f26-b4e8-83aa9377f52f",
+      "content": [
+        {
+          "text": "逐个 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "(i,j)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 重跑会很贵。论文使用 PPL-aware 的半黑盒估计器，将收益/成本扰动统一为对软分配偏好的扰动，并利用原始 primal 决策损失得到冻结方向： ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "  g^{\\rm FD}_{ij}\\approx  \\frac{\\partial\\mathcal L_{\\rm DL}}{\\partial z'_{ij}}.  "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "ae2d21a8-499f-4ad6-b80b-4fc33c99dca2",
+      "content": [
+        {
+          "text": "再定义只服务反传的代理：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "5e872b5b-3bad-4cc9-b61d-42451cae6a53",
+      "content": [
+        {
+          "attrs": {
+            "latex": "  \\mathcal L_{\\rm PIFD}  =\\mathbb E_{i,j}  \\left[  \\operatorname{stopgrad}(g^{\\rm FD}_{ij})z'_{ij}  \\right].   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "19c2b001-2ee4-4175-ac5a-06e33a73628f",
+      "content": [
+        {
+          "text": "stopgrad 表示有限差分得到的方向是固定信号，模型不能通过修改该辅助项取巧；",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z'"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 则仍提供可导通道。PIFD 的评价更贴近最终硬分配，但求解与数值估计成本更高。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "3f707c54-dfea-4bcf-8fa6-1d4a2136f2cd",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "5313f12c-33ae-46f2-b6b1-13d7c08d8a10",
+                  "content": [
+                    {
+                      "text": "方法",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "78fc24ea-9043-44bf-93b9-a14443842273",
+                  "content": [
+                    {
+                      "text": "训练时按什么评价",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "299d16d4-2c9a-4681-8543-782a3580af13",
+                  "content": [
+                    {
+                      "text": "梯度怎样得到",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "81b2326b-7672-4d7d-9711-f08e15e11fa6",
+                  "content": [
+                    {
+                      "text": "取舍",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "fa660795-6145-4db9-a426-4bef3036ef37",
+                  "content": [
+                    {
+                      "text": "PPL",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "cc97bc70-68ac-4411-9aa9-b20f5d348b1d",
+                  "content": [
+                    {
+                      "text": "软策略在 RCT 上的期望收益",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2d73cf2d-545c-4d67-9710-618f156fd81c",
+                  "content": [
+                    {
+                      "text": "softmax 直接自动微分",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3669823e-2bd4-4b41-b7ac-213714e9e64d",
+                  "content": [
+                    {
+                      "text": "平滑、稳定；有软硬策略失配",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "138212ff-34d5-4995-b470-0749278d84ba",
+                  "content": [
+                    {
+                      "text": "PIFD",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "3baa1e17-3ddc-47f6-9d3f-8266a9ff7483",
+                  "content": [
+                    {
+                      "text": "原始硬分配的 RCT 决策损失",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "211ad1d9-d9cb-4f02-a1f8-4fd4dd6ddfd3",
+                  "content": [
+                    {
+                      "text": "扰动后真实损失的有限差分，再经软层传回",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "8c829ee9-5e43-4e83-bd19-42233dcbd1ed",
+                  "content": [
+                    {
+                      "text": "更接近原问题；更复杂、更耗计算",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "b6efdf89-4b9e-4ade-8e04-cb2060b838f9",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "9. 图中间：隐式微分到底把哪条梯度传给 Bridge",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "bdd7b5fc-fa2d-4316-a243-1ca5a977954d",
+      "content": [
+        {
+          "text": "到目前为止，PPL/PIFD 已给出：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " \\nabla_{\\theta^*}\\mathcal L_{\\rm DL},  "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "6e1e347d-b9ed-44a6-bc70-6a39f7613a6e",
+      "content": [
+        {
+          "text": "即“临时 Target 的预测结果若改变，RCT 决策损失怎样改变”。但上层真正要更新的是 Bridge 参数 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。Bridge 不直接进入分配器，它先影响伪标签，再影响下层最优解 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta^*(\\phi)"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，所以链式法则是：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "  \\frac{d\\mathcal L_{\\rm DL}}{d\\phi}  =  \\frac{\\partial\\mathcal L_{\\rm DL}}{\\partial\\theta^*}  \\frac{d\\theta^*(\\phi)}{d\\phi}.  "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "798c1c12-2b78-4b5a-a5ff-e97254abd966",
+      "content": [
+        {
+          "text": "难点是 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "d\\theta^*/d\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：若把所有下层 SGD 步都展开反传，计算图长、显存大、梯度还会依赖展开步数。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "e1ae00de-b8cf-41e9-aa6a-6d55e8187578",
+      "content": [
+        {
+          "text": "论文改从下层最优点满足的一阶条件出发：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "  \\nabla_\\theta  \\mathcal L_{\\rm PL}(\\phi,\\theta^*)=0.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "279a8725-4b3a-480a-af27-72fe56bc8f87",
+      "content": [
+        {
+          "text": "对 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 求导：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " \\nabla^2_{\\theta\\theta}\\mathcal L_{\\rm PL}  \\frac{d\\theta^*}{d\\phi}  +  \\nabla^2_{\\phi\\theta}\\mathcal L_{\\rm PL}  =0.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "3b84fc3d-fe3f-48fc-8d56-c188ed6964b4",
+      "content": [
+        {
+          "text": "令",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "  H=\\nabla^2_{\\theta\\theta}\\mathcal L_{\\rm PL},   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "2e6a1532-710c-41c3-8802-fe28743b4fe7",
+      "content": [
+        {
+          "text": "则形式上有：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " \\frac{d\\theta^*}{d\\phi}  =-H^{-1}\\nabla^2_{\\phi\\theta}\\mathcal L_{\\rm PL}.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "3416436e-cbca-4475-909a-4f6e1f760c3e",
+      "content": [
+        {
+          "text": "代回上层梯度：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " \\nabla_\\phi\\mathcal L_{\\rm DL}  =-  \\left(\\nabla^2_{\\phi\\theta}\\mathcal L_{\\rm PL}\\right)^{\\!\\top}  H^{-1}\\nabla_{\\theta^*}\\mathcal L_{\\rm DL}.   \n"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "e24d2855-c9f0-4074-a910-828b4db442e8",
+      "content": [
+        {
+          "text": " 实践中不显式构造或求逆巨大 Hessian ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "H"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。先用 conjugate gradient 求：",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": " Hv=\\nabla_{\\theta^*}\\mathcal L_{\\rm DL},   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "f9359d3c-2f93-4b91-946d-98ca3061e64a",
+      "content": [
+        {
+          "text": "再用 Hessian-vector product 得到与 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "有关的项。这正是 Figure 2 中间 Implicit Differentiation 的意义：它不是额外预测网络，而是从“下层最优条件”计算 Bridge 的超梯度。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "64562215-b1b4-4451-b195-30c1c4f2ca18",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "10. 一次训练迭代：严格按 Figure 2 的时间顺序",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "51f3d734-4a63-47b8-9ef7-a7e992eefac8",
+      "content": [
+        {
+          "text": "设 Teacher 已由 RCT 预训练并冻结；Target 参数为",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\theta"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，Bridge 参数为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\phi"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "fce13cd0-b2ca-487c-9235-c020525d11e3",
+      "content": [
+        {
+          "anchor": "b3e9cad5-b570-4f35-bfed-4a0d106b2f1b",
+          "content": [
+            {
+              "anchor": "b03e6266-2db6-4aae-a4ef-6c46c4285b35",
+              "content": [
+                {
+                  "text": "从 OBS 取 batch，读取 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "(x_i,t_i,r_{i,t_i},c_{i,t_i})"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "4cdfcddf-0c8c-4f13-bf42-6df319146704",
+      "content": [
+        {
+          "anchor": "dac59d66-747a-4be7-a308-cb381bc967e2",
+          "content": [
+            {
+              "anchor": "15151c8d-82cd-4aae-abed-02832674e458",
+              "content": [
+                {
+                  "text": "Teacher 与当前 Target 都输出各 treatment 的收益/成本预测。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "efdac1f9-aa14-4fb6-8121-6ccf6ee0033e",
+      "content": [
+        {
+          "anchor": "927884db-7335-4fdb-8c7c-63426d003a77",
+          "content": [
+            {
+              "anchor": "de196cc0-4ada-42e9-b147-6c6d8d7e3683",
+              "content": [
+                {
+                  "text": "Bridge 输出 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "w^r,w^c"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，为 OBS 未观察动作构造 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "r^{\\rm cf},c^{\\rm cf}"
+                  },
+                  "type": "mathquill"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "deca612b-4e80-49c1-b455-7effd4be555b",
+      "content": [
+        {
+          "anchor": "cf88f203-f93d-44e0-8712-f6654784418e",
+          "content": [
+            {
+              "anchor": "2159e6f8-c54d-4cfc-8aca-a8c124cef4ff",
+              "content": [
+                {
+                  "text": "用事实标签与伪标签得到下层损失",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\mathcal L_{\\rm PL}(\\phi,\\theta)"
+                  },
+                  "type": "mathquill"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "dbbfc8a1-acbd-42c1-992d-8639b993f520",
+      "content": [
+        {
+          "anchor": "8894cf4c-6300-4e89-9e81-b674b97e9287",
+          "content": [
+            {
+              "anchor": "d564b522-681d-401c-b611-c296de131089",
+              "content": [
+                {
+                  "text": "复制正式 Target；在副本上做 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "K"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "次 assumed update，得到",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\hat\\theta(\\phi)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "7da47782-7277-4eb9-95c4-23460bbe85d1",
+      "content": [
+        {
+          "anchor": "b772ebfa-2682-492f-bdfe-5914f5629db7",
+          "content": [
+            {
+              "anchor": "45e2f809-46fd-430c-8712-374e7eda5993",
+              "content": [
+                {
+                  "text": "副本 Target 在 RCT 上输出 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\hat r,\\hat c"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "；预算分配器在给定 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "B"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "下得到策略",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "z^*"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "97319f6c-117b-4d68-844d-2fc2078b94d2",
+      "content": [
+        {
+          "anchor": "c74e65ef-21d2-40e1-8cdf-6e13159b6467",
+          "content": [
+            {
+              "anchor": "b9f9b6f5-497c-4a86-93f7-546b0622523a",
+              "content": [
+                {
+                  "text": "RCT 用 IPW 无偏估计决策损失；PPL 或 PIFD 给出它对临时 Target 的梯度。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "d0bd3209-f087-4fdf-9e31-1b3dd4ba9c5d",
+      "content": [
+        {
+          "anchor": "9aa81441-38c3-43ba-a116-726eb473cf4d",
+          "content": [
+            {
+              "anchor": "7d018eba-bc90-43b0-b483-1f09e33e321d",
+              "content": [
+                {
+                  "text": "隐式微分将该梯度穿过 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\theta^*(\\phi)"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，更新 Bridge ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\phi"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "1c68d9f4-bd0d-444b-b341-20205aa27820",
+      "content": [
+        {
+          "anchor": "682a8d6f-8f79-4011-8d7a-73c97ec7d229",
+          "content": [
+            {
+              "anchor": "839c3c30-fae5-4161-8d11-ec8f6f4bc2f9",
+              "content": [
+                {
+                  "text": "用更新后的 Bridge 重新构造 OBS 伪标签，真正执行一次下层更新，更新正式 Target ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "\\theta"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "adab350f-209b-4dce-aeb2-3fb3d0ccae89",
+      "content": [
+        {
+          "anchor": "d8d2b141-8c77-46ef-a9e6-ff9aadbc2fd9",
+          "content": [
+            {
+              "anchor": "748f9bdb-3770-4e87-9f95-665dcbd954ee",
+              "content": [
+                {
+                  "text": "进入下一 batch；论文按设定的间隔执行上层 Bridge 更新，而下层 Target 更新更常发生。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "anchor": "1f31d656-d30f-404d-93d2-5454b30eb9fe",
+      "content": [
+        {
+          "text": "可以把第 5–8 步看作“先问：如果这样教 Target，它日后在 RCT 策略上会不会更好”；第 9 步才是“把当前正确的教法真正用于训练 Target”。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "a4ed80fc-3803-4f86-a9ec-47498c87d6cd",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "11. 训练损失、梯度和参数更新：谁更新谁",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "d54649f5-577c-4bb0-b90b-5745a01db894",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "3c931445-91a2-4146-9173-e538c8bac60a",
+                  "content": [
+                    {
+                      "text": "名称",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "de857763-9905-4eb0-b504-1845550aaf92",
+                  "content": [
+                    {
+                      "text": "数据",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "8ec66092-475b-464a-bf5a-7ad0303a5115",
+                  "content": [
+                    {
+                      "text": "前向依赖",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "4968ce69-557a-49db-9314-225cfd17a3ae",
+                  "content": [
+                    {
+                      "text": "直接更新",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f555df7c-85d8-44da-adcb-a510c21018f9",
+                  "content": [
+                    {
+                      "text": "作用",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "c9596ce5-b022-4fea-b1a5-2be60244f164",
+                  "content": [
+                    {
+                      "text": "Teacher 预训练损失",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "5b191315-86c2-46f1-bf3c-76eec0478a00",
+                  "content": [
+                    {
+                      "text": "RCT",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "04080ac2-e85a-44b3-a005-55c76961ee0d",
+                  "content": [
+                    {
+                      "text": "Teacher 输出与 RCT 事实标签",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "28da4105-4444-4473-8330-52d01ad36804",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "\\psi"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": "，预训练阶段",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "c2d37dfb-669c-457b-9153-d150def050e3",
+                  "content": [
+                    {
+                      "text": "获得无偏锚点；之后冻结",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "6aee200f-6250-4c22-8dbc-08e775b83913",
+                  "content": [
+                    {
+                      "text": "下层预测损失 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal L_{\\rm PL}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f983c3ad-5b95-4357-8c39-ec911f8ef46c",
+                  "content": [
+                    {
+                      "text": "OBS",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "8eaf0c6b-3aec-47c5-b006-ab56e0fd33ee",
+                  "content": [
+                    {
+                      "text": "Teacher、Target、Bridge 伪标签",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "acec562d-0b0a-46ac-8411-640b99de3b7e",
+                  "content": [
+                    {
+                      "text": "正式阶段更新",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\theta"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "db0275e4-4fba-43c9-8b21-4dd63368aad7",
+                  "content": [
+                    {
+                      "text": "用大样本学习结果面",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "6902047b-e222-470b-8de2-c9e69dce6df7",
+                  "content": [
+                    {
+                      "text": "PPL/PIFD 决策代理",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "eb814983-d5c7-4862-a01c-b656e6ba102d",
+                  "content": [
+                    {
+                      "text": "RCT",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "1fb6e957-36b6-4dfa-92a6-62ff3c4a353a",
+                  "content": [
+                    {
+                      "text": "临时 Target、分配器、策略价值估计",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "263dc056-aa86-400e-97b0-396a223bd162",
+                  "content": [
+                    {
+                      "text": "先形成",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\nabla_{\\theta^*}\\mathcal L_{\\rm DL}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "2896a570-7a8b-4e87-961c-eb86fe532a5a",
+                  "content": [
+                    {
+                      "text": "判断策略好坏",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "anchor": "b6a04aa4-ae51-4540-916c-d7e52094e2a5",
+                  "content": [
+                    {
+                      "text": "隐式超梯度",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "24e696d4-9874-4eb8-ab49-14827acee0b2",
+                  "content": [
+                    {
+                      "text": "OBS 下层 + RCT 上层",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "c53eadae-06e3-4d39-ac91-07b31b0c8329",
+                  "content": [
+                    {
+                      "text": "Hessian/HVP 与决策梯度",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "638d7e83-cf86-43da-aa7f-b8e33ea6e317",
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "\\phi"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "anchor": "f76d1423-5fad-447e-9474-0b906227da6e",
+                  "content": [
+                    {
+                      "text": "让 RCT 决定伪标签融合方式",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "anchor": "dad4ad0d-929e-4c5b-9048-b6d696ee2eb7",
+      "content": [
+        {
+          "text": "关键不是把所有 loss 直接相加后同时更新所有参数。更准确的依赖是：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "24c9145b-0ee8-44ce-9e27-cbb88985aace",
+      "content": [
+        {
+          "attrs": {
+            "latex": " \\underbrace{\\mathcal L_{\\rm PL}}_{\\text{OBS}}  \\xrightarrow{\\arg\\min_\\theta}  \\theta^*(\\phi)  \\xrightarrow{\\mathcal L_{\\rm DL}\\text{ on RCT}}  \\text{update }\\phi.   "
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "dd15beae-fdd1-4c62-942a-618ffb5b1e2f",
+      "content": [
+        {
+          "text": "这也是 Bi-DFCL 相比 DFCL 的核心变化：DFCL 使用 prediction loss 与 decision loss 的显式加权；Bi-DFCL 将 OBS prediction loss 放在下层、RCT decision loss 放在上层，由双层优化自适应地决定二者如何协作。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "1ce363c9-d2e6-405c-82f1-527c1f2eabf4",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "12. 论文实验",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "7a16a23d-2fbb-4ffa-83df-16abf50c3225",
+      "content": [
+        {
+          "anchor": "4cab6784-16ba-4b12-ad10-34aa037eeed6",
+          "content": [
+            {
+              "anchor": "0cd3a74d-ed3c-4e83-8d39-9b0932e30440",
+              "content": [
+                {
+                  "text": "论文在 Criteo-Uplift v2 Hybrid 与两套工业营销数据上比较 RCT-only、OBS-only、RCT+OBS 方法；二元 treatment 使用 AUCC，多 treatment 使用 RCT 上无偏的 EOM。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "cec70e45-370e-4a8a-8e05-08d38e4055e1",
+      "content": [
+        {
+          "anchor": "53dd6c95-1b3b-44ff-b513-2196f9f4fc97",
+          "content": [
+            {
+              "anchor": "5b3ec00b-5a1f-4a26-a443-bb1afc12edd9",
+              "content": [
+                {
+                  "text": "消融依次检验 PPL、双层优化、反事实伪标签和隐式求导的贡献。论文报告在两套营销数据的 EOM 上，基线 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "1.0000"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "提升至",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "1.0277/1.0252"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "fde0e9cb-ae53-466b-8e4e-802c9f3c2e9a",
+      "content": [
+        {
+          "anchor": "247d9d63-e562-49cd-a0cc-181662c6263a",
+          "content": [
+            {
+              "anchor": "0d5752ab-dacd-411f-b908-2db58a766827",
+              "content": [
+                {
+                  "text": "四周线上 A/B、79 万商家随机分组中，论文报告 Bi-DFCL-PPL 相对 TSM-SL 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "3.00\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "，Bi-DFCL-PIFD 提升 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "3.22\\%"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "46c89531-ce6d-44ed-84ad-79fc071f5cfc",
+      "type": "paragraph"
+    },
+    {
+      "anchor": "202dfa18-b4e9-482b-b94b-32153277580b",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "14. 总结",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "5c9b004a-57fa-4898-8cef-29fa5cee8265",
+      "content": [
+        {
+          "anchor": "a65031a8-329b-4ea0-8586-8deedb30e6f5",
+          "content": [
+            {
+              "text": "Bi-DFCL 的本质是一个“谁来教 Target”的双层问题：OBS 负责大量教学样本，Teacher 提供 RCT 锚点，Bridge 决定缺失反事实标签的融合方式；但 Bridge 的优劣不由 OBS 拟合误差裁判，而由“这样训练出来的 Target 经预算分配后，能否在 RCT 上获得更高策略价值”裁判。",
+              "type": "text"
+            }
+          ],
+          "type": "paragraph"
+        }
+      ],
+      "type": "blockquote"
+    }
+  ],
+  "format": "agent-readable-json",
+  "operation": "pull",
+  "sections": [
+    {
+      "anchor": "8f678fc5-5183-4d5d-b693-5d76450e112c",
+      "headingText": "1. 一句话总结",
+      "index": 2,
+      "level": 2,
+      "path": [
+        "1. 一句话总结"
+      ]
+    },
+    {
+      "anchor": "78ed972b-4f30-4b6c-8352-b6435d18b551",
+      "headingText": "2. 解决的矛盾",
+      "index": 7,
+      "level": 2,
+      "path": [
+        "2. 解决的矛盾"
+      ]
+    },
+    {
+      "anchor": "a4ca14e5-7aef-4ef8-a127-f218dcc33896",
+      "headingText": "2.1 RCT 与 OBS 的偏差-方差矛盾",
+      "index": 13,
+      "level": 3,
+      "parentSectionAnchor": "78ed972b-4f30-4b6c-8352-b6435d18b551",
+      "path": [
+        "2. 解决的矛盾",
+        "2.1 RCT 与 OBS 的偏差-方差矛盾"
+      ]
+    },
+    {
+      "anchor": "33c70794-f7a1-4118-87b5-de50134d26b8",
+      "headingText": "2.2 为什么百万级 RCT 仍可能“不够”？",
+      "index": 20,
+      "level": 3,
+      "parentSectionAnchor": "78ed972b-4f30-4b6c-8352-b6435d18b551",
+      "path": [
+        "2. 解决的矛盾",
+        "2.2 为什么百万级 RCT 仍可能“不够”？"
+      ]
+    },
+    {
+      "anchor": "16c80a56-56aa-4eeb-9d32-89132410da7b",
+      "headingText": "3. 下游优化什么：Target 输出不是最终券档",
+      "index": 31,
+      "level": 2,
+      "path": [
+        "3. 下游优化什么：Target 输出不是最终券档"
+      ]
+    },
+    {
+      "anchor": "65cfdf53-e365-4a8b-8542-8e873723457d",
+      "headingText": "4. Figure 2：图中每一块在回答什么",
+      "index": 39,
+      "level": 2,
+      "path": [
+        "4. Figure 2：图中每一块在回答什么"
+      ]
+    },
+    {
+      "anchor": "5f1d8e4b-2243-41a9-9de5-58ec86b79099",
+      "headingText": "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+      "index": 47,
+      "level": 2,
+      "path": [
+        "5. 图左：Teacher、Bridge 与 OBS 下层预测损失"
+      ]
+    },
+    {
+      "anchor": "f06a99e9-3254-46d2-9bab-7ff066a02488",
+      "headingText": "5.1 Teacher：只提供 RCT 锚点，不直接上线",
+      "index": 48,
+      "level": 3,
+      "parentSectionAnchor": "5f1d8e4b-2243-41a9-9de5-58ec86b79099",
+      "path": [
+        "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+        "5.1 Teacher：只提供 RCT 锚点，不直接上线"
+      ]
+    },
+    {
+      "anchor": "12f46100-2c03-415c-8c98-d999620e63c5",
+      "headingText": "5.2 Bridge：两个 gate，融合两张已有预测表",
+      "index": 51,
+      "level": 3,
+      "parentSectionAnchor": "5f1d8e4b-2243-41a9-9de5-58ec86b79099",
+      "path": [
+        "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+        "5.2 Bridge：两个 gate，融合两张已有预测表"
+      ]
+    },
+    {
+      "anchor": "c3194c48-19a9-4c69-ac95-a5c7487847e1",
+      "headingText": "这不是“检索相似历史样本的真实标签”",
+      "index": 61,
+      "level": 4,
+      "parentSectionAnchor": "12f46100-2c03-415c-8c98-d999620e63c5",
+      "path": [
+        "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+        "5.2 Bridge：两个 gate，融合两张已有预测表",
+        "这不是“检索相似历史样本的真实标签”"
+      ]
+    },
+    {
+      "anchor": "85e91e45-572e-49a7-a53d-3fc19ce27225",
+      "headingText": "5.3 Lower-level Prediction Loss：OBS 如何真正更新 Target",
+      "index": 70,
+      "level": 3,
+      "parentSectionAnchor": "5f1d8e4b-2243-41a9-9de5-58ec86b79099",
+      "path": [
+        "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+        "5.3 Lower-level Prediction Loss：OBS 如何真正更新 Target"
+      ]
+    },
+    {
+      "anchor": "9e8e5e72-5f13-4aea-98b2-7cca552d3305",
+      "headingText": "5.4 当前 Target 的预测到底来自 哪里？",
+      "index": 81,
+      "level": 3,
+      "parentSectionAnchor": "5f1d8e4b-2243-41a9-9de5-58ec86b79099",
+      "path": [
+        "5. 图左：Teacher、Bridge 与 OBS 下层预测损失",
+        "5.4 当前 Target 的预测到底来自 哪里？"
+      ]
+    },
+    {
+      "anchor": "233f9cd5-22c9-49a0-83b9-05551565545b",
+      "headingText": "6. 为什么复制 Target",
+      "index": 93,
+      "level": 2,
+      "path": [
+        "6. 为什么复制 Target"
+      ]
+    },
+    {
+      "anchor": "a130eb72-21d1-47e5-8f5d-cedd1f3fc07c",
+      "headingText": "6.1 它实际在替 Bridge 回答什么问题",
+      "index": 100,
+      "level": 3,
+      "parentSectionAnchor": "233f9cd5-22c9-49a0-83b9-05551565545b",
+      "path": [
+        "6. 为什么复制 Target",
+        "6.1 它实际在替 Bridge 回答什么问题"
+      ]
+    },
+    {
+      "anchor": "bbae5e29-9f36-4a81-aff0-0fc4331d8a97",
+      "headingText": "6.2 为什么不能直接把正式 Target 训练到收敛再评估",
+      "index": 106,
+      "level": 3,
+      "parentSectionAnchor": "233f9cd5-22c9-49a0-83b9-05551565545b",
+      "path": [
+        "6. 为什么复制 Target",
+        "6.2 为什么不能直接把正式 Target 训练到收敛再评估"
+      ]
+    },
+    {
+      "anchor": "1e048373-d19a-4a64-813a-d33bd6097fed",
+      "headingText": "6.4 副本和正式 Target 各自负责什么",
+      "index": 109,
+      "level": 3,
+      "parentSectionAnchor": "233f9cd5-22c9-49a0-83b9-05551565545b",
+      "path": [
+        "6. 为什么复制 Target",
+        "6.4 副本和正式 Target 各自负责什么"
+      ]
+    },
+    {
+      "anchor": "168f939a-18a8-46a7-bb4d-312d8943d71e",
+      "headingText": "7. 图右：RCT 如何把“预测表”变成“决策质量”",
+      "index": 114,
+      "level": 2,
+      "path": [
+        "7. 图右：RCT 如何把“预测表”变成“决策质量”"
+      ]
+    },
+    {
+      "anchor": "f2c4b384-2b52-4ed5-8830-323e52965042",
+      "headingText": "7.1 分配器的前向传导",
+      "index": 115,
+      "level": 3,
+      "parentSectionAnchor": "168f939a-18a8-46a7-bb4d-312d8943d71e",
+      "path": [
+        "7. 图右：RCT 如何把“预测表”变成“决策质量”",
+        "7.1 分配器的前向传导"
+      ]
+    },
+    {
+      "anchor": "3966f2dd-1493-4ca4-92ec-2ff7b9bac340",
+      "headingText": "7.2 为什么这里不能直接反传？",
+      "index": 128,
+      "level": 3,
+      "parentSectionAnchor": "168f939a-18a8-46a7-bb4d-312d8943d71e",
+      "path": [
+        "7. 图右：RCT 如何把“预测表”变成“决策质量”",
+        "7.2 为什么这里不能直接反传？"
+      ]
+    },
+    {
+      "anchor": "d574725d-9010-422c-99d2-61e7d22b2524",
+      "headingText": "7.3 对应 Figure 2 黑色向左箭头：这才是“决策损失回传到临时 Target”",
+      "index": 133,
+      "level": 3,
+      "parentSectionAnchor": "168f939a-18a8-46a7-bb4d-312d8943d71e",
+      "path": [
+        "7. 图右：RCT 如何把“预测表”变成“决策质量”",
+        "7.3 对应 Figure 2 黑色向左箭头：这才是“决策损失回传到临时 Target”"
+      ]
+    },
+    {
+      "anchor": "5924b6ff-49eb-42fe-a371-7fd13db66d09",
+      "headingText": "8. PPL 与 PIFD：怎样让图右的决策梯度回到结果面",
+      "index": 146,
+      "level": 2,
+      "path": [
+        "8. PPL 与 PIFD：怎样让图右的决策梯度回到结果面"
+      ]
+    },
+    {
+      "anchor": "2154f320-50aa-4adf-b0eb-9882ee45aa5f",
+      "headingText": "8.1 PPL：以软策略近似硬分配",
+      "index": 147,
+      "level": 3,
+      "parentSectionAnchor": "5924b6ff-49eb-42fe-a371-7fd13db66d09",
+      "path": [
+        "8. PPL 与 PIFD：怎样让图右的决策梯度回到结果面",
+        "8.1 PPL：以软策略近似硬分配"
+      ]
+    },
+    {
+      "anchor": "8c8f0441-b7e7-4af6-abc4-96b0512f2e41",
+      "headingText": "8.2 PIFD：真实评分保持硬分配，有限差分估计方向",
+      "index": 155,
+      "level": 3,
+      "parentSectionAnchor": "5924b6ff-49eb-42fe-a371-7fd13db66d09",
+      "path": [
+        "8. PPL 与 PIFD：怎样让图右的决策梯度回到结果面",
+        "8.2 PIFD：真实评分保持硬分配，有限差分估计方向"
+      ]
+    },
+    {
+      "anchor": "b6efdf89-4b9e-4ade-8e04-cb2060b838f9",
+      "headingText": "9. 图中间：隐式微分到底把哪条梯度传给 Bridge",
+      "index": 165,
+      "level": 2,
+      "path": [
+        "9. 图中间：隐式微分到底把哪条梯度传给 Bridge"
+      ]
+    },
+    {
+      "anchor": "64562215-b1b4-4451-b195-30c1c4f2ca18",
+      "headingText": "10. 一次训练迭代：严格按 Figure 2 的时间顺序",
+      "index": 176,
+      "level": 2,
+      "path": [
+        "10. 一次训练迭代：严格按 Figure 2 的时间顺序"
+      ]
+    },
+    {
+      "anchor": "a4ed80fc-3803-4f86-a9ec-47498c87d6cd",
+      "headingText": "11. 训练损失、梯度和参数更新：谁更新谁",
+      "index": 189,
+      "level": 2,
+      "path": [
+        "11. 训练损失、梯度和参数更新：谁更新谁"
+      ]
+    },
+    {
+      "anchor": "1ce363c9-d2e6-405c-82f1-527c1f2eabf4",
+      "headingText": "12. 论文实验",
+      "index": 194,
+      "level": 2,
+      "path": [
+        "12. 论文实验"
+      ]
+    },
+    {
+      "anchor": "202dfa18-b4e9-482b-b94b-32153277580b",
+      "headingText": "14. 总结",
+      "index": 199,
+      "level": 2,
+      "path": [
+        "14. 总结"
+      ]
+    }
+  ]
+}

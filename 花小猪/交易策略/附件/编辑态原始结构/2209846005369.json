@@ -1,0 +1,5541 @@
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "1. 迭代主线",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "anchor": "32ec040e-8df9-47fb-a355-080a82f4028e",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "迭代阶段",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "优化方向",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "实际包含的改动",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "B0 → B3",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV 预测优化",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "独立 GMV Joint、动作感知价格/品类上下文、价格锚点残差；",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "B3 → F5",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "Encoder 与特征融合优化",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "相对默勾位置、分类/GMV 双 Query、全量序列表示、晚融合、非序列表示加宽。",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "F5 → T1",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "分类任务 Joint 分离",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "CR、ECR、DSAR、finish_category 各用独立 Joint；GMV 分支此前已经独立",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1 → SF0（上线版本）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "融合层精简 + 幸运盒子硬单调",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "先将非序列融合 MLP 从 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "273\\to256\\to256"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 改为 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "273\\to256"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": "， 加入幸运盒子硬单调",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1 → T1H",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "幸运盒子展现链硬单调约束",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "加入幸运盒子硬单调",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "content": [
+        {
+          "text": "本文统一使用 SF0 作为该模型的版本名。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "2. 各模型核心指标对比",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "训练数据：preprocess_20260917_refresh",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "超参：seed=3407、batch_size=4096；主表统一 5 epochs，10 epochs 在 2.2 节单列",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "评估：MAE、RMSE 单位为元，MSE 单位为元²，MAPE 单位为 %；加粗表示本表该指标的最优点估计",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "50c4061c-467e-4791-b36d-a87748ce1f90",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "版本",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "参数量",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "BCR AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "CR AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "ECR AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "DSAR 条件 AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "品类宏 AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "品类准确率 ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV MAE ↓（元）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV MSE ↓（元²）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV RMSE ↓（元）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV MAPE ↓（%）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "MTAUCC@5 ↑（RAS v4）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "B0",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "478,486",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7699",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7809",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7323",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8631",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8716",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7396",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "2.0306",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "20.4185",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "4.5187",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "11.4104",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "9053.5224",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "B3",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "511,014",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7712",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7838",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7332",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8648",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8781",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7456",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.9569",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "15.7344",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.9667",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "11.0996",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "8735.2437",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "F5",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "851,286",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7729",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7864",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7364",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8717",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8811",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7485",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.9171",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "15.1737",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.8953",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10.9300",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10010.6759",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1,059,606",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7735",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7869",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7378",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8748",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8824",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7498",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.9116",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "15.1862",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.8970",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10.8965",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "11280.2152",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "SF0",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "993,814",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7737",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7871",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7380",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8757",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8828",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7503",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.9070",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "15.0621",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.8810",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10.8711",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "12041.6950",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1H",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1,059,606",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7734",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7867",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7376",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8750",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8822",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7493",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.9143",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "15.1846",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.8967",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10.9109",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "13269.2059",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "content": [
+        {
+          "text": "读表时重点区分：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "B0 → B3：GMV 预测误差改善，但策略指标未确认改善。 MTAUCC@5 点估计下−3.515%",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "B3 → F5：分类 AUC 和 GMV 误差整体改善。 MTAUCC@5 点估计+14.60%",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "F5 → T1：分类 AUC 进一步提高。 MTAUCC@5 点估计提高+12.68%",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "T1 → T1H：完整融合层上加入硬单调，MTAUCC@5 提高 +17.63%。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "SF0（上线版本）与 T1H：普通指标和策略指标的点估计各有侧重。 在本节 5 轮主表中，SF0 的各普通指标点估计最优，T1H 的 MTAUCC@5 最高；T1H 相对 SF0 高 1227.5109（+10.1938%）.",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "2.1 MTAUCC@5 的固定策略 Bootstrap 95% 区间",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "以下均为 RAS v4，每版 200/200 次有效重采样。单模型区间不直接用于判断模型差异；同一有序 trace、同一抽样种子的配对差异见 2.3 节。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "版本",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "MTAUCC@5（RAS v4）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "固定策略 bootstrap 95% 区间",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "B0",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "9053.5224",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[6604.1080, 11381.4528]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "B3",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "8735.2437",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[6517.0729, 10984.5075]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "F5",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10010.6759",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[7662.7368, 12552.6176]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "11280.2152",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[9097.5527, 14003.5095]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "SF0",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "12041.6950",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[9484.7086, 14842.9977]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1H",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "13269.2059",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[10421.7536, 15786.9697]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "2.2 T1H 训练轮数补充：5 epochs 与 10 epochs",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "相比 5 epochs，10 epochs 的普通 AUC 和 GMV 误差点估计改善；RAS MTAUCC@5 从 13269.2059 升至 13862.3838，增加 593.1779（+4.4703%）。但 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathrm{E10}-\\mathrm{E5}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 的配对 95% 区间为 [−1699.3031, 2599.6557]，包含 0；只能说本次点估计更高，不能确认延长训练带来了稳定策略收益。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "04275a46-08ce-4d7c-bd2a-860c1000390f",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "T1H 训练轮数",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "BCR AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "CR AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "ECR AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "DSAR 条件 AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "品类宏 AUC ↑",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV MAE ↓（元）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV MSE ↓（元²）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV RMSE ↓（元）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV MAPE ↓（%）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "MTAUCC@5 ↑（RAS v4）",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "固定策略 95% 区间",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "5 epochs",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7734",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7867",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7376",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8750",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8822",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.9143",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "15.1846",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.8967",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10.9109",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "13269.2059",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[10421.7536, 15786.9697]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10 epochs",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7748",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7879",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7407",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8771",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.8851",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1.8807",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "14.9112",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3.8615",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "10.7175",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "13862.3838",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "[11325.1985, 16411.9838]",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "3. 方法详解",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "3.0 B0 网络结构与符号说明",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "B0 是本轮迭代的无单调约束基线：非序列特征与序列特征经 Encoder 和 Shared Bottom 形成用户表示，与 560 个动作槽位的动作表示拼接后，统一经过共享 Joint MLP，再进入五个任务各自的 Tower / Head。GMV 直接预测金额（元），尚未引入独立 GMV Joint、动作前缀 Attention 和价格锚点残差。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "2e0ed363-d991-41f3-9dfc-0cbbbf7ca3e7",
+      "content": [
+        {
+          "anchor": "3dd986e2-ca5a-483b-ad17-0b88fb103e64",
+          "attrs": {
+            "size": 1129538,
+            "src": "https://didoc.didichuxing.com/api/uploadfile?b=didoc2-upload-file-prod&k=images%2F1790090177942%2FTGZHsorW71KIlLJATqrWo%2Fimage.png&filename=image.png"
+          },
+          "type": "image"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "32aed088-c9d0-42c7-90ea-8f20a55898a5",
+      "content": [
+        {
+          "text": "下表为后续方法章节使用的符号；",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "0e605205-ada9-44eb-a76d-33cf2e89a7b0",
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "符号",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "含义",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "单位 / 范围",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "i"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "当前冒泡的表单候选位置索引",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "从 1 开始，最多 20 个位置",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "L"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "当前冒泡的有效序列长度",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "有效位置数，最多 20",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "k"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "候选动作的默勾数；用于确定读取前几个位置",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1～20，最终还需通过可行性 mask",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "d"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "幸运折扣与特价折扣的组合；与 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "k"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 组成联合动作 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "(d,k)"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "配置中共有 28 个折扣组合",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "p_i"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "位置 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "i"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 的原始序列应付价格 avg_pas_total_fee_amt，未标准化",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "分；仅有限、非缺失且大于 0 的价格参与锚点计算",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal P_k"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "前 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "k"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 个位置中，同时位于有效长度内且价格有效的位置集合",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "集合；对应下式的 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal P_k"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "a_k"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "\\mathcal P_k"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 内原始应付价格的均值，再除以 100；无有效价格时取 0",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "元；同一样本、同一 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "k"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 的所有折扣组合共用",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "r_{d,k}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "GMV 网络对动作 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "(d,k)"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 输出的可正可负修正量",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "元尺度，位于 Softplus 之前",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "M_{d,k}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "动作 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "(d,k)"
+                      },
+                      "type": "mathquill"
+                    },
+                    {
+                      "text": " 的可行性 mask，由 treatment_length 确定",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "1 表示可行，0 表示不可用槽位",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "\\widehat y_{d,k}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "加入价格锚点、经过 Softplus 和可行性 mask 后的 GMV 输出",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "元；对应下式的 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "\\widehat y_{d,k}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "3.1 GMV 残差：先给金额基准，再学习修正量",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.1.1 价格锚点来自什么",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "价格锚点使用原始序列应付价格。有效前缀位置集合定义为：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\mathcal P_k\n=\n\\{i:1\\le i\\le \\min(k,L),\\ p_i\\ne -9999,\\ p_i\\text{ 有限},\\ p_i>0\\}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "p_i"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 的原始单位是分；锚点取有效价格的算术均值并除以 100，转换为元：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "a_k=\n\\begin{cases}\n\\displaystyle \\frac{\\sum_{i\\in\\mathcal P_k}p_i}{100\\,|\\mathcal P_k|},\n&|\\mathcal P_k|>0,\\\\[6pt]\n0,&|\\mathcal P_k|=0.\n\\end{cases}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.1.2 网络如何预测残差",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "在 T1/T1H 中，GMV 分支接收全局表示、动作表示、自己的前缀上下文以及相对默勾位置，共 477 维。其路径为：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\begin{aligned}\n&\\text{GMV 分支输入 }477\\\\\n&\\rightarrow\\text{独立 GMV Joint：}477\\to128\\to64\\\\\n&\\rightarrow\\text{GMV Tower：}64\\to32\\\\\n&\\rightarrow\\text{Linear Head：}32\\to1\\\\\n&\\rightarrow\\text{可正可负的残差 }r_{d,k}\\\\\n&\\rightarrow\\text{与原始价格锚点 }a_k\\text{ 相加}\\\\\n&\\rightarrow\\operatorname{softplus}\\\\\n&\\rightarrow\\text{可行动作 mask}\\\\\n&\\rightarrow\\text{GMV，单位：元}\n\\end{aligned}"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "残差 Head 后面没有先接 ReLU，因此允许向上或向下修正金额。最终输出为：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\widehat y_{d,k}\n=\nM_{d,k}\\,\\operatorname{softplus}(a_k+r_{d,k}),\n\\qquad\n\\operatorname{softplus}(t)=\\log(1+e^t)."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "3.2 Encoder：两路编码、全局读取、保留宽表示",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "Encoder 不是只产生一个 128 维向量后把其他信息丢掉，而是保留非序列表示 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "n"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、序列摘要 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "g"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、逐位置表示 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "H"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "；再生成一个较窄的 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "u"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 专门服务后续 Query。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "非序列特征，过MLP得到 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "n"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "（256 维）",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "序列特征过transformer得到逐位置表示 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "H"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "（",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "20\\times128"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "）",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "用非序列信息读取全序列，得到 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "g"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "（128 维）",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "先由 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "n"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "（256 维）经过 Linear 生成一个 128 维全局 Query，在所有有效位置上做 Attention 池化：",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "q_{\\mathrm{global}}=W_{\\mathrm{global}}n+b_{\\mathrm{global}},\n\\qquad\n\\alpha_i^{\\mathrm{global}}\n=\n\\operatorname{softmax}_{i\\le L}\n\\left(\n\\frac{q_{\\mathrm{global}}^\\top H_i}{\\sqrt{128}}\n\\right),\n\\qquad\ng=\\sum_{i\\le L}\\alpha_i^{\\mathrm{global}}H_i."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "晚融合：",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "z"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "（384 维）直达预测，",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "u"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "（128 维）只生成 Query",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "anchor": "22bc5a6c-72b9-4684-af38-ac1bb8f0307d",
+      "content": [
+        {
+          "anchor": "bbd85fed-3f7c-4818-84c7-6fba6eaed845",
+          "attrs": {
+            "size": 692058,
+            "src": "https://didoc.didichuxing.com/api/uploadfile?b=didoc2-upload-file-prod&k=images%2F1790090263594%2FTqGGFGR5Be2WteUOSguck%2Fimage.png&filename=image.png"
+          },
+          "type": "image"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "这两项不是同一种特征：相对位置描述“勾了多大比例”，双 Query 读取“这些候选具体是什么、对任务有何价值”。 它们结合原有默勾 Embedding，共同构造动作条件。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "06b6160d-a8f4-420f-b4fa-d12cbd2fd3e9",
+      "content": [
+        {
+          "anchor": "7c220dca-053c-4f83-a1d2-6714b20c6bc4",
+          "attrs": {
+            "size": 711210,
+            "src": "https://didoc.didichuxing.com/api/uploadfile?b=didoc2-upload-file-prod&k=images%2F1790090282669%2FzX_cwHN46XTkH6wjkVFCh%2Fimage.png&filename=image.png"
+          },
+          "type": "image"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.3.1 相对默勾位置：同样 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，在不同表单中含义不同",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "原有 hook_embedding(k) 只描述第几个默勾档位，并不直接说明这个 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 已覆盖当前表单的多少位置。E2 因此新增两个确定性数值特征：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\widetilde L=\\operatorname{clip}(L,1,20),\n\\qquad\n\\rho_k=\n\\left[\n\\min\\left(\\frac{k}{\\widetilde L},1\\right),\n\\frac{\\max(\\widetilde L-k,0)}{\\widetilde L}\n\\right]."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "第一维是覆盖比例，第二维是剩余比例。分母截断用于防止除零；最终动作是否可行仍由 treatment mask 判断，比例截断不负责把不可行动作变成合法动作。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "示例表单",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "有效长度 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "L"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "候选默勾数 ",
+                      "type": "text"
+                    },
+                    {
+                      "attrs": {
+                        "latex": "k"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "覆盖比例",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "剩余比例",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "短表单",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "4",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7500",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.2500",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "长表单",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "12",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "3",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.2500",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7500",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "content": [
+        {
+          "text": "两条样本都勾 3 个，但覆盖范围明显不同。该表示无可训练参数，当前两维在合法范围内互为补充、和为 1，不是两份独立信息。代码仍保留两维，并同时送入 Query 输入与最终 Joint 输入。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "这里用的是有效序列长度 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "L"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，不是某个折扣组合的最大可行默勾数；因此，同一样本、相同 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 的相对位置也在折扣组合间复用。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.3.2 双 Query 从哪里来",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "Query 不是“在上一层 Attention 的权重上再切成两份”，而是用 Encoder 的 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "u"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "（128 维）和候选默勾条件，经过两套独立 Linear直接生成：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "v_k=[u;\\,E_{\\mathrm{hook}}(k);\\,k/20;\\,\\rho_k]\n\\in\\mathbb R^{128+8+1+2}\n=\n\\mathbb R^{139},"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "q_k^{\\mathrm{cls}}=W_Q^{\\mathrm{cls}}v_k+b_Q^{\\mathrm{cls}},\n\\qquad\nq_k^{\\mathrm{gmv}}=W_Q^{\\mathrm{gmv}}v_k+b_Q^{\\mathrm{gmv}},\n\\qquad\nq_k^{\\mathrm{cls}},q_k^{\\mathrm{gmv}}\\in\\mathbb R^{64}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.3.3 两套 Query 如何读取同一份 K/V",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "将整份 Transformer 输出 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "H"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 投影成 64 维 Key 与 Value：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "K_i=W_KH_i+b_K,\n\\qquad\nV_i=W_VH_i+b_V,\n\\qquad K_i,V_i\\in\\mathbb R^{64}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "分类、GMV 共用这套 K/V，但 Key 投影和 Value 投影彼此不是同一套参数。对分支 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "t\\in\\{\\mathrm{cls},\\mathrm{gmv}\\}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，只聚合前 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 个且位于有效长度内的位置：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\mathcal I_k=\\{i:1\\le i\\le \\min(k,L)\\},\n\\qquad\n\\alpha_{k,i}^{t}\n=\n\\operatorname{softmax}_{i\\in\\mathcal I_k}\n\\left(\n\\frac{(q_k^t)^\\top K_i}{\\sqrt{64}}\n\\right),"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "c_k^t\n=\n\\operatorname{ReLU}\n\\left(\n\\sum_{i\\in\\mathcal I_k}\\alpha_{k,i}^t V_i\n\\right)\n\\in\\mathbb R^{64}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "不同 Query 可以对同一位置给出不同权重。例如分类任务可能更关注候选吸引力、运力等信息，GMV 更关注金额相关信息；这是允许模型学习的分工，不是已经通过 Attention 权重分析证明的固定分工。当 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k=1"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 且只有一个可聚合位置时，两套权重都退化为 1，上下文相同；",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "实现中按 20 个 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 向量化计算两份 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "[B,20,64]"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 上下文，再复用到 28 个折扣组合，形成 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "[B,560,64]"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.3.4 如何进入 560 个动作的预测",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "原有动作表示为 27 维：幸运折扣 Embedding 8 维、特价折扣 Embedding 8 维、默勾 Embedding 8 维，加上两项折扣深度及 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k/20"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 三个连续特征：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "a_{d,k}\n=\n[E_{\\mathrm{lucky}}(d_l);\nE_{\\mathrm{special}}(d_s);\nE_{\\mathrm{hook}}(k);\n1-d_l/100;\n1-d_s/100;\nk/20]\n\\in\\mathbb R^{27}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "最后按分支拼接：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "x_{d,k}^{\\mathrm{cls}}=[z;\\,a_{d,k};\\,c_k^{\\mathrm{cls}};\\,\\rho_k],\n\\qquad\nx_{d,k}^{\\mathrm{gmv}}=[z;\\,a_{d,k};\\,c_k^{\\mathrm{gmv}};\\,\\rho_k],"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\dim(x_{d,k}^t)=384+27+64+2=477."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "所以，同一 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "k"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 的上下文与锚点可以复用，但不同折扣的 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "a_{d,k}"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 不同，后续预测依然是动作相关的。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.4.1 先明确约束范围，而不是约束全部 560 个动作",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "T1H 保留 T1 的完整网络，只在 CR/ECR 输出概率处接入 LM8 的联合硬变换。作用范围必须同时满足：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "样本的原始 city_id 属于配置的 77 个城市。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "固定同一个冒泡、同一个特价折扣、同一个默勾数 ",
+                  "type": "text"
+                },
+                {
+                  "attrs": {
+                    "latex": "k"
+                  },
+                  "type": "mathquill"
+                },
+                {
+                  "text": "。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "只考虑幸运折扣 97、94、91、88、85、82 中配置存在、且对该样本可行的动作。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "该链至少包含两个可行节点；单点链不做硬变换。",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "text": "例如固定特价 100、默勾数 3，若相应动作可行，则构成：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "幸运 100：不展现分支，独立保留，不接入以下链。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "97\\rightarrow94\\rightarrow91\\rightarrow88\\rightarrow85\\rightarrow82."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "沿此幸运折扣链，折扣逐步加深（数值变小）；ECR 不降，CR 不升，BCR 不降。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "幸运 100 在当前动作语义中表示不展现，不是展现链的浅折扣起点。如果某个中间档位不可行，就跳过该节点，将上一个可行节点与下一个可行节点衔接，例如 97、91 可行但 94 不可行时，实际约束 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "97\\to91"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，不让 94 的 logit 参与递推。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.4.2 链首保持自由预测，后续节点改成受限增量",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "令 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 按幸运折扣由浅到深排列，",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z_j^e"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "z_j^c"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 分别为原 ECR/CR Head 的 logit。记链上的概率为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "e_j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "c_j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，BCR 为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "b_j=e_jc_j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "；",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\sigma"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 表示 Sigmoid。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "对第一个可行节点：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "e_1=\\varepsilon+(1-\\varepsilon)\\sigma(z_1^e),\n\\qquad\nc_1=\\sigma(z_1^c),\n\\qquad\n\\varepsilon=10^{-7}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "正下界用于避免后续概率比值除零。对每个后续可行节点，先生成两个介于 0 和 1 之间的系数：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "\\eta_j=\\sigma(z_j^e-6),\n\\qquad\n\\nu_j=\\sigma(z_j^c)."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "然后联合递推：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "e_j=e_{j-1}+(1-e_{j-1})\\eta_j,"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "c_j\n=\nc_{j-1}\n\\left[\n\\nu_j+(1-\\nu_j)\\frac{e_{j-1}}{e_j}\n\\right],\n\\qquad\nb_j=e_jc_j."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": -6
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": " 来自固定 delta_bias=-6，使 ECR 增量系数在 logit 接近 0 时较小，避免初始化时过快接近 1；它不是新增可训练参数。计算在 FP32 中执行。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "需要注意，深折扣节点的两个 logit 不再分别表示“独立 ECR 概率”和“独立 CR 概率”：ECR logit 控制增长步幅，CR logit 控制在允许范围内保留多少 CR，由递推后才得到最终概率。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.4.3 为什么三个方向能同时成立",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "首先 ECR 的增量非负：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "e_j-e_{j-1}=(1-e_{j-1})\\eta_j\\ge0."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "又因为 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "e_j\\ge e_{j-1}>0"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "0\\le\\nu_j\\le1"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，CR 的乘数不会超过 1，因此：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "c_{j-1}\\frac{e_{j-1}}{e_j}\n\\le c_j\\le c_{j-1}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "这不仅规定 CR 不能上涨，还规定它不能下降得太快，以免抵消 ECR 的增长。将递推式乘以 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "e_j"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "b_j-b_{j-1}\n=\nc_{j-1}(e_j-e_{j-1})\\nu_j\n\\ge0."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "所以三项约束是联合保证的：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "ECR_j\\ge ECR_{j-1},\n\\qquad\nCR_j\\le CR_{j-1},\n\\qquad\nBCR_j\\ge BCR_{j-1}."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "text": "这比“ECR 做递增、CR 做递减后再相乘”更强：后者不能单独保证乘积 BCR 的方向。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "text": "3.4.4 一个递推例子",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "以下仅是公式示意，不是训练样本或真实模型输出。假设浅折扣节点已经得到 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathrm{ECR}=0.6000"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\mathrm{CR}=0.5000"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "，下一档的增量系数 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\eta=0.2500"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "、保留系数 ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "latex": "\\nu=0.5000"
+          },
+          "type": "mathquill"
+        },
+        {
+          "text": "：",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "e_{\\mathrm{new}}=0.6+(1-0.6)\\times0.25=0.7,"
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "latex": "c_{\\mathrm{new}}\n=\n0.5\\left(0.5+0.5\\times\\frac{0.6}{0.7}\\right)\n=\n\\frac{13}{28}\n\\approx0.4643."
+          },
+          "type": "mathquill"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "headerrow": false
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "节点",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "ECR",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "CR",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "attrs": {
+                        "latex": "\\mathrm{BCR}=\\mathrm{ECR}\\times\\mathrm{CR}"
+                      },
+                      "type": "mathquill"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_header"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "浅折扣",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.6000",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.5000",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.3000",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "下一档深折扣",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.7000",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.4643",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "text": "0.3250",
+                      "type": "text"
+                    }
+                  ],
+                  "type": "paragraph"
+                }
+              ],
+              "type": "table_cell"
+            }
+          ],
+          "type": "table_row"
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "content": [
+        {
+          "text": "ECR 提高、CR 降低，但 CR 的下降幅度受到限制，所以 BCR 仍提高。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "3.5 T1H 网络结构总览",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "下图将共享 Encoder、宽表示晚融合、分类/GMV 双 Query、四分类独立 Joint、GMV 价格锚点残差、幸运盒子展现链硬单调，以及真实动作监督放在同一张图中，串联前述各项方法。",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "anchor": "b4569d3b-965a-413a-abd8-82244402e7b0",
+      "content": [
+        {
+          "anchor": "3d8f61e1-92cd-4b5a-9f6f-3f117357d22b",
+          "attrs": {
+            "size": 2895221,
+            "src": "https://didoc.didichuxing.com/api/uploadfile?b=didoc2-upload-file-prod&k=images%2F1790090318620%2FrcfN8G3CaJG9PficdJnEc%2Fimage.png&filename=image.png"
+          },
+          "type": "image"
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "format": "agent-readable-json",
+  "operation": "pull",
+  "sections": [
+    {
+      "anchor": "",
+      "headingText": "1. 迭代主线",
+      "index": 0,
+      "level": 2,
+      "path": [
+        "1. 迭代主线"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "2. 各模型核心指标对比",
+      "index": 3,
+      "level": 2,
+      "path": [
+        "2. 各模型核心指标对比"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "2.1 MTAUCC@5 的固定策略 Bootstrap 95% 区间",
+      "index": 14,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "2. 各模型核心指标对比",
+        "2.1 MTAUCC@5 的固定策略 Bootstrap 95% 区间"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "2.2 T1H 训练轮数补充：5 epochs 与 10 epochs",
+      "index": 17,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "2. 各模型核心指标对比",
+        "2.2 T1H 训练轮数补充：5 epochs 与 10 epochs"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3. 方法详解",
+      "index": 20,
+      "level": 2,
+      "path": [
+        "3. 方法详解"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.0 B0 网络结构与符号说明",
+      "index": 21,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.0 B0 网络结构与符号说明"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.1 GMV 残差：先给金额基准，再学习修正量",
+      "index": 26,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.1 GMV 残差：先给金额基准，再学习修正量"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.1.1 价格锚点来自什么",
+      "index": 27,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.1 GMV 残差：先给金额基准，再学习修正量",
+        "3.1.1 价格锚点来自什么"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.1.2 网络如何预测残差",
+      "index": 32,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.1 GMV 残差：先给金额基准，再学习修正量",
+        "3.1.2 网络如何预测残差"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.2 Encoder：两路编码、全局读取、保留宽表示",
+      "index": 37,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.2 Encoder：两路编码、全局读取、保留宽表示"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query",
+      "index": 46,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.3.1 相对默勾位置：同样 ，在不同表单中含义不同",
+      "index": 49,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query",
+        "3.3.1 相对默勾位置：同样 ，在不同表单中含义不同"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.3.2 双 Query 从哪里来",
+      "index": 56,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query",
+        "3.3.2 双 Query 从哪里来"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.3.3 两套 Query 如何读取同一份 K/V",
+      "index": 60,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query",
+        "3.3.3 两套 Query 如何读取同一份 K/V"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.3.4 如何进入 560 个动作的预测",
+      "index": 68,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.3 默勾数相关特征：相对位置 + 分类/GMV 双 Query",
+        "3.3.4 如何进入 560 个动作的预测"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR",
+      "index": 75,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.4.1 先明确约束范围，而不是约束全部 560 个动作",
+      "index": 76,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR",
+        "3.4.1 先明确约束范围，而不是约束全部 560 个动作"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.4.2 链首保持自由预测，后续节点改成受限增量",
+      "index": 87,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR",
+        "3.4.2 链首保持自由预测，后续节点改成受限增量"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.4.3 为什么三个方向能同时成立",
+      "index": 98,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR",
+        "3.4.3 为什么三个方向能同时成立"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.4.4 一个递推例子",
+      "index": 108,
+      "level": 4,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.4 幸运盒子展现链硬单调：联合参数化 ECR、CR 与 BCR",
+        "3.4.4 一个递推例子"
+      ]
+    },
+    {
+      "anchor": "",
+      "headingText": "3.5 T1H 网络结构总览",
+      "index": 114,
+      "level": 3,
+      "parentSectionAnchor": "",
+      "path": [
+        "3. 方法详解",
+        "3.5 T1H 网络结构总览"
+      ]
+    }
+  ]
+}

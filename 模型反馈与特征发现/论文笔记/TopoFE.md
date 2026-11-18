@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # Adaptive Graph-of-Islands Evolution for Automatic Feature Engineering with LLMs (TopoFE)
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Adaptive Graph-of-Islands Evolution for Automatic Feature Engineering with LLMs (TopoFE)”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 算术/聚合/时间/关系/单变量五家族岛；岛内mutation/crossover；accept/reject总结为prefer/avoid记忆；停滞触发跨岛，由EMA transfer gain选donor，LLM读两岛top-m程序合成。最终GreedySelect按单程序validation分数降序并过滤与已选列绝对相关超过阈值的候选。
 

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>派单匹配优化:两阶段详细方案与算法实现</title>
+<script>
+MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1d222b;--ink:#e7ebf0;--muted:#9aa4b2;
+    --line:#2a313c;--accent:#5aa9ff;--good:#58d6a0;--warn:#f0b35b;--purple:#b48af0;--code:#0b0d11;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:28px;line-height:1.25;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 30px;font-size:15px}
+  h2{font-size:22px;margin:48px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:18px;margin:28px 0 10px;color:var(--accent)}
+  h4{font-size:15.5px;margin:20px 0 8px;color:var(--purple)}
+  p{margin:12px 0} ul,ol{margin:12px 0;padding-left:22px} li{margin:7px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:16px 0}
+  .key{background:#13233a;border-left:3px solid var(--accent)}
+  .good{background:#102a1d;border-left:3px solid var(--good)}
+  .warn{background:#2a2112;border-left:3px solid var(--warn)}
+  .s1{border-left:3px solid var(--good)} .s2{border-left:3px solid var(--purple)}
+  .eq{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:6px 16px;margin:14px 0;overflow-x:auto}
+  code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:13.5px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;color:#d9e2ec}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:16px;
+    overflow-x:auto;font-size:12.5px;line-height:1.5}
+  pre code{background:none;padding:0;color:#cdd6e2}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--panel2)}
+  .muted{color:var(--muted)} .pill{font-size:12px;color:var(--muted)}
+  .tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;margin-right:6px;font-weight:600}
+  .t-ts{background:#13351f;color:var(--good);border:1px solid #1f5a34}
+  .t-gs{background:#2a1f3a;color:var(--purple);border:1px solid #4a3a6b}
+  .num{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;
+    background:var(--accent);color:#06101f;font-weight:700;font-size:13px;margin-right:8px}
+  .toc{columns:2;font-size:14px} .toc a{color:var(--accent);text-decoration:none} .toc li{margin:4px 0}
+  .fix{background:#2a2112;border:1px solid #5a4a1f;border-radius:6px;padding:1px 7px;font-size:12px;color:var(--warn)}
+  @media(max-width:640px){.toc{columns:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>派单匹配优化:两阶段详细方案与算法实现</h1>
+<p class="sub">最小化期望应答距离(分式目标),约束司机取消率 / 乘客取消率 / 完单<b>量</b>。本文把阶段一、阶段二每一步<b>具体怎么算</b>讲透,并给出<b>完整可跑代码</b>(已本地验证四个场景)。配套代码见附件 <code>match_two_stage.py</code>。</p>
+
+<div class="card warn">
+<b>本版修订</b>:完单约束由「率」改为「<b>量</b>」—— \(\sum A_{ijk}F_{ijk}z_{ijk}\ge F_0\)(\(F_0\) 是期望完单<b>数</b>的绝对下限,不是比例)。这改变了边成本的 F 项、\(\mu_F\) 的次梯度和可行性判断,并顺带消除了旧版「只派 2 单压低比值」的退化(见 §7)。C、D 仍是率约束。
+</div>
+
+<div class="card">
+<b>目录</b>
+<ul class="toc">
+<li><a href="#m">1. 模型与记号</a></li>
+<li><a href="#d">2. 三步化简(地基)</a></li>
+<li><a href="#s1">3. 阶段一:逐步怎么做</a></li>
+<li><a href="#s2">4. 阶段二:逐步怎么做</a></li>
+<li><a href="#br">5. 业务分叉 + 冲突判据</a></li>
+<li><a href="#code">6. 完整代码讲解</a></li>
+<li><a href="#run">7. 实测四场景</a></li>
+<li><a href="#note">8. 工程注意点</a></li>
+</ul>
+</div>
+
+<h2 id="m">1. 模型与记号</h2>
+<div class="card">
+<p>变量 \(z_{ijk}\in\{0,1\}\):订单 \(i\) 选司机 \(j\)、模式 \(k\)。常数 \(A\)(应答概率/权重)、\(d\)(应答距离)、\(C\)(司机取消率)、\(D\)(乘客取消率)、\(F\)(完单率)。</p>
+<div class="eq">$$\min\ \frac{\sum A_{ijk}d_{ijk}z_{ijk}}{\sum A_{ijk}z_{ijk}}\quad
+\text{s.t.}\ \underbrace{\frac{\sum ACz}{\sum Az}\le C_0,\ \frac{\sum ADz}{\sum Az}\le D_0}_{\text{率约束}},\
+\underbrace{\sum A_{ijk}F_{ijk}z_{ijk}\ge F_0}_{\color{#f0b35b}{\text{量约束}}}$$</div>
+<p>结构约束:每单 \(\sum_{jk}z_{ijk}\le1\);<b>GS 额外要求</b>每司机 \(\sum_{ik}z_{ijk}\le1\)(TopSpeed 不要求)。</p>
+<p class="muted">量纲提示:\(C_0,D_0\in[0,1]\) 是率;\(F_0\) 是计数量级(如 50 单),等于「期望完单数的下限」。</p>
+</div>
+
+<h2 id="d">2. 三步化简(全方案地基)</h2>
+<ol>
+<li><b>率约束线性化</b>:C、D 两分式与目标<b>同分母</b> \(N=\sum Az>0\);两边乘 \(N\),变线性,如 \(\sum A(C-C_0)z\le0\)。</li>
+<li><b>量约束本就是线性的</b>:\(\sum AFz\ge F_0\) 不含分母,<span class="fix">直接是线性约束</span>,无需跨乘。</li>
+<li><b>分式目标 → Dinkelbach</b>:引入参数 \(\lambda\),子问题 \(\min\sum A(d-\lambda)z\);外层迭代 \(\lambda\leftarrow\) 当前解比值,超线性收敛。</li>
+<li><b>线性约束 → 拉格朗日</b>:乘子 \(\mu=(\mu_C,\mu_D,\mu_F)\ge0\) 吊进目标。</li>
+</ol>
+
+<h4>边成本怎么推出来(关键:F 项变了)</h4>
+<p>把三条约束按「违反为正」的形式写进拉格朗日函数:\(\mu_C\sum A(C-C_0)z+\mu_D\sum A(D-D_0)z+\mu_F\big(F_0-\sum AFz\big)\)。其中 \(\mu_F F_0\) 对 \(z\) 是常数,不影响选边,只剩 \(-\mu_F\sum AFz\)。合并到目标,得<b>统一边成本</b>:</p>
+<div class="eq">$$\boxed{\;c_{ijk}=A_{ijk}\big[(d_{ijk}-\lambda)+\mu_C(C_{ijk}-C_0)+\mu_D(D_{ijk}-D_0)\;{\color{#f0b35b}{-\ \mu_F\,F_{ijk}}}\big]\;}$$</div>
+<table>
+<tr><th>约束</th><th>边成本里的项</th><th>\(\mu\) 的次梯度(正=违反)</th></tr>
+<tr><td>C 率</td><td>\(+\mu_C(C-C_0)\)</td><td>\(g_C=\sum A(C-C_0)z\)</td></tr>
+<tr><td>D 率</td><td>\(+\mu_D(D-D_0)\)</td><td>\(g_D=\sum A(D-D_0)z\)</td></tr>
+<tr><td class="fix">F 量</td><td>\(\color{#f0b35b}{-\mu_F\,F}\)(无阈值常数)</td><td>\(\color{#f0b35b}{g_F=F_0-\sum AFz}\)</td></tr>
+</table>
+<p class="muted">直觉:完单量不够(\(g_F>0\))→ 加大 \(\mu_F\)→ 边成本里 \(-\mu_F F\) 让高 \(F\) 的边更"便宜"→ 鼓励多选高完单边,并（在可不派模式下)把更多订单拉回派单。之后一切比较都用 \(c_{ijk}\)(越负越该选)。阶段一、阶段二<b>共用同一个 \(c\)</b>,只是内层怎么用它选边不同。</p>
+
+<h2 id="s1">3. 阶段一:具体怎么做</h2>
+<div class="card s1">
+<p><b>目的</b>:在松弛掉司机约束的简化问题上,便宜地把 \((\lambda,\mu)\) 调到接近最优,产出初始解 \(z^{(1)}\) 和对偶下界 \(LB\)。TopSpeed 到此结束;GS 用它热启动。</p>
+</div>
+
+<h4>三层循环(从里到外)</h4>
+<p><span class="num">1</span><b>最内层 — 逐单 argmin(\(O(E)\))。</b> 给定当前 \((\lambda,\mu)\) 算每条边 \(c_{ijk}\);因为<b>没有司机约束,订单之间互不影响</b>,每个订单 \(i\) 独立取 \(c\) 最小的那条:</p>
+<div class="eq">$$z^{(1)}_i=\arg\min_{(j,k)} c_{ijk},\qquad \text{(可不派模式)若 }\min_{(j,k)}c_{ijk}\ge0\text{ 则订单 }i\text{ 不派}$$</div>
+
+<p><span class="num">2</span><b>中层 — 次梯度调 \(\mu\)。</b> 解完一次得到 \(z\),算上表三个次梯度 \(g=(g_C,g_D,g_F)\),更新 \(\mu\leftarrow\max(0,\ \mu+\alpha_t\, g)\),步长 \(\alpha_t=\alpha_0/(1+t)\) 递减。哪条约束违反就加大对应惩罚。</p>
+
+<p><span class="num">3</span><b>外层 — Dinkelbach 调 \(\lambda\)。</b> 中层收敛得到可行解后,更新 \(\lambda\leftarrow\dfrac{\sum Adz}{\sum Az}\),再进下一轮;\(|\lambda_{new}-\lambda|<\varepsilon\) 收敛。</p>
+
+<div class="card good">
+<b>产出</b>:乘子 \((\lambda_0,\mu_0)\)、解 \(z^{(1)}\)、下界 \(LB=\) 阶段一最优可行解比值。\(LB\) 合法:阶段一是原问题松弛(约束更少),其最优 \(\le\) 原问题最优。
+</div>
+
+<h2 id="s2">4. 阶段二:具体怎么做</h2>
+<div class="card s2">
+<p><b>目的</b>(仅 GS):恢复"司机只接一单",在原问题上收口到可行且近最优。<b>唯一改动是把最内层从逐单 argmin 换成二部图匹配</b>,中层/外层完全一样,且从阶段一的 \((\lambda_0,\mu_0)\) 热启动。</p>
+</div>
+<h4>最内层 — 二部图最小成本指派(司机约束在此精确满足)</h4>
+<ol>
+<li>仍用同一个 \(c_{ijk}\)。对每个 <b>(订单, 司机)</b> 对在不同模式里取 \(c\) 最小的折成一条边,得成本矩阵 <code>cost[订单, 司机]</code>。</li>
+<li><code>linear_sum_assignment</code> 求最小成本指派:每订单至多配一司机、<b>每司机至多配一订单</b>——司机唯一由匹配结构<b>精确保证</b>,不需惩罚。</li>
+<li>"可不派"= 给每单加一个成本 0 的<b>虚拟弃单列</b>;<b>必派模式</b>则不加。</li>
+</ol>
+<div class="card warn">
+<b>口径一致(踩过的坑)</b>:阶段一/二派单口径必须一致(代码用 <code>force_dispatch</code> 统一)。否则阶段二靠少派压低比值,产生假负 gap、破坏下界关系。必派模式要求司机数≥订单数;司机可能不足时两阶段都用"允许不派"。<b>注意:完单量下限天然逼着多派</b>,与弃单列的少派倾向相互制衡。
+</div>
+
+<h2 id="br">5. 业务分叉 + 冲突判据</h2>
+<table>
+<tr><th>业务</th><th>路径</th></tr>
+<tr><td><span class="tag t-ts">TopSpeed</span></td><td>只做<b>阶段一</b>,逐单 argmin,不触发匹配。</td></tr>
+<tr><td><span class="tag t-gs">GS</span></td><td>阶段一 → 看司机冲突 → A/B/C 三选一。</td></tr>
+</table>
+<p>阶段一后统计:超额总量 \(\Omega=\sum_j\max(0,\text{load}_j-1)\),冲突司机数 \(n_{\text{conf}}\)。</p>
+<div class="card good"><span class="num">A</span><b>\(\Omega=0\):直接最优。</b> 无冲突 ⇒ 原问题可行;又达下界 ⇒ gap=0,跳过阶段二。</div>
+<div class="card warn"><span class="num">B</span><b>\(n_{\text{conf}}\le\tau\cdot\)司机数:局部收口。</b> 只对冲突订单重跑匹配,非冲突订单锁定。</div>
+<div class="card key"><span class="num">C</span><b>冲突较多:完整阶段二。</b> 从 \((\lambda_0,\mu_0)\) 热启动,匹配做内层,继续调 \(\mu,\lambda\),用 \(LB\) 报 gap。</div>
+
+<h2 id="code">6. 完整代码讲解</h2>
+<p>完整文件见附件 <code>match_two_stage.py</code>(依赖 <code>numpy scipy</code>)。核心片段(F 项已改):</p>
+
+<h4>统一边成本 + 指标 + 次梯度</h4>
+<pre><code>COL = dict(j=0,k=1,A=2,d=3,C=4,D=5,F=6)
+
+def edge_cost(M, lam, mu, C0, D0, F0):     # F0 不入边成本(量约束常数项)
+    A,d,C,D,F = (M[:,COL[x]] for x in 'AdCDF')
+    muC,muD,muF = mu
+    return A*((d-lam) + muC*(C-C0) + muD*(D-D0) - muF*F)   # <- F 项: -muF*A*F
+
+def metrics(chosen):
+    A,d,C,D,F = ...
+    AN = A.sum()
+    return dict(dist=(A*d).sum()/AN, C=(A*C).sum()/AN, D=(A*D).sum()/AN,
+                Fq=(A*F).sum())            # <- 完单【量】, 不是率
+
+def global_violation(chosen, C0,D0,F0):
+    A,C,D,F = ...
+    return np.array([(A*(C-C0)).sum(),     # g_C 率
+                     (A*(D-D0)).sum(),     # g_D 率
+                     F0 - (A*F).sum()])    # <- g_F 量: F0 - ΣAFz
+
+def feasible_global(m, C0,D0,F0, tol=1e-9):
+    return m['C']<=C0+tol and m['D']<=D0+tol and m['Fq']>=F0-tol   # <- 量</code></pre>
+
+<h4>阶段一内层:逐单 argmin</h4>
+<pre><code>def inner_argmin(cand, lam, mu, C0,D0,F0, force_dispatch):
+    chosen = {}
+    for i, M in cand.items():
+        c = edge_cost(M, lam, mu, C0,D0,F0)
+        t = int(np.argmin(c))
+        if force_dispatch or c[t] < 0:
+            chosen[i] = M[t]
+    return chosen</code></pre>
+
+<h4>阶段二内层:二部图匹配(司机唯一 + 口径一致)</h4>
+<pre><code>def inner_matching(cand, lam, mu, C0,D0,F0, force_dispatch=True):
+    orders  = list(cand.keys())
+    drivers = sorted({int(M[t,COL['j']]) for M in cand.values() for t in range(len(M))})
+    didx = {j:c for c,j in enumerate(drivers)}
+    nO, nD = len(orders), len(drivers); BIG=1e9
+    extra = 0 if force_dispatch else nO
+    cost = np.full((nO, nD+extra), BIG); best_mode={}
+    for oi,i in enumerate(orders):
+        c = edge_cost(cand[i], lam, mu, C0,D0,F0)
+        for t in range(len(cand[i])):
+            j=int(cand[i][t,COL['j']]); col=didx[j]
+            if c[t]<cost[oi,col]: cost[oi,col]=c[t]; best_mode[(oi,j)]=cand[i][t]
+        if not force_dispatch: cost[oi, nD+oi]=0.0     # 弃单列
+    row,col = linear_sum_assignment(cost)              # 司机<=1 精确满足
+    return {orders[oi]: best_mode[(oi,drivers[cj])]
+            for oi,cj in zip(row,col) if cj<nD and cost[oi,cj]<BIG/2}</code></pre>
+
+<h4>中层+外层:Dinkelbach + 次梯度(两阶段共用,只换内层函数)</h4>
+<pre><code>def solve_core(cand, C0,D0,F0, inner_solver, lam0=0.0, mu0=None,
+               n_outer=25, n_inner=60, alpha0=3.0):
+    lam=lam0; mu=np.zeros(3) if mu0 is None else np.array(mu0,float)
+    best_z,best_dist=None,np.inf
+    for it in range(n_outer):
+        z_it,dist_it=None,np.inf
+        for t in range(n_inner):
+            z=inner_solver(cand,lam,mu,C0,D0,F0); m=metrics(z)
+            if m is None: lam+=1.0; break
+            if feasible_global(m,C0,D0,F0) and m['dist']<dist_it: z_it,dist_it=z,m['dist']
+            g=global_violation(z,C0,D0,F0)
+            mu=np.maximum(0.0, mu+(alpha0/(1+t))*g)
+        else:
+            if z_it is not None and dist_it<best_dist: best_z,best_dist=z_it,dist_it
+            if z_it is not None and abs(dist_it-lam)<1e-5: lam=dist_it; break
+            if z_it is not None: lam=dist_it
+            continue
+    return best_z,best_dist,float(lam),mu</code></pre>
+
+<h4>顶层分叉(TopSpeed / GS 三判据)</h4>
+<pre><code>def dispatch(cand, num_drivers, C0,D0,F0, biz, tau=0.01, force_dispatch=True):
+    s1 = stage1(cand, C0,D0,F0, force_dispatch); LB=s1['LB']
+    if biz=="TopSpeed": return dict(route="TopSpeed/stage1-only", z=s1['z'], dist=s1['dist'], gap=0.0)
+    conflict=driver_conflicts(s1['z']); omega=sum(conflict.values())
+    if omega==0:                           return dict(route="GS/A-optimal", ...)        # A
+    if len(conflict)<=tau*num_drivers:     ... return dict(route="GS/B-local-repair",...) # B
+    inner2=lambda cd,l,m,c,d,f: inner_matching(cd,l,m,c,d,f, force_dispatch)              # C
+    z,dist,lam,mu=solve_core(cand,C0,D0,F0,inner2, lam0=s1['lam'], mu0=s1['mu'])
+    return dict(route="GS/C-full-stage2", z=z, dist=dist, gap=max(0,(dist-LB)/LB))</code></pre>
+
+<h2 id="run">7. 实测四场景(本地已跑通,F 改量约束后)</h2>
+<p>\(C_0{=}D_0{=}0.15\)(率);\(F_0\) 为完单量下限随规模设。三条约束全部满足:</p>
+<table>
+<tr><th>场景</th><th>路径</th><th>派单</th><th>应答距离</th><th>gap</th><th>C / D(率)</th><th>完单量 Fq(≥F₀)</th><th>残留冲突</th></tr>
+<tr><td>TopSpeed 极充裕</td><td>stage1-only</td><td>120</td><td>0.8854</td><td>0%</td><td>0.144 / 0.148</td><td>57.6 (≥50)</td><td>1(不约束)</td></tr>
+<tr><td>GS 极充裕</td><td>B 局部收口</td><td>120</td><td>0.8849</td><td>0%</td><td>0.144 / 0.150</td><td>57.1 (≥50)</td><td>0</td></tr>
+<tr><td>GS 中等</td><td>C 完整阶段二</td><td>300</td><td>0.9382</td><td>6.47%</td><td>0.150 / 0.150</td><td>152.6 (≥120)</td><td>0</td></tr>
+<tr><td>GS 紧缺(允许不派)</td><td>C 完整阶段二</td><td><b>88</b></td><td>0.5814</td><td>4.98%</td><td>0.150 / 0.150</td><td>48.7 (≥40)</td><td>0</td></tr>
+</table>
+<div class="card good">
+<b>量约束治好了退化</b>:旧版(F 为率)紧缺场景只派 <b>2 单</b>——因为分式目标+可不派,少派反而把平均比值做得很低。改成完单<b>量</b>下限后,同场景被逼到派 <b>88 单</b>(Fq=48.7≥40),这正是量约束相对率约束的核心价值:率约束管不住"派得太少",量约束能。
+</div>
+
+<h2 id="note">8. 工程注意点</h2>
+<ul>
+<li><b>F0 的单位</b>:现在是期望完单<b>数</b>(ΣA·F·z),不是比例,随当批订单规模设定(如目标完单率×订单数)。</li>
+<li><b>两种底线可共存</b>:若业务同时要"完单量≥下限"和"完单率≥下限",加两条约束即可——量约束 \(-\mu_F F\)、率约束 \(+\mu_{F'}(F'_0-F)\),各自一个乘子,互不冲突。</li>
+<li><b>口径一致 = 下界有效</b>:必派模式需司机数≥订单数;否则 <code>force_dispatch=False</code>。量下限会把"允许不派"下的派单量往上顶。</li>
+<li><b>可证明最优</b>:Charnes–Cooper → MILP(OR-Tools CP-SAT / Gurobi),量约束天然是线性约束,直接加入;本套解做 warm start。</li>
+<li><b>τ 选取</b>:B/C 分界按"局部收口可接受 gap"离线标定,一般 1~2% 司机占比。</li>
+</ul>
+
+<p class="pill">生成于 Melos · WS-262 · 两阶段派单匹配 · F 改量约束修订版</p>
+</div>
+</body>
+</html>

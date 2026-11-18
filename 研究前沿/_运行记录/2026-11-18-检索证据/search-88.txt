@@ -1,0 +1,269 @@
+From User Sequences to Scaling Laws: A Multi-Stage Architecture for Meta’s Ads Ranking - Engineering at Meta (https://engineering.fb.com/2026/08/05/ml-applications/from-user-sequences-to-scaling-laws-a-multi-stage-architecture-for-metas-ads-ranking/?trk=article-ssr-frontend-pulse_little-text-block)
+citeturn634search0 [wordlim: 200] Published: 3 months ago; Crawled: today; This post goes a step further, introducing two architectural breakthroughs that let us scale sequence learning advancements from foundational innovations into a production platform with predictable, LLM-style scaling laws: (1) a multi-stage sequence model that decouples heavy offline user modeling from lightweight online ranking tasks and (2) a learning technique based on dense tokenization and target-aware attention that efficiently learns feature interactions directly from data. ... This mirrors findings from LLM scaling law research, a principle we call the scaling synergy principle.
+POSTED ON AUGUST 5, 2026 TO Data Infrastructure, ML Applications, Production Engineering
+
+From User Sequences to Scaling Laws: A Multi-Stage Architecture for Meta’s Ads Ranking
+
+By Steven De Gryze, Parshva Doshi, Sean O'Byrne, Arnold Overwijk, Dinesh Ramasamy, Lee Xiong
+
+Every day, Meta’s recommendation platforms handle billions of user interactions, generating rich temporal signals that capture individual preferences and intent across products, ads, and content. In our 2024 post on sequence learning for ads recommendations, we showed how modeling the order and timing of user actions (rather than relying on static, manually engineered sparse features) produces richer, sequence-aware representations of user interests and ad preferences. 
+
+This post goes a step further, introducing two architectural breakthroughs that let us scale sequence learning advancements from foundational innovations into a production platform with predictable, LLM-style scaling laws: (1) a multi-stage sequence model that decouples heavy offline user modeling from lightweight online ranking tasks and (2) a learning technique based on dense tokenization and target-aware attention that efficiently learns feature interactions directly from data. 
+
+Together with our broader model innovations, these advancements have contributed to a cumulative lift of 6% in conversions on Instagram, 3% in conversions on Facebook and 3.5% in ad clicks on Facebook. This unified platform for sequence modeling is a core component of Meta’s Generative Ads Recommendation Model (GEM), helps to harness the comprehensive user behavioral understanding of this learning paradigm to maximize the benefit to advertisers. 
+
+## The Historical Challenges of Sequence Modeling 
+
+Ads recommendation systems must retrieve and rank thousands of ads within milliseconds, processing millions of candidates per second. To manage this scale, some approaches to sequence models rely on hybrid model configurations where a specific model processes user event sequences and another model handles sparse feature interactions. 
+
+While effective at meeting production demands, this hybrid approach has potential tradeoffs: 
+
+  * Lossy knowledge transfer between components
+  * Continued reliance on manual feature engineering
+  * Scaling ceilings from interference between ranking and sequence model components
+
+Scaling both temporal sequence lengths and the transformer models that process them can turn the tradeoffs of the hybrid approach into a bottleneck, limiting the ability to improve the ads experience of users and the performance of advertisers’ campaigns. 
+
+We’ve made two fundamental architectural breakthroughs in sequence learning that resolve the core tension between model complexity and serving efficiency: (1) a multi-stage sequence model that decouples offline user modeling from online ranking and (2) a dense tokenization with target-aware attention learning paradigm. Together, they provide a flexible production strategy that helps generalize sequence learning models and establish an LLM-style scaling law that predictably balances model performance with compute. 
+
+## Introducing the Multi-Stage Sequence Model
+
+To address scaling efficiency, a multi-stage model has been developed that enables scaling of a transformer-based sequence model in a compute efficient manner. 
+### Target-Aware Multi-Head Attention
+
+Tokenized sparse features and ad candidate information are fused with user behavior sequences, then processed by a memory-efficient form of multi-head attention that lets each layer weigh a user’s past behaviors against the specific ad being scored. Stacking multiple aligned attention blocks with stable attention distributions allows each layer to capture higher-order interactions between the target ad and the user’s historical behavior, progressively distilling long sequences into compact representations.
+
+## A Predictable Scaling Curve 
+
+### LLM-Style Scaling Law
+
+When running on real-world ads traffic, the multi-stage sequence model demonstrates the emergence of predictable scaling laws for ads recommendations that are analogous to those observed in large language models. Performance improvements follow a log-linear relationship with respect to compute, with a marked improvement in scaling efficiency over other transformer-based sequence models. Figure 2 conveys these scaling properties by showing the relationship between compute (FLOPs) and model performance (measured by normalized entropy, NE) across several dimensions: model depth, content/semantic enrichment, model width, and sequence length.
+By addressing this persistent challenge of recommendation systems, we improve overall signal coverage to a fundamental sparse problem in recommendation systems.
+
+## The Impact of Multi-Stage Sequence Modeling
+
+The multi-stage sequence modeling architecture is delivering impact across three dimensions: 
+
+### Deeper User Representation
+
+By modeling thousands of user event sequences (e.g., clicks, views, and purchases) the offline model generates highly nuanced user representations. This depth of behavioral understanding improves ad relevance and conversion rates across Meta’s Family of Apps. Together with our broader modeling innovations, these sequence-derived representations drove a cumulative lift of 6% in conversions on Instagram, 3% on Facebook and 3.5% in ad clicks on Facebook.
+
+### Scaling Efficiency
+
+The two-stage design delivers performance improvements with greater compute efficiency compared to hybrid approaches. Initial evaluations improved ads ranking quality with minimal impact to serving resources, confirming that model complexity and production efficiency can scale together. 
+
+### Platform Integration
+
+As a core part of GEM, this model architecture for sequence learning has been designed for generalization, where the same multi-stage backbone and scaling properties can extend to any ads ranking task with minimal adaptation and overhead. 
+
+## Current Work: Continued Scaling
+
+The sequence model scaling law shows no signs of saturation. With architectural parity achieved, scaling model complexity can draw on techniques proven in the LLM domain (e.g., mixture-of-experts, cross-user compute sharing, advanced attention mechanisms) with potential to continually scale at the optimal performance/efficiency tradeoff. 
+
+## Read the Paper
+
+A detailed technical publication of this model architecture and its scaling properties is available in our paper, “LLaTTE: Scaling Laws for Multi-Stage Sequence Modeling in Large-Scale Ads Recommendation.” --------------------------------------------------------------------------------
+Automating Algorithm Experiments With ALGator: From Problem Modeling to Reproducible Results (https://onlinelibrary.wiley.com/doi/abs/10.1002/spe.70020)
+citeturn634search1 [wordlim: 200] Published: 1.1 years ago; Crawled: 2 months ago; This work aims to establish a formal and reproducible framework for algorithm experimentation and to provide a practical platform that enables researchers to model problems, execute experiments, and share results transparently. ... This approach promotes transparency, facilitates independent verification, and enables researchers to extend existing experiments with new test cases and performance metrics, advancing the reproducibility and reliability of empirical algorithm evaluation. ... Algorithmic research draws from two closely related and often overlapping approaches: theoretical algorithmics (TA) and experimental algorithmics (EA).
+
+Volume 56, Issue 1 pp. 26-41
+
+RESEARCH ARTICLE
+
+Open Access
+
+# Automating Algorithm Experiments With ALGator: From Problem Modeling to Reproducible Results
+
+First published: 25 September 2025
+
+https://doi.org/10.1002/spe.70020Digital Object Identifier (DOI)
+
+view metrics
+
+Funding: The author received no specific funding for this work.
+
+## ABSTRACT
+
+### Background
+
+Theoretical algorithm analysis provides fundamental insights into algorithm complexity but relies on simplified and often outdated computational models. Experimental algorithmics complements this approach by evaluating the empirical performance of algorithm implementations on real data and modern computing platforms. However, the absence of standardized, reproducible experimental environments limits the reliability and comparability of results.
+
+### Objective
+
+This work aims to establish a formal and reproducible framework for algorithm experimentation and to provide a practical platform that enables researchers to model problems, execute experiments, and share results transparently.
+--------------------------------------------------------------------------------
+Time Series Analysis and Forecasting with Automated Machine Learning on a National ICD-10 Database (https://pmc.ncbi.nlm.nih.gov/articles/PMC7400312/)
+citeturn634search2 [wordlim: 200] Published: 6.4 years ago; Crawled: 3 weeks ago; In order to assess any model’s performance, out-of-time validation (OTV) is employed, which allows the selection of specific time periods to test the model stability, creating so-called data “backtests” [50]. Backtesting ensures that each algorithm is learning its parameters, or “fitting” the data, on historical examples only, and model performance is only being evaluated on unseen, “out of sample”, data in a proceeding period of time in the future.
+### 2.4. Model Selection
+
+In order to assess any model’s performance, out-of-time validation (OTV) is employed, which allows the selection of specific time periods to test the model stability, creating so-called data “backtests” [50]. Backtesting ensures that each algorithm is learning its parameters, or “fitting” the data, on historical examples only, and model performance is only being evaluated on unseen, “out of sample”, data in a proceeding period of time in the future. The length of training data used was 10 years for each dataset with three backtests used by the AutoTS tool (Figure S3). The validation time period for each backtest was one year for all diseases, except diabetes, road injuries, stroke, and heart disease using eight months. Across all projects, the final year of data was set aside as “holdout” data and was not evaluated until the final models were selected. The year 2018 was chosen as the holdout partition. The performances of these models are ultimately exposed, enabling the selection of the best model for the problem being addressed (Table S3).
+--------------------------------------------------------------------------------
+Models sweeping & selection for forecasting in AutoML - Azure Machine Learning | Microsoft Learn (https://learn.microsoft.com/en-us/azure/machine-learning/concept-automl-forecasting-sweeping?view=azureml-api-2)
+citeturn634search3 [wordlim: 200] Published: 1.7 years ago; Crawled: 4 days ago; # Model sweeping and selection for forecasting in AutoML
+
+This article describes how automated machine learning (AutoML) in Azure Machine Learning searches for and selects forecasting models. ... AutoML follows the usual cross-validation procedure, training a separate model on each fold and averaging validation metrics from all folds.
+
+# Model sweeping and selection for forecasting in AutoML
+
+This article describes how automated machine learning (AutoML) in Azure Machine Learning searches for and selects forecasting models. If you're interested in learning more about the forecasting methodology in AutoML, see Overview of forecasting methods in AutoML. To explore training examples for forecasting models in AutoML, see Set up AutoML to train a time-series forecasting model with the SDK and CLI.
+
+## Model sweeping in AutoML
+
+The central task for AutoML is to train and evaluate several models and choose the best one with respect to the given primary metric. The word "model" in this case refers to both the model class, such as ARIMA or Random Forest, and the specific hyper-parameter settings that distinguish models within a class. For instance, ARIMA refers to a class of models that share a mathematical template and a set of statistical assumptions. Training, or fitting, an ARIMA model requires a list of positive integers that specify the precise mathematical form of the model. ForecastTCN  | Regression  | Static list of models followed by random search over network size, dropout ratio, and learning rate
+
+For a description of the different model types, see the Forecasting models in AutoML section of the forecasting methods overview article.
+
+The amount of sweeping by AutoML depends on the forecasting job configuration. You can specify the stopping criteria as a time limit or a limit on the number of trials, or the equivalent number of models. Early termination logic can be used in both cases to stop sweeping if the primary metric isn't improving.
+
+## Model selection in AutoML
+
+AutoML follows a three-phase process to search for and select forecasting models:
+
+  * Phase 1: Sweep over time-series models and select the best model from each class by using maximum likelihood estimation methods.
+
+  * Phase 2: Sweep over regression models and rank them, along with the best time-series models from phase 1, according to their primary metric values from validation sets.
+
+  * Phase 3: Build an ensemble model from the top ranked models, calculate its validation metric, and rank it with the other models.
+
+The model with the top ranked metric value at the end of phase 3 is designated the best model.
+
+Important
+
+In Phase 3, AutoML always calculates metrics on out-of-sample data that isn't used to fit the models. This approach helps to protect against over-fitting.
+
+### Validation configurations
+
+AutoML has two validation configurations: cross-validation and explicit validation data.
+
+In the cross-validation case, AutoML uses the input configuration to create data splits into training and validation folds. Time order must be preserved in these splits. AutoML uses so-called Rolling Origin Cross Validation, which divides the series into training and validation data by using an origin time point. Sliding the origin in time generates the cross-validation folds. Each validation fold contains the next horizon of observations immediately following the position of the origin for the given fold. This strategy preserves the time-series data integrity and mitigates the risk of information leakage.
+
+Image: Diagram showing cross validation folds separating the training and validation sets based on the cross validation step size.
+
+AutoML follows the usual cross-validation procedure, training a separate model on each fold and averaging validation metrics from all folds.
+
+Cross-validation for forecasting jobs is configured by setting the number of cross-validation folds, and optionally, the number of time periods between two consecutive cross-validation folds. For more information and an example of configuring cross-validation for forecasting, see Custom cross-validation settings.
+
+You can also bring your own validation data. For more information, see Configure training, validation, cross-validation, and test data in AutoML (SDK v1).--------------------------------------------------------------------------------
+AutoLabs: cognitive multi-agent systems with self-correction for autonomous chemical experimentation (https://www.nature.com/articles/s41598-026-45593-z)
+citeturn634search4 [wordlim: 200] Published: 4 months ago; Crawled: today; Recent advances in artificial intelligence (AI)^{1,2,3,4,5,6,7,8} and laboratory automation^{9,10,11,12,13,14,15}are fundamentally transforming chemical research, promising to accelerate discovery through autonomous experimental design and execution^{11,14,16,17,18,19,20,21}. ... Both these quantitative evaluations and a qualitative analysis by an expert systems engineer show that AutoLabs can produce procedures that closely approach expert-authored references on the benchmark, substantially lowering the barrier for automated experimentation.
+
+AutoLabs: cognitive multi-agent systems with self-correction for autonomous chemical experimentation
+
+Download PDF
+
+Download PDF
+
+  * Article
+  * Open access
+  * Published: 25 June 2026
+
+# AutoLabs: cognitive multi-agent systems with self-correction for autonomous chemical experimentation
+
+  * Gihan Panapitiya^{1},
+  * Emily Saldanha^{1},
+  * Heather Job^{1} &
+  * …
+  * Olivia Hess^{1} 
+Show authors
+
+Scientific Reports volume 16, Article number: 19554 (2026)
+
+[Input] Save article
+
+View saved research
+
+  * 10k Accesses
+
+  * 14 Citations
+
+  * 72 Altmetric
+
+  * Metrics details
+
+## Abstract
+
+The automation of chemical research through self-driving laboratories (SDLs) promises to accelerate scientific discovery, yet the reliability and granular performance of the underlying AI agents remain critical, under-examined challenges. In this work, we introduce AutoLabs, a self-correcting, multi-agent architecture designed to autonomously translate natural-language instructions into executable protocols for a high-throughput liquid handler. --------------------------------------------------------------------------------
+Automating Algorithm Experiments With ALGator: From Problem Modeling to Reproducible Results (https://onlinelibrary.wiley.com/doi/full/10.1002%2Fspe.70020)
+citeturn634search5 [wordlim: 200] Published: 1.1 years ago; Crawled: yesterday; In the field of Theoretical Computer Science, which encompasses Theoretical Algorithmics, there are well-established standards for the presentation of results, widely recognized by both authors and reviewers. ... For the original author of the research, the framework offers tools to define an experimental project by specifying the problem definition, input and output formats, algorithms, test sets, and evaluation metrics, and by executing these experiments on a controlled set of computing resources while automatically generating result presentations. ... This model supports an automated experimentation pipeline encompassing test case generation, algorithm execution, output validation, and results presentation. ... These findings align in trend, but not in magnitude, with previously published results, underscoring the importance of experiment design and environment reproducibility.
+This process is time-consuming, opaque, and difficult to audit.
+
+We address these challenges by introducing an open framework—presented in this paper—for automating algorithm execution and result evaluation, which significantly simplifies the experimentation process, streamlines result validation, and enables the low-effort extension and refinement of experiments. This framework is publicly accessible and allows researchers to collaborate on a shared experimental infrastructure with consistent access to experimental data. For the original author of the research, the framework offers tools to define an experimental project by specifying the problem definition, input and output formats, algorithms, test sets, and evaluation metrics, and by executing these experiments on a controlled set of computing resources while automatically generating result presentations. Other researchers can inspect and verify the experimental setup along with all project data, and optionally supplement the experiment with additional algorithms and test sets. This eliminates the need for re-implementation of already available components. Moreover, because all experiments are executed on the same hardware under identical conditions, the results of newly added algorithms or test cases are directly comparable to existing ones. The proposed system not only simplifies the workflow for researchers but also fosters transparent, reproducible, and fair presentation of experimental results, while enabling immediate validation of published findings and seamless integration of new experiments.
+
+## 5 Conclusions
+
+This paper addressed the growing need for rigorous and reproducible practices in EA. While theoretical algorithm analysis offers invaluable insights, it often relies on simplified and sometimes outdated computational models that may not reflect real-world performance. In contrast, EA provides empirical evidence of algorithm behavior on actual input data and real hardware. However, the lack of standardized environments for conducting and verifying such experiments poses a significant barrier to transparency and collaboration.
+
+To mitigate this, we proposed a formal model for algorithm evaluation, which introduces clearly defined entities such as inputs, outputs, test cases, test sets, algorithms, input parameters, and evaluation indicators. This model supports an automated experimentation pipeline encompassing test case generation, algorithm execution, output validation, and results presentation. An important role in this model is played by the Test Set Iterator and the Experiment Crawler processes. The former systematically traverses predefined sets of generating parameters to produce corresponding test cases, while the latter dynamically creates and executes test cases based on parameter space exploration and intermediate results.
+
+We also presented ALGator, an open-source system that implements this model and enables collaborative development and evaluation of algorithmic solutions. ALGator facilitates public sharing of experimental setups and results, thereby promoting verifiability, repeatability, and extensibility in algorithm evaluation. Researchers can contribute new algorithms, test cases, or performance indicators, building upon existing experiments without redundancy.
+
+A case study on array-sorting algorithms demonstrated the practical utility of our approach. Specifically, we revisited performance claims about Yaroslavskiy's Quicksort compared to Hoare's implementation. While earlier claims suggested Yaroslavskiy's superiority in general, our experiments—conducted on both randomly ordered arrays and arrays with varying repetition ratios—showed more nuanced results. Notably, Hoare's version often outperformed Yaroslavskiy's on random input without duplicates, while the latter excelled when duplicate values were prevalent. These findings align in trend, but not in magnitude, with previously published results, underscoring the importance of experiment design and environment reproducibility.
+
+In conclusion, the combination of a formal experimental model and its practical implementation in ALGator represents a step forward in standardizing and democratizing EA. Future work will involve expanding the range of implemented problem domains, refining the model to cover more advanced experimental scenarios, and fostering a broader community of users contributing to open, verifiable algorithmic research.
+
+## Author Contributions
+
+Tomaž Dobravec: conceptualization, methodology, data curation, investigation, software, resources, validation, visualization, writing–original draft, writing–review and editing.
+
+--------------------------------------------------------------------------------
+Automated experimentation and evaluation of machine learning solutions (https://patents.google.com/patent/US20260161688A1/en)
+citeturn634search6 [wordlim: 200] Published: 5 months ago; Crawled: today;   * Automated experimentation and evaluation of machine learning solutions further includes updating a solution to the machine learning problem based on the evaluation of the conducted experiment. ...   * FIG. 5 is a block diagram illustrating a system for automated experimentation and evaluation of machine learning solutions in accordance with some embodiments.
+For example, the system may learn which aspects of the document may lead to rewards with respect to the scoring function. In some embodiments, reinforcement learning signals may come from other sources (e.g., if a user accepts the updated solution in a code repository).
+
+  * FIG. 5 is a block diagram illustrating a system for automated experimentation and evaluation of machine learning solutions in accordance with some embodiments. In the example shown, system 500 includes machine learning codebase 502 and literature monitor 504. Machine learning codebase 502 includes one or more solutions related to a machine learning problem. In some embodiments, machine learning codebase 502 is associated with one or more datasets. The one or more datasets may be stored in a database or other type of data store associated with machine learning codebase 502. The one or more datasets may be saved in a text format (e.g., .csv) as part of machine learning codebase 502.
+
+  * In some embodiments, machine learning codebase 502 is associated with a chosen metric for evaluating experiments related to the codebase (e.g., testing accuracy of machine learning models with respect to the dataset, cost of training and testing models with respect to available compute resources, etc.). Machine learning codebase 502 may contain an evaluation harness, or evaluation script, which is isolated from the codebase and defines how to evaluate experiments performed in the codebase. Isolating the evaluation harness prevents unauthorized modification of evaluation logic or overfitting to test data.
+
+  * Literature monitor 504 is configured to receive and make updates to machine learning codebase 502 based on scientific literature or other documents. In some embodiments, literature monitor 504 is further configured to receive machine learning documents from a user. In some embodiments, the user is associated with a client device (e.g., a laptop, a tablet, a smartphone, a desktop computer, etc.) which may connect to a system 100 via a user interface or an application programming interface (API).
+
+--------------------------------------------------------------------------------
+Testing the reproducibility and robustness of the cancer biology literature by robot (https://pmc.ncbi.nlm.nih.gov/articles/PMC8984295/)
+citeturn634search7 [wordlim: 200] Published: 4.6 years ago; Crawled: 3 weeks ago; We conclude that semi-automated reproducibility testing is currently achievable, that it could be scaled up to generate a substantive source of reliable knowledge and that automation has the potential to mitigate the reproducibility crisis. ... It is currently impossible to automate experiments that closely replicate the whole spectrum of original published experiments because: many published experimental protocols are incomplete, i.e. they do not contain sufficient information to enable even human scientists to reliably repeat them [22,23]—the use of natural language to describe protocols, with all their inherent ambiguities exacerbates this problem [22,23]; even if a published protocol is completely specified for a human scientist, it is currently not possible with existing text-mining technology to extract sufficient information for a robot to implement the protocol in a laboratory; and it is not feasible with existing laboratory automation to more fully test the robust reproducibility of statements by executing a wide variety of orthogonal experimental procedures.
+--------------------------------------------------------------------------------
+AutoXPCR: Automated Multi-Objective Model Selection for Time Series Forecasting | Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (https://doi.org/10.1145/3637528.3672057)
+citeturn634search8 [wordlim: 200] Published: 2.2 years ago; Crawled: 2 months ago; # AutoXPCR: Automated Multi-Objective Model Selection for Time Series Forecasting ... Journal of Machine Learning Research (JMLR), Vol.
+--------------------------------------------------------------------------------
+# Fully Automated Machine Learning (https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/AI%20Tech%20Talks/AI%20VTT%20Qeexo%20March%209.pdf?hash=20EFFF46FDD86C1AC460F6F2DD67D166F2EDED71&revision=9118d761-bd48-4ac5-aa5f-c9b6b22f6151)
+citeturn634search12 [wordlim: 200] Crawled: 2 weeks ago; | Model selection | MODEL SELECTION | Included in AUTOMATED MACHINE LEARNING | ... | Validation | MODEL VALIDATION | Included in AUTOMATED MACHINE LEARNING |
+--------------------------------------------------------------------------------
+Review of automated time series forecasting pipelines (https://doi.org/10.1002/widm.1475)
+citeturn634search9 [wordlim: 200] Published: 4.3 years ago; Crawled: 4 days ago; The empirical forecasting method selection determines the performance of several forecasting methods during training (in-sample) or on a validation data set (out-of-sample) given an evaluation criterion and automatically selects the best-performing forecasting method. ... Instead of a heuristic or empirical forecasting method selection, one may train a decision model to automatically select the optimal forecasting method.
+--------------------------------------------------------------------------------
+Cloud Laboratories · Frontier Research · CIES (https://instituteforexoticscience.ca/content/frontier/fr-cloud-laboratories.html)
+citeturn634search10 [wordlim: 200] Published: 2 months ago; Crawled: last month; Science of Science owns the production function and the replication record. ... This brief owns the machine: what a remotely programmable instrument can and cannot do, what it costs to run, whether it delivers the reproducibility claimed for it, and who gets to use it. ... Frontier The one case where an automated laboratory’s output was independently re-examined suggests automation moved the error rather than removing it. ... A benchmark requiring agents to replicate twenty machine-learning papers across 8,316 gradable sub-tasks reports 21.0% for the best system, with doctoral researchers ahead.
+--------------------------------------------------------------------------------
+A Helping Hand: A Survey About AI-Driven Experimental Design for Accelerating Scientific Research (https://doi.org/10.3390/app15095208)
+citeturn634search11 [wordlim: 200] Published: 1.5 years ago; Crawled: last week; Designing and conducting experiments is a fundamental process across various scientific disciplines, such as materials science, biology, medicine, and chemistry. However, experimental research still predominantly relies on traditional, time-consuming, resource-intensive, and costly trial-and-error experimentation approaches that hinder rapid discovery, reproducibility, and scalability. Recent advances in artificial intelligence (AI) and machine learning (ML) offer promising alternatives, but a comprehensive overview of their implementations in experimental design is lacking. ... The autonomous execution and analysis of experiments further enhance the reproducibility of experiments and continuous experimentation, ideally operating without the need for human intervention. ... However, these frameworks do not include an automated execution and analysis stage.
+--------------------------------------------------------------------------------
+HELIX: Purified and Unified - Rethinking Feature Interaction and Sequence Modeling for Large-Scale Recommendation (https://arxiv.org/abs/2609.37183)
+citeturn634academia13 [wordlim: 200] Published: last month; Industrial recommendation ranking models typically scale along two modeling axes: feature interaction over heterogeneous user, item, context, and cross features, and sequence modeling over long, informative, and multi-type user behavior histories. We find that scaling either capability in isolation is insufficient, as each exhibits a limited scaling ceiling and a suboptimal scaling-law slope.
+--------------------------------------------------------------------------------
+Quantitative control and recording of materials-synthesis processes using an automated experimentation platform (https://arxiv.org/abs/2609.14928)
+citeturn634academia14 [wordlim: 200] Published: 2 months ago; In this study, we constructed a simple, easy-to-deploy automated experimentation platform that focuses not on full autonomy but on the reliable automation and quantitative recording of experimental processes.
+--------------------------------------------------------------------------------
+# Neural Architecture and Hyperparameter Selection through Meta-Learning on Time Series (https://ada.liacs.nl/papers/MoeEtAl26.pdf)
+citeturn634search15 [wordlim: 200] Crawled: last week; While automated machine learning offers approaches for automatic selection of models for a given task, the practical efficacy of these methods is often limited, due to the computational complexity of searching over a large design space and the high dimensionality of time series datasets that poses additional challenges on generalisation quality. ... To capture the temporal dependencies inherent to time series data, a variety of models have been proposed, with deep learning models using different architectural backbones (e.g., transformers, Convolutional Neural Networks (CNNs), Recurrent Neural Networks (RNNs), or Multi-Layer Perceptrons (MLPs)) showing superior results (Ismail Fawaz et al. ... Next to recent advances in machine learning, there has also been considerable attention on automating many tasks involved in the selection and configuration of a machine learning model that once required human intervention.
+--------------------------------------------------------------------------------
+Agentic AI systems for scientific discovery (https://bpb-us-e2.wpmucdn.com/sites.wustl.edu/dist/0/4841/files/2026/10/agentic-ai.pdf)
+citeturn634search16 [wordlim: 200] Published: last month; Crawled: last week; Following a systematic categorization of their core functionalities, we discuss their representative applications including literature mining, simulation orchestration and automated experimentation. ... We further discuss considerations for reproducibility and methodological reporting in such systems. ... Capabilities beyond text generation are surfaced as callable tools, including interfaces to laboratory instruments, software, search engines and machine learning models.
+--------------------------------------------------------------------------------
+### 3.3.3 Experiment Execution and Orchestration (https://worldbench.github.io/assets_common/papers/survey-ai-auto-research.pdf?v=20261011)
+citeturn634search17 [wordlim: 200] Published: last month; Crawled: today; MLAgentBench [137] evaluates language agents on ML experimentation; MLR-Copilot [188] separates autonomous research into idea and experiment agents; DS-Agent [108] targets end-to-end data-science workflows; EvoDS [434] extends data-science agents with self-evolving skill learning and explicit context management; and AIDE [150] frames ML engineering as tree search in code space. ... These systems show that experimental throughput and workflow automation are improving rapidly, but their reliability still depends heavily on task scaffolding, benchmark design, and verification quality. ... This makes semantic correctness and reproducibility central evaluation criteria. ... DiscoveryWorld [144] provides a virtual environment with 120 challenge tasks for automated scientific discovery agents.
+--------------------------------------------------------------------------------
+Combine (https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41467-026-78335-w/MediaObjects/41467_2026_78335_MOESM2_ESM.pdf)
+citeturn634search18 [wordlim: 200] Published: 2 months ago; Crawled: 4 days ago; **Part 3:** Built on our prior expertise in reliable automation of electrochemical testing, we believe that our automated system in this work is reliable and reproducible. ... We also appreciate the great inspiration from JCAP’s prior works that really highlight the necessity of data reliability and reproducibility.¹⁰⁻¹⁷ As noted in the manuscript, in the past few years, our team has established sufficient expertise for reliable and reproducible electrochemistry testing in automated platforms, including rigorous experimentation of cyclic voltammetry with scan rates up to 10³ V/s.
+--------------------------------------------------------------------------------
+## 2.1 Time-Invariant Sequence Modeling (https://proceedings.neurips.cc/paper_files/paper/2023/file/3f0739410e1c9c5da04fa10c1f3f86b6-Paper-Conference.pdf)
+citeturn634search19 [wordlim: 200] Published: 2.9 years ago; Crawled: 2 weeks ago; To cover a larger search space that may contain more efficient sequence models, we propose to formulate sequence modeling as a problem of finding an optimal time-variant model that can dynamically activate a subset of modules from a pre-defined function space for each time step. ... Then for each of the token prediction at the time step \(t\), the model learns to apply a function \(f_t\in\mathcal{F}\) with the parameters \(\theta_t\) that maximizes the sequence probability, *i.e.,*
+--------------------------------------------------------------------------------
+La Agente Óptima: Towards Agentic Self-Driving Laboratories (https://arxiv.org/abs/2609.04564)
+citeturn634academia20 [wordlim: 200] Published: 2 months ago; Self-driving laboratories (SDLs) combine automated experimentation with adaptive decision-making to accelerate scientific discovery.
+--------------------------------------------------------------------------------
+SeqMoE: Toward Full-Load Performance via Predictive and Graph-Compatible MoE Offloading (https://arxiv.org/abs/2609.12978)
+citeturn634academia21 [wordlim: 200] Published: 2 months ago; Mixture-of-Experts (MoE) creates a structural advantage for offloading: only a small fraction of activated experts need to reside in device memory, and if they can be loaded in time for computation, offloading can in principle approach full-load performance, where all model weights reside in device memory. ... We are the first to recast expert activation prediction as sequence modeling, enabling accurate multi-step, multi-layer forecasts that provide a long and reliable window for downstream decisions. (ii) Joint prefetch scheduling. ... Leveraging the recursive nature of sequence modeling, we introduce a probabilistic Belady policy for future-aware eviction.
+--------------------------------------------------------------------------------
+Model selection (https://en.wikipedia.org/wiki/Model_selection)
+citeturn634search22 [wordlim: 200] Crawled: last month; In the context of machine learning and more generally statistical analysis, this may be the selection of a statistical model from a set of candidate models, given data. ... * Automated machine learning (AutoML) ... * Statistical model validation
+--------------------------------------------------------------------------------
+Automated machine learning (https://en.wikipedia.org/wiki/Automated_machine_learning)
+citeturn634search23 [wordlim: 200] Crawled: 3 weeks ago; Automated machine learning (AutoML) is the process of automating the tasks of applying machine learning to real-world problems. ... * Model selection - choosing which machine learning algorithm to use, often including multiple competing softwa...

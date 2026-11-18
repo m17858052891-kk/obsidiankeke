@@ -1,0 +1,255 @@
+网约车数据产品实战二：搭建交易指标体系 | 人人都是产品经理 (https://www.woshipm.com/data-analysis/3390004.html)
+citeturn620search0 [wordlim: 200] Published: 6.8 years ago; Crawled: 2 months ago; 「复核指标」：指通过多个基础指标通过运算规则得到的新指标，如应答率、完单率等。 ... 网约车行业从最初的快的滴滴烧钱争霸，到后来的一枝独秀，再到现在的多足鼎立。 ... 此指标关联到几个场景：接驾途中由于距离过远导致的乘客/司机取消，司机多平台接单时挑单而取消。
+
+（4）完单率=完单数/应答数：
+
+此指标关联到几个场景：接驾途中由于距离过远导致的乘客/司机取消，司机多平台接单时挑单而取消。究其本质实际上反映了一个关键要素「司乘体验」。
+
+较高的完单率意味着较好的司乘体验，反之则说明体验较差。
+
+（#此处为了便于理解漏斗而将这一指标并入交易板块，实际上在运用过程中，我们更多地将「体验」独立出来，其层级与「交易」相同。）
+
+## 三、确定指标结构
+
+通过上文中的描述，大致可以量化出聚合模式下网约车业务的交易链路，下表结合维度进行梳理：
+
+Image
+
+在实际业务开展中，我们围绕着“效率”、“供需”这几项关键目标，还会拆分出更多的交易指标。
+
+## 四、总结与探讨
+
+### 1. 几点经验
+
+  1. 为一个新生的业态（例如聚合模式下的网约车业务）搭建指标体系，可以抓住一个对象（例如一次呼叫订单）通过梳理主体业务闭环，拆分出每一个层级/节点的流失和转化；
+--------------------------------------------------------------------------------
+网约车平台适配边界：五年跑车经验总结的四大维度与实操策略 (https://bbs.csdn.net/weixin_29268637/article/details/100556464)
+citeturn620search1 [wordlim: 200] Crawled: last month;   * 完单率：接单后完成的比例，低于85%会明显影响权重。 ... 我有个朋友，有段时间因为堵车连续取消了五单，结果接下来一周派单量直接腰斩，流水从每天500多降到300出头。 ... 所以你要每个月重新评估一次车型适配边界，别用去年的数据跑今年的单。
+## 5. 账号权重适配边界：看不见的分数决定了你的单量
+
+### 5.1 账号权重的构成要素
+
+平台给每个司机账号都有一个隐藏的权重分，这个分决定了你派单的优先级。权重分怎么构成的？我通过长期观察和对比，大致拆出这几个要素：
+
+  * 完单率：接单后完成的比例，低于85%会明显影响权重。
+  * 取消率：主动取消订单的比例，高于5%就开始扣分。
+  * 乘客评分：低于4.8分会影响权重，低于4.6分影响很大。
+  * 在线时长：每天在线时长越稳定，权重越高。
+  * 高峰在线率：高峰时段在线的比例，越高权重越高。
+  * 合规程度：双证齐全的账号权重明显高于单证或无证。
+
+这些要素里，完单率和取消率是硬指标，一旦踩线，权重恢复很慢。我有个朋友，有段时间因为堵车连续取消了五单，结果接下来一周派单量直接腰斩，流水从每天500多降到300出头。他以为是平台限流，其实是权重分掉了。
+--------------------------------------------------------------------------------
+GitHub - yifei1510/Ride-Hailing-Operations-Performance-Analysis: This project analyses 103,024 ride-booking records from an Ola/Uber-style ride-hailing dataset for July 2024. The goal is to understand platform reliability, driver and customer cancellations, driver availability issues, vehicle-type performance, and location-level operational risks. · GitHub (https://github.com/yifei1510/Ride-Hailing-Operations-Performance-Analysis)
+citeturn620search2 [wordlim: 200] Crawled: last month; Average successful ride distance  | 22.9 km ... Booking_Hour  | Bookings  | Successful_Rides  | Completion_Rate  | Failed_Rate  | Driver_Not_Found
+## KPI Summary
+
+Metric  | Value
+--- | ---
+Total bookings  | 103,024
+Successful rides  | 63,967
+Completion rate  | 62.1%
+Failed booking rate  | 37.9%
+Driver cancellation rate  | 17.9%
+Customer cancellation rate  | 10.2%
+Driver not found rate  | 9.8%
+Completed booking value  | 35,080,467
+Potential lost booking value  | 21,454,147
+Average successful ride distance  | 22.9 km
+Average driver rating  | 4.0
+Average customer rating  | 4.0
+
+## Booking Status Breakdown
+
+Booking_Status  | Bookings  | Share
+--- | --- | ---
+Success  | 63,967  | 62.1%
+Canceled by Driver  | 18,434  | 17.9%
+Canceled by Customer  | 10,499  | 10.2%
+Driver Not Found  | 10,124  | 9.8%
+
+### Key insight
+
+The platform completed 63,967 out of 103,024 bookings. Driver-side cancellations account for 17.9% of all bookings, which is higher than customer-side cancellations at 10.2%. This suggests driver reliability is a major operational improvement area.
+
+## Hourly Performance
+
+The table below shows the hours with the highest failed booking rates.
+
+Booking_Hour  | Bookings  | Successful_Rides  | Completion_Rate  | Failed_Rate  | Driver_Not_Found
+--- | --- | --- | --- | --- | ---
+10  | 4,334  | 2,616  | 60.4%  | 39.6%  | 420
+22  | 4,283  | 2,609  | 60.9%  | 39.1%  | 437
+7  | 4,304  | 2,628  | 61.1%  | 38.9%  | 432
+20  | 4,228  | 2,587  | 61.2%  | 38.8%  | 425
+12  | 4,408  | 2,699  | 61.2%  | 38.8%  | 451
+8  | 4,374  | 2,681  | 61.3%  | 38.7%  | 445
+9  | 4,347  | 2,680  | 61.7%  | 38.3%  | 469
+21  | 4,343  | 2,679  | 61.7%  | 38.3%  | 423
+
+### Key insight
+
+Completion rate is relatively stable across the day, but some hours have slightly higher failed booking rates. These time windows should be monitored for driver supply, driver behaviour, and customer cancellation patterns.
+
+--------------------------------------------------------------------------------
+出租车及网约车服务行业应用数据模型 | 出租车 | 网约车 | 智慧出行 (https://www.mingdao.com/landing/data-model/taxi-and-ride-hailing-services.html)
+citeturn620search3 [wordlim: 200] Crawled: last month; 订单取消率 (Cancellation Rate): 已下单但被取消的订单占总订单的比例。 ... Turnaround Time): 车辆完成一单到下一单开始的平均间隔。 ... 用户投诉率 (User Complaint Rate): 因行程问题导致的投诉占总行程的比例。 ... Maintenance Cost): 每辆车每年或每月的平均维护保养费用。
+## 主要管理指标
+
+通过数据量化业务表现，驱动决策优化。
+
+### 乘客下单指标
+
+主要管理指标
+
+日均订单量 (Daily Orders): 每日乘客成功下单的总次数。
+
+新用户注册量 (New Users): 每日新增注册并首次下单的用户数量。
+
+订单取消率 (Cancellation Rate): 已下单但被取消的订单占总订单的比例。
+
+平均等待时长 (Avg. Wait Time): 乘客从下单到司机接驾的平均时间。
+
+### 订单匹配指标
+
+主要管理指标
+
+订单接单率 (Acceptance Rate): 司机成功接单的比例。
+
+平均匹配时间 (Avg. Match Time): 从订单发出到司机接单的平均时间。
+
+空驶率 (Empty Mileage Rate): 司机无乘客状态下的行驶里程占比。
+
+高峰期匹配成功率 (Peak Match Rate): 高峰时段订单成功匹配的比例。
+
+### 车辆调度指标
+
+主要管理指标
+
+车辆在线率 (Vehicle Online Rate): 每日在线运营车辆占总车辆的比例。
+
+区域运力饱和度 (Capacity Saturation): 特定区域内车辆数量与订单需求的匹配程度。
+--------------------------------------------------------------------------------
+Network taxi appointment order scheduling simulation method and device and electronic equipment (https://patents.google.com/patent/CN114764529A/en)
+citeturn620search4 [wordlim: 200] Published: 4.3 years ago; Crawled: last month; 本申请的一些实施例中，所述接单后订单取消概率预测模型为多任务模型，所述接单后订单取消概率预测模型用于根据订单的提单乘客特征和匹配运力特征进行预估，输出指示所述订单不会别取消、被取消后会重提单，以及被取消后不会重题单的预测结果。
+本申请的一些实施例中，所述接单后订单取消概率预测模型为多任务模型，所述接单后订单取消概率预测模型用于根据订单的提单乘客特征和匹配运力特征进行预估，输出指示所述订单不会别取消、被取消后会重提单，以及被取消后不会重题单的预测结果。In some embodiments of the present application, the order cancellation probability prediction model after receiving an order is a multi-task model, and the order cancellation probability prediction model after receiving an order is used to estimate according to the passenger characteristics and matching capacity characteristics of the order, and output Indicates the predicted result that the order will not be cancelled, that the order will be re-issued after being cancelled, and that the order will not be re-issued after being cancelled.
+
+本申请的一些实施例中，可以基于运力在没有匹配订单情况下的在线数据，训练逻辑回归模型，从而得到运力在线预测模型。在线上预测过程中，可以将匹配失败的运力的运力特征作为所述运力在线预测模型的输入，所述运力在线预测模型将输出该运力的在线概率和离线概率。--------------------------------------------------------------------------------
+快车司机取消乘客订单达到多少会被扣钱？-网约车指南 (https://www.eycen.com/post/549.html)
+citeturn620search5 [wordlim: 200] Published: 2.6 years ago; Crawled: 2 weeks ago; 网约车主 ... 司机原因成交后取消率=司机原因抢单后取消数/抢单成功数） ... b、未成功逃离但成交后取消率持下降趋势（即改善）的司机，将再获得3天延长逃离，3天后若持续下降（即改善），仍会延期3天，直至逃离成功，若逃离结点出现数据上升（即恶化），司机将受到处罚
+# 快车司机取消乘客订单达到多少会被扣钱？
+
+网约车主
+
+2024-4-19 00:08更新
+
+定义
+
+司机原因成交后取消率=司机原因抢单后取消数/抢单成功数）
+
+条件：司机近30天内完成订单数大于30单
+
+处罚：罚款100元/天
+
+规则：
+
+1、最近30天的司机原因成交后取消率大于考核标准线（见附图）
+
+2、命中司机获得5天限时逃离期（从命中当天开始计算）
+
+3、逃离期：
+
+a、成功逃离的司机将免受处罚，再次命中司机进入下一个轮回，重新获得逃离期
+
+b、未成功逃离但成交后取消率持下降趋势（即改善）的司机，将再获得3天延长逃离，3天后若持续下降（即改善），仍会延期3天，直至逃离成功，若逃离结点出现数据上升（即恶化），司机将受到处罚
+
+c、未成功逃离且成交后取消率持上升趋势（即恶化）的司机，将受到相应处罚
+
+4、司机处罚按天执行，在执行过程中司机指标出现下降（即改善）则该天不会受到处罚
+--------------------------------------------------------------------------------
+一种平台完单率的提升方法 (https://patents.google.com/patent/CN114118999A/zh)
+citeturn620search6 [wordlim: 200] Published: 4.7 years ago; Crawled: last month; 本发明提供的一种平台完单率的提升方法，所述提升方法包括：根据统计数据配置不同城市的超时立减策略，能够配置单节点策略，若在最大派单时间内，派单成功，结算时可抵扣用车费用，若超时未派单成功，则赔偿用户立减券，若派单过程中用户取消，则不处理。 ... 本发明涉及网约车领域，尤其涉及一种平台完单率的提升方法。
+## Abstract
+
+本发明提供的一种平台完单率的提升方法，所述提升方法包括：根据统计数据配置不同城市的超时立减策略，能够配置单节点策略，若在最大派单时间内，派单成功，结算时可抵扣用车费用，若超时未派单成功，则赔偿用户立减券，若派单过程中用户取消，则不处理。若派单成功后，用户取消，将立减金扣除，防止用户故意刷立减金。降低了用户订单取消率，提升平台完单率和完单流水的目的，提升了平台的品牌形象。
+
+## Description
+
+一种平台完单率的提升方法
+
+技术领域
+
+本发明涉及网约车领域，尤其涉及一种平台完单率的提升方法。
+
+背景技术
+
+统计数据表明：在高峰用车期，比如：上下班高峰期或者节假日，司机数量有限，匹配司机时间较长，用户取消率升高，且会出现连续发单的行为，打车->短时间等待->取消->重新下单。影响完单率和完单流水，同时影响品牌形象，用户觉得该平台打不着车，为挽留用户用车，让用户再等1分钟，而不是转去其它平台，设计了等立减的方案。
+--------------------------------------------------------------------------------
+观察站方法说明 | ONLY VTC (https://onlyvtc.fr/zh/observatoire/methodologie)
+citeturn620search7 [wordlim: 200] Published: 2 months ago; Crawled: 2 weeks ago; 接单后司机取消  | 已接单行程的取消状态和发起方  | ✅ 已发布（v1.3，序列始于 2026 年 6 月 4 日） ... 此外， 预估距离 （预订时计算的道路路线，不含包车，界限 0.5 – 500 公里）已发布。 ... 样本说明：预估距离只填写在部分已完成行程上（救援导入和旧预订没有此数据）— 因此这些指标比时间指标更晚达到 15 的阈值。 ...   * 临时显示 ：当 n ≥ 15 但低于覆盖率阈值时，已测量的摘要显示在卡片备注中，并标注“临时数字”。 ... 帮助  | 关联救援案件或合作伙伴的任务。
+基于这一统一来源， 准时率和即时请求等待时间重新启用 ，需达到 15 次有效测量且准确覆盖率达到 80%。仍暂不公布： 接近时间 和 时长。任何重新启用都适用不筛选原则（§1）：一旦达到阈值，指标在每个期间都会发布，即使不利 — 来自同一来源的“98% 准时”与糟糕数字一样都会发布。
+
+指标  | 定义依据  | v1.3
+--- | --- | ---
+接单时间  | 请求 → 接单（应用内操作）  | ✅ 已发布
+60 秒内接单占比  | 请求 → 接单（应用内操作）  | ✅ 已发布（v1.3）
+提前预订时间  | 请求 → 预定接车  | ✅ 已发布（v1.3）
+预估距离  | 预订时的路线估算  | ✅ 已发布
+长途占比（> 50 公里）  | 预订时的路线估算  | ✅ 已发布（v1.3）
+机场 / 夜间 / 提前 / B2B / 救援占比  | 预订字段  | ✅ 已发布
+接车市镇  | 出发地址  | ✅ 已发布（v1.3，每个市镇汇总 n ≥ 15）
+接单后司机取消  | 已接单行程的取消状态和发起方  | ✅ 已发布（v1.3，序列始于 2026 年 6 月 4 日）
+--------------------------------------------------------------------------------
+Rethinking Pooled Ride-Hailing as Large-Scale Simulations Reveal System Limits (https://www.mdpi.com/2624-6511/9/4/62)
+citeturn620search8 [wordlim: 200] Published: 7 months ago; Crawled: last month; The effective disutility of pooling relative to solo ride-hailing—combining the mode-specific intercept ($1.68) and the additional value of travel time for shared rides ($23.70/h, implying roughly $2.77 for a 7-min trip)—was estimated from the same Chicago dataset [52] to be approximately $4.5 per trip. ... Zooming in on ride-hailing operations in Figure 4, from a representative weekday simulation of the San Francisco Bay Area (SFBay) with projected growth in ride-hailing mode share (computed on a 10% population sample with selected metrics reported as scaled full-population equivalents), we find that 65.4% of pooled requests result in actual pooled trips, which lies within the model’s baseline calibration range (60–75%). ... Repositioning sensitivity is a fractional control on repositioning probability, scaled to peak-hour demand (e.g., at 50% sensitivity, up to half of idle vehicles reposition at peak hour). ... When pooling is unavailable, repositioning has a larger adverse effect on ride-hailing service and broader transportation outcomes.
+The effective disutility of pooling relative to solo ride-hailing—combining the mode-specific intercept ($1.68) and the additional value of travel time for shared rides ($23.70/h, implying roughly $2.77 for a 7-min trip)—was estimated from the same Chicago dataset [52] to be approximately $4.5 per trip. Solo ride-hailing trips are priced at $1.80 + $0.91/mile + $0.28/min and pooled trips at $1.89 + $1.11/mile + $0.07/min, consistent with the Chicago-estimated parameters described in Section 2. Over successive BEAM iterations, the pooling quote presented to customers is updated based on observed skims of travel time and distance from previous iterations. The SFBay scenario draws on multiple data sources for its inputs and calibration [51]: the road network is derived from OpenStreetMap, transit routes and schedules from GTFS feeds, the synthetic population and land use from UrbanSim. Traffic flow was validated against speeds and travel times collected via the Google Maps API and U.S. Highway Performance Monitoring System (HPMS) VMT estimates, and transit ridership against agency-level boarding counts from the Metropolitan Transportation Commission [58].
+
+Ride-hailing was calibrated for 40% deadheading, 7 min waiting time, and a 60–75% pool match ratio (Figure 4). Ride-hailing drivers are not permitted to reject trip offers, so in terms of dispatch they behave identically regardless of shift type; human-driven vehicles do, however, operate in limited shifts based on empirical data from the Chicago dataset [52]. Once a person agent chooses ride-hailing, they send a request for a pooled or solo pickup. The ride-hailing manager collects these requests in a buffer and, every few minutes, executes the pooling algorithm on the set of pooled requests first, then allocates the remaining solo requests based on the nearest available vehicle in terms of travel time. The vehicles are finally dispatched to pick up customers.
+
+--------------------------------------------------------------------------------
+顺风车新规落地三个月，有人接单难到哭，有人月收入涨两成：差距就在这5个细节_其他汽车服务_什么值得买 (https://post.smzdm.com/p/a3m2vxw5/)
+citeturn620search9 [wordlim: 200] Published: 4 months ago; Crawled: 3 days ago; 2026年已经过半，顺风车新规落地已经一个多月。 ... 滴滴从6月份开始上线完单率考核体系，统计口径很明确：只算15公里以上、乘客已经确认同行的订单，取最近40笔数据计算完成比例。 ... 有人觉得反正不是自己的责任，取消就取消呗，结果完单率被一点点稀释下去，等到想接大单才发现系统已经把你归类为"不稳定供给"了。
+--------------------------------------------------------------------------------
+数据可视化第二版-拓展-和鲸网约车分析一等奖作品-腾讯云开发者社区-腾讯云 (https://developer.cloud.tencent.com/article/2343645?policyId=1003)
+citeturn620search10 [wordlim: 200] Published: 3.1 years ago; Crawled: last month; > 对于 ADE 城市来说，可以尝试多提升呼叫数和应答数 优化路线，提供优惠券增加呼叫数， 提供接单任务奖励提高应答数， 对司机进行培训提升完单数 对于 BC 城市来说，暂时来说，继续保持的，同时考虑 中午的接单数 ... 🚩 网约车的行业特点：网约车，全称为网络预约出租汽车，是通过互联网平台对接 运力（驾驶员、车辆）和乘客，提供非巡游出租车服务的经营活动。 ... （1）时段和司机在线数呈现出比较强的正相关，根据时间段进行研究有一定合理性； （2）司机在线数与冒泡数，呼叫数，应答数和完单数呈现出强正相关，证明运力的在线数量对于是否完成交易起到关键性的作用； （3）但是，司机在线数与呼叫转化率几乎没有相关性，因此并用冒泡数据来计算存量的乘客数以及观察呼叫转化率的价值可能并不大，也验证了使用呼叫数作为乘客在线数的价值，也可以在用户数量多但转化率不高的关键步骤做一些营销动作； （4）乘客司机比与完单转化率，即数量和质量之间没有相关关系。
+--------------------------------------------------------------------------------
+基于订单分析的网约车管理方法及系统 (https://patents.google.com/patent/CN118154271B/zh)
+citeturn620search11 [wordlim: 200] Published: last year; Crawled: last week; 接单变化系数的计算逻辑为：在监测时间段，当分区的用户下单数量减去出行网约车数量大于差值阈值时，会导致用户的订单接单时间延长或订单无网约车接单，当出现这些问题时，均会导致网约车管理平台的用户流失，将用户下单数量减去出行网约车数量大于差值阈值的时段作为订单过剩预警的时段，在监测时间段中，订单过剩预警的时段越长，越容易导致用户流失； ... 完单率的计算表达式为：WDL＝DS/Δt，式中，DS表示在Δt时间段内网约车管理平台收到的订单完成数量，Δt为监测时间段，完单率越小，表明网约车在监测时间段内的订单完成数量越少，具体表现为：
+
+服务质量问题：完单率低可能反映了服务质量不佳，导致乘客取消订单或者司机提前结束服务。
+--------------------------------------------------------------------------------
+<visual_element id="e1"> (https://s3-gzpu.didistatic.com/common-public/outreach/ccf/%E9%99%84%E5%BD%952-2025%E5%B9%B4CCF-%E6%BB%B4%E6%BB%B4%E7%9B%96%E4%BA%9A%E5%AD%A6%E8%80%85%E7%A7%91%E7%A0%94%E5%9F%BA%E9%87%91%E8%AF%BE%E9%A2%98%E8%AF%A6%E6%83%85.pdf)
+citeturn620search12 [wordlim: 200] Crawled: 2 weeks ago; 伴随着网约车在业界的多年发展，各个平台为了适配更多的不同用户诉求，各自都推出了较多品类和车型的选择。 ... 在用户预估发单时，平台探索推荐给用户的品类组合最优解，以提升用户筛选和选择的效率，提升总体平台收益。
+
+模型衡量标准：在线 A/B 实验下，用户预估发单率+1%，取得大盘显著正向收益（GMV、完单、用户 NPS、乘客 NPS 等）。
+--------------------------------------------------------------------------------
+RideWay: Benchmarking Efficient Task Completion for Tool-Using Language Agents (https://sex8x8.com/__proxy/arxiv.org/pdf/2609.17985)
+citeturn620search13 [wordlim: 200] Crawled: last week; The release contains 58 synthetic ridehailing tasks, 26 tools, 24 evaluated agent configurations, three attempts per task, task-level reference-effort annotations, 320 calibration and 80 held-out pairwise preference votes, 80 listwise labels, IAA labels, judge-panel audit labels, model leaderboards, task-difficulty ledgers, and scripts for reproducing the reported statistics. ... The artifact is intended for research evaluation of tool-using language agents, not for deployment as a ridehailing service or for operational decisions about real passengers, drivers, or trips. ... The study uses hosted LLM APIs rather than training new models, so GPU-hour reporting for local model training is not applicable.
+--------------------------------------------------------------------------------
+Z. Zhou et al. (https://acris.aalto.fi/ws/portalfiles/portal/121697378/1_s2.0_S0968090X23003157_main.pdf)
+citeturn620search14 [wordlim: 200] Published: last week; Crawled: last week; *Transportation Research Part C 156 (2023) 104326* ... Instead of solving ride-hailing and ridesharing problems separately, the *integrated* strategy pairs every potential ride-hailing vehicle with every ridesharing vehicle and calculates the corresponding ride-hailing–ridesharing probability pair. ... However, by integrating ride-hailing and ridesharing vehicles into a single model, the problem (17)–(21) falls within the realm of three-dimensional or three-index assignment problem, which is known to be NP-complete (Frieze, 1983).
+--------------------------------------------------------------------------------
+# A E-Companion for “Incentivizing flexible workers in the gig economy: The case of ride-hailing” (https://discovery.ucl.ac.uk/id/eprint/10217333/2/POM%20e-companion.pdf)
+citeturn620search15 [wordlim: 200] Crawled: last week; # A E-Companion for “Incentivizing flexible workers in the gig economy: The case of ride-hailing” ... - \(T=(a_{i,j})_{n\times n}\) represents the transition matrix where \(a_{i,j}>0\) denotes the probability that a person at location \(i\) wishes to travel to location \(j\). ... - \(\varphi_h\) is the probability that a driver matched with a passenger continues to offer driving services in the next period. ... - \(d_i=\sum_{j=1}^{n}a_{i,j}\delta_{i,j}\) is the average trip length of a ride originating from \(i\).
+--------------------------------------------------------------------------------
+78 — Hybrid autonomous ride-hailing services (https://kups.ub.uni-koeln.de/78405/1/PhD_Thesis_R_Ahadi.pdf)
+citeturn620search16 [wordlim: 200] Crawled: 2 weeks ago; 78 — Hybrid autonomous ride-hailing services ... This involves matching available vehicles with ride-hailing requests and making decisions related to fleet rebalancing. ... This process repeats throughout the simulation’s operational period, recording key outputs such as aggregated data on served and canceled requests, vehicle utilization, and charging infrastructure status. ... To account for driver availability, our model adjusts the actual number of HVs based on a distribution of driver shift hours, which is derived from historical trip data.
+--------------------------------------------------------------------------------
+Personalized Task Dependency Graphs for Mitigating Signal Erosion in Multi-Task Recommendation (https://arxiv.org/abs/2609.04862)
+citeturn620academia17 [wordlim: 200] Published: 2 months ago; Existing Multi-Task Learning (MTL) methods typically enforce uniform dependency strengths across a static conversion funnel, overlooking how task correlations naturally vary based on item characteristics.
+--------------------------------------------------------------------------------
+ALIGN-HOLD: Experience Alignment for Real-Time Hold Control in Large-Scale Ride-Hailing Matching at DiDi (https://arxiv.org/abs/2609.09685)
+citeturn620academia18 [wordlim: 200] Published: 2 months ago; Title: ALIGN-HOLD: Experience Alignment for Real-Time Hold Control in Large-Scale Ride-Hailing Matching at DiDi ... Compared with the deployed production policy, ALIGN-HOLD achieves statistically significant improvements in trip completion rate and driver income, while significantly reducing passenger cancellations before and after driver acceptance.
+--------------------------------------------------------------------------------
+When Disclosure Is Compulsory: Evaluating Ride-Hailing Rebalancing Policies with Self-Interested LLM Driver Agents (https://arxiv.org/abs/2610.41132)
+citeturn620academia19 [wordlim: 200] Published: 2 weeks ago; Title: When Disclosure Is Compulsory: Evaluating Ride-Hailing Rebalancing Policies with Self-Interested LLM Driver Agents ... The EU Platform Work Directive, to be transposed by December 2026, requires ride-hailing platforms to state in plain language the main parameters of their automated decisions and how a worker's behaviour affects them. ... For drivers, disclosure raises income in the small model under both policies and LLMs; for users, it raises the service rate there by 10 to 18 percentage points.
+--------------------------------------------------------------------------------
+RideBench: A Large-Scale Exogenous-Aware Benchmark for Ride-Hailing Time Series Forecasting (https://arxiv.org/abs/2610.11164)
+citeturn620academia20 [wordlim: 200] Published: last month; By introducing Ride-Hailing and RideBench, we aim to encourage the community to study these practical challenges in real-world ride-hailing forecasting.
+--------------------------------------------------------------------------------
+Multi-task learning (https://en.wikipedia.org/wiki/Multi-task_learning)
+citeturn620search21 [wordlim: 200] Crawled: 3 weeks ago; Inherently, multi-task learning is a multi-objective optimization problem having trade-offs between different tasks. ... Multitask Learning is an approach to inductive transfer that improves generalization by using the domain information contained in the training signals of related tasks as an inductive bias. It does this by learning tasks in parallel while using a shared representation; what is learned for each task can help other tasks be learned better. ... A model of inductive bias learning" Journal of Artificial Intelligence Research 12:149--198, On-line paper ... Evolutionary multitasking: a computer science view of cognitive multitasking.
+--------------------------------------------------------------------------------
+網約車 (https://zh.wikipedia.org/wiki/%E7%B6%B2%E7%B4%84%E8%BB%8A)
+citeturn620search22 [wordlim: 200] Crawled: 5 days ago; 目前中国大陆现行的全国性网约车运营规定为《网络预约出租汽车经营服务管理暂行办法》。 ... 根据《网络预约出租汽车经营服务管理暂行办法》相关规定，网约车平台若要开展经营业务，除具有企业法人资格外，还需要具备开展网约车经营的互联网平台和与拟开展业务相适应的信息数据交互及处理能力，具备供交通、通信、公安、税务、网信等相关监管部门依法调取查询相关网络数据信息的条件，网络服务平台数据库接入出租汽车行政主管部门监管平台。 ... * 約六至七成網約車司機每周工作少於20小時，以兼職為主，活躍司機估計少於3萬名。 ... * 部分意見參考外地經驗（上海網約車與的士比例為1:2.6、深圳1:5.9、新加坡1:4.5、澳洲坎培拉1:12.5），主張牌照數量多於現時的士（約1.8萬輛）。 ... 打擊白牌車 《修訂條例》已加強非法取酬載客（俗稱「白牌車」）罰則，定罪司機須被取消駕駛資格12個月至3年，並強化扣車安排。 ... 而后在2018年8月，新浪網消息称部分滴滴车主有使用外挂软件的行为，这些外挂能让正常车费翻倍以及帮助司机作弊抢单，滴滴表示已上线反作弊系统，并会对违规司机予以处罚。
+

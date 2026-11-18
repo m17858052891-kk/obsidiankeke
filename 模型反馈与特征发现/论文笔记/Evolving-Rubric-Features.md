@@ -8,6 +8,12 @@ category: "结构反馈与语言生成"
 
 # Evolving LLM-Generated Features for Interpretable Classification
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Evolving LLM-Generated Features for Interpretable Classification”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > LLM生成二值rubric并逐条标注数据；分类器学习；保留必要rubric、替换无效项
 

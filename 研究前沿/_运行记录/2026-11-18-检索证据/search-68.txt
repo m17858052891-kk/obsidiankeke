@@ -1,0 +1,280 @@
+Estimating and Evaluating Counterfactual Prediction Models (https://pmc.ncbi.nlm.nih.gov/articles/PMC12503020/)
+citeturn630search0 [wordlim: 200] Published: 1.1 years ago; Crawled: 3 weeks ago; Counterfactual prediction methods are required when a model will be deployed in a setting where treatment policies differ from the setting where the model was developed, or when a model provides predictions under hypothetical interventions to support decision‐making. ... Therefore, addressing the research question entails contrary‐to‐fact interventions and calls for using methods for counterfactual prediction. ... For simplicity, in the main text, we focus on simple intervention strategies where everyone receives treatment $A=a$, in which case the goal is to estimate $E[{Y}^{a}|{X}^{\ast }]$.
+
+. 2025 Oct 7;44(23-24):e70287. doi: 10.1002/sim.70287
+
+# Estimating and Evaluating Counterfactual Prediction Models
+
+Revised 2025 Aug 12; Received 2023 Sep 6; Accepted 2025 Sep 17; Issue date 2025 Oct.
+
+© 2025 The Author(s). Statistics in Medicine published by John Wiley & Sons Ltd.
+
+This is an open access article under the terms of the http://creativecommons.org/licenses/by-nc/4.0/ License, which permits use, distribution and reproduction in any medium, provided the original work is properly cited and is not used for commercial purposes.
+
+PMCID: PMC12503020  PMID: 41055572
+
+## ABSTRACT
+
+Counterfactual prediction methods are required when a model will be deployed in a setting where treatment policies differ from the setting where the model was developed, or when a model provides predictions under hypothetical interventions to support decision‐making. However, estimating and evaluating counterfactual prediction models is challenging because, unlike traditional (factual) prediction, one does not observe the potential outcomes for all individuals under all treatment strategies of interest. Here, we discuss how to estimate a counterfactual prediction model, how to assess the model's performance, and how to perform model and tuning parameter selection. We provide identification and estimation results for counterfactual prediction models and for multiple measures of counterfactual model performance, including loss‐based measures, the area under the receiver operating characteristic curve, and the calibration curve. Importantly, our results allow valid estimates of model performance under counterfactual intervention even if the candidate prediction model is misspecified, permitting a wider array of use cases. We illustrate these methods using simulation and apply them to the task of developing a statin‐naïve risk prediction model for cardiovascular disease.
+
+Keywords: causal inference, machine learning, model performance, prediction model, transportability, treatment drop‐in
+
+## 1. Introduction
+
+Many common tasks in prediction modeling involve “what if” questions that call for predictions under conditions that are contrary to those prevalent when the training data are collected. When these changing conditions can be usefully thought of as resulting from hypothetical interventions on variables relevant to the outcome, we refer to the task as counterfactual prediction [1, 2, 3]. There exist several broad categories of modeling tasks that involve counterfactual predictions.
+
+First, a model may be deployed in a setting that differs from the setting from which training data were gathered in terms of patterns of post‐baseline treatments. These changes in treatment patterns could occur in a given target population over time due to treatment policy changes, commonly referred to as problems of “domain adaptation” or “dataset shift” [4, 5]. Alternatively, they could occur when a model is transported from a source population to a new target population that has a similar baseline covariate distribution but differs in terms of post‐baseline treatment patterns. In both cases, differences between the training and deployment settings can cause the predictive performance of models to degrade. While, ideally, one would re‐train the model using data in the new setting, to reduce data collection costs or as a stop‐gap while new data are collected, investigators may attempt to use existing data to adapt or tailor the model to target the expected outcome under a hypothetical intervention to match treatment patterns in the target setting where the model will be applied. Alternatively, investigators may use existing data to evaluate the counterfactual performance of the model, unadapted, in the target setting [6]. Both are examples of counterfactual prediction tasks.
+
+Second, a model may be intended for use as a decision support tool, for instance, by clinicians to counsel patients about their risk of disease under alternative treatment plans. In certain unrealistic circumstances, such as when using data from a trial that (1) is representative of the target population, (2) randomly assigned participants to the treatment strategies considered for decision support, and (3) had complete adherence to the assigned strategies and no loss to follow‐up [7, 8, 9, 10, 11], obtaining prediction models for the outcome under different treatment strategies may not require the additional formalism of counterfactual prediction. ## 10. Discussion
+
+Many practical prediction problems call for the development and evaluation of counterfactual prediction models, for example, when the treatment distribution changes between the time training data are obtained and when the model will be deployed, or when predictions are meant to inform decisions about treatment initiation. In this paper, we considered the setting where the counterfactual prediction model has to be developed using observational training data. We described how to estimate counterfactual prediction models and the conditions necessary to identify these models. Separately, we also discussed how to adjust common measures of model performance to estimate the performance of a counterfactual prediction model. Importantly, our results for performance measures are valid even when the prediction model is misspecified. A key insight was that performance measures that have not been tailored for counterfactual prediction will be biased. We also showed that performance under a hypothetical intervention can be assessed even if the prediction model itself is misspecified. --------------------------------------------------------------------------------
+# Optimal Stopping (https://sidbanerjee.orie.cornell.edu/docs/ORIE6180F21/files/Optimal-Stopping.pdf)
+citeturn630search12 [wordlim: 200] Crawled: 5 days ago; # Optimal Stopping ... - Costs: ...   C_t(x,1)&=s(x) \qquad \text{(stopping cost)}\\ ... - If \(X_t\in T\), then \(X_{t+1}\in T\), and by induction hypothesis, it is better to stop.
+# Optimal Stopping
+
+## Setting
+
+- State space: \(S \cup \{\text{Stopped}\}\)
+- Action space: \(A=\{0,1\}\)
+  - \(0\): Stop
+  - \(1\): Continue
+
+- If \(A_t=0\), then \(S_{t+i}=\text{Stopped}\) for all \(i\geq 1\).
+
+- Costs:
+  \[
+  \begin{aligned}
+  C_t(x,0)&=c(x) \qquad \text{(continuation cost)}\\
+  C_t(x,1)&=s(x) \qquad \text{(stopping cost)}\\
+  C_t(\text{Stopped},\cdot)&=0.
+  \end{aligned}
+  \]
+
+## Finite-horizon formulation
+
+If we play this over a horizon \(T\), then HJB equation:
+
+\[
+V_t(x)=\min\left[
+c(x)+\mathbb{E}\left[
+V_{t+1}(X_{t+1})\mid X_t=x,A_t=1
+\right],
+s(x)
+\right],
+\qquad x\in S
+\]
+
+- \(a=1\): continue (expectation term).
+- \(a=0\): stop (\(s(x)\)).
+
+Boundary conditions:
+
+\[
+V_t(\text{Stopped})=0,
+\qquad V_T(x)=0\quad \forall x.
+\]
+
+## 1-Step Look-Ahead Rule (1-SLA)
+
+Stop whenever stopping now is better than stopping in the next step, i.e.,
+
+\[
+A_t=1 \quad \text{under the event}
+\]
+
+\[
+T_t=
+\left\{
+s(X_t)\leq c(X_t)+
+\mathbb{E}\left[
+s(X_{t+1})\mid X_t,A_t=1
+\right]
+\right\}.
+\]
+
+---
+
+## Theorem (Chow & Robbins '61)
+
+Suppose \(T_t\) is monotone, i.e.,
+
+\[
+T_0\subseteq T_1\subseteq T_2\subseteq \cdots
+\qquad \text{a.s.}
+\]
+
+Then 1-SLA is optimal.
+
+### Proof
+
+Induction on \(t\in\{T-1,T-2,\ldots,0\}\).
+
+For \(t=T-1\), it is clear we should stop if
+
+\[
+s(X_t)\leq c(X_t)
+\iff X_t\in T.
+\]
+
+Now, if it is true for \(t\geq k\), then at time \(t=k-1\):
+
+- If \(X_t\notin T\), then it is better to continue till \(t=k\).
+- If \(X_t\in T\), then \(X_{t+1}\in T\), and by induction hypothesis, it is better to stop.
+
+\[
+\boxed{\text{Hence, 1-SLA is optimal.}}
+\]--------------------------------------------------------------------------------
+# 1 Introduction (https://www.mit.edu/~dimitrib/lspe-optstop-9.pdf)
+citeturn630search13 [wordlim: 200] Crawled: 5 days ago; At each state, there are two choices: either to stop and incur a state-dependent stopping cost, or to continue and move to a successor state according to some transition probabilities and incur a state-dependent continuation cost. Once the stopping action is taken, no further costs are incurred. ... Generally, cost function approximation methods are theoretically sound (i.e., are provably convergent) only for the single-policy case, where the cost function of a fixed stationary policy is evaluated. However, for the stopping problem of this paper, Tsitsiklis and Van Roy [TV99] introduced a linear function approximation to the optimal Q-factors, which they prove to be the unique solution of a projected form of Bellman's equation.
+# 1 Introduction
+
+Optimal stopping problems are a special case of Markovian decision problems where the system evolves according to a discrete-time stochastic system equation, until an explicit stopping action is taken. At each state, there are two choices: either to stop and incur a state-dependent stopping cost, or to continue and move to a successor state according to some transition probabilities and incur a state-dependent continuation cost. Once the stopping action is taken, no further costs are incurred. The objective is to minimize the expected value of the total discounted cost. Examples are classical problems, such as search, and sequential hypothesis testing, as well as recent applications in finance and the pricing of derivative financial instruments (see Tsitsiklis and Van Roy [TV99], Barraquand and Martineau [BM95], Longstaff and Schwartz [LS01]).
+
+The problem can be solved in principle by dynamic programming (DP for short), but we are interested in problems with large state spaces where the DP solution is practically infeasible. --------------------------------------------------------------------------------
+Predicting counterfactual risks under hypothetical treatment strategies: an application to HIV (https://pmc.ncbi.nlm.nih.gov/articles/PMC9189026/)
+citeturn630search1 [wordlim: 200] Published: 4.7 years ago; Crawled: 3 weeks ago; We applied the original prediction model to the three counterfactual datasets simulated under hypothetical treatment strategies to predict individuals’ 5-year risk of death. ... In an application of counterfactual prediction to mortality risk among individuals receiving care for HIV in the largest integrated healthcare system in the U.S., we found evidence that a conventional (factual) prediction model would yield systematically miscalibrated predictions when applied to new populations with different treatment patterns.
+Here we consider the second case to introduce methodology for counterfactual prediction under hypothetical treatment strategies.
+
+Regardless of which components of the joint distribution of the variables differ across populations, the most natural solution to this transportability problem is to use data from the new population to adapt or retrain a factual prediction model [7, 26–28]. However, this requires data from the new population. If those data are not available, then we need to recast the prediction question as a counterfactual prediction question, which fundamentally changes the data analysis. In fact, counterfactual prediction requires the same data (eligibility criteria, outcome, censoring, time-varying treatments, time-varying confounders), assumptions (exchangeability, positivity, consistency [22]) and methods as those required for causal inference [11].
+
+In this application, we focused on counterfactual prediction to address treatment strategy shift within one healthcare system over time. Here we used a treatment variable which reflects the distribution of antiretroviral therapies available during the study period to estimate counterfactual risks after shifts in treatment strategies. That is, we considered two time periods over which the rules for determining treatment assignment are different but the versions of treatment itself are assumed to be the same (or different in ways that do not matter) [34]. If different versions of treatment are deployed across settings and those versions have different effects on the counterfactual outcomes of interest, then our counterfactual predictions will be incorrect unless they incorporate information on different versions of treatment. If these different versions involve a treatment not currently available in the data, then counterfactual prediction will not be generally possible.
+
+In summary, we propose methodology for counterfactual prediction as an interim mitigation strategy for shifts in treatment patterns while awaiting new data to retrain a prediction algorithm. Specifically, our proposed approach to counterfactual prediction permits the generation of counterfactual data under hypothetical treatment strategies, which can be used to assess the robustness of a prediction model to particular shifts, and, if needed, develop counterfactual prediction models. Estimating counterfactual risks under a particular treatment strategy is more challenging than conventional prediction as it requires the same data, methods, and unverifiable assumptions as causal inference. However, this may be necessary when the alternative assumption of constant treatment patterns across deployment settings is unlikely to hold and a factual prediction model cannot be assumed to retain good performance when transported to new patient populations.
+
+--------------------------------------------------------------------------------
+Optimal stopping and impulse control in the presence of an anticipated regime switch (https://link.springer.com/article/10.1007/s00186-023-00838-9)
+citeturn630search2 [wordlim: 200] Published: 3.1 years ago; Crawled: 2 months ago; We consider a class of stochastic optimal stopping and impulse control problems where the agent solving the problem anticipates that a regime switch will happen at a random time in the future. ... If the underlying is taken to be the value of an irreversible investment and c is the fixed cost of exercising the investment opportunity, the problem turns into a regime switching extension of the investment problem studied by Dixit et al. ... In this case, total neutrality means that even if the environmental factors affecting the forest growth dynamics undergo a regime switch, the optimal harvesting policy and the forest stand value remain unchanged.
+
+# Optimal stopping and impulse control in the presence of an anticipated regime switch
+
+  * Original Article
+  * Open access
+  * Published: 29 September 2023
+
+  * Volume 98, pages 205–230 (2023)
+  * Cite this article
+
+You have full access to this open access article
+
+Download PDF
+
+Save article
+
+View saved research
+
+Mathematical Methods of Operations Research Aims and scope Submit manuscript
+
+Optimal stopping and impulse control in the presence of an anticipated regime switch
+
+Download PDF
+
+  * Luis H. R. Alvarez E.  ORCID: orcid.org/0000-0003-1342-1691^{1} &
+  * Wiljami Sillanpää  ORCID: orcid.org/0009-0002-2728-9644^{2} 
+
+  * 2197 Accesses
+
+  * 3 Citations
+
+  * Explore all metrics
+
+## Abstract
+
+We consider a class of stochastic optimal stopping and impulse control problems where the agent solving the problem anticipates that a regime switch will happen at a random time in the future. --------------------------------------------------------------------------------
+Uncertainty Quantification for Conditional Treatment Effect Estimation under Dynamic Treatment Regimes (https://pmc.ncbi.nlm.nih.gov/articles/PMC12121963/)
+citeturn630search3 [wordlim: 200] Published: 2.0 years ago; Crawled: 3 weeks ago; Counterfactual prediction via g-computation enables comparison of alternative outcome distributions under such treatment strategies. ... Recent works have leveraged machine learning (ML) for counterfactual prediction (Lim et al., 2018; Bica et al., 2020a; Melnychuk et al., 2022; Li et al., 2021; Xiong et al., 2024), but most prior works (Lim et al., 2018; Bica et al., 2020a; Melnychuk et al., 2022) focus on time-varying but non-dynamic treatment settings, and none of these prior works tackle the challenge of uncertainty quantification for conditional treatment effect estimation under dynamic treatment settings.
+
+. Author manuscript; available in PMC: 2025 May 29.
+
+Published in final edited form as: Proc Mach Learn Res. 2024 Dec;259:248–266.
+
+# Uncertainty Quantification for Conditional Treatment Effect Estimation under Dynamic Treatment Regimes
+
+PMC Copyright notice
+
+PMCID: PMC12121963  NIHMSID: NIHMS2078547  PMID: 40443560
+
+## Abstract
+
+In medical decision-making, clinicians must choose between different time-varying treatment strategies. Counterfactual prediction via g-computation enables comparison of alternative outcome distributions under such treatment strategies. While deep learning can better model high-dimensional data with complex temporal dependencies, incorporating model uncertainty into predicted conditional counterfactual distributions remains challenging. We propose a principled approach to model uncertainty in deep learning implementations of g-computations using approximate Bayesian posterior predictive distributions of counterfactual outcomes via variational dropout and deep ensembles. --------------------------------------------------------------------------------
+Individualized Treatment Effect Prediction with Machine Learning — Salient Considerations (https://doi.org/10.1056/EVIDoa2300041)
+citeturn630search4 [wordlim: 200] Published: 2.6 years ago; Crawled: 2 weeks ago; Models that aim to predict individualized treatment effects on the basis of patient characteristics have an explicit goal of counterfactual prediction.
+
+### Salient Methodologic Considerations for Prediction of Individualized Treatment Effects
+
+#### Choice of a Prediction Modeling Approach
+
+Models that aim to predict individualized treatment effects on the basis of patient characteristics have an explicit goal of counterfactual prediction. That is, these models are intended to predict the difference between a patient’s risk of an outcome under active treatment and that patient’s risk of the outcome under reference treatment given their characteristics. This quantity of interest $\tau  \left(x\right)$ can be expressed as follows:
+
+$$\tau  \left(x\right)=E\text{[}Y\left(1\right)-Y\left(0\right)\text{|} X=x],$$
+
+where Y(1) is the outcome risk when treated with active treatment, Y(0) is the outcome risk had the patient been treated with reference treatment, and x is a vector summarizing patient characteristics.
+
+In this article, we refer to this quantity as the “individualized treatment effect” as proposed by Kent et al.^{11} in the Predictive Approaches to Treatment effect Heterogeneity statement. --------------------------------------------------------------------------------
+Prediction meets causal inference: the role of treatment in clinical prediction models (https://pmc.ncbi.nlm.nih.gov/articles/PMC7387325/)
+citeturn630search5 [wordlim: 200] Published: 6.5 years ago; Crawled: 3 weeks ago; A causal inference model aims to quantify what the counterfactual or potential outcomes of patients would be with and without an intervention and infers a causal effect of intervention from that. ... The “hypothetical” prediction estimand could be classified as a type of counterfactual prediction, since we predict potential outcomes ‘if the world were different’, namely, if no one receives treatment [41]. ... In case patients switch between ‘off’ and ‘on’ treatment multiple times during follow up, the definition and analysis approach of the “ignore treatment” and “hypothetical” strategy can stay unchanged. An application of the “hypothetical” strategy in such an ‘on’ and ‘off’ switching situation is presented in [9].
+A causal inference model aims to quantify what the counterfactual or potential outcomes of patients would be with and without an intervention and infers a causal effect of intervention from that. A prediction model aims to provide correct predictions of an outcome given a set of prognostic factors that do not have to be causally related to the outcome. The “hypothetical” prediction estimand could be classified as a type of counterfactual prediction, since we predict potential outcomes ‘if the world were different’, namely, if no one receives treatment [41]. Several untestable assumptions are needed here. The other three prediction estimands give ‘real world’ predictions and can be estimated from a development dataset without untestable assumptions. However, when predicting for new patients using these three strategies, we assume that similar treatment assignment policies apply as in the development cohort. This is also a very strong assumption that cannot be tested upfront. The prognostic factors used in a clinical prediction model do not have to be causally related to the outcome, however the predictions they render will only be valid if the treatment policies that patients to whom the prediction model is applied are (1) clearly defined in the prediction estimand and (2) similar as in the development cohort (except for the “hypothetical” strategy).
+--------------------------------------------------------------------------------
+\[
+\lim_{P\to+\infty} V_1(P)
+=
+\mathbb{E}\left[
+\i (https://www.realoptions.org/openconf2015/data/papers/60.pdf)
+citeturn630search14 [wordlim: 200] Crawled: last week; The optimal switching policy (i.e. the displacement strategies idle state → active state and active state → idle state) is determined through two time independent trigger prices \(\overline{P}\) and \(\underline{P}\). ... which ensure that the gain in value from exercising the option is exactly equal to the cost of doing so. ... ⁵ Samuelson (1965), McKean (1965), and Merton (1973) established conditions of optimality for such *optimal stopping* problems.
+--------------------------------------------------------------------------------
+A nonasymptotic analysis for re‐solving heuristic in online matching (https://journals.sagepub.com/doi/10.1111/poms.13738)
+citeturn630search6 [wordlim: 200] Published: 4.3 years ago; Crawled: 2 months ago; # A nonasymptotic analysis for re‐solving heuristic in online matching ... We model the offline optimization problem as a deterministic linear program (LP) and present multiple randomized online algorithms based on the solution to the offline LP.
+--------------------------------------------------------------------------------
+G-Transformer: Counterfactual Outcome Prediction under Dynamic and Time-varying Treatment Regimes (https://pmc.ncbi.nlm.nih.gov/articles/PMC12113242/)
+citeturn630search7 [wordlim: 200] Published: 2.3 years ago; Crawled: 3 weeks ago; It should be noted that Causal Transformer Melnychuk et al. (2022) can estimate counterfactual outcomes under time-varying treatments, but it is not designed to estimate counterfactual outcomes under dynamic treatment regimes, where treatments depend on past covariate history during counterfactual prediction.
+--------------------------------------------------------------------------------
+Estimating and Evaluating Counterfactual Prediction Models (https://onlinelibrary.wiley.com/doi/full/10.1002/sim.70287)
+citeturn630search8 [wordlim: 200] Published: 1.1 years ago; Crawled: 2 months ago; The latter may be particularly likely in prediction datasets where information on treatment is passively collected, for instance, in an electronic healthcare record, where they are not well defined or include hidden components. ... This is the basis for previously proposed methods for counterfactual prediction based on inverse probability of treatment weighting [3, 13].
+--------------------------------------------------------------------------------
+Estimating Treatment Effects for Depression in Longitudinal Therapy Switching Settings (https://sex8x8.com/__proxy/arxiv.org/pdf/2607.27214)
+citeturn630search15 [wordlim: 200] Crawled: 2 weeks ago; **Index Terms—**Treatment Effect Estimation, Medication Switching, Depression Outcomes, Counterfactual Prediction, Observational Calibration. ... Second, switching introduces time-varying selection because treatment changes depend on prior response and evolving clinical history, so patients who switch can differ systematically from those who continue. ... Prior research exploring switching between antidepressant treatments has established the clinical importance of sequential strategies. The Sequenced Treatment Alternatives to Relieve Depression (STAR*D) study demonstrated that only one-third of patients achieve remission with initial therapy and that multiple treatment steps are often necessary [8].
+--------------------------------------------------------------------------------
+14  Optimal stopping – Stochastic Control and Decision Theory (https://adityam.github.io/stochastic-control/mdps/optimal-stopping.html)
+citeturn630search9 [wordlim: 200] Published: 4 months ago; Crawled: last month; In an optimal stopping problem, a decision maker observes a stochastic process and must decide whether to stop the process or continue. The goal is to balance the immediate cost of stopping against the expected future costs of continuing.
+--------------------------------------------------------------------------------
+Estimating the Individual Treatment Effect on Survival Time Based on Prior Knowledge and Counterfactual Prediction (https://pmc.ncbi.nlm.nih.gov/articles/PMC9322711/)
+citeturn630search10 [wordlim: 200] Published: 4.4 years ago; Crawled: last month; As defined in Notation (4) in [ref-type: sec] Section 2.1, if $\phi \left({x}_{i}^{{t}_{i}}\right)~$is fed into another branch composed of ${g}_{T=1-{t}_{i}}$, ${h}_{T=1-{t}_{i}}$, and ${u}_{T=1-{t}_{i}}$, the output is denoted by ${\widehat{y}}_{i}^{T=1-{t}_{i}}$ and is called the counterfactual prediction because the treatment $1-{t}_{i}$ has not happened to patient $i$.
+--------------------------------------------------------------------------------
+Optimal switching between cash-flow streams (https://link.springer.com/article/10.1007/s00186-017-0586-0)
+citeturn630search11 [wordlim: 200] Published: 9.6 years ago; Crawled: last month; We characterize the solutions to the simple switching problem and generalize the approach to include switching costs, switch-triggered obligations, as well as any finite number of allowable switches and available cash-flow streams. ... Finally, our approach to the cash-flow switching problem is related to global optimization, as the optimal switching time needs to globally maximize a differentiable function on the interval of consideration. ... If there is a cost c of performing a switch, payable at the time of the switch, then the optimal solution depends on whether switching is mandatory or optional.
+--------------------------------------------------------------------------------
+Supplementary Method S3: Counterfactual prediction models (https://jitc.bmj.com/content/jitc/13/10/e013074/DC1/embed/inline-supplementary-material-1.pdf)
+citeturn630search16 [wordlim: 200] Crawled: last month; Supplementary Method S3: Counterfactual prediction models ... For a patient i, the comparison of two counterfactual outcomes defines the individual treatment effect: ... In the current study, we formulated our individual treatment effect (ITE) as shown in Eq.
+--------------------------------------------------------------------------------
+# Persuasion and Optimal Stopping (https://static1.squarespace.com/static/5efca972e541380b32c1ca30/t/675506da1903b6595bbf0c4a/1733625563260/POS_4Dec.pdf)
+citeturn630search17 [wordlim: 200] Published: 2.0 years ago; Crawled: 4 days ago; We further characterize how time and action preferences jointly shape optimal strategies featuring a *suspense-generation* stage which optimally concentrates the agent’s stopping time, followed by an *action-targeting* stage which maximally correlates/anticorrelates persuasion and delay. ... At the heart of many economic decisions lies an optional stopping problem paired with a choice problem—a decision maker chooses *when* to stop gathering information as well as *what* irrevocable action to take.
+--------------------------------------------------------------------------------
+Optimal stopping (https://en.wikipedia.org/wiki/Optimal_stopping)
+citeturn630search18 [wordlim: 200] Crawled: 1.5 years ago; In mathematics, the theory of optimal stopping or early stopping is concerned with the problem of choosing a time to take a particular action, in order to maximise an expected reward or minimise an expected cost. ... Here, if ${\displaystyle R_{1},\ldots ,R_{n}}$ (n is some large number) are the ranks of the objects, and ${\displaystyle y_{i}}$ is the chance you pick the best object if you stop intentionally rejecting objects at step i, then ${\displaystyle (R_{i})}$ and ${\displaystyle (y_{i})}$ are the sequences associated with this problem. ... Economists have studied a number of optimal stopping problems similar to the 'secretary problem', and typically call this type of analysis 'search theory'. ... See Black-Scholes model#American options for various valuation methods here, as well as Fugit for a discrete, tree based, calculation of the optimal time to exercise. ... (For French translation, see cover story in the July issue of Pour la Science (2009).) ... Operations Research.
+--------------------------------------------------------------------------------
+Conformal Individual Treatment Effect Estimation under Networked Interference (https://arxiv.org/abs/2609.15254)
+citeturn630academia19 [wordlim: 200] Published: 2 months ago; Conformal counterfactual prediction constructs prediction sets with finite-sample coverage guarantees for counterfactual outcomes and individual treatment effects under the no-interference assumption.
+--------------------------------------------------------------------------------
+CVaR Deep Optimal Stopping (https://arxiv.org/abs/2611.11332)
+citeturn630academia20 [wordlim: 200] Published: last week; Risk-sensitive optimal stopping is useful when poor stopping outcomes carry substantial costs, as in option exercise, sequential medical treatment, and safety-critical control. ... We develop a theoretical framework and algorithm for CVaR deep optimal stopping. ... We exploit these properties to establish Markov optimality without state augmentation and derive a pathwise gradient estimator.
+--------------------------------------------------------------------------------
+Online Matching in Convex Bipartite Graphs (https://arxiv.org/abs/2609.05057)
+citeturn630academia21 [wordlim: 200] Published: 2 months ago; Title: Online Matching in Convex Bipartite Graphs ... We study the resulting online matching problem on convex bipartite graphs under irrevocable decisions and adversarial arrivals.
+--------------------------------------------------------------------------------
+HiSTOR: Structured Treatment-outcome Representation Learning for High-Dimensional Longitudinal Data (https://arxiv.org/abs/2610.17739)
+citeturn630academia22 [wordlim: 200] Published: last month; In this study, we propose HiSTOR (High-dimensional Structured Treatment-Outcome Representation), an end-to-end framework that integrates nonlinear dimension reduction with longitudinal counterfactual prediction.
+--------------------------------------------------------------------------------
+Search cost (https://en.wikipedia.org/wiki/Search_cost)
+citeturn630search23 [wordlim: 200] Crawled: last month; Search costs are a facet of transaction costs or switching costs and include all the costs associated with the searching activity conducted by a prospective seller and buyer in a market. ... Search theory is a branch of microeconomics that studies decisions of this type. ... There is an optimal value for search cost. ... There is a choice value tied to looking again at any price, and the optimum search problem is related to the "optimal stopping" issue.
+--------------------------------------------------------------------------------
+Monotone comparative statics (https://en.wikipedia.org/wiki/Monotone_comparative_statics)
+citeturn630search24 [wordlim: 200] Crawled: 7 months ago; Application (Optimal stopping problem): At each moment in time, agent gains profit of ${\displaystyle \pi (t)}$, which can be positive or negative. ... $ Since ${\displaystyle \alpha (x)=e^{(r'-r)x}}$ is positive and increasing, Proposition 1 says that ${\displaystyle \{V(\cdot ;-r)\}_{(-r)<0}}$ obey IDO and, by Theorem 2, the set of optimal stopping times is decreasing.
+--------------------------------------------------------------------------------
+Arrêt optimal (https://fr.wikipedia.org/wiki/Arr%C3%AAt_optimal)
+citeturn630search25 [wordlim: 200] Crawled: last week; Siegmund, Great Expectations: The Theory of Optimal Stopping, Boston, Houghton Mifflin, 1971 ... Miller Jr., « Optimal persistence policies », Operations Research, vol. 8, n^{o} 3,‎ 1960, p.
+--------------------------------------------------------------------------------
+Search theory (https://en.wikipedia.org/wiki/Search_theory)
+citeturn630search26 [wordlim: 200] Crawled: last week; More precisely, search theory studies an individual's optimal strategy when choosing from a series of potential opportunities of random quality, under the assumption that delaying choice is costly. Search models illustrate how best to balance the cost of delay against the value of the option to try again. ... McCall proposed a dynamic model of job search, based on the mathematical method of optimal stopping, on which much later work has been based. McCall's paper studied the problem of which job offers an unemployed worker should accept, and which reject, when the distribution of alternatives is known and constant, and the value of money is constant. ... Optimal search strategies for an unknown distribution have been analyzed using allocation indices such as the Gittins index.
+--------------------------------------------------------------------------------
+Backward induction (https://en.wikipedia.org/wiki/Backward_induction)
+citeturn630search27 [wordlim: 200] Crawled: 7 months ago; A dynamic optimization problem of this kind is called an optimal stopping problem because the issue at hand is when to stop waiting for a better offer. Search theory is a field of microeconomics that applies models of this type to matters such as shopping, job searches, and marriage.
+

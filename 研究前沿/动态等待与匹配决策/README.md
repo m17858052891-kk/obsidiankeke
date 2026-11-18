@@ -7,19 +7,24 @@ created: "2026-11-04"
 
 # 动态等待与匹配决策
 
+自 2026-11-18 起，本文作为方法参考。当前日报检索入口见 [[研究前沿/预分单与候选扩展/README|预分单与候选扩展]] · [[研究前沿/换车与动态重匹配/README|换车与动态重匹配]] · [[研究前沿/升舱与预算分配/README|升舱与预算分配]] · [[研究前沿/等应答页表单与交互决策/README|等应答页表单与交互决策]] · [[研究前沿/模型自进化/README|模型自进化]]。
+
+
 面对动态到达和不确定反馈，何时立即行动、继续等待、触发批量匹配，以及怎样分配双方资源？
+
+**策略迭代阅读入口**　[[研究前沿/动态等待与匹配决策/按交易策略先读|阅读顺序、可改模块与第一步对照]]
 
 ## 第一次读，从这里开始
 
-先读 [[研究前沿/动态等待与匹配决策/01-论文原文与精读/TimelyThrifty/精读|可以等到截止时再合批吗]]。先画一条从到达到必须服务的时间线，标出什么时候得承诺、什么时候才能看到后续候选。下面的几种策略在这两个条件上有实质差别。
+本轮先读 [[研究前沿/动态等待与匹配决策/01-论文原文与精读/ALIGN-HOLD/精读|决定一条司机–订单候选边现在放行，还是再等一轮]]。需要基础概念时再参照下文。
+
+先画一条从到达到必须服务的时间线，标出什么时候得承诺、什么时候才能看到后续候选。下面的几种策略在这两个条件上有实质差别。
 
 ## 按研究问题阅读
 
 ### 现在承诺还是继续等
 
-同样要少发几箱，[[研究前沿/动态等待与匹配决策/01-论文原文与精读/DispatchDeadlineFF/精读|DispatchDeadlineFF 的到达即绑定]] 要求订单到达时就绑定一个箱，后续只能向仍开放的箱追加。[[研究前沿/动态等待与匹配决策/01-论文原文与精读/TimelyThrifty/精读|TimelyThrifty 的截止时合批]] 可以先让订单留在待定池，到最早截止时再装箱。同一条订单流上，应先写明决策时点，再比较箱数和可行性。两篇均给出在线装箱的理论结果。
-
-[[研究前沿/动态等待与匹配决策/02-可复用方法卡/TimelyThrifty-trigger-edf-skip|到期触发后怎样挑能装下的订单]] · [[研究前沿/动态等待与匹配决策/03-实验假设与结果/TimelyThrifty-deadline-batch-fill|未运行：分档容量与硬截止下的合批对照]]
+[DispatchDeadlineFF 的到达即绑定（原文）](https://arxiv.org/abs/2611.08792v1) 要求订单到达时就绑定一个箱，后续只能向仍开放的箱追加。比较装箱数和可行性前，应先明确订单何时必须绑定。
 
 ### 有限容量优先分给谁
 
@@ -37,7 +42,7 @@ created: "2026-11-04"
 
 [[研究前沿/00-总览|研究前沿总览]] · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/README|论文原文与精读]] · [[研究前沿/动态等待与匹配决策/02-可复用方法卡/README|可复用方法卡]] · [[研究前沿/动态等待与匹配决策/03-实验假设与结果/README|实验假设与结果]]
 
-以往精读另见 [[研究前沿/动态等待与匹配决策/01-论文原文与精读/ALIGN-HOLD/精读|ALIGN-HOLD]] · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/GenMatch/精读|GenMatch]] · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/TopKQueue/精读|TopKQueue]]。
+以往精读另见 [[研究前沿/动态等待与匹配决策/01-论文原文与精读/ALIGN-HOLD/精读|ALIGN-HOLD]] · [[研究前沿/动态等待与匹配决策/01-论文原文与精读/TopKQueue/精读|TopKQueue]]。
 
 [[研究前沿/_运行记录/README|最近一期与历史记录]] · [[研究前沿/_运行记录/待处理队列|待核原文]]
 
@@ -78,26 +83,26 @@ created: "2026-11-04"
 
 ## 可直接执行的检索组合
 
-每条独立检索，按检索日期附加时间窗口；不得要求同一论文命中全部词。
+公共短查询逐条执行。
 
-- `"online matching" delays`
-- `"dynamic matching" waiting cost`
-- `"matching timing" reinforcement learning`
-- `"adaptive batching" optimization`
-- `"optimal stopping" matching`
-- `"batch matching" cancellation patience`
-- `"ride-hailing" matching dispatch waiting`
-- `动态等待 延迟匹配 批量匹配 最优停止`
+- `"ride-hailing" order dispatch hold`
+- `"ride pooling" matching interval cancellation`
+- `"dynamic matching" waiting abandonment`
+- `"ride-hailing" dispatch radius acceptance`
+- `"online matching" reusable resources patience`
+- `网约车 派单 等待窗口 取消 重派`
 
-扩展路线：
+跨领域机制补查：
 
-- `"online resource allocation" delayed feedback`
-- `"queueing control" abandonment learning`
-- `"learning-augmented" online matching`
-- `"stochastic matching" uncertain acceptance`
-- `"optimal stopping" scheduling batching`
+- `"optimal batching" abandonment threshold`
+- `"switchback experiments" marketplace interference`
 
 ## 收录边界
+
+分别说明发出邀约前是否扩播或暂缓、收到举手后是否结束窗口、失败后是否再派。记录当前候选司机、再等一轮可能到来的候选、乘客耐心及司机被其他订单占用的机会成本。优先有固定窗口、现行动态规则或同供给回放的工作，跟踪等待、应答、应答前后取消到最终完单。 依总规则判为主读、前沿观察或本轮略过。
+
+本地依据　[[花小猪/2026年LR/【LR26-046】交易效率-商家分单-召回重构-V1.0|交易效率-商家分单-召回重构-V1.0]] · [[花小猪/PK策略知识库/raw/02. PK动态窗口策略/PK动态窗口策略之强化学习方案实验评估|PK动态窗口策略之强化学习方案实验评估]]
+
 
 同时覆盖网约车、拼车、即时配送、双边市场、排队调度和通用在线算法。接纳可迁移的等待价值估计、触发策略、资源竞争建模和求解模块，不要求现成网约车结果。纯静态匹配或一般路径规划需有与动态等待/分配决策清楚相连的创新模块。
 

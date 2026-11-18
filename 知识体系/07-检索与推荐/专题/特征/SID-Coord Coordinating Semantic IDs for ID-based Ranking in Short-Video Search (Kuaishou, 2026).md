@@ -1,3 +1,9 @@
+
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 司乘行为序列建模**。保留“SID-Coord Coordinating Semantic IDs for ID-based Ranking in Short-Video Search (Kuaishou, 2026)”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/司乘行为序列建模/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
 - **论文名称**: _SID-Coord: Coordinating Semantic IDs for ID-based Ranking in Short-Video Search_
     
 - **链接**: [https://arxiv.org/abs/2604.10471](https://arxiv.org/abs/2604.10471 "null")

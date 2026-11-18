@@ -1,0 +1,281 @@
+Addressing Delayed Feedback in Conversion Rate Prediction: A Domain Adaptation Approach | IEEE Conference Publication | IEEE Xplore (https://ieeexplore.ieee.org/abstract/document/10884167)
+citeturn623search0 [wordlim: 200] Published: 1.9 years ago; Crawled: last month; # Addressing Delayed Feedback in Conversion Rate Prediction: A Domain Adaptation Approach ... To address this, we propose a simple framework that redefines CVR prediction under delayed feedback as an unsupervised domain adaptation (UDA) problem.
+
+# Addressing Delayed Feedback in Conversion Rate Prediction: A Domain Adaptation Approach
+
+Publisher: IEEE
+
+## Abstract:
+
+In the rapidly evolving online display advertising market, conversion rate (CVR) prediction models are typically updated daily using datasets enriched with recent convers...Show More
+
+## Metadata
+
+## Abstract:
+
+In the rapidly evolving online display advertising market, conversion rate (CVR) prediction models are typically updated daily using datasets enriched with recent conversion logs. However, a significant challenge is the time gap, often spanning days or weeks, between ad clicks and conversions. This issue, known as delayed feedback, results in false negatives in training data, creating a dilemma between label accuracy and data freshness. Existing methods for mitigating delayed feedback are limited, due to strong underlying assumptions, insufficient use of recent data without observed conversions, or implicit control over false negatives. To address this, we propose a simple framework that redefines CVR prediction under delayed feedback as an unsupervised domain adaptation (UDA) problem. Our method learns from fresh data while minimizing the impact of inaccurate labels, by integrating existing click-through rate (CTR) or CVR models with UDA algorithms. A customized pretraining step is also incorporated to effectively utilize recent observed conversions. Comprehensive experiments on three datasets showcase the proposed method's superiority over state-of-the-art approaches and its potential to benefit from advancements in CTR modeling. The code is available at https://github.com/ThunderbornSakana/DelayAdapter.
+
+Published in: 2024 IEEE International Conference on Data Mining (ICDM)
+
+Date of Conference: 09-12 December 2024
+
+Date Added to IEEE Xplore: 21 February 2025
+
+ISBN Information:
+
+ISSN Information:
+
+DOI: 10.1109/ICDM59182.2024.00115
+
+Publisher: IEEE
+
+Conference Location: Abu Dhabi, United Arab Emirates
+
+# References
+
+References is not available for this document.--------------------------------------------------------------------------------
+Delayed Feedback Model for Conversion Prediction (https://redam94.github.io/second-brain/Research/Research-Methodology/Experimental-Design/Delayed-and-Censored-Feedback/Delayed-Feedback-Model-for-Conversion-Prediction)
+citeturn623search1 [wordlim: 200] Published: 2 months ago; Crawled: last month; Two limiting regimes make the mixture interpretable (used later to derive gradients in EM and Gradient Optimization for the Delayed Feedback Model): ... The paper stresses that p(x) and λ(x) cannot be identified separately from unlabeled examples: observing many clicks without conversions is consistent both with a low conversion rate and a short delay and with a high conversion rate and a long delay — the negative log-likelihood surface has (at least) two comparable basins (Fig. 3, a toy example with 1 positive and 10 unlabeled samples).
+## Main Content
+
+### Random variables and notation
+
+Each click event is characterized by five variables (Chapelle §3):
+
+Symbol  | Meaning
+--- | ---
+X  | feature vector
+Y∈{0,1}  | has a conversion already been observed
+C∈{0,1}  | will the user ever convert (latent if Y=0)
+D  | delay between click and conversion (undefined if C=0)
+E  | elapsed time since the click
+
+> Core relations (Chapelle Eqs. 2–4)
+> 
+> Y=0⟺C=0 or E<D Y=1⟹C=1
+> 
+> i.e. “no conversion observed yet” means either the user will never convert, or the conversion just hasn’t had time to happen. If a conversion has occurred, C is trivially resolved to 1.
+> 
+> The only independence assumption needed is that (C,D)⊥E∣X:
+> 
+> Pr(C,D∣X,E)=Pr(C,D∣X)
+> 
+> (elapsed time only affects whether the conversion has been observed yet, not the underlying propensity/delay).
+
+This is a direct generalization of classical right-censoring: a not-yet-converted click with elapsed time E is right-censored at E — we know the (potential) conversion delay is at least E. The departure from standard survival analysis is that survival analysis assumes the event is certain eventually (every patient dies); here C=0 (never converts) is a first-class outcome, which is why a separate Bernoulli model for C is required in addition to the delay/hazard model for D.
+
+### The joint model
+
+Two generalized linear models are fit jointly:
+
+> Definition: Conversion classifier and delay model (Chapelle Eq. 5)
+> 
+> Pr(C=1∣X=x)=p(x)=1+exp(−w c​⋅x)1​(logistic regression) Pr(D=d∣X=x,C=1)=λ(x)exp(−λ(x)d),λ(x)=exp(w d​⋅x)(exponential hazard)
+> 
+> λ(x) is the hazard function of survival analysis, feature-dependent via a log-linear parametrization that guarantees λ(x)>0. Other delay distributions (Weibull, Gamma, Log-Normal) are possible, but exponential fits the empirical Criteo delay distributions well (Fig. 5, §6.2), aside from some short/long-delay mismatch consistent with a mixture of a short and a long timescale.
+
+### The likelihood
+
+> Theorem: Delayed-feedback likelihood (Chapelle Eqs. 6, 8–9)
+> 
+> Observed conversion (y i​=1, with observed delay d i​):
+> 
+> Pr(Y=1,D=d i​∣X=x i​,E=e i​)=λ(x i​)exp(−λ(x i​)d i​)p(x i​)
+> 
+> No conversion observed yet (y i​=0, elapsed time e i​) — obtained via the law of total probability over C, using Pr(D>E∣C=1,X,E)=∫e i​∞​λ(x)e−λ(x)t d t=exp(−λ(x i​)e i​):
+> 
+> Pr(Y=0∣X=x i​,E=e i​)=never converts 1−p(x i​)​​+will convert, but D>e i​ (censored)p(x i​)exp(−λ(x i​)e i​)​​
+> 
+> This single expression is the crux of the method: it is a mixture of “true negative” and “positive-but-censored,” weighted by the classifier’s own p(x i​) and the delay survival function exp(−λ(x i​)e i​) evaluated at the elapsed time. It correctly discounts the “certainly a negative” interpretation as e i​ grows relative to the predicted mean delay λ(x i​)−1.
+
+Two limiting regimes make the mixture interpretable (used later to derive gradients in EM and Gradient Optimization for the Delayed Feedback Model):
+
+  * λ(x i​)e i​≪1 (elapsed time short vs. predicted mean delay): the click looks statistically like “too early to tell” and contributes almost no gradient signal to the classifier — correctly, since we cannot yet infer non-conversion.
+  * λ(x i​)e i​≫1 (elapsed time long vs. predicted mean delay): the mixture collapses onto the negative-class term, and the click is effectively treated as a confirmed negative, exactly like ordinary logistic regression.
+
+### Why this needs both models, jointly
+
+The paper stresses that p(x) and λ(x) cannot be identified separately from unlabeled examples: observing many clicks without conversions is consistent both with a low conversion rate and a short delay and with a high conversion rate and a long delay — the negative log-likelihood surface has (at least) two comparable basins (Fig. 3, a toy example with 1 positive and 10 unlabeled samples). This ambiguity is a small-sample phenomenon; the paper reports it vanishes as data accumulates and was not observed to cause local-minima problems in practice (§4.2).
+
+--------------------------------------------------------------------------------
+Debiasing the Conversion Rate Prediction Model in the Presence of Delayed Implicit Feedback (https://pmc.ncbi.nlm.nih.gov/articles/PMC11431287/)
+citeturn623search2 [wordlim: 200] Published: 2.2 years ago; Crawled: 3 weeks ago; # Debiasing the Conversion Rate Prediction Model in the Presence of Delayed Implicit Feedback ... We propose the joint likelihood of observed data in conversion logs with parameters in the CVR prediction and delayed feedback models.
+
+. 2024 Sep 15;26(9):792. doi: 10.3390/e26090792
+
+# Debiasing the Conversion Rate Prediction Model in the Presence of Delayed Implicit Feedback
+
+Received 2024 Jul 31; Revised 2024 Sep 11; Accepted 2024 Sep 12; Collection date 2024 Sep.
+
+© 2024 by the authors.
+
+Licensee MDPI, Basel, Switzerland. This article is an open access article distributed under the terms and conditions of the Creative Commons Attribution (CC BY) license (https://creativecommons.org/licenses/by/4.0/).
+
+## Abstract
+
+The recommender system (RS) has been widely adopted in many applications, including online advertisements. Predicting the conversion rate (CVR) can help in evaluating the effects of advertisements on users and capturing users’ features, playing an important role in RS. In real-world scenarios, implicit rather than explicit feedback data are more abundant. Thus, directly training the RS with collected data may lead to suboptimal performance due to selection bias inherited from the nature of implicit feedback. Methods such as reweighting have been proposed to tackle selection bias; however, these methods omit delayed feedback, which often occurs due to limited observation times. We propose a novel likelihood approach combining the assumed parametric model for delayed feedback and the reweighting method to address selection bias. Specifically, the proposed methods minimize the likelihood-based loss using the multi-task learning method. The proposed methods are evaluated on the real-world Coat and Yahoo datasets. The proposed methods improve the AUC by 5.7% on Coat and 3.7% on Yahoo compared with the best baseline models. The proposed methods successfully debias the CVR prediction model in the presence of delayed implicit feedback.
+
+Keywords: recommender system, implicit feedback, delayed feedback, conversion prediction, selection bias
+
+## 1. Introduction
+
+The recommender system (RS) is widely used to address the information overload problem in multiple fields, including online advertising [1], drug adverse event prediction [2], and personalized treatments [3]. These methods have been applied to several popular models dealing with implicit feedback, including matrix factorization (MF) [10] and neural collaborative filtering (NCF) [11], resulting in a large number of approaches for tackling selection bias and predicting CVR using implicit feedback [12,13,14,15,16,17].
+
+However, previous methods omit the delayed feedback problem, which often occurs in implicit feedback scenarios due to limited observation times. For example, if a user likes an item, the user will convert at a certain post-click timestamp. If the timestamp is outside the observation period, then negative feedback will be observed, resulting in a false negative sample. As pointed out by [18], delayed feedback is very common in practice, where most conversions occur after a certain period; 50% of conversions occur after one day post-click, and 13% of those occur after two weeks. Ignoring delayed feedback in predicting CVR leads to underestimation of the eventual CVR.
+
+There have been a number of methods aiming to adjust for the naïve method of capturing the delayed feedback. Most of these tackle delayed feedback issues by assuming that a fixed proportion of the negative label will finally convert and that every user–item pair without conversions shares the same probability as a mislabel. However, this is not reliable, as it has been shown that the delayed time is not a uniform distribution, with most conversions occurring within the latest day after the click. To this end, Chapelle et al. [18] first introduced the survival analysis method to deal with delayed feedback in CVR prediction. This method assumes that the delay from click to conversion follows an exponential distribution with unknown expectations. The paper stresses that the models of delayed feedback and CVR prediction cannot be taken separately. The CVR prediction model was trained by maximizing the joint likelihood of both models with either the EM algorithm or direct optimization. Following this work, several authors have extended the exponential delayed feedback model to a more flexible Weibull model/mixture of Weibull model or even the nonparametric model, borrowing ideas from the good performance of kernel density estimation [19,20,21].
+## 4. Materials and Methods
+
+The goal of the proposed method is to predict the CVR of a user–item pair given its features. We denote this by the prediction model $f({x}_{u,i},\theta )$. Overall, we realize this goal by assuming a parametric model for the delayed feedback and maximizing a newly proposed likelihood function given the parametric model and all the observed data. Directly maximizing the likelihood (1) can lead to biased estimates for the parameters and a biased CVR prediction model due to selection bias and delayed feedback. We revise the likelihood function (1) to tackle these two problems simultaneously. First, we assume an exponential model for the delayed feedback and use it to infer the probability of a conversation being observed/unobserved given its real status. In comparison, the naïve approach assumes that the observed status of the conversions implies the actual status for all user–item pairs, which is impossible in the presence of delayed feedback. Second, we incorporate an IPS/DR module to tackle the selection bias, which makes the estimated parameters robust against selection bias. --------------------------------------------------------------------------------
+On the Calibration of Survival Models with Competing Risks (https://proceedings.mlr.press/v300/alberge26a.html)
+citeturn623search3 [wordlim: 200] Published: 6 months ago; Crawled: last month; We show that existing calibration measures are not suited to the competing-risk setting and that recent models do not give well-behaved probabilities. ... `%0 Conference Paper %T On the Calibration of Survival Models with Competing Risks %A Julie Alberge %A Tristan Haugomat %A Gaël Varoquaux %A Judith Abécassis %B Proceedings of The 29th International Conference on Artificial Intelligence and Statistics %C Proceedings of Machine Learning Research %D 2026 %E Emtiyaz Khan %E Yingzhen Li %E Arno Solin %E Aaditya Ramdas %F pmlr-v300-alberge26a %I PMLR %P 1837--1845 %U https://proceedings.mlr.press/v300/alberge26a.html %V 300 %X Survival analysis deals with modeling the time until an event occurs, and accurate probability estimates are crucial for decision-making, particularly in the competing-risks setting where multiple events are possible.
+Proceedings of Machine Learning Research
+
+# On the Calibration of Survival Models with Competing Risks
+
+Julie Alberge, Tristan Haugomat, Gaël Varoquaux, Judith Abécassis
+
+Proceedings of The 29th International Conference on Artificial Intelligence and Statistics, PMLR 300:1837-1845, 2026.
+
+#### Abstract
+
+Survival analysis deals with modeling the time until an event occurs, and accurate probability estimates are crucial for decision-making, particularly in the competing-risks setting where multiple events are possible. While recent work has addressed calibration in standard survival analysis, the competing-risks setting remains under-explored as it is harder (the calibration applies to both probabilities across classes and time horizon). We show that existing calibration measures are not suited to the competing-risk setting and that recent models do not give well-behaved probabilities. To address this, we introduce a dedicated framework with two novel calibration measures that are minimized for oracle estimators (\emph{i.e.}, both measures are proper). While recent work has addressed calibration in standard survival analysis, the competing-risks setting remains under-explored as it is harder (the calibration applies to both probabilities across classes and time horizon). We show that existing calibration measures are not suited to the competing-risk setting and that recent models do not give well-behaved probabilities. To address this, we introduce a dedicated framework with two novel calibration measures that are minimized for oracle estimators (\emph{i.e.}, both measures are proper). We also introduce some methods to estimate, test, and correct the calibration. Our recalibration methods yield better probabilities while preserving discrimination. } } `
+
+Endnote
+
+`%0 Conference Paper %T On the Calibration of Survival Models with Competing Risks %A Julie Alberge %A Tristan Haugomat %A Gaël Varoquaux %A Judith Abécassis %B Proceedings of The 29th International Conference on Artificial Intelligence and Statistics %C Proceedings of Machine Learning Research %D 2026 %E Emtiyaz Khan %E Yingzhen Li %E Arno Solin %E Aaditya Ramdas %F pmlr-v300-alberge26a %I PMLR %P 1837--1845 %U https://proceedings.mlr.press/v300/alberge26a.html %V 300 %X Survival analysis deals with modeling the time until an event occurs, and accurate probability estimates are crucial for decision-making, particularly in the competing-risks setting where multiple events are possible. While recent work has addressed calibration in standard survival analysis, the competing-risks setting remains under-explored as it is harder (the calibration applies to both probabilities across classes and time horizon). We show that existing calibration measures are not suited to the competing-risk setting and that recent models do not give well-behaved probabilities. To address this, we introduce a dedicated framework with two novel calibration measures that are minimized for oracle estimators (\emph{i.e.}, both measures are proper). We also introduce some methods to estimate, test, and correct the calibration. Our recalibration methods yield better probabilities while preserving discrimination. `
+
+APA
+
+`Alberge, J., Haugomat, T., Varoquaux, G. & Abécassis, J.. (2026). On the Calibration of Survival Models with Competing Risks . Proceedings of The 29th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 300:1837-1845 Available from https://proceedings.mlr.press/v300/alberge26a.html. `
+
+#### Related Material
+
+  * Download PDF--------------------------------------------------------------------------------
+Predicting customer conversion in multi-channel digital marketing: an interpretable modelling approach (https://link.springer.com/article/10.1186/s43093-026-01010-5)
+citeturn623search4 [wordlim: 200] Published: last month; Crawled: today; This section outlines the research design, the data underlying the study, and the analytical procedures employed to examine the determinants of customer conversion in multi-channel digital marketing. ... The records should not, however, be treated as a probability sample of digital marketing customers: the sampling frame and generating process are not documented by the data source. ... This imbalance is well established in the conversion-prediction literature, where the minority class may be under-represented during training and accuracy consequently overstated [5]. ... Model performance is quantified using accuracy, precision, recall, F1-score, and area under the ROC curve (ROC-AUC), and illustrated by a confusion matrix showing the balance of correctly and incorrectly classified cases across the two outcome classes.
+The analysis draws on two openly licensed datasets from the Kaggle repository, used in complementary ways. Secondary data of this kind is commonly employed in marketing analytics research, where rich behavioural datasets are difficult to gather first-hand but readily available from public repositories [8].
+
+The primary dataset is the Predict Conversion in Digital Marketing dataset [6], comprising 8000 customer-level records with a binary conversion outcome and 16 predictor attributes. The target population it represents is customers exposed to digital marketing campaigns across any channel. The analysis uses the complete dataset as provided, so no sampling procedure was applied. The records should not, however, be treated as a probability sample of digital marketing customers: the sampling frame and generating process are not documented by the data source. As the generating process is undocumented, the dataset may be partly or wholly synthetic. It is therefore treated here as a structurally realistic testbed for the modelling approach rather than as a verified record of observed consumer behaviour, and the findings require replication on verified campaign data before being generalised. --------------------------------------------------------------------------------
+Beyond NLL: Pathwise Cross-Entropy Loss for Discriminative and Calibrated Event-Time Survival Prediction (https://pubmed.ncbi.nlm.nih.gov/41489951/)
+citeturn623search5 [wordlim: 200] Crawled: 2 months ago; # Beyond NLL: Pathwise Cross-Entropy Loss for Discriminative and Calibrated Event-Time Survival Prediction ... The widely used discrete-time negative log-likelihood (NLL) supervises hazards and can suffer from temporal information imbalance and gradient attenuation, yielding early-dominated probability mass and degraded late-horizon calibration, especially under heavy censoring and competing risks. ... These results indicate that PCE is a reliable and interpretable objective for single and competing-risk survival.
+
+. 2026 Aug;30(8):6418-6431.
+
+doi: 10.1109/JBHI.2026.3650827.
+
+# Beyond NLL: Pathwise Cross-Entropy Loss for Discriminative and Calibrated Event-Time Survival Prediction
+
+Jingmin Long, Jia Li, Jesper Kers, Fons J Verbeek
+
+  * PMID: 41489951
+  * DOI: 10.1109/JBHI.2026.3650827
+
+Item in Clipboard
+
+# Beyond NLL: Pathwise Cross-Entropy Loss for Discriminative and Calibrated Event-Time Survival Prediction
+
+Jingmin Long et al. IEEE J Biomed Health Inform. 2026 Aug.
+
+
+## Abstract
+
+Deep survival models are increasingly used for time-to-event prediction under censoring, yet training objectives remain a bottleneck. The widely used discrete-time negative log-likelihood (NLL) supervises hazards and can suffer from temporal information imbalance and gradient attenuation, yielding early-dominated probability mass and degraded late-horizon calibration, especially under heavy censoring and competing risks. We introduce Pathwise Cross-Entropy (PCE), which utilizes a symmetric, full-path objective that directly learns the occurred-by-t trajectory as a Cumulative Incidence Function (CIF). --------------------------------------------------------------------------------
+Capturing Delayed Feedback in Conversion Rate Prediction via  Elapsed-Time Sampling (https://www.alphaxiv.org/abs/2012.03245)
+citeturn623search6 [wordlim: 200] Published: 5.3 years ago; Crawled: 2 months ago; # Capturing Delayed Feedback in Conversion Rate Prediction via Elapsed-Time Sampling
+Submitted 16 Jul 2021
+
+# Capturing Delayed Feedback in Conversion Rate Prediction via Elapsed-Time Sampling
+
+JY
+
+Jia-Qi Yang
+
+XL
+
+Xiang LiShuguang Han
+
+TZ
+
+Tao ZhuangDe-Chuan Zhan
+
+XZ
+
+Xiaoyi Zeng
+
+BT
+
+Bin Tong
+
+## Abstract
+
+Conversion rate (CVR) prediction is one of the most critical tasks for digital display advertising. Commercial systems often require to update models in an online learning manner to catch up with the evolving data distribution. However, conversions usually do not happen immediately after a user click. This may result in inaccurate labeling, which is called delayed feedback problem. In previous studies, delayed feedback problem is handled either by waiting positive label for a long period of time, or by consuming the negative sample on its arrival and then insert a positive duplicate when a conversion happens later. Indeed, there is a trade-off between waiting for more accurate labels and utilizing fresh data, which is not considered in existing works. To strike a balance in this trade-off, we propose Elapsed-Time Sampling Delayed Feedback Model (ES-DFM), which models the relationship between the observed conversion distribution and the true conversion distribution. Then we optimize the expectation of true conversion distribution via importance sampling under the elapsed-time sampling distribution. We further estimate the importance weight for each instance, which is used as the weight of loss function in CVR prediction. To demonstrate the effectiveness of ES-DFM, we conduct extensive experiments on a public data and a private industrial dataset. Experimental results confirm that our method consistently outperforms the previous state-of-the-art results.
+
+View Paper
+
+## Similar papers
+
+## Discussion
+
+Comment
+
+Autoresearch
+
+40 views
+
+v4
+
+
+Copy
+
+@misc{yang2021capturingdelayedfeedbackconversion, title={Capturing Delayed Feedback in Conversion Rate Prediction via Elapsed-Time Sampling}, author={Jia-Qi Yang and Xiang Li and Shuguang Han and Tao Zhuang and De-Chuan Zhan and Xiaoyi Zeng and Bin Tong}, year={2021}, eprint={2012.03245}, archivePrefix={arXiv}, primaryClass={cs.LG}, url={https://arxiv.org/abs/2012.03245}, }--------------------------------------------------------------------------------
+What is Delayed Feedback in CTR Prediction? | Inference Systems (https://inferensys.com/glossary/dynamic-retail-hyper-personalization/click-through-rate-prediction/delayed-feedback)
+citeturn623search7 [wordlim: 200] Crawled: 2 months ago; Delayed feedback is a critical data integrity challenge in real-time click-through rate (CTR) prediction where the true label for a training instance, such as a conversion, is not immediately observable, leading to false negatives if not explicitly modeled. ... To mitigate this, specialized techniques like the delayed feedback model (DFM) jointly train on a conversion prediction model and a time-delay model, treating the unobserved label as a latent variable.
+--------------------------------------------------------------------------------
+Delayed Feedback Modeling for the Entire Space Conversion Rate  Prediction (https://www.alphaxiv.org/abs/2011.11826v1)
+citeturn623search8 [wordlim: 200] Published: 6.0 years ago; Crawled: last week; # Delayed Feedback Modeling for the Entire Space Conversion Rate Prediction ... However, CVR prediction usually suffers from three major challenges in practice: i) data sparsity: compared with impressions, conversion samples are often extremely scarce; ii) sample selection bias: conventional CVR models are trained with clicked impressions while making inference on the entire space of all impressions; iii) delayed feedback: many conversions can only be observed after a relatively long and random delay since clicks happened, resulting in many false negative labels during training.
+--------------------------------------------------------------------------------
+Validation of prediction models in the presence of competing risks: a guide through modern methods (https://www.bmj.com/content/377/bmj-2021-069249)
+citeturn623search9 [wordlim: 200] Published: 4.5 years ago; Crawled: 6 days ago; In the presence of competing events, the O/E ratio can be calculated as the ratio of the observed outcome proportion by the prediction horizon (estimated by the Aalen-Johansen estimator 13) and the average risk estimated by the prediction model under evaluation. ... For competing risks data, these can be estimated using pseudo-observations, similar to those proposed for ordinary survival.【 ... If on average the risk estimates equal the observed outcome proportions, the calibration intercept will be zero.
+--------------------------------------------------------------------------------
+GitHub - MrcDprm/ad-conversion-prediction: Ad conversion prediction: purchase probability from age and salary. Five classifiers compared with cross-validation, halftone decision maps and a threshold panel with ROC curve, running in the browser. · GitHub (https://github.com/MrcDprm/ad-conversion-prediction)
+citeturn623search10 [wordlim: 200] Crawled: 2 days ago; # Ad Conversion Prediction ... A Python machine learning pipeline compares five classifiers with repeated stratified cross-validation and exports their probability maps; a small website draws each model's decision map in halftone dots, lets you move the decision threshold and shows precision, recall, the confusion matrix and the ROC curve as you do. ...     git clone https://github.com/MrcDprm/ad-conversion-prediction.git
+--------------------------------------------------------------------------------
+Modeling Cascaded Delay Feedback for Online Net Conversion Rate Prediction: Benchmark, Insights and Solutions | AI Research Paper Details (https://www.aimodels.fyi/papers/arxiv/modeling-cascaded-delay-feedback-online-net-conversion)
+citeturn623search11 [wordlim: 200] Published: 9 months ago; Crawled: 3 weeks ago; # Modeling Cascaded Delay Feedback for Online Net Conversion Rate Prediction: Benchmark, Insights and Solutions ... This research addresses a genuine friction point in online conversion rate prediction by acknowledging and modeling the reality of cascaded delayed feedback.
+--------------------------------------------------------------------------------
+MAC: A Conversion Rate Prediction Benchmark Featuring Labels Under Multiple Attribution Mechanisms (https://borowiecki.dev/pdf/2603.02184)
+citeturn623search12 [wordlim: 200] Published: 5 days ago; Crawled: 3 days ago; Researchers have pursued numerous avenues to improve CVR prediction models, such as joint learning with other tasks [22, 24, 35, 46], model structure [49, 50], and delayed feedback modeling [8, 11, 19, 39]. ... Although **attribution mechanisms** [28, 40], namely the rules for allocating conversion credits to ad clicks, directly determine the learning goals of CVR prediction models, they are overlooked in existing studies, which all rely on a single attribution mechanism.
+--------------------------------------------------------------------------------
+reinforcement learning-in-NLP-黄民烈的ms (https://coai.cs.tsinghua.edu.cn/hml/media/files/reinforcement_learning-in-NLP-resume.pdf)
+citeturn623search13 [wordlim: 200] Crawled: 2 weeks ago; ◉ Joint Optimization of Multi-scenario Ranking ... <visual_element id="e1">Purple highlighted box with white text: “a fully cooperative, partially observable, multi-agent sequential decision problem”.</visual_element>
+--------------------------------------------------------------------------------
+When does conformal calibration need censoring weights? Cause-of-failure prediction sets under competing risks (https://arxiv.org/abs/2610.08602)
+citeturn623academia14 [wordlim: 200] Published: last month; Split conformal prediction sets for competing-risks labels at a fixed horizon require calibration labels that right censoring can leave unobserved. ... We study how selection changes the score distribution near the population quantile.
+--------------------------------------------------------------------------------
+1292 | WILEY Statistics in Medicine | RILEY ET AL. (https://pure-oai.bham.ac.uk/ws/files/187642222/Statistics_in_Medicine_2021_Riley_Minimum_sample_size_calculations_for_external_validation_of_a_clinical_prediction.pdf)
+citeturn623search15 [wordlim: 200] Published: 2 weeks ago; The process for a standard survival analysis can easily be extended when the estimand of interest is in one event-specific risk that is modeled on the subdistribution hazards scale, such as the Fine and Gray model. ... Further details on various ways to simulate competing risks data are outlined in Beyersmann et al,<sup>37</sup> and the use of pseudo-observations and calibration curves in competing risk settings is given by Gerds et al<sup>23</sup> The calculation of pseudo-observations must be made using the Aalen-Johansen estimate of the event-specific cumulative incidence function such that,
+--------------------------------------------------------------------------------
+The implications of competing risks and direct treatment disutility in cardiovascular disease and osteoporotic fracture: risk prediction and cost effectiveness analysis (https://eprints.whiterose.ac.uk/id/eprint/190679/3/3044834.pdf)
+citeturn623search16 [wordlim: 200] Crawled: last week; Calibration plot for women with type 2 diabetes accounting for competing risks. ... - The blue calibration curve is generally below the reference line at higher predicted risks, reaching approximately 39% observed risk at 60% predicted risk.
+--------------------------------------------------------------------------------
+When uncertainty quantification fails: structural vulnerabilities and corrections for selective prediction under clinical class imbalance (https://borowiecki.dev/pdf/2610.37561)
+citeturn623search17 [wordlim: 200] Crawled: last week; ## A.2 Cohort Selection Criteria
+
+To evaluate the proposed uncertainty framework on a near-balanced prognostic task (\(\pi = 0.54\)), we formulated a 36-month conversion prediction task. ... Subjects who dropped out of the ADNI study or were lost to follow-up before the 36-month mark without a prior conversion to AD were strictly excluded from the analytic cohort, as their 36-month prognostic ground truth could not be definitively ascertained. ... - **Imputation:** To preserve sample size, missing baseline values for the retained features were imputed.
+--------------------------------------------------------------------------------
+The Loss or the Architecture? What Matters in Survival Analysis with Competing Risks (https://arxiv.org/abs/2610.23322)
+citeturn623academia18 [wordlim: 200] Published: last month; What Matters in Survival Analysis with Competing Risks ... It brings twice as much as benefits a good choice of backbone on competing-risks data, and no more than it on single-event data: the loss is decisive for competing risks.
+--------------------------------------------------------------------------------
+1499659040817766109-US20130116132A1 (https://patentimages.storage.googleapis.com/bf/4a/15/75dbb28ce2da54/US20130116132A1.pdf)
+citeturn623search19 [wordlim: 200] Crawled: 4 days ago; Partial Least Square Analysis was used for data modeling and variable selection was performed by Jackknifing. ... The efficacy population thus comprises the following sample cohorts: ... **[0286]** A contract research organization performed an independent analysis to further support the internal findings based on data for 129 cases (Table 21) with a primary aim to identify a predictive signature to classify S vs. ... This was all performed within each cross validation loop to prevent information leakage and bias to the performance. ... The population profile with MCI conversion prediction score for each individual case is shown in FIG.
+--------------------------------------------------------------------------------
+Right, Wrong, or Unfinished: A Competing Risks Framework for Language-Model Reasoning under Token Budgets (https://arxiv.org/abs/2611.05860)
+citeturn623academia20 [wordlim: 200] Published: 2 weeks ago; We develop Competing Risks Analysis of Token Expenditure in Reasoning (CRATER), a statistically principled framework that treats correct and incorrect completion as distinct competing event types and responses unfinished at the generation limit as administratively right-censored. ... For repeated sampling, we combine CRATER's single-attempt success probabilities with an existing beta-binomial calibration approach to predict pass@k.
+--------------------------------------------------------------------------------
+Universal Online Convex Optimization With Delayed Feedback (https://arxiv.org/abs/2610.28058)
+citeturn623academia21 [wordlim: 200] Published: 4 weeks ago; Title: Universal Online Convex Optimization With Delayed Feedback ... Our regret bounds match the best known dependence on the time horizon $T$ and delays up to doubly logarithmic factors: roughly $\sqrt{T + d_{\mathrm{tot}}}$ for convex losses and $σ_{\max}\log T$ rates with curved losses, where $d_{\mathrm{tot}}$ is the total cumulative delay and $σ_{\max}$ is the maximum number of simultaneously missing observations.
+--------------------------------------------------------------------------------
+Inzidenz (Epidemiologie) (https://de.wikipedia.org/wiki/Inzidenz_%28Epidemiologie%29)
+citeturn623search22 [wordlim: 200] Crawled: last week; Solche alternativen Ausfallursachen werden auch konkurrierende Risiken (englisch competing risks) genannt. ... Solche Gegebenheiten werden in Modellen konkurrierender Risiken (englisch competing risk models) behandelt. ... Springer Science & Business Media (2012), S. ... Survival analysis using SAS: a practical guide. .
+

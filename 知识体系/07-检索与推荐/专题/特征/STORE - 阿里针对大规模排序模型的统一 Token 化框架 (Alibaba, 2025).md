@@ -1,3 +1,9 @@
+
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 推荐排序与特征表示**。保留“STORE - 阿里针对大规模排序模型的统一 Token 化框架 (Alibaba, 2025)”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/推荐排序与特征表示/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
 - **论文名称**: _STORE: Semantic Tokenization, Orthogonal Rotation and Efficient Attention for Scaling Up Ranking Models_
     
 - **链接**: [https://arxiv.org/abs/2511.18805](https://arxiv.org/abs/2511.18805 "null")

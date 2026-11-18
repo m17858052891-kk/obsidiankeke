@@ -10,6 +10,12 @@ created: 2026-08-10
 
 # AuctionNet：自动出价仿真与大规模竞价基准
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 训练目标与数据反馈**。保留“AuctionNet：自动出价仿真与大规模竞价基准”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/训练目标与数据反馈/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 论文：[AuctionNet: A Novel Benchmark for Decision-Making in Large-Scale Games](https://arxiv.org/abs/2412.10798)  
 代码：[alimama-tech/AuctionNet](https://github.com/alimama-tech/AuctionNet)  
 会议：NeurIPS 2024，Datasets and Benchmarks Track  

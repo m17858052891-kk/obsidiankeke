@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # Map-Elites Algorithm for Features Selection Problem
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Map-Elites Algorithm for Features Selection Problem”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 用组合MAP-Elites维护行为格子内优秀特征子集，以多样性归档搜索不同subset。
 

@@ -7,19 +7,26 @@ created: "2026-11-04"
 
 # 面向决策的履约建模
 
-怎样建模采取不同动作后发生的结果、时长、风险与状态转移，让预测更好地服务下游决策？
+日报通用方法主线。多任务、多场景、多阶段转化、专家门控、负迁移和概率校准。每日先执行 [[研究前沿/推荐模型检索地图|推荐模型检索地图]] 中的独立方法查询，再用本页问题和业务入口补查。
+
+
+履约率模型方法参考。预测起点、风险集与标签可见时间；多任务共享、场景门控与司乘交叉；概率校准和同单候选排序。
+
+在同一决策时点与时间外留出集上比较，区分司机取消、乘客取消与完单。按场景检查校准、LogLoss 或 IBS；若主张改变派单，另查同单候选换位与可识别的下游结果。
+
+**策略迭代阅读入口**　[[研究前沿/面向决策的履约建模/按交易策略先读|阅读顺序、可改模块与第一步对照]]
 
 ## 第一次读，从这里开始
 
-先读 [[研究前沿/面向决策的履约建模/01-论文原文与精读/SensorWM/精读|相同积压量，正在上升和正在回落有何差别]]。原研究跟踪健康状态，履约是一个待检验的应用。建议先读它怎样处理上一步状态，再看作者到底用什么数据验证了预测。
+本轮先读 [[研究前沿/面向决策的履约建模/01-论文原文与精读/CompetingRiskLoss/精读|先判断履约预测的瓶颈在损失还是主干]]。需要基础概念时再参照下文。
+
+先明确动作发生的时点、可观察的历史状态和要预测的结果，再从下列研究问题选择读物。
 
 ## 按研究问题阅读
 
 ### 动作之后状态怎样变化
 
-有连续历史状态时，[[研究前沿/面向决策的履约建模/01-论文原文与精读/SensorWM/精读|SensorWM]] 用当前状态和动作调整上一次的状态变化，向前滚动预测。若只有执行前后的快照、而多数内容没变，[[研究前沿/面向决策的履约建模/01-论文原文与精读/MKD2World/精读|MKD2World]] 在网页操作轨迹上给确实变化的元素更多训练权重。先判断自己的瓶颈是没利用最近趋势，还是模型总在重复旧状态；再分别检查多步误差或真实变化处的误差。业务中未执行动作的因果效果仍需要额外证据。
-
-[[研究前沿/面向决策的履约建模/02-可复用方法卡/SensorWM-velocity-conditioned-transition|动作条件下的状态变化量]] · [[研究前沿/面向决策的履约建模/03-实验假设与结果/2026-11-10-二阶状态转移是否改善高峰期履约滚动预测|未运行：高峰期比较一阶和二阶积压预测]]
+若只有执行前后的快照、而多数内容没变，[MKD2World（原文）](https://arxiv.org/abs/2611.06544v1) 在网页操作轨迹上给确实变化的元素更多训练权重。业务中未执行动作的因果效果仍需要额外证据。
 
 ### 等待、取消和完成怎样一起估
 
@@ -29,77 +36,42 @@ created: "2026-11-04"
 
 ### 预测更准能让决策更好吗
 
-把预测值交给相同的求解器，比较执行后真实成本与最优成本的差距。若怀疑少量错误标签会改变约束边界，[[研究前沿/面向决策的履约建模/01-论文原文与精读/RCIF/精读|RCIF]] 利用干净验证样本给训练样本重新加权。若要直接改变预测器的训练目标，[[研究前沿/面向决策的履约建模/01-论文原文与精读/DFLNOL/精读|DFLNOL]] 先学软选边层并冻结，再按真实参数评价预测引发的决策。后者的选边对照在合成优化实例上完成；上线前还要单测离散解可行性和解码时延。
+把预测值交给相同的求解器，比较执行后真实成本与最优成本的差距。若怀疑少量错误标签会改变约束边界，[RCIF（原文）](https://arxiv.org/abs/2611.02086) 利用干净验证样本给训练样本重新加权。若要直接改变预测器的训练目标，[DFLNOL（原文）](https://arxiv.org/abs/2611.09560v1) 先学软选边层并冻结，再按真实参数评价预测引发的决策。后者的选边对照在合成优化实例上完成；上线前还要单测离散解可行性和解码时延。
 
-[[研究前沿/面向决策的履约建模/02-可复用方法卡/DFLNOL-frozen-layer|固定优化层，按决策损失训练]] · [[研究前沿/面向决策的履约建模/03-实验假设与结果/2026-11-10-冻结选边层的决策损失与解码代价|未运行：分开度量训练收益与解码代价]]
+[固定优化层，按决策损失训练（原文）](https://arxiv.org/abs/2611.09560v1) · [未运行：分开度量训练收益与解码代价（原文）](https://arxiv.org/abs/2611.09560v1)
 
 ## 完整资料与相关精读
 
 [[研究前沿/00-总览|研究前沿总览]] · [[研究前沿/面向决策的履约建模/01-论文原文与精读/README|论文原文与精读]] · [[研究前沿/面向决策的履约建模/02-可复用方法卡/README|可复用方法卡]] · [[研究前沿/面向决策的履约建模/03-实验假设与结果/README|实验假设与结果]]
 
-以往精读另见 [[研究前沿/面向决策的履约建模/01-论文原文与精读/ActTime/精读|ActTime]] · [[研究前沿/面向决策的履约建模/01-论文原文与精读/PtOGtO/精读|PtOGtO]] · [[研究前沿/面向决策的履约建模/01-论文原文与精读/StandIn/精读|StandIn]]。
+以往精读另见 [[研究前沿/面向决策的履约建模/01-论文原文与精读/ActTime/精读|ActTime]] · [PtOGtO（原文）](https://arxiv.org/abs/2610.32584) · [StandIn（原文）](https://arxiv.org/abs/2611.01666)。
 
 [[研究前沿/_运行记录/README|最近一期与历史记录]] · [[研究前沿/_运行记录/待处理队列|待核原文]]
 
-## 中文关键词
-
-面向决策的预测、决策导向学习、履约响应、完单概率、接单概率、取消风险、服务完成、时长分布、反事实响应、生存分析、竞争风险、多状态转移、预测优化一体化、决策校准。
-
-## 直接相关英文关键词
-
-- decision-focused learning
-- predict-then-optimize
-- end-to-end predict-and-optimize
-- decision-aware prediction
-- action-conditional outcome prediction
-- service completion prediction
-- fulfillment modeling
-- driver acceptance prediction
-- cancellation prediction
-- pickup time prediction
-
-## 跨领域方法关键词
-
-- survival analysis
-- time-to-event prediction
-- competing risks
-- multi-state models
-- temporal point processes
-- causal survival analysis
-- counterfactual outcome modeling
-- censoring and delayed feedback
-- differentiable optimization
-- decision calibration
-- decision regret
-- uncertainty-aware optimization
-- distributionally robust optimization
-- conformal risk control
-- model-based reinforcement learning
-- action-conditioned world models
-
 ## 可直接执行的检索组合
 
-每条独立检索，按检索日期附加时间窗口；不得要求同一论文命中全部词。
+### 直接相关
 
-- `"decision-focused learning" prediction optimization`
-- `"predict-then-optimize" uncertainty`
-- `"ride-hailing" acceptance cancellation prediction`
-- `"service completion" prediction decision`
-- `"survival analysis" "competing risks" learning`
-- `"action conditional" outcome prediction`
-- `"decision calibration" prediction`
-- `履约建模 完单预测 接单预测 取消风险 决策导向学习`
+- `网约车 完单率 取消 多任务 预估`
+- `"ride-hailing" completion probability calibration`
+- `"driver cancellation" prediction dispatch`
+- `"multi-task learning" conversion cancellation`
 
-扩展路线：
+### 跨领域机制
 
-- `"counterfactual" time-to-event prediction`
-- `"multi-state" survival decision`
-- `"differentiable optimization" prediction regret`
-- `"uncertainty" "predict-then-optimize"`
-- `"world model" action conditioned uncertainty`
-- `"delayed feedback" outcome prediction`
+- `"conversion prediction" sample selection bias`
+- `"delayed feedback" conversion prediction`
+- `"competing risks" calibration loss`
+- `"multi-scenario" ranking negative transfer`
+- `"numerical feature embeddings" ranking`
+- `"post-selection" risk calibration`
 
 ## 收录边界
+
+从决策当时可见的司机、订单、乘客及历史序列出发，区分司机履约、乘客履约、订单最终完单；标注候选是否被选中、连环派或普通派单、结果何时可见。序列编码、多任务共享、门控和损失可凭同输入、同切分的消融入选。若主张能改善选司机或重派，还要指出需要哪类排序、回放、实验或识别条件。 依总规则判为主读、前沿观察或本轮略过。
+
+本地依据　[[花小猪/2026年LR/【LR26-048】交易效率-技术建设-DO价值建模离线探索-V1.0|交易效率-技术建设-DO价值建模离线探索-V1.0]] · [[花小猪/PK策略知识库/raw/02. PK动态窗口策略/PK动态窗口策略之强化学习方案实验评估|PK动态窗口策略之强化学习方案实验评估]]
+
 
 履约包含接单、等待、接驾/到达、取消、完成等结果链条，同时纳入医疗、生存建模、推荐、供应链、运筹优化和模型式决策中的可迁移方法。不限于网约车，不因原场景不同或暂时没有本地数据而拒绝。只预测历史标签的工作也可入选，但应说明可复用模块和效果；普通预测不能被写成已识别动作的因果效果。不得仅用 fulfillment 单词做唯一入口，以免被仓储业务内容淹没。
 
@@ -116,3 +88,7 @@ created: "2026-11-04"
 ## 队列处理规则
 
 取消每日总篇数及每方向篇数上限；按创新价值、机制清晰度和可信效果证据决定精读数量，不凑数。每天先检查已有待精读队列，与新候选按价值、证据及等待时间共同排序，持续处理旧队列。只因原文不可访问、证据待核实或执行实际中断等具体原因保留待处理，并记录下一步；不因达到篇数或固定阅读预算而入队。理论与有价值的负面结论同样可收录。
+
+<!-- 存量复筛导航开始 -->
+[[研究前沿/面向决策的履约建模/存量论文分层索引|全部存量：主读、储备、待核验]] · [[研究前沿/论文库复筛与阅读路线|跨方向阅读路线]]
+<!-- 存量复筛导航结束 -->

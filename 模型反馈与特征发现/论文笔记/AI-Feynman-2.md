@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # AI Feynman 2.0: Pareto-optimal symbolic regression exploiting graph modularity
 
+<!-- 全库方法复筛开始 -->
+> **待核验 · 模型自进化**。有“AI Feynman 2.0: Pareto-optimal symbolic regression exploiting graph modularity”的方法线索，但当前记录的全文、关键对照或证据覆盖不足；先补齐原文和所需章节，不进入近期先读。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 用拟合神经网络梯度发现计算图模块性/对称性，再递归化简和组合Pareto候选；统计检验加速暴搜。
 

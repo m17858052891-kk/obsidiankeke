@@ -8,6 +8,12 @@ category: "互补搜索与可微构造"
 
 # Collaborative Multi-Agent Reinforcement Learning for Automated Feature Transformation with Graph-Driven Path Optimization
 
+<!-- 全库方法复筛开始 -->
+> **方法储备 · 模型自进化**。保留“Collaborative Multi-Agent Reinforcement Learning for Automated Feature Transformation with Graph-Driven Path Optimization”这一研究问题或机制；是否用于当前业务另行验证。
+> 原有阅读范围与证据等级不变；储备不等于效果已验证。
+> [[研究前沿/论文库复筛与阅读路线|全库阅读路线]] · [[研究前沿/模型自进化/存量论文分层索引|本方向完整分层]]
+<!-- 全库方法复筛结束 -->
+
 > [!summary] 为什么读这篇
 > 在变换roadmap上聚类特征组，多个agent选head group/operation/tail group，group-wise crossing，图剪枝控制路径。
 
