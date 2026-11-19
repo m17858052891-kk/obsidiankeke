@@ -85,7 +85,7 @@ flowchart TD
 
 | 项目 | 用它检查哪些知识 |
 |---|---|
-| [[面试准备/PCVRHyFormer/README\|PCVRHyFormer入口]]、[[花小猪/交易效率知识库/wiki/模型/PEPNet与序列履约模型\|司乘序列履约模型]] | 候选进入时机、mask、序列信息流、多任务梯度 |
+| [[面试准备/PCVRHyFormer/README\|PCVRHyFormer入口]]、[司乘序列履约模型](https://git.xiaojukeji.com/bwh_stg/trading-efficiency-wiki/blob/9847514d22aee1525646d16e07d8429ab57a267a/wiki/%E6%A8%A1%E5%9E%8B/PEPNet%E4%B8%8E%E5%BA%8F%E5%88%97%E5%B1%A5%E7%BA%A6%E6%A8%A1%E5%9E%8B.md) | 候选进入时机、mask、序列信息流、多任务梯度 |
 | [[面试准备/实习总结/实习相关/ecr/README\|ecr入口]] | CATE、OOF/DR、排序与多档预算指标 |
 | [[面试准备/tmall-hstu/README\|tmall-hstu入口]] | SID、残差量化、生成式推荐、LoRA 任务适配 |
 | [[面试准备/实习总结/实习相关/buffer-自动调整/README\|buffer-自动调整入口]] | [[知识体系/08-预算分配与反馈控制/08-案例：从现有Buffer到分层预算控制\|乘法递推、稳定性与限幅的理论对照]]；工程状态仍看项目证据 |

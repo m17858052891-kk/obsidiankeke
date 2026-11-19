@@ -12,7 +12,7 @@ status: "维护中"
 ---
 
 > [!info] 本页定位
-> 原论文的结构、版本与实验见本页。快速回顾可从[[#3.1 任务定义与整体框架|任务定义与整体框架]]读起。司乘履约场景的序列目标和离线对照见[[花小猪/交易效率知识库/wiki/模型/PEPNet与序列履约模型#B058：序列建模目标与 OneTrans 汇总|司乘序列与 OneTrans 实验汇总]]。
+> 原论文的结构、版本与实验见本页。快速回顾可从[[#3.1 任务定义与整体框架|任务定义与整体框架]]读起。司乘履约场景的序列目标和离线对照见[司乘序列与 OneTrans 实验汇总](https://git.xiaojukeji.com/bwh_stg/trading-efficiency-wiki/blame/9847514d22aee1525646d16e07d8429ab57a267a/wiki/%E6%A8%A1%E5%9E%8B/PEPNet%E4%B8%8E%E5%BA%8F%E5%88%97%E5%B1%A5%E7%BA%A6%E6%A8%A1%E5%9E%8B.md#L132)。
 
 # OneTrans：用一个 Transformer 统一特征交互与序列建模
 

@@ -6,7 +6,7 @@
   "vault_root": "/Users/didi/keke/keke",
   "research_root": "/Users/didi/keke/keke/研究前沿",
   "schedule_local_time": "11:00",
-  "last_run_kind": "six_method_tracks_discovery_and_archiving",
+  "last_run_kind": "six_method_tracks_rolling_increment",
   "last_successful_scan": "2026-11-18",
   "tracks": {
     "uplift": {
@@ -31506,49 +31506,80 @@
     {
       "id": "note:81aa6b4b6f20",
       "title": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
-      "version": "版本待核",
+      "version": "JMLR 11",
       "canonical_note": "模型反馈与特征发现/论文笔记/模型选择过拟合.md",
-      "reading_priority": "待核验",
+      "reading_priority": "近期主读",
       "method_tracks": [
         "model_evolution"
       ],
-      "library_review_on": "2026-11-18",
-      "question": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
-      "reason": "有“On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation”的方法线索，但当前记录的全文、关键对照或证据覆盖不足；先补齐原文和所需章节，不进入近期先读。",
-      "evidence": "版本与发表状态：** JMLR 11:2079-2107 **实际阅读范围：** 摘要与结论定向核 **本研究定位：** 理论、选择与迁移边界；补充阅读。未运行算法。",
+      "library_review_on": "2026-11-19",
+      "question": "CawleyTalbot｜自动迭代反复用验证集选最优改动，怎样识别虚高？",
+      "reason": "模型自进化验收。使用同一候选流、种子和总算力，回放重复用同一验证集与嵌套时间切分；独立未来窗只看一次，比较乐观偏差、排名反转及最终模型。 失败判据：若增益只出现在反馈集或未来窗顺序反转，不晋级。",
+      "evidence": "图 2 约 30–40 步后独立 MSE 回升，而 CV MSE 继续下降；表 8 的 13 个 KRR 基准全数据调参再 CV 均偏乐观，11 项超过双标准误；乳腺癌错误率 26.280% 对嵌套 27.470%。 证据边界：2010 年旧队列补核，以合成和基准实验说明选模偏差；嵌套 CV 不能自动解决时间漂移、策略选择偏差或线上归因。 本地实验未运行。",
       "library_review": {
         "record_no": 432,
         "id": "note:81aa6b4b6f20",
         "title": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
-        "version": "版本待核",
-        "status": "待核验",
+        "version": "JMLR 11",
+        "status": "近期主读",
         "primary_method_track": "model_evolution",
         "canonical_note": "模型反馈与特征发现/论文笔记/模型选择过拟合.md",
         "expected_note": null,
         "original_location": "库内未登记",
-        "reading_depth": "摘要与结论定向核",
-        "method_focus": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
-        "method_summary": "版本与发表状态：** JMLR 11:2079-2107 **实际阅读范围：** 摘要与结论定向核 **本研究定位：** 理论、选择与迁移边界；补充阅读。未运行算法。",
-        "question": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
-        "reason": "有“On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation”的方法线索，但当前记录的全文、关键对照或证据覆盖不足；先补齐原文和所需章节，不进入近期先读。",
-        "evidence": "版本与发表状态：** JMLR 11:2079-2107 **实际阅读范围：** 摘要与结论定向核 **本研究定位：** 理论、选择与迁移边界；补充阅读。未运行算法。",
-        "evidence_scope": "复筛依据为已有笔记与其原文核验记录；未对全部原文重做逐页精读或复现。",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "自动迭代反复用验证集选最优改动，怎样识别虚高？",
+        "method_summary": "把特征筛选、超参和训练选型放进内层；外层只评估完整选型流程，独立未来集只终审。记录内层选择分数和外层审计分数，不回流外层结果。",
+        "question": "CawleyTalbot｜自动迭代反复用验证集选最优改动，怎样识别虚高？",
+        "reason": "模型自进化验收。使用同一候选流、种子和总算力，回放重复用同一验证集与嵌套时间切分；独立未来窗只看一次，比较乐观偏差、排名反转及最终模型。 失败判据：若增益只出现在反馈集或未来窗顺序反转，不晋级。",
+        "evidence": "图 2 约 30–40 步后独立 MSE 回升，而 CV MSE 继续下降；表 8 的 13 个 KRR 基准全数据调参再 CV 均偏乐观，11 项超过双标准误；乳腺癌错误率 26.280% 对嵌套 27.470%。 证据边界：2010 年旧队列补核，以合成和基准实验说明选模偏差；嵌套 CV 不能自动解决时间漂移、策略选择偏差或线上归因。 本地实验未运行。",
+        "evidence_scope": "§4.1、§5.1、§5.3，图 2、表 8",
         "primary_sources": [
+          "https://www.jmlr.org/papers/v11/cawley10a.html",
           "https://www.jmlr.org/papers/volume11/cawley10a/cawley10a.pdf"
         ],
         "local_experiment_status": "未运行",
-        "reviewed_on": "2026-11-18",
-        "next_step": "取得/核对全文、核心机制及公平对照，再决定是否升级。"
+        "reviewed_on": "2026-11-19",
+        "next_step": "模型自进化验收。使用同一候选流、种子和总算力，回放重复用同一验证集与嵌套时间切分；独立未来窗只看一次，比较乐观偏差、排名反转及最终模型。"
       },
       "archived": true,
       "archive_presence_verified_on": "2026-11-18",
-      "discovered": false,
+      "discovered": true,
       "discovery_status": "existing_vault_note_registered",
-      "verified": false,
+      "verified": true,
       "verification_scope": "已有原文精读记录；本轮复筛登记",
-      "reading_depth": "摘要与结论定向核",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
       "reported": false,
-      "reading_eligibility": "not_homepage_eligible"
+      "reading_eligibility": "eligible_verified_main",
+      "primary_track": "model_evolution",
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://www.jmlr.org/papers/v11/cawley10a.html",
+        "https://www.jmlr.org/papers/volume11/cawley10a/cawley10a.pdf"
+      ],
+      "discovered_on": "2026-11-19",
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/CawleyTalbot/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/CawleyTalbot/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": null,
+      "version_date": "2010-07",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/模型自进化/02-可复用方法卡/CawleyTalbot-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/模型自进化/03-实验假设与结果/CawleyTalbot-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
     },
     {
       "id": "arxiv:2611.17103",
@@ -33937,10 +33968,10 @@
       },
       "library_review_on": "2026-11-18",
       "module_cards": [
-        "研究前沿/司乘行为序列建模/02-可复用方法卡/ECHO-核心机制与验证.md"
+        "研究前沿/司乘行为序列建模/01-论文原文与精读/ECHO/精读.md"
       ],
       "experiment_notes": [
-        "研究前沿/司乘行为序列建模/03-实验假设与结果/ECHO-首个验证.md"
+        "研究前沿/司乘行为序列建模/01-论文原文与精读/ECHO/精读.md"
       ],
       "last_deep_read_report": "研究前沿/_运行记录/2026-11-18-六方向检索与精读.md",
       "reported": true,
@@ -33948,7 +33979,18 @@
       "last_reported_on": "2026-11-18",
       "reported_versions": [
         "v3"
-      ]
+      ],
+      "inline_sections": {
+        "method": {
+          "id": "arxiv:2610.28569:mechanism",
+          "heading": "可复用机制"
+        },
+        "experiment": {
+          "id": "arxiv:2610.28569:first-test",
+          "heading": "首个本地验证（未运行）",
+          "status": "未运行"
+        }
+      }
     },
     {
       "id": "arxiv:2609.18148",
@@ -34103,10 +34145,10 @@
       },
       "library_review_on": "2026-11-18",
       "module_cards": [
-        "研究前沿/Scaling up 与效率/02-可复用方法卡/Axia-核心机制与验证.md"
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/Axia/精读.md"
       ],
       "experiment_notes": [
-        "研究前沿/Scaling up 与效率/03-实验假设与结果/Axia-首个验证.md"
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/Axia/精读.md"
       ],
       "last_deep_read_report": "研究前沿/_运行记录/2026-11-18-六方向检索与精读.md",
       "reported": true,
@@ -34114,7 +34156,18 @@
       "last_reported_on": "2026-11-18",
       "reported_versions": [
         "v1"
-      ]
+      ],
+      "inline_sections": {
+        "method": {
+          "id": "arxiv:2611.05643:mechanism",
+          "heading": "可复用机制"
+        },
+        "experiment": {
+          "id": "arxiv:2611.05643:first-test",
+          "heading": "首个本地验证（未运行）",
+          "status": "未运行"
+        }
+      }
     },
     {
       "id": "arxiv:2611.01059",
@@ -34520,10 +34573,10 @@
       },
       "library_review_on": "2026-11-18",
       "module_cards": [
-        "研究前沿/面向决策的履约建模/02-可复用方法卡/CRATER-核心机制与验证.md"
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/CRATER/精读.md"
       ],
       "experiment_notes": [
-        "研究前沿/面向决策的履约建模/03-实验假设与结果/CRATER-首个验证.md"
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/CRATER/精读.md"
       ],
       "last_deep_read_report": "研究前沿/_运行记录/2026-11-18-六方向检索与精读.md",
       "reported": true,
@@ -34531,7 +34584,18 @@
       "last_reported_on": "2026-11-18",
       "reported_versions": [
         "v1"
-      ]
+      ],
+      "inline_sections": {
+        "method": {
+          "id": "arxiv:2611.05860:mechanism",
+          "heading": "可复用机制"
+        },
+        "experiment": {
+          "id": "arxiv:2611.05860:first-test",
+          "heading": "首个本地验证（未运行）",
+          "status": "未运行"
+        }
+      }
     },
     {
       "id": "arxiv:2608.21748",
@@ -38174,6 +38238,1707 @@
       "reported_versions": [
         "v1"
       ]
+    },
+    {
+      "id": "arxiv:2611.22595",
+      "title": "Lost in the Funnel: Selection-Induced Miscalibration in Ranking and Decision Systems",
+      "version": "v1",
+      "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/FAR/精读.md",
+      "primary_track": "decision_fulfillment",
+      "method_tracks": [
+        "decision_fulfillment"
+      ],
+      "related_tracks": [
+        "decision_fulfillment"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22595",
+        "https://arxiv.org/pdf/2611.22595v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 533,
+        "id": "arxiv:2611.22595",
+        "title": "Lost in the Funnel: Selection-Induced Miscalibration in Ranking and Decision Systems",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "decision_fulfillment",
+        "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/FAR/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "全局履约分经过策略筛选后还准吗？",
+        "method_summary": "输入冻结分数、决策阶段及该阶段可观测标签，输出边界样本校准分。§3 式 2 把校准变化分成原始校准误差、分数分布变化和同分样本改变；最小单元是在真实使用分数的决策边界单独拟合校准器。",
+        "question": "FAR｜全局履约分经过策略筛选后还准吗？",
+        "reason": "预分单门槛后的履约、换车或升舱候选的校准。冻结原模型、门槛、候选与时间划分，在验证期分别拟合原全局与边界校准，未来期只用合法可观测标签比较 Brier、ECE、阈值附近的误差与覆盖。 失败判据：未来期边界校准退化或覆盖降幅超预设限，不用于门槛；未采取动作不能记负例。上线效果另做实验。",
+        "evidence": "表 2：两地区线上 A/B，拍卖前 ECE 784→314、809→234 bp，CTR +1%、+2%，覆盖 −3.1%、−9.2%，RPM 无显著变化。 证据边界：适用标签是可独立评判的广告相关性；订单结果只在某些已采取动作上可见。A/B 是整体校准方案效果，覆盖损失必须一起看。 本地实验未运行。",
+        "evidence_scope": "§3、式 2；表 2",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22595",
+          "https://arxiv.org/pdf/2611.22595v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "预分单门槛后的履约、换车或升舱候选的校准。冻结原模型、门槛、候选与时间划分，在验证期分别拟合原全局与边界校准，未来期只用合法可观测标签比较 Brier、ECE、阈值附近的误差与覆盖。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "FAR｜全局履约分经过策略筛选后还准吗？",
+      "reason": "预分单门槛后的履约、换车或升舱候选的校准。冻结原模型、门槛、候选与时间划分，在验证期分别拟合原全局与边界校准，未来期只用合法可观测标签比较 Brier、ECE、阈值附近的误差与覆盖。 失败判据：未来期边界校准退化或覆盖降幅超预设限，不用于门槛；未采取动作不能记负例。上线效果另做实验。",
+      "evidence": "表 2：两地区线上 A/B，拍卖前 ECE 784→314、809→234 bp，CTR +1%、+2%，覆盖 −3.1%、−9.2%，RPM 无显著变化。 证据边界：适用标签是可独立评判的广告相关性；订单结果只在某些已采取动作上可见。A/B 是整体校准方案效果，覆盖损失必须一起看。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/FAR/assets/source/paper.pdf",
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/FAR/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/面向决策的履约建模/02-可复用方法卡/FAR-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/面向决策的履约建模/03-实验假设与结果/FAR-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22838",
+      "title": "Better Rankers, Worse Retrievers: The Hidden Cost of RL Post-Training in Generative Recommendation",
+      "version": "v1",
+      "canonical_note": "研究前沿/推荐排序与特征表示/01-论文原文与精读/BetterRankers/精读.md",
+      "primary_track": "ranking_architecture",
+      "method_tracks": [
+        "ranking_architecture"
+      ],
+      "related_tracks": [
+        "ranking_architecture"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22838",
+        "https://arxiv.org/pdf/2611.22838v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 534,
+        "id": "arxiv:2611.22838",
+        "title": "Better Rankers, Worse Retrievers: The Hidden Cost of RL Post-Training in Generative Recommendation",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "ranking_architecture",
+        "canonical_note": "研究前沿/推荐排序与特征表示/01-论文原文与精读/BetterRankers/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "小 K 排序上涨会不会损害深召回？",
+        "method_summary": "用冻结 SFT 教师在生成轨迹外选近邻，约束学生与教师的相对分数。式 5–6 在 16 条轨迹以外做 neighborhood anchoring；推理仍用同一生成模型。最小单元可先采用双 K 晋级验收。",
+        "question": "BetterRankers｜小 K 排序上涨会不会损害深召回？",
+        "reason": "预分单、换车召回和自动迭代晋级。固定历史决策时点、候选可行性和算力，用浅 K 与真实下游容量 K 同时测召回，按长尾司机／订单切片；随后才从同一基线单独加教师锚定。 失败判据：若小 K 改善而下游容量 K 的覆盖跌破预注册阈值，候选不晋级；若锚定在等预算下不能回补覆盖，撤销该训练改动。",
+        "evidence": "表 5：Office 上 SFT→GRPO→GRPO＋锚定的 Hit@10 15.97→16.41→16.89，Hit@500 52.84→47.69→52.14；图 4 研究负例来源和深浅召回的冲突。 证据边界：五个 Amazon 公开集、三个种子、精确全目录排名。深召回甚至在锚定后仍不到 SFT；不是业务候选覆盖或线上收益。 本地实验未运行。",
+        "evidence_scope": "式 5–6，图 4，表 5",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22838",
+          "https://arxiv.org/pdf/2611.22838v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "预分单、换车召回和自动迭代晋级。固定历史决策时点、候选可行性和算力，用浅 K 与真实下游容量 K 同时测召回，按长尾司机／订单切片；随后才从同一基线单独加教师锚定。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "BetterRankers｜小 K 排序上涨会不会损害深召回？",
+      "reason": "预分单、换车召回和自动迭代晋级。固定历史决策时点、候选可行性和算力，用浅 K 与真实下游容量 K 同时测召回，按长尾司机／订单切片；随后才从同一基线单独加教师锚定。 失败判据：若小 K 改善而下游容量 K 的覆盖跌破预注册阈值，候选不晋级；若锚定在等预算下不能回补覆盖，撤销该训练改动。",
+      "evidence": "表 5：Office 上 SFT→GRPO→GRPO＋锚定的 Hit@10 15.97→16.41→16.89，Hit@500 52.84→47.69→52.14；图 4 研究负例来源和深浅召回的冲突。 证据边界：五个 Amazon 公开集、三个种子、精确全目录排名。深召回甚至在锚定后仍不到 SFT；不是业务候选覆盖或线上收益。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/推荐排序与特征表示/01-论文原文与精读/BetterRankers/assets/source/paper.pdf",
+        "研究前沿/推荐排序与特征表示/01-论文原文与精读/BetterRankers/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/推荐排序与特征表示/02-可复用方法卡/BetterRankers-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/推荐排序与特征表示/03-实验假设与结果/BetterRankers-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2602.11410",
+      "title": "CADET: Context-Conditioned Ads CTR Prediction With a Decoder-Only Transformer",
+      "version": "v3",
+      "canonical_note": "研究前沿/司乘行为序列建模/01-论文原文与精读/CADET/精读.md",
+      "primary_track": "behavior_sequence",
+      "method_tracks": [
+        "behavior_sequence"
+      ],
+      "related_tracks": [
+        "behavior_sequence"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2602.11410",
+        "https://arxiv.org/pdf/2602.11410v3"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 535,
+        "id": "arxiv:2602.11410",
+        "title": "CADET: Context-Conditioned Ads CTR Prediction With a Decoder-Only Transformer",
+        "version": "v3",
+        "status": "近期主读",
+        "primary_method_track": "behavior_sequence",
+        "canonical_note": "研究前沿/司乘行为序列建模/01-论文原文与精读/CADET/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "序列训练如何保证只看到当时在线可用的事件？",
+        "method_summary": "训练时按真实展示位置只回传对应任务头，推理共享表示并一次输出各位置分数；序列读入用可见性掩码和时间 RoPE。可见性掩码与位置条件头可拆成独立试验。",
+        "question": "CADET｜序列训练如何保证只看到当时在线可用的事件？",
+        "reason": "司乘事件序列和等应答页表单排序。冻结主干、历史长度和训练算力，只改训练中事件可见性掩码，验证均按真实到达时间截断；按事件延迟切片报告 LogLoss、PR-AUC 和校准。 失败判据：若严格 as-of 重放后收益不复现或只出现在延迟不可见样本，放弃该实现；位置条件头另作对照。",
+        "evidence": "表 1：移除位置上下文、可见性掩码及时间 RoPE，AUC 相对下降 0.61%、0.31%、0.13%。完整系统相较 LiRank 线上 CTR +11.04%、CPC −10.9%，收入近中性。 证据边界：2026-02 初发，11 月修订；核对 v2/v3 核心结果相同。线上是系统证据，位置日志不识别干预效应。 本地实验未运行。",
+        "evidence_scope": "表 1、工业 A/B 与版本历史",
+        "primary_sources": [
+          "https://arxiv.org/abs/2602.11410",
+          "https://arxiv.org/pdf/2602.11410v3"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "司乘事件序列和等应答页表单排序。冻结主干、历史长度和训练算力，只改训练中事件可见性掩码，验证均按真实到达时间截断；按事件延迟切片报告 LogLoss、PR-AUC 和校准。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "CADET｜序列训练如何保证只看到当时在线可用的事件？",
+      "reason": "司乘事件序列和等应答页表单排序。冻结主干、历史长度和训练算力，只改训练中事件可见性掩码，验证均按真实到达时间截断；按事件延迟切片报告 LogLoss、PR-AUC 和校准。 失败判据：若严格 as-of 重放后收益不复现或只出现在延迟不可见样本，放弃该实现；位置条件头另作对照。",
+      "evidence": "表 1：移除位置上下文、可见性掩码及时间 RoPE，AUC 相对下降 0.61%、0.31%、0.13%。完整系统相较 LiRank 线上 CTR +11.04%、CPC −10.9%，收入近中性。 证据边界：2026-02 初发，11 月修订；核对 v2/v3 核心结果相同。线上是系统证据，位置日志不识别干预效应。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/司乘行为序列建模/01-论文原文与精读/CADET/assets/source/paper.pdf",
+        "研究前沿/司乘行为序列建模/01-论文原文与精读/CADET/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-02-11",
+      "version_date": "2026-11-14",
+      "arxiv_last_revised": "2026-11-14",
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/司乘行为序列建模/02-可复用方法卡/CADET-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/司乘行为序列建模/03-实验假设与结果/CADET-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22828",
+      "title": "TabDAG: Structured Evolutionary Search for Tabular Feature Engineering",
+      "version": "v1",
+      "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/TabDAG/精读.md",
+      "primary_track": "model_evolution",
+      "method_tracks": [
+        "model_evolution"
+      ],
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22828",
+        "https://arxiv.org/pdf/2611.22828v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 536,
+        "id": "arxiv:2611.22828",
+        "title": "TabDAG: Structured Evolutionary Search for Tabular Feature Engineering",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "model_evolution",
+        "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/TabDAG/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "怎样约束自动造特征，减少无效试验和时点泄漏？",
+        "method_summary": "用有类型 DAG 约束特征构造。输入允许使用的字段、时点及算子清单；提议器提交局部 JSON diff，结构、时点及可执行校验通过才计入评估，输出可复跑的变换图。",
+        "question": "TabDAG｜怎样约束自动造特征，减少无效试验和时点泄漏？",
+        "reason": "预分单履约预估的自动特征搜索。固定学习器、算子、LLM、特征时点、总预算与时间外测试；比较自由脚本和带时间/拟合范围校验的 DAG，计入早期拒绝、训练失败及有效改动。 失败判据：若失败只是前移，或每 GPU 小时有效试验没有改善，或未来段 LogLoss、校准退化，不采纳。",
+        "evidence": "§5、附录 F 表 11：固定 LLM、引擎和 100 次已评估候选预算，失败率局部 DAG 20.1%，自由 Python 27.9%，整图 JSON 27.1%；4,549 个提议有 1,558 个提前过滤。 证据边界：测试排名差异经多重比较不显著；实验按已评估候选对齐，无法证明节约总成本或提高预测。 本地实验未运行。",
+        "evidence_scope": "§5、附录 F 表 11",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22828",
+          "https://arxiv.org/pdf/2611.22828v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "预分单履约预估的自动特征搜索。固定学习器、算子、LLM、特征时点、总预算与时间外测试；比较自由脚本和带时间/拟合范围校验的 DAG，计入早期拒绝、训练失败及有效改动。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "TabDAG｜怎样约束自动造特征，减少无效试验和时点泄漏？",
+      "reason": "预分单履约预估的自动特征搜索。固定学习器、算子、LLM、特征时点、总预算与时间外测试；比较自由脚本和带时间/拟合范围校验的 DAG，计入早期拒绝、训练失败及有效改动。 失败判据：若失败只是前移，或每 GPU 小时有效试验没有改善，或未来段 LogLoss、校准退化，不采纳。",
+      "evidence": "§5、附录 F 表 11：固定 LLM、引擎和 100 次已评估候选预算，失败率局部 DAG 20.1%，自由 Python 27.9%，整图 JSON 27.1%；4,549 个提议有 1,558 个提前过滤。 证据边界：测试排名差异经多重比较不显著；实验按已评估候选对齐，无法证明节约总成本或提高预测。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/TabDAG/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/TabDAG/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/模型自进化/02-可复用方法卡/TabDAG-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/模型自进化/03-实验假设与结果/TabDAG-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.18856",
+      "title": "Self-Improvement Memory Enables Continual Recursive Self-Improvement",
+      "version": "v1",
+      "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/SIM/精读.md",
+      "primary_track": "model_evolution",
+      "method_tracks": [
+        "model_evolution"
+      ],
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.18856",
+        "https://arxiv.org/pdf/2611.18856v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 537,
+        "id": "arxiv:2611.18856",
+        "title": "Self-Improvement Memory Enables Continual Recursive Self-Improvement",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "model_evolution",
+        "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/SIM/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "自动实验跨轮记住失败，能提高下一轮选题质量吗？",
+        "method_summary": "每轮把问题、结构改动、预期、实际成败及出处一起写成记忆，供提议和筛选读取；独立裁判集不回流。最小采用单元是一条可追溯、允许被后续反驳的失败或成功记录。",
+        "question": "SIM｜自动实验跨轮记住失败，能提高下一轮选题质量吗？",
+        "reason": "模型自进化的跨轮提议。固定起点、执行器与总试验成本，对照只读配置／diff 与同时读事前假设、成败及条件；独立未来窗口只用于终审。 失败判据：重复试验不降，或未来窗收益及可复现晋级率无改善，就不把记忆作为强制组件。",
+        "evidence": "§4.4 表 3：从同一初始 harness 分叉的 10 组十轮对照，21.70 对 19.33，差 +2.36 分、95% CI [1.05, 3.68]，9/10 胜，一组为负。 证据边界：任务是 LLM harness；等轮不意味着等 token 或时长。效果属于整套记忆使用协议，不能归给单一字段。 本地实验未运行。",
+        "evidence_scope": "§3、§4.4 表 3",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.18856",
+          "https://arxiv.org/pdf/2611.18856v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "模型自进化的跨轮提议。固定起点、执行器与总试验成本，对照只读配置／diff 与同时读事前假设、成败及条件；独立未来窗口只用于终审。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "SIM｜自动实验跨轮记住失败，能提高下一轮选题质量吗？",
+      "reason": "模型自进化的跨轮提议。固定起点、执行器与总试验成本，对照只读配置／diff 与同时读事前假设、成败及条件；独立未来窗口只用于终审。 失败判据：重复试验不降，或未来窗收益及可复现晋级率无改善，就不把记忆作为强制组件。",
+      "evidence": "§4.4 表 3：从同一初始 harness 分叉的 10 组十轮对照，21.70 对 19.33，差 +2.36 分、95% CI [1.05, 3.68]，9/10 胜，一组为负。 证据边界：任务是 LLM harness；等轮不意味着等 token 或时长。效果属于整套记忆使用协议，不能归给单一字段。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/SIM/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/SIM/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-13",
+      "version_date": "2026-11-13",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/模型自进化/02-可复用方法卡/SIM-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/模型自进化/03-实验假设与结果/SIM-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22597",
+      "title": "COTTI: Contrastive Training and Time-Aware Inference for Robust Industrial Recommendation under Promotional Drift",
+      "version": "v1",
+      "canonical_note": "研究前沿/训练目标与数据反馈/01-论文原文与精读/COTTI/精读.md",
+      "primary_track": "training_feedback",
+      "method_tracks": [
+        "training_feedback"
+      ],
+      "related_tracks": [
+        "training_feedback"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22597",
+        "https://arxiv.org/pdf/2611.22597v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 538,
+        "id": "arxiv:2611.22597",
+        "title": "COTTI: Contrastive Training and Time-Aware Inference for Robust Industrial Recommendation under Promotional Drift",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "training_feedback",
+        "canonical_note": "研究前沿/训练目标与数据反馈/01-论文原文与精读/COTTI/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "流量冲击后排序总体变好，新类别为什么反而变差？",
+        "method_summary": "CPC 对比对齐日常和促销时期行为，RW 按历史远近调整训练权重，ABA 按事件期调整预测。首验优先把基础重校准设为公共对照，并单独研究时间权重与新类别切片。",
+        "question": "COTTI｜流量冲击后排序总体变好，新类别为什么反而变差？",
+        "reason": "升舱或等应答页表单在流量结构变化后的训练。冻结主干、输入、候选和校准器，只比较均匀权重与衰减权重；时间外按熟悉／陌生场景看 LogLoss、正类损失和选择召回。 失败判据：若收益仅来自额外重校准，或新场景召回/正类概率下降超过预先定义边界，拒绝整体上线。",
+        "evidence": "表 III–IV：完整 AUC 0.8127、w/o RW 0.8051。加 RW 的全量方案在熟悉类 recall +0.0034，陌生类 −0.0008；对共同使用 ABA 的 TEN，AUC 仅 +0.0004。 证据边界：类别定义、历史回看长度、标签成熟期限与置信区间未充分披露；切片结果显示关联，不识别减少召回的原因。 本地实验未运行。",
+        "evidence_scope": "表 III–IV、§IV-D 强校准对照",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22597",
+          "https://arxiv.org/pdf/2611.22597v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "升舱或等应答页表单在流量结构变化后的训练。冻结主干、输入、候选和校准器，只比较均匀权重与衰减权重；时间外按熟悉／陌生场景看 LogLoss、正类损失和选择召回。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "COTTI｜流量冲击后排序总体变好，新类别为什么反而变差？",
+      "reason": "升舱或等应答页表单在流量结构变化后的训练。冻结主干、输入、候选和校准器，只比较均匀权重与衰减权重；时间外按熟悉／陌生场景看 LogLoss、正类损失和选择召回。 失败判据：若收益仅来自额外重校准，或新场景召回/正类概率下降超过预先定义边界，拒绝整体上线。",
+      "evidence": "表 III–IV：完整 AUC 0.8127、w/o RW 0.8051。加 RW 的全量方案在熟悉类 recall +0.0034，陌生类 −0.0008；对共同使用 ABA 的 TEN，AUC 仅 +0.0004。 证据边界：类别定义、历史回看长度、标签成熟期限与置信区间未充分披露；切片结果显示关联，不识别减少召回的原因。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/训练目标与数据反馈/01-论文原文与精读/COTTI/assets/source/paper.pdf",
+        "研究前沿/训练目标与数据反馈/01-论文原文与精读/COTTI/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/训练目标与数据反馈/02-可复用方法卡/COTTI-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/训练目标与数据反馈/03-实验假设与结果/COTTI-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.23001",
+      "title": "NVIDIA Kumo Tabular: Pushing the Accuracy-Efficiency Frontier for Tabular Prediction",
+      "version": "v1",
+      "canonical_note": "研究前沿/推荐排序与特征表示/01-论文原文与精读/KumoTabular/精读.md",
+      "primary_track": "ranking_architecture",
+      "method_tracks": [
+        "ranking_architecture"
+      ],
+      "related_tracks": [
+        "ranking_architecture"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.23001",
+        "https://arxiv.org/pdf/2611.23001v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 539,
+        "id": "arxiv:2611.23001",
+        "title": "NVIDIA Kumo Tabular: Pushing the Accuracy-Efficiency Frontier for Tabular Prediction",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "ranking_architecture",
+        "canonical_note": "研究前沿/推荐排序与特征表示/01-论文原文与精读/KumoTabular/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "表格模型扩展时，行内和跨行推理如何交替？",
+        "method_summary": "交替行、列注意力，对带标签的上下文训练行做 in-context 表格预测；可用作低样本静态特征对照。",
+        "question": "KumoTabular｜表格模型扩展时，行内和跨行推理如何交替？",
+        "reason": "若开始低样本分群建模，先同切分对比 GBDT、现有预测头，按时间和规模报告校准及推理预算。 失败判据：未来窗不胜或超预算不扩大。",
+        "evidence": "图 6 有交替注意力等组件比较；§9 BeyondArena 报告时间切分第 3、按组第 4、超过 10 万行第 9。 证据边界：主榜与子集不同，基准排名无法推出在线履约胜过 GBDT；推理上下文有成本。 本地实验未运行。",
+        "evidence_scope": "图 6、§9",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.23001",
+          "https://arxiv.org/pdf/2611.23001v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "若开始低样本分群建模，先同切分对比 GBDT、现有预测头，按时间和规模报告校准及推理预算。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "KumoTabular｜表格模型扩展时，行内和跨行推理如何交替？",
+      "reason": "若开始低样本分群建模，先同切分对比 GBDT、现有预测头，按时间和规模报告校准及推理预算。 失败判据：未来窗不胜或超预算不扩大。",
+      "evidence": "图 6 有交替注意力等组件比较；§9 BeyondArena 报告时间切分第 3、按组第 4、超过 10 万行第 9。 证据边界：主榜与子集不同，基准排名无法推出在线履约胜过 GBDT；推理上下文有成本。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/推荐排序与特征表示/01-论文原文与精读/KumoTabular/assets/source/paper.pdf",
+        "研究前沿/推荐排序与特征表示/01-论文原文与精读/KumoTabular/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22788",
+      "title": "IntentGR: Enhancing Intent for End-to-End Personalized Generative Retrieval in Search",
+      "version": "v1",
+      "canonical_note": "研究前沿/司乘行为序列建模/01-论文原文与精读/IntentGR/精读.md",
+      "primary_track": "behavior_sequence",
+      "method_tracks": [
+        "behavior_sequence"
+      ],
+      "related_tracks": [
+        "behavior_sequence"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22788",
+        "https://arxiv.org/pdf/2611.22788v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 540,
+        "id": "arxiv:2611.22788",
+        "title": "IntentGR: Enhancing Intent for End-to-End Personalized Generative Retrieval in Search",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "behavior_sequence",
+        "canonical_note": "研究前沿/司乘行为序列建模/01-论文原文与精读/IntentGR/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "复用相似意图历史时，无覆盖样本还能获益吗？",
+        "method_summary": "按当前查询意图聚合同类历史，结合语义对齐和长尾查询增强。需要点时可见的查表历史。",
+        "question": "IntentGR｜复用相似意图历史时，无覆盖样本还能获益吗？",
+        "reason": "有重复路线或时段时，固定 as-of 历史，比较普通序列与意图聚合，明确无覆盖桶。 失败判据：增益仅来自存在查表历史则限定适用。",
+        "evidence": "表 2 同骨干 Recall@10：AOL 69.88%→77.99%，AliExpress 22.40%→34.36%；表 5 无查表命中仅提高 2.44、1.22 个百分点。 证据边界：总体收益不能视为对无历史新场景的改善；搜索数据与订单不同。 本地实验未运行。",
+        "evidence_scope": "表 2、表 5",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22788",
+          "https://arxiv.org/pdf/2611.22788v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "有重复路线或时段时，固定 as-of 历史，比较普通序列与意图聚合，明确无覆盖桶。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "IntentGR｜复用相似意图历史时，无覆盖样本还能获益吗？",
+      "reason": "有重复路线或时段时，固定 as-of 历史，比较普通序列与意图聚合，明确无覆盖桶。 失败判据：增益仅来自存在查表历史则限定适用。",
+      "evidence": "表 2 同骨干 Recall@10：AOL 69.88%→77.99%，AliExpress 22.40%→34.36%；表 5 无查表命中仅提高 2.44、1.22 个百分点。 证据边界：总体收益不能视为对无历史新场景的改善；搜索数据与订单不同。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/司乘行为序列建模/01-论文原文与精读/IntentGR/assets/source/paper.pdf",
+        "研究前沿/司乘行为序列建模/01-论文原文与精读/IntentGR/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.19320",
+      "title": "Keep it Simple! A Multiple-Choice Task can Benefit Generative Recommendation",
+      "version": "v1",
+      "canonical_note": "研究前沿/训练目标与数据反馈/01-论文原文与精读/KeepItSimple/精读.md",
+      "primary_track": "training_feedback",
+      "method_tracks": [
+        "training_feedback"
+      ],
+      "related_tracks": [
+        "training_feedback"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.19320",
+        "https://arxiv.org/pdf/2611.19320v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 541,
+        "id": "arxiv:2611.19320",
+        "title": "Keep it Simple! A Multiple-Choice Task can Benefit Generative Recommendation",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "training_feedback",
+        "canonical_note": "研究前沿/训练目标与数据反馈/01-论文原文与精读/KeepItSimple/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "生成式推荐训练加候选多选题值得吗？",
+        "method_summary": "以真实目标与采样负例组成多选题，作为训练期辅助任务，推理仍使用原召回流程。",
+        "question": "KeepItSimple｜生成式推荐训练加候选多选题值得吗？",
+        "reason": "探索生成式候选时再比较等 token 的纯序列目标和多选辅助。 失败判据：不超强序列基线或等预算收益消失则保留储备。",
+        "evidence": "表 3 Yelp NDCG@10：TIGER 0.0205→0.0367，仍低于 SASRec 0.0383；表 7 动态负采样无一致优势。 证据边界：公开序列任务，等训练 token 和强基线不可省略。 本地实验未运行。",
+        "evidence_scope": "表 3、表 7",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.19320",
+          "https://arxiv.org/pdf/2611.19320v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "探索生成式候选时再比较等 token 的纯序列目标和多选辅助。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "KeepItSimple｜生成式推荐训练加候选多选题值得吗？",
+      "reason": "探索生成式候选时再比较等 token 的纯序列目标和多选辅助。 失败判据：不超强序列基线或等预算收益消失则保留储备。",
+      "evidence": "表 3 Yelp NDCG@10：TIGER 0.0205→0.0367，仍低于 SASRec 0.0383；表 7 动态负采样无一致优势。 证据边界：公开序列任务，等训练 token 和强基线不可省略。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/训练目标与数据反馈/01-论文原文与精读/KeepItSimple/assets/source/paper.pdf",
+        "研究前沿/训练目标与数据反馈/01-论文原文与精读/KeepItSimple/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-14",
+      "version_date": "2026-11-14",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22308",
+      "title": "VRLLM: Turning LLMs into Powerful Tabular Classifiers",
+      "version": "v1",
+      "canonical_note": "研究前沿/推荐排序与特征表示/01-论文原文与精读/VRLLM/精读.md",
+      "primary_track": "ranking_architecture",
+      "method_tracks": [
+        "ranking_architecture"
+      ],
+      "related_tracks": [
+        "ranking_architecture"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22308",
+        "https://arxiv.org/pdf/2611.22308v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 542,
+        "id": "arxiv:2611.22308",
+        "title": "VRLLM: Turning LLMs into Powerful Tabular Classifiers",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "ranking_architecture",
+        "canonical_note": "研究前沿/推荐排序与特征表示/01-论文原文与精读/VRLLM/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "同特征上的新主干应做融合还是直接替换？",
+        "method_summary": "同一支付风险特征训练生成式模型，比较单独评分及与既有模型融合。",
+        "question": "VRLLM｜同特征上的新主干应做融合还是直接替换？",
+        "reason": "模型异构有互补性时，同特征同成本，比较独立替换与小权重融合。 失败判据：固定误报率下独立时间窗召回不升则不接入。",
+        "evidence": "表 2 固定误报率 Recall：原模型 37.5、LLM 38.3、融合 45.9；PR-AUC 35.2、35.3、38.7。 证据边界：离线、闭源训练数据和权重；融合效果不能归给单模型。 本地实验未运行。",
+        "evidence_scope": "表 2",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22308",
+          "https://arxiv.org/pdf/2611.22308v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "模型异构有互补性时，同特征同成本，比较独立替换与小权重融合。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "VRLLM｜同特征上的新主干应做融合还是直接替换？",
+      "reason": "模型异构有互补性时，同特征同成本，比较独立替换与小权重融合。 失败判据：固定误报率下独立时间窗召回不升则不接入。",
+      "evidence": "表 2 固定误报率 Recall：原模型 37.5、LLM 38.3、融合 45.9；PR-AUC 35.2、35.3、38.7。 证据边界：离线、闭源训练数据和权重；融合效果不能归给单模型。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/推荐排序与特征表示/01-论文原文与精读/VRLLM/assets/source/paper.pdf",
+        "研究前沿/推荐排序与特征表示/01-论文原文与精读/VRLLM/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.20404",
+      "title": "Latent Feedback Is a Compute and Data Amplifier",
+      "version": "v1",
+      "canonical_note": "研究前沿/Scaling up 与效率/01-论文原文与精读/LoRM/精读.md",
+      "primary_track": "scaling",
+      "method_tracks": [
+        "scaling"
+      ],
+      "related_tracks": [
+        "scaling"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.20404",
+        "https://arxiv.org/pdf/2611.20404v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 543,
+        "id": "arxiv:2611.20404",
+        "title": "Latent Feedback Is a Compute and Data Amplifier",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "scaling",
+        "canonical_note": "研究前沿/Scaling up 与效率/01-论文原文与精读/LoRM/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "如何拆开独特数据量、复用次数与计算的影响？",
+        "method_summary": "把前一个 token 的顶层表示投回当前 token；可复用的是分别控制唯一训练量、重复次数及模型计算的试验设计。",
+        "question": "LoRM｜如何拆开独特数据量、复用次数与计算的影响？",
+        "reason": "扩序列训练时，固定模型分别扫样本覆盖和训练步数，报告同预算的时间外指标。 失败判据：相同唯一样本和预算不改善，不采用回流。",
+        "evidence": "论文报告最高节省约 48% 计算与 47% 独特数据，低唯一 token/参数比存在反例。 证据边界：语言模型实验；最好点不是普适扩展规律。 本地实验未运行。",
+        "evidence_scope": "扩展实验及低唯一样本反例",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.20404",
+          "https://arxiv.org/pdf/2611.20404v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "扩序列训练时，固定模型分别扫样本覆盖和训练步数，报告同预算的时间外指标。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "LoRM｜如何拆开独特数据量、复用次数与计算的影响？",
+      "reason": "扩序列训练时，固定模型分别扫样本覆盖和训练步数，报告同预算的时间外指标。 失败判据：相同唯一样本和预算不改善，不采用回流。",
+      "evidence": "论文报告最高节省约 48% 计算与 47% 独特数据，低唯一 token/参数比存在反例。 证据边界：语言模型实验；最好点不是普适扩展规律。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/LoRM/assets/source/paper.pdf",
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/LoRM/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-16",
+      "version_date": "2026-11-16",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.17501",
+      "title": "Advancing Quantization for R&R Models with Microscaling Formats",
+      "version": "v1",
+      "canonical_note": "研究前沿/Scaling up 与效率/01-论文原文与精读/MXFP6/精读.md",
+      "primary_track": "scaling",
+      "method_tracks": [
+        "scaling"
+      ],
+      "related_tracks": [
+        "scaling"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.17501",
+        "https://arxiv.org/pdf/2611.17501v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 544,
+        "id": "arxiv:2611.17501",
+        "title": "Advancing Quantization for R&R Models with Microscaling Formats",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "scaling",
+        "canonical_note": "研究前沿/Scaling up 与效率/01-论文原文与精读/MXFP6/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "排序模型哪些层可以降精度以腾出候选预算？",
+        "method_summary": "按层敏感度保留高精度，以 32 值共享指数的 MXFP6 量化部分线性权重和激活。",
+        "question": "MXFP6｜排序模型哪些层可以降精度以腾出候选预算？",
+        "reason": "有硬件时冻结模型与候选分布，比较当前精度和只替换通过敏感度检查的层。 失败判据：校准或 P99 越界、转换开销抵消收益均放弃。",
+        "evidence": "§5.4 表 5：MI350X 对生产 FP8，模型 A 的 1024/2048 候选 QPS +5.3%/+1.5%，B +14.3%/+7.6%；各任务相对 NE 变化 ≤0.01%。 证据边界：硬件、算子和候选分布依赖；未给线上 P99，公开依赖不等于完整复现。 本地实验未运行。",
+        "evidence_scope": "§5.4 表 5",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.17501",
+          "https://arxiv.org/pdf/2611.17501v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "有硬件时冻结模型与候选分布，比较当前精度和只替换通过敏感度检查的层。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "MXFP6｜排序模型哪些层可以降精度以腾出候选预算？",
+      "reason": "有硬件时冻结模型与候选分布，比较当前精度和只替换通过敏感度检查的层。 失败判据：校准或 P99 越界、转换开销抵消收益均放弃。",
+      "evidence": "§5.4 表 5：MI350X 对生产 FP8，模型 A 的 1024/2048 候选 QPS +5.3%/+1.5%，B +14.3%/+7.6%；各任务相对 NE 变化 ≤0.01%。 证据边界：硬件、算子和候选分布依赖；未给线上 P99，公开依赖不等于完整复现。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/MXFP6/assets/source/paper.pdf",
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/MXFP6/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-12",
+      "version_date": "2026-11-12",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.21920",
+      "title": "KVUse: Reusable-KV User Memory for Efficient LLM Recommenders",
+      "version": "v1",
+      "canonical_note": "研究前沿/Scaling up 与效率/01-论文原文与精读/KVUse/精读.md",
+      "primary_track": "scaling",
+      "method_tracks": [
+        "scaling"
+      ],
+      "related_tracks": [
+        "scaling"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.21920",
+        "https://arxiv.org/pdf/2611.21920v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 545,
+        "id": "arxiv:2611.21920",
+        "title": "KVUse: Reusable-KV User Memory for Efficient LLM Recommenders",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "scaling",
+        "canonical_note": "研究前沿/Scaling up 与效率/01-论文原文与精读/KVUse/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "候选评分能否复用用户记忆缓存而不丢排序质量？",
+        "method_summary": "缓存画像和候选相关 KV，使用适配和异步传输处理位置变化与主机上传；输入画像、候选和读写流量，输出排序分与更新画像。",
+        "question": "KVUse｜候选评分能否复用用户记忆缓存而不丢排序质量？",
+        "reason": "只有采用 LLM 评分并达到缓存压力时，再固定模型和候选做全算、朴素复用、带适配三组回放。 失败判据：排序不达预设容差或峰值缓存及尾时延超预算则不采用。",
+        "evidence": "表 4 四个离线数据集相对完整 prefill 的 ∆NDCG@10 区间均跨 0，朴素复用明显损失；表 6 饱和评分吞吐 3.96–4.49 倍。 证据边界：区间跨 0 不能证明等效；吞吐依赖系统负载与内存，不能当作线上 P99。 本地实验未运行。",
+        "evidence_scope": "§4.2 表 4、§4.5 表 6",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.21920",
+          "https://arxiv.org/pdf/2611.21920v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "只有采用 LLM 评分并达到缓存压力时，再固定模型和候选做全算、朴素复用、带适配三组回放。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "KVUse｜候选评分能否复用用户记忆缓存而不丢排序质量？",
+      "reason": "只有采用 LLM 评分并达到缓存压力时，再固定模型和候选做全算、朴素复用、带适配三组回放。 失败判据：排序不达预设容差或峰值缓存及尾时延超预算则不采用。",
+      "evidence": "表 4 四个离线数据集相对完整 prefill 的 ∆NDCG@10 区间均跨 0，朴素复用明显损失；表 6 饱和评分吞吐 3.96–4.49 倍。 证据边界：区间跨 0 不能证明等效；吞吐依赖系统负载与内存，不能当作线上 P99。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/KVUse/assets/source/paper.pdf",
+        "研究前沿/Scaling up 与效率/01-论文原文与精读/KVUse/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-16",
+      "version_date": "2026-11-16",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2609.01126",
+      "title": "How Evaluation Choices Shape the Measured Benefit of Online Adaptation in Time-Series Forecasting: Warmup, Learning-Rate Selection, and Adaptation-State Memory",
+      "version": "v2",
+      "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/OnlineAdaptation/精读.md",
+      "primary_track": "model_evolution",
+      "method_tracks": [
+        "model_evolution"
+      ],
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2609.01126",
+        "https://arxiv.org/pdf/2609.01126v2"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 546,
+        "id": "arxiv:2609.01126",
+        "title": "How Evaluation Choices Shape the Measured Benefit of Online Adaptation in Time-Series Forecasting: Warmup, Learning-Rate Selection, and Adaptation-State Memory",
+        "version": "v2",
+        "status": "方法储备",
+        "primary_method_track": "model_evolution",
+        "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/OnlineAdaptation/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "增量更新怎样避免用未来标签，且不输冻结基线？",
+        "method_summary": "流式先预测，等待反馈后才更新；用验证段调适配设定，审计模型输给静态基线的单元。",
+        "question": "OnlineAdaptation｜增量更新怎样避免用未来标签，且不输冻结基线？",
+        "reason": "重新评估日更时按事件、反馈到达顺序回放冻结与更新方案，按延迟和场景分桶。 失败判据：未来期落后冻结即不默认日更。",
+        "evidence": "§IV-B 表 II：验证调参后低于静态基线的单元由 174 降为 4/360。 证据边界：源于流式预测任务，单元共享数据，不是独立反复试验；09 月初发、11 月修订。 本地实验未运行。",
+        "evidence_scope": "§IV-B 表 II",
+        "primary_sources": [
+          "https://arxiv.org/abs/2609.01126",
+          "https://arxiv.org/pdf/2609.01126v2"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "重新评估日更时按事件、反馈到达顺序回放冻结与更新方案，按延迟和场景分桶。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "OnlineAdaptation｜增量更新怎样避免用未来标签，且不输冻结基线？",
+      "reason": "重新评估日更时按事件、反馈到达顺序回放冻结与更新方案，按延迟和场景分桶。 失败判据：未来期落后冻结即不默认日更。",
+      "evidence": "§IV-B 表 II：验证调参后低于静态基线的单元由 174 降为 4/360。 证据边界：源于流式预测任务，单元共享数据，不是独立反复试验；09 月初发、11 月修订。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/OnlineAdaptation/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/OnlineAdaptation/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-09-01",
+      "version_date": "2026-11-15",
+      "arxiv_last_revised": "2026-11-15",
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.21953",
+      "title": "Robust Decision Curve Analysis for Survival Risk Prediction Models in the Presence of Informative Censoring",
+      "version": "v1",
+      "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/RobustDCA/精读.md",
+      "primary_track": "decision_fulfillment",
+      "method_tracks": [
+        "decision_fulfillment"
+      ],
+      "related_tracks": [
+        "decision_fulfillment"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.21953",
+        "https://arxiv.org/pdf/2611.21953v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 547,
+        "id": "arxiv:2611.21953",
+        "title": "Robust Decision Curve Analysis for Survival Risk Prediction Models in the Presence of Informative Censoring",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "decision_fulfillment",
+        "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/RobustDCA/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "观察期不完整时，履约阈值比较会不会反转？",
+        "method_summary": "输入固定时窗、预测分数、结局、删失及预测时可用协变量。用给定协变量的未删失概率做逆概率加权，重新估计阈值净收益和策略排序；追踪权重支撑。",
+        "question": "RobustDCA｜观察期不完整时，履约阈值比较会不会反转？",
+        "reason": "预分单或换车的履约阈值验收。冻结模型、候选、阈值成本，用完整成熟订单人为截短作盲对照；比较普通评估和 IPCW 恢复真实排序与净收益，报告有效样本量。 失败判据：重叠弱或有误差时未能恢复阈值顺序，不采用当前校正；真实取消单列。",
+        "evidence": "§3.7 模拟：常规净收益最大相对偏差 −58%、90% 区间最低覆盖 1%；条件 IPCW 最大绝对相对偏差约 4%、最低覆盖 78%。§4 图 4 真实病例中，校正后可改变策略选择。 证据边界：依赖条件独立删失与正性；78% 未恢复名义覆盖。取消是实质事件，不能当删失剔除；净收益代理不识别换车因果效果。 本地实验未运行。",
+        "evidence_scope": "§2 式 2–3、§3.7、§4 图 4",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.21953",
+          "https://arxiv.org/pdf/2611.21953v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "预分单或换车的履约阈值验收。冻结模型、候选、阈值成本，用完整成熟订单人为截短作盲对照；比较普通评估和 IPCW 恢复真实排序与净收益，报告有效样本量。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "RobustDCA｜观察期不完整时，履约阈值比较会不会反转？",
+      "reason": "预分单或换车的履约阈值验收。冻结模型、候选、阈值成本，用完整成熟订单人为截短作盲对照；比较普通评估和 IPCW 恢复真实排序与净收益，报告有效样本量。 失败判据：重叠弱或有误差时未能恢复阈值顺序，不采用当前校正；真实取消单列。",
+      "evidence": "§3.7 模拟：常规净收益最大相对偏差 −58%、90% 区间最低覆盖 1%；条件 IPCW 最大绝对相对偏差约 4%、最低覆盖 78%。§4 图 4 真实病例中，校正后可改变策略选择。 证据边界：依赖条件独立删失与正性；78% 未恢复名义覆盖。取消是实质事件，不能当删失剔除；净收益代理不识别换车因果效果。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/RobustDCA/assets/source/paper.pdf",
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/RobustDCA/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-16",
+      "version_date": "2026-11-16",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/面向决策的履约建模/02-可复用方法卡/RobustDCA-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/面向决策的履约建模/03-实验假设与结果/RobustDCA-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22537",
+      "title": "Testing World Models on Actions They Have Never Seen: Held-Out Plans, Forecast Accuracy and Price Rules in Retail",
+      "version": "v1",
+      "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/HeldOutActionPlans/精读.md",
+      "primary_track": "model_evolution",
+      "method_tracks": [
+        "model_evolution"
+      ],
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22537",
+        "https://arxiv.org/pdf/2611.22537v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 548,
+        "id": "arxiv:2611.22537",
+        "title": "Testing World Models on Actions They Have Never Seen: Held-Out Plans, Forecast Accuracy and Price Rules in Retail",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "model_evolution",
+        "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/HeldOutActionPlans/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "预测变准了，没见过的策略动作也能排对吗？",
+        "method_summary": "按动作方向、档位或组合留出计划，分别评分事实预测与动作响应，简单模型获得相同结构规则。输入带动作时间序列与可核对的结果；输出每类动作的排序误差和决策损失。",
+        "question": "HeldOutActionPlans｜预测变准了，没见过的策略动作也能排对吗？",
+        "reason": "换车、升舱或等待动作的模型自进化晋级。固定动作计划与评估数据，同一候选同时验收事实 LogLoss 和按动作留出的排序／决策损失；先在模拟或随机探索验证。 失败判据：事实预测上涨但关键动作排序变差则不晋级；没有动作支持时只记录无法验证。",
+        "evidence": "§6 表 1：某模拟策略下同一模型内部的预测误差与动作误差排序相关低至 −0.69，跨模型总体相关为正；表 4：真实留出价格动作 Frat 0.63→0.56，仍逊普通 LightGBM 0.53。 证据边界：真正未执行动作的对照真值仅在模拟或能随机观测的场景；真实零售只验证罕见但已观测动作。作者代码 DOI 未独立复现。 本地实验未运行。",
+        "evidence_scope": "§6、表 1 与表 4",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22537",
+          "https://arxiv.org/pdf/2611.22537v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "换车、升舱或等待动作的模型自进化晋级。固定动作计划与评估数据，同一候选同时验收事实 LogLoss 和按动作留出的排序／决策损失；先在模拟或随机探索验证。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "HeldOutActionPlans｜预测变准了，没见过的策略动作也能排对吗？",
+      "reason": "换车、升舱或等待动作的模型自进化晋级。固定动作计划与评估数据，同一候选同时验收事实 LogLoss 和按动作留出的排序／决策损失；先在模拟或随机探索验证。 失败判据：事实预测上涨但关键动作排序变差则不晋级；没有动作支持时只记录无法验证。",
+      "evidence": "§6 表 1：某模拟策略下同一模型内部的预测误差与动作误差排序相关低至 −0.69，跨模型总体相关为正；表 4：真实留出价格动作 Frat 0.63→0.56，仍逊普通 LightGBM 0.53。 证据边界：真正未执行动作的对照真值仅在模拟或能随机观测的场景；真实零售只验证罕见但已观测动作。作者代码 DOI 未独立复现。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/HeldOutActionPlans/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/HeldOutActionPlans/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/模型自进化/02-可复用方法卡/HeldOutActionPlans-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/模型自进化/03-实验假设与结果/HeldOutActionPlans-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.15434",
+      "title": "SurvEval: Listwise Re-Ranking Evaluator via Survival-Based Exposure and Multi-Objective Value Modeling",
+      "version": "v1",
+      "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/SurvEval/精读.md",
+      "primary_track": "decision_fulfillment",
+      "method_tracks": [
+        "decision_fulfillment"
+      ],
+      "related_tracks": [
+        "decision_fulfillment"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.15434",
+        "https://arxiv.org/pdf/2611.15434v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": true,
+      "deep_read_on": "2026-11-19",
+      "library_review": {
+        "record_no": 549,
+        "id": "arxiv:2611.15434",
+        "title": "SurvEval: Listwise Re-Ranking Evaluator via Survival-Based Exposure and Multi-Objective Value Modeling",
+        "version": "v1",
+        "status": "近期主读",
+        "primary_method_track": "decision_fulfillment",
+        "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/SurvEval/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+        "method_focus": "分步表单怎样联合衡量触达、退出和完成？",
+        "method_summary": "由位置退出 hazard 计算后续位置到达概率，再对条件多目标反馈按到达概率汇总。输入各步曝光、退出时刻及多目标标签；输出分步到达率和动作列表价值。",
+        "question": "SurvEval｜分步表单怎样联合衡量触达、退出和完成？",
+        "reason": "等应答页多步表单。如果能确认逐步曝光，固定字段候选、主干与页面，对比固定触达率和学习退出率；比较分步校准、完整提交预测和答题耗时。 失败判据：缺少逐步曝光先修日志；风险头未改善分步校准或提交预测则不引入。",
+        "evidence": "§4 表 1，相较 CAVE，KuaiRand NDCG .8450→.8523、Avito .7371→.7450。 证据边界：离线整体方法对照，无单模块消融或线上；播放或点击作退出代理。单屏或不可观测曝光时不能照搬。 本地实验未运行。",
+        "evidence_scope": "式 2–10、§4 表 1",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.15434",
+          "https://arxiv.org/pdf/2611.15434v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "等应答页多步表单。如果能确认逐步曝光，固定字段候选、主干与页面，对比固定触达率和学习退出率；比较分步校准、完整提交预测和答题耗时。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "近期主读",
+      "question": "SurvEval｜分步表单怎样联合衡量触达、退出和完成？",
+      "reason": "等应答页多步表单。如果能确认逐步曝光，固定字段候选、主干与页面，对比固定触达率和学习退出率；比较分步校准、完整提交预测和答题耗时。 失败判据：缺少逐步曝光先修日志；风险头未改善分步校准或提交预测则不引入。",
+      "evidence": "§4 表 1，相较 CAVE，KuaiRand NDCG .8450→.8523、Avito .7371→.7450。 证据边界：离线整体方法对照，无单模块消融或线上；播放或点击作退出代理。单屏或不可观测曝光时不能照搬。 本地实验未运行。",
+      "reading_depth": "全文核心方法与比较精读（未逐页审计）",
+      "reading_eligibility": "eligible_verified_main",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/SurvEval/assets/source/paper.pdf",
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/SurvEval/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-11",
+      "version_date": "2026-11-11",
+      "arxiv_last_revised": null,
+      "note_status": "deep_read_archived",
+      "module_cards": [
+        "研究前沿/面向决策的履约建模/02-可复用方法卡/SurvEval-核心机制与验证.md"
+      ],
+      "experiment_notes": [
+        "研究前沿/面向决策的履约建模/03-实验假设与结果/SurvEval-首个验证.md"
+      ],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "last_deep_read_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.23090",
+      "title": "Inference for Heterogeneous Treatment Effects with Deep Survival Learners",
+      "version": "v1",
+      "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/DeepSurvivalLearners/精读.md",
+      "primary_track": "decision_fulfillment",
+      "method_tracks": [
+        "decision_fulfillment"
+      ],
+      "related_tracks": [
+        "decision_fulfillment"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.23090",
+        "https://arxiv.org/pdf/2611.23090v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 550,
+        "id": "arxiv:2611.23090",
+        "title": "Inference for Heterogeneous Treatment Effects with Deep Survival Learners",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "decision_fulfillment",
+        "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/DeepSurvivalLearners/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "动作效果随时间改变时，共享曲线能比独立时窗更稳吗？",
+        "method_summary": "交叉拟合 DR 生存伪标签加共享时间样条，按子抽样核算差值区间。",
+        "question": "DeepSurvivalLearners｜动作效果随时间改变时，共享曲线能比独立时窗更稳吗？",
+        "reason": "有随机换车或升舱样本后，对比相同时间窗上的独立模型和共享样条。 失败判据：未稳住校准或开销不可接受则不采用。",
+        "evidence": "§6 表 1：模拟名义 95% 覆盖 93.9–94.7%、宽 .57–.61；常规对照 67.6–86.1%，较宽 DR-BART 覆盖 100% 但宽 1.84–2.33。 证据边界：医疗示例区间含零；依赖二元基线动作、删失假设与较大集成算力，竞争事件需额外处理。 本地实验未运行。",
+        "evidence_scope": "§2–4、§6 表 1",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.23090",
+          "https://arxiv.org/pdf/2611.23090v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "有随机换车或升舱样本后，对比相同时间窗上的独立模型和共享样条。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "DeepSurvivalLearners｜动作效果随时间改变时，共享曲线能比独立时窗更稳吗？",
+      "reason": "有随机换车或升舱样本后，对比相同时间窗上的独立模型和共享样条。 失败判据：未稳住校准或开销不可接受则不采用。",
+      "evidence": "§6 表 1：模拟名义 95% 覆盖 93.9–94.7%、宽 .57–.61；常规对照 67.6–86.1%，较宽 DR-BART 覆盖 100% 但宽 1.84–2.33。 证据边界：医疗示例区间含零；依赖二元基线动作、删失假设与较大集成算力，竞争事件需额外处理。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/DeepSurvivalLearners/assets/source/paper.pdf",
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/DeepSurvivalLearners/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.23076",
+      "title": "Pareto-Informed Smart \"Predict, then Optimize\" for Multi-Objective Combinatorial Problems",
+      "version": "v2",
+      "canonical_note": "研究前沿/业务决策与理论储备/01-论文原文与精读/ParetoSPO/精读.md",
+      "primary_track": "decision_reserve",
+      "method_tracks": [
+        "decision_reserve"
+      ],
+      "related_tracks": [
+        "decision_reserve"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.23076",
+        "https://arxiv.org/pdf/2611.23076v2"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 551,
+        "id": "arxiv:2611.23076",
+        "title": "Pareto-Informed Smart \"Predict, then Optimize\" for Multi-Objective Combinatorial Problems",
+        "version": "v2",
+        "status": "方法储备",
+        "primary_method_track": "decision_reserve",
+        "canonical_note": "研究前沿/业务决策与理论储备/01-论文原文与精读/ParetoSPO/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "同预算的收益与成本之间，怎样显式衡量前沿损失？",
+        "method_summary": "用真实 Pareto 前沿选择训练参考解，按偏好比较决策超体积损失。",
+        "question": "ParetoSPO｜同预算的收益与成本之间，怎样显式衡量前沿损失？",
+        "reason": "固定候选和升舱预算，先在可穷举小批次验证召回及成本前沿。 失败判据：收益前沿无改善或求解成本超标则留作基准。",
+        "evidence": "§5 表 1：低噪声合成最短路超体积 regret，MSE 5.51%、SPO-LS 5.10%、本法 4.82%；背包 20.41%、19.27%、16.67%。 证据边界：要求精确前沿、逐偏好训练；合成实验不代表调度线上收益。arXiv 本周首发，作者注明曾有 2025 workshop 版本。 本地实验未运行。",
+        "evidence_scope": "§3.3、§5 表 1",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.23076",
+          "https://arxiv.org/pdf/2611.23076v2"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "固定候选和升舱预算，先在可穷举小批次验证召回及成本前沿。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "ParetoSPO｜同预算的收益与成本之间，怎样显式衡量前沿损失？",
+      "reason": "固定候选和升舱预算，先在可穷举小批次验证召回及成本前沿。 失败判据：收益前沿无改善或求解成本超标则留作基准。",
+      "evidence": "§5 表 1：低噪声合成最短路超体积 regret，MSE 5.51%、SPO-LS 5.10%、本法 4.82%；背包 20.41%、19.27%、16.67%。 证据边界：要求精确前沿、逐偏好训练；合成实验不代表调度线上收益。arXiv 本周首发，作者注明曾有 2025 workshop 版本。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/业务决策与理论储备/01-论文原文与精读/ParetoSPO/assets/source/paper.pdf",
+        "研究前沿/业务决策与理论储备/01-论文原文与精读/ParetoSPO/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-18",
+      "arxiv_last_revised": "2026-11-18",
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.23157",
+      "title": "Computational Hardness of Online Stochastic Matching",
+      "version": "v1",
+      "canonical_note": "研究前沿/业务决策与理论储备/01-论文原文与精读/MatchingHardness/精读.md",
+      "primary_track": "decision_reserve",
+      "method_tracks": [
+        "decision_reserve"
+      ],
+      "related_tracks": [
+        "decision_reserve"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.23157",
+        "https://arxiv.org/pdf/2611.23157v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 552,
+        "id": "arxiv:2611.23157",
+        "title": "Computational Hardness of Online Stochastic Matching",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "decision_reserve",
+        "canonical_note": "研究前沿/业务决策与理论储备/01-论文原文与精读/MatchingHardness/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "在线匹配什么时候不该把全局最优当成可运行基线？",
+        "method_summary": "刻画已知 iid 到达、无权图匹配以及随机顺序选择问题的理论难度；用小规模精确解校验启发式，规模扩大用同预算可运行策略。",
+        "question": "MatchingHardness｜在线匹配什么时候不该把全局最优当成可运行基线？",
+        "reason": "预分单和换车的对照设计：同候选图先测小批次精确差距，再看实际规模的延迟曲线。 失败判据：不把小样本最优差距外推到实际流量。",
+        "evidence": "定理 3.1／4.1：每请求两个邻居仍 APX-hard；随机顺序单物品 prophet secretary 最优策略 #P-hard。 证据边界：理论结果，无实验；不能直接声称适用于有等待窗口的双边动态匹配。 本地实验未运行。",
+        "evidence_scope": "定理 3.1、4.1",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.23157",
+          "https://arxiv.org/pdf/2611.23157v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "预分单和换车的对照设计：同候选图先测小批次精确差距，再看实际规模的延迟曲线。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "MatchingHardness｜在线匹配什么时候不该把全局最优当成可运行基线？",
+      "reason": "预分单和换车的对照设计：同候选图先测小批次精确差距，再看实际规模的延迟曲线。 失败判据：不把小样本最优差距外推到实际流量。",
+      "evidence": "定理 3.1／4.1：每请求两个邻居仍 APX-hard；随机顺序单物品 prophet secretary 最优策略 #P-hard。 证据边界：理论结果，无实验；不能直接声称适用于有等待窗口的双边动态匹配。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/业务决策与理论储备/01-论文原文与精读/MatchingHardness/assets/source/paper.pdf",
+        "研究前沿/业务决策与理论储备/01-论文原文与精读/MatchingHardness/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22477",
+      "title": "Anytime-valid inference for conditional hazard and survival functions with streaming data",
+      "version": "v1",
+      "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/AnytimeSurvival/精读.md",
+      "primary_track": "model_evolution",
+      "method_tracks": [
+        "model_evolution"
+      ],
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22477",
+        "https://arxiv.org/pdf/2611.22477v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 553,
+        "id": "arxiv:2611.22477",
+        "title": "Anytime-valid inference for conditional hazard and survival functions with streaming data",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "model_evolution",
+        "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/AnytimeSurvival/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "持续盯指标时，怎么控制错误晋级？",
+        "method_summary": "在按入组顺序处理的流数据上使用随时有效的置信序列估计条件风险与生存。",
+        "question": "AnytimeSurvival｜持续盯指标时，怎么控制错误晋级？",
+        "reason": "用固定窗口标签成熟的空效应回放对比首个误触发率和区间宽度。 失败判据：按预设覆盖与反馈成本限额选择，不把更宽的区间当效果。",
+        "evidence": "§7 表 1：固定区间累计误覆盖 45.3–56.4%，置信序列示例约 0.0–0.4%；代价是宽度 1.61–2.07 倍，名义水平 5%。 证据边界：渐近理论及模拟；按完结时点重排可能破坏进入假设。 本地实验未运行。",
+        "evidence_scope": "§7 表 1",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22477",
+          "https://arxiv.org/pdf/2611.22477v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "用固定窗口标签成熟的空效应回放对比首个误触发率和区间宽度。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "AnytimeSurvival｜持续盯指标时，怎么控制错误晋级？",
+      "reason": "用固定窗口标签成熟的空效应回放对比首个误触发率和区间宽度。 失败判据：按预设覆盖与反馈成本限额选择，不把更宽的区间当效果。",
+      "evidence": "§7 表 1：固定区间累计误覆盖 45.3–56.4%，置信序列示例约 0.0–0.4%；代价是宽度 1.61–2.07 倍，名义水平 5%。 证据边界：渐近理论及模拟；按完结时点重排可能破坏进入假设。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/AnytimeSurvival/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/AnytimeSurvival/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.19743",
+      "title": "Limited Follow Up Overlap in Causal Survival Analysis: Censoring-Adjusted Weighting for Restricted Mean Survival Time",
+      "version": "v1",
+      "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/FollowUpOverlap/精读.md",
+      "primary_track": "decision_fulfillment",
+      "method_tracks": [
+        "decision_fulfillment"
+      ],
+      "related_tracks": [
+        "decision_fulfillment"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.19743",
+        "https://arxiv.org/pdf/2611.19743v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 554,
+        "id": "arxiv:2611.19743",
+        "title": "Limited Follow Up Overlap in Causal Survival Analysis: Censoring-Adjusted Weighting for Restricted Mean Survival Time",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "decision_fulfillment",
+        "canonical_note": "研究前沿/面向决策的履约建模/01-论文原文与精读/FollowUpOverlap/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "两组随访成熟度不同，估计改善是不是换了研究对象？",
+        "method_summary": "将可随访重叠纳入限制均值生存差的目标权重，同时报告目标人群变化。",
+        "question": "FollowUpOverlap｜两组随访成熟度不同，估计改善是不是换了研究对象？",
+        "reason": "升舱或换车随机组先按城市和预定时窗核对成熟度与目标人群变化。 失败判据：支撑或可解释性不足时明确缩小目标或停止外推。",
+        "evidence": "§6 表 1：随机合成方差比 .11 [.05,.40]，目标人群 TV 移动 .13；真实示例标准误有时反而变大。 证据边界：重叠加权改变估计对象，不能当同一全体目标的无代价方差缩减。 本地实验未运行。",
+        "evidence_scope": "§6 表 1",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.19743",
+          "https://arxiv.org/pdf/2611.19743v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "升舱或换车随机组先按城市和预定时窗核对成熟度与目标人群变化。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "FollowUpOverlap｜两组随访成熟度不同，估计改善是不是换了研究对象？",
+      "reason": "升舱或换车随机组先按城市和预定时窗核对成熟度与目标人群变化。 失败判据：支撑或可解释性不足时明确缩小目标或停止外推。",
+      "evidence": "§6 表 1：随机合成方差比 .11 [.05,.40]，目标人群 TV 移动 .13；真实示例标准误有时反而变大。 证据边界：重叠加权改变估计对象，不能当同一全体目标的无代价方差缩减。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/FollowUpOverlap/assets/source/paper.pdf",
+        "研究前沿/面向决策的履约建模/01-论文原文与精读/FollowUpOverlap/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-15",
+      "version_date": "2026-11-15",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.19634",
+      "title": "Multi-Objective Causal Bandits: Minimal Intervention Space and Policy-Level Learning",
+      "version": "v1",
+      "canonical_note": "研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/精读.md",
+      "primary_track": "decision_reserve",
+      "method_tracks": [
+        "decision_reserve"
+      ],
+      "related_tracks": [
+        "decision_reserve"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.19634",
+        "https://arxiv.org/pdf/2611.19634v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 555,
+        "id": "arxiv:2611.19634",
+        "title": "Multi-Objective Causal Bandits: Minimal Intervention Space and Policy-Level Learning",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "decision_reserve",
+        "canonical_note": "研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "预算约束下随机混合策略能否补齐纯策略前沿？",
+        "method_summary": "在已知因果图下剪除动作，并以凸组合、多目标期望与置信区间淘汰候选。",
+        "question": "MultiObjectiveCausalBandits｜预算约束下随机混合策略能否补齐纯策略前沿？",
+        "reason": "已有随机动作与固定预算时，先在可重放单元枚举可行混合前沿。 失败判据：存在明显干扰或混合前沿无改善时不外推。",
+        "evidence": "理论结果：凸组合可能在期望上支配纯动作；本次未发现可支持实务收益的实验。 证据边界：要求充分的结构与动作反馈；司乘供给竞争时独立均值不足。 本地实验未运行。",
+        "evidence_scope": "方法和理论结果",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.19634",
+          "https://arxiv.org/pdf/2611.19634v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "已有随机动作与固定预算时，先在可重放单元枚举可行混合前沿。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "MultiObjectiveCausalBandits｜预算约束下随机混合策略能否补齐纯策略前沿？",
+      "reason": "已有随机动作与固定预算时，先在可重放单元枚举可行混合前沿。 失败判据：存在明显干扰或混合前沿无改善时不外推。",
+      "evidence": "理论结果：凸组合可能在期望上支配纯动作；本次未发现可支持实务收益的实验。 证据边界：要求充分的结构与动作反馈；司乘供给竞争时独立均值不足。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/assets/source/paper.pdf",
+        "研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-14",
+      "version_date": "2026-11-14",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
+    },
+    {
+      "id": "arxiv:2611.22661",
+      "title": "The Between-Round Decision in Autonomous Research: An LLM Controller That Reads the Whole Trajectory",
+      "version": "v1",
+      "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/BetweenRoundController/精读.md",
+      "primary_track": "model_evolution",
+      "method_tracks": [
+        "model_evolution"
+      ],
+      "related_tracks": [
+        "model_evolution"
+      ],
+      "primary_sources": [
+        "https://arxiv.org/abs/2611.22661",
+        "https://arxiv.org/pdf/2611.22661v1"
+      ],
+      "discovered": true,
+      "discovered_on": "2026-11-19",
+      "verified": true,
+      "verified_on": "2026-11-19",
+      "deep_read": false,
+      "deep_read_on": null,
+      "library_review": {
+        "record_no": 556,
+        "id": "arxiv:2611.22661",
+        "title": "The Between-Round Decision in Autonomous Research: An LLM Controller That Reads the Whole Trajectory",
+        "version": "v1",
+        "status": "方法储备",
+        "primary_method_track": "model_evolution",
+        "canonical_note": "研究前沿/模型自进化/01-论文原文与精读/BetweenRoundController/精读.md",
+        "expected_note": null,
+        "original_location": "2026-11-19 六方向增量",
+        "reading_depth": "全文核心方法与结果定向核查",
+        "method_focus": "历史该给提议器，还是也给定下一轮方向的控制器？",
+        "method_summary": "生成器在各组都读完整历史，唯独控制器读取无历史、上一轮或累计日志和当前最佳，输出继续现有路线或另开方向。",
+        "question": "BetweenRoundController｜历史该给提议器，还是也给定下一轮方向的控制器？",
+        "reason": "固定提议器和总调用预算，只改控制器可读历史，在未来时段比较晋级效果与重复试验比例。 失败判据：不优于精简历史或成本抵消收益则不用全量日志。",
+        "evidence": "§4.4 表 2 固定十轮与每轮候选数，AutoTSF MAE .4299→.4244→.4172，AutoCls2D 准确率 83.71→84.01→84.63。 证据边界：两个任务、一个控制器模型，控制器读入的 token 不等，无法拆开当前最佳与全历史各自价值。和 SIM 一起保留作对照。 本地实验未运行。",
+        "evidence_scope": "§4.4 表 2",
+        "primary_sources": [
+          "https://arxiv.org/abs/2611.22661",
+          "https://arxiv.org/pdf/2611.22661v1"
+        ],
+        "local_experiment_status": "未运行",
+        "reviewed_on": "2026-11-19",
+        "next_step": "固定提议器和总调用预算，只改控制器可读历史，在未来时段比较晋级效果与重复试验比例。"
+      },
+      "library_review_on": "2026-11-19",
+      "reading_priority": "方法储备",
+      "question": "BetweenRoundController｜历史该给提议器，还是也给定下一轮方向的控制器？",
+      "reason": "固定提议器和总调用预算，只改控制器可读历史，在未来时段比较晋级效果与重复试验比例。 失败判据：不优于精简历史或成本抵消收益则不用全量日志。",
+      "evidence": "§4.4 表 2 固定十轮与每轮候选数，AutoTSF MAE .4299→.4244→.4172，AutoCls2D 准确率 83.71→84.01→84.63。 证据边界：两个任务、一个控制器模型，控制器读入的 token 不等，无法拆开当前最佳与全历史各自价值。和 SIM 一起保留作对照。 本地实验未运行。",
+      "reading_depth": "全文核心方法与结果定向核查",
+      "reading_eligibility": "not_in_homepage_pool",
+      "archived": true,
+      "archived_on": "2026-11-19",
+      "source_archive_status": "local_pdf",
+      "source_files": [
+        "研究前沿/模型自进化/01-论文原文与精读/BetweenRoundController/assets/source/paper.pdf",
+        "研究前沿/模型自进化/01-论文原文与精读/BetweenRoundController/assets/source/source-manifest.json"
+      ],
+      "arxiv_first_submitted": "2026-11-17",
+      "version_date": "2026-11-17",
+      "arxiv_last_revised": null,
+      "note_status": "method_reserve_archived",
+      "module_cards": [],
+      "experiment_notes": [],
+      "pending_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
     }
   ],
   "candidate_queue": [
@@ -38833,15 +40598,6 @@
       "scope_reassessment_required": false
     },
     {
-      "id": "note:81aa6b4b6f20",
-      "title": "On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation",
-      "canonical_note": "模型反馈与特征发现/论文笔记/模型选择过拟合.md",
-      "status": "needs_evidence_review",
-      "reason": "有“On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation”的方法线索，但当前记录的全文、关键对照或证据覆盖不足；先补齐原文和所需章节，不进入近期先读。",
-      "next_action": "取得/核对全文、核心机制及公平对照，再决定是否升级。",
-      "scope_reassessment_required": false
-    },
-    {
       "id": "doi:10.1145/3770855.3818477",
       "title": "M-DLRI 如何估计多种补贴叠加后的增量",
       "canonical_note": "因果营销论文地图/待核实/M-DLRI_候选.md",
@@ -39351,15 +41107,33 @@
       "old_queue_resolved": 3,
       "key_method_deep_reads": 18,
       "experiments_executed": 0
+    },
+    {
+      "date": "2026-11-19",
+      "kind": "six_method_tracks_rolling_increment",
+      "report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+      "scan_window": {
+        "from": "2026-11-12",
+        "through": "2026-11-19",
+        "priority_window_hours": 24,
+        "reason": "rolling_increment_after_initial_scan",
+        "coverage": "partial_public_indexes"
+      },
+      "new_canonical_notes": 24,
+      "new_main": 9,
+      "new_reserve": 15,
+      "old_queue_resolved": 1,
+      "experiments_executed": 0
     }
   ],
   "last_scan_window": {
-    "from": "2026-08-19",
-    "through": "2026-11-18",
+    "from": "2026-11-12",
+    "through": "2026-11-19",
     "priority_window_hours": 24,
-    "reason": "new_scope_initial_scan"
+    "reason": "rolling_increment_after_initial_scan",
+    "coverage": "partial_public_indexes"
   },
-  "retrieval_coverage": "91 条配置短查询逐条网页检索（89 个唯一查询），六方法方向及业务补充完成候选发现。学术聚合脚本依赖缺失及网络失败后切换网页检索；结果受搜索引擎收录和排序限制，未声称学术数据库全量穷尽。新增来源最终均通过 arXiv HTML 或 PDF 获得；GitHub目录 API 403限流，4份作者README可读。",
+  "retrieval_coverage": "执行 arXiv 10 个学科公告目录扫描，共 2022 个唯一 ID（含旧日期、跨刊/更新、未筛除前），结合公共关键词网页与原文核验。OpenAlex 12 个回退查询 429；部分公告页有截断，未重跑全部配置查询，非全量覆盖。",
   "persistent_source_failures": [
     "ssrn:7405918 SSRN 正文返回 403，OpenAlex 正文入口返回 429。",
     "doi:10.1002/qre.70482 Wiley 正文和 PDF 均返回 403。",
@@ -39368,20 +41142,13 @@
     "arXiv 分类列表及 RSS 最新公告为 11 月 16 日，日期接口另查到 11 月 14 日提交且尚未在所取列表出现的记录。日期接口在分页期间更新，最后重新提取同一时窗并核对 335/335 条元数据。Crossref 三个补查词出现 429，已使用公开网页与 arXiv 交叉检索。"
   ],
   "last_run_validation": {
-    "status": "passed",
-    "new_notes": 61,
-    "method_cards": 18,
-    "experiment_hypotheses": 18,
+    "status": "verified_with_index_coverage_limits",
+    "report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md",
+    "archive_writes": 25,
     "experiments_executed": 0,
-    "reader_history": "seven-day active/archived local user messages reviewed; generalized questions only",
-    "homepage_policy": "fill_only_preserve_unchecked",
-    "wikilinks": 2185,
-    "pool_candidates": 49,
-    "reader_dry_run": "0 changes; 0 skipped",
-    "homepage_and_read_notes_unchanged": true,
-    "errors": []
+    "reader_history": "活跃与归档对话定位，复核相关实际用户诉求；仅提炼通用研究问题"
   },
-  "last_run_finished_at": "2026-11-18T07:01:12.963730+00:00",
+  "last_run_finished_at": "2026-11-19T03:15:48.558860+00:00",
   "reading_policy": {
     "daily_paper_cap": null,
     "per_track_paper_cap": null,
@@ -39546,17 +41313,17 @@
     "report": "研究前沿/_运行记录/2026-11-18-全库方法价值复筛.md",
     "registry": "研究前沿/_运行记录/全库复筛登记.json",
     "counts": {
-      "近期主读": 49,
-      "方法储备": 436,
-      "待核验": 40,
+      "近期主读": 59,
+      "方法储备": 451,
+      "待核验": 39,
       "不恢复（尊重已删除）": 2,
       "重复条目": 6
     },
-    "record_count": 533,
-    "canonical_record_count": 527,
+    "record_count": 557,
+    "canonical_record_count": 551,
     "restored_note_count": 157,
     "basis": "通用方法价值与证据；业务匹配用于排序，不作准入门槛",
-    "latest_incremental_report": "研究前沿/_运行记录/2026-11-18-六方向检索与精读.md"
+    "latest_incremental_report": "研究前沿/_运行记录/2026-11-19-六方向检索与精读.md"
   },
   "cross_reference_queue": [],
   "archive_review_history": [

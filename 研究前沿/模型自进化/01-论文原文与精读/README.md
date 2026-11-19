@@ -15,6 +15,12 @@
 - [[研究前沿/模型自进化/01-论文原文与精读/DriftMemoryLoRA/精读|DriftMemoryLoRA｜更新记忆表与LoRA，分别损伤哪类旧能力？]]
 - [[研究前沿/模型自进化/01-论文原文与精读/ActiveSchedule/精读|ActiveSchedule｜主动选样本的准则应该随训练阶段变化吗？]]
 - [[研究前沿/模型自进化/01-论文原文与精读/LaAgenteOptima/精读|LaAgenteOptima｜自动实验必须怎样留存失败和资源消耗？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/TabDAG/精读|TabDAG｜怎样约束自动造特征，减少无效试验和时点泄漏？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/SIM/精读|SIM｜自动实验跨轮记住失败，能提高下一轮选题质量吗？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/OnlineAdaptation/精读|OnlineAdaptation｜增量更新怎样避免用未来标签，且不输冻结基线？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/HeldOutActionPlans/精读|HeldOutActionPlans｜预测变准了，没见过的策略动作也能排对吗？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/AnytimeSurvival/精读|AnytimeSurvival｜持续盯指标时，怎么控制错误晋级？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/BetweenRoundController/精读|BetweenRoundController｜历史该给提议器，还是也给定下一轮方向的控制器？]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->

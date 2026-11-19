@@ -14,4 +14,7 @@
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/ROPD/精读|ROPD｜资源消耗反馈被污染时，预算账本如何保持一致？]]
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/RealizedCostBandit/精读|RealizedCostBandit｜约束平均成本与约束实际成本有什么区别？]]
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/CongestedDeferral/精读|CongestedDeferral｜升级到专家时，队列拥塞是否应进入决策？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/ParetoSPO/精读|ParetoSPO｜同预算的收益与成本之间，怎样显式衡量前沿损失？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/MatchingHardness/精读|MatchingHardness｜在线匹配什么时候不该把全局最优当成可运行基线？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/精读|MultiObjectiveCausalBandits｜预算约束下随机混合策略能否补齐纯策略前沿？]]
 <!-- 自动索引结束 -->
