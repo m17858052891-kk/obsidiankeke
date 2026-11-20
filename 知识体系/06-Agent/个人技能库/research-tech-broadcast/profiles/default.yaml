@@ -1,0 +1,71 @@
+profile_version: 1
+
+# Editable project copies should live in <project-root>/broadcast_profiles/.
+# This bundled file defines the behavior used when no project profile is named.
+name: passenger-pricing-research
+broadcast:
+  title: 研究技术播报
+  language: zh-CN
+  max_message_chars: 2000
+  split_at_section_boundaries: true
+
+retrieval:
+  date_window_days: 7
+  sources:
+    primary: [arxiv, openreview, proceedings]
+    discovery: [semantic_scholar, openalex, dblp, crossref]
+  tracks:
+    - id: passenger-pricing
+      label: 用户侧价格与激励
+      query_concepts:
+        - ride-hailing dynamic pricing
+        - passenger quote fare surge pricing
+        - coupon discount incentive allocation
+        - demand response acceptance cancellation
+        - revenue management budget constrained policy
+        - generative action policy autoregressive diffusion
+        - generative auto-bidding action generation replacement
+        - candidate action critic value reranking
+        - out-of-distribution action support conservative policy
+      exclusions:
+        - merchant bidding
+        - advertising auction
+        - advertiser ROI
+    - id: passenger-simulation
+      label: 用户侧仿真与数据
+      query_concepts:
+        - passenger request generation
+        - user response simulation
+        - price response acceptance cancellation
+        - delayed conversion replay counterfactual evaluation
+        - simulator calibration sim-to-real
+        - off-policy evaluation FQE doubly robust
+      exclusions:
+        - vehicle routing
+        - driver dispatch
+        - fleet rebalancing
+        - traffic network simulation
+    - id: adjacent-evidence
+      label: 相邻证据
+      supplementary: true
+      query_concepts:
+        - treatment allocation uplift modeling
+        - sequential resource allocation delayed feedback
+        - action representation constrained generation
+        - policy support uncertainty safe fallback
+      exclusions:
+        - merchant bidding
+        - ad auction payment
+
+sections:
+  - id: simulator
+    title: 仿真系统
+    classification_rule: >-
+      The main contribution is user/request generation, user state, response behavior,
+      delayed feedback, calibration, counterfactual data, offline evaluation, or simulator credibility.
+  - id: pricing-policy
+    title: 出价模型
+    classification_rule: >-
+      The main contribution is a platform policy that outputs a user-facing price, quote,
+      coupon, discount, or incentive, including objectives, constraints, budgets, pacing,
+      exploration, and policy optimization.

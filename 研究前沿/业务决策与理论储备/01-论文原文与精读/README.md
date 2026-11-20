@@ -17,4 +17,6 @@
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/ParetoSPO/精读|ParetoSPO｜同预算的收益与成本之间，怎样显式衡量前沿损失？]]
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/MatchingHardness/精读|MatchingHardness｜在线匹配什么时候不该把全局最优当成可运行基线？]]
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/精读|MultiObjectiveCausalBandits｜预算约束下随机混合策略能否补齐纯策略前沿？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/ImpatienceMatching/精读|ImpatienceMatching｜等待结束与资源消失会怎样改变匹配可解性？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/CounterfactualWorldModels/精读|CounterfactualWorldModels｜上一次已观测结果能否提高同环境重试的预测？]]
 <!-- 自动索引结束 -->

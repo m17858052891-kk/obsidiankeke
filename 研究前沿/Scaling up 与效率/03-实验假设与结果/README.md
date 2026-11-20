@@ -10,6 +10,7 @@
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/Axia/精读#首个本地验证（未运行）|Axia｜扩模型时，怎样用有限训练次数选出更好的质量成本前沿？]]
 - [[研究前沿/Scaling up 与效率/03-实验假设与结果/CascadeRec-首个验证|CascadeRec｜把更多推理预算给难样本，一定提高排序吗？]]
 - [[研究前沿/动态等待与匹配决策/03-实验假设与结果/IntelligentDelivery-fixed-budget|Intelligent Delivery｜多一点算力应分给哪个请求？]]
+- [[研究前沿/Scaling up 与效率/03-实验假设与结果/Reliable-TFM-Scaling-首个验证|Reliable-TFM-Scaling｜首个验证]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->

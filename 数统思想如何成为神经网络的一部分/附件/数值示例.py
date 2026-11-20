@@ -1,4 +1,4 @@
-"""第 02、06 篇的构造例子。运行 python3 数值示例.py，在终端查看结果。"""
+"""第 02、03、06 篇的构造例子。运行 python3 数值示例.py，在终端查看结果。"""
 import json
 import math
 
@@ -57,9 +57,56 @@ def two_state_predictions(stay=0.9, success_high=0.8, success_low=0.2):
                 next_state_high=next_high, next_success=next_success)
 
 
+def static_vs_dynamic(lags=(1, 2, 5)):
+    """静态 Beta–Bernoulli 与正文平稳 HMM；不条件化于中间观测。"""
+    alpha = beta = 89 / 72
+    total = alpha + beta
+    static_joint = alpha * (alpha + 1) / (total * (total + 1))
+    rows = []
+    for lag in lags:
+        if not isinstance(lag, int) or lag < 1:
+            raise ValueError('lag 必须是正整数。')
+        # 首次成功后的状态后验；用转移矩阵递推，而非直接套协方差公式。
+        high = 0.8
+        for _ in range(lag):
+            high = high * 0.9 + (1 - high) * 0.1
+        hmm_joint = 0.5 * (high * 0.8 + (1 - high) * 0.2)
+        rows.append(dict(lag=lag, hmm_joint=hmm_joint,
+                         static_joint=static_joint,
+                         hmm_covariance=hmm_joint - 0.25,
+                         static_covariance=static_joint - 0.25))
+    return dict(beta_alpha=alpha, beta_beta=beta, comparisons=rows)
+
+
+def competing_waiting(cancel_rate=0.1, arrival_rates=(0.2, 0.4)):
+    """两个独立、恒定速率的指数时钟；速率单位为每分钟。"""
+    return [dict(cancel_rate=cancel_rate, arrival_rate=arrival,
+                 mean_observed_wait=1 / (cancel_rate + arrival),
+                 cancel_probability=cancel_rate / (cancel_rate + arrival))
+            for arrival in arrival_rates]
+
+
+def posterior_nonlinearity():
+    """a=1，个人参数后验在 -2、2 处等权。"""
+    def sigmoid(value):
+        return 1 / (1 + math.exp(-value))
+    return dict(averaged_prediction=(sigmoid(-1) + sigmoid(3)) / 2,
+                prediction_at_mean=sigmoid(1))
+
+
+def repeated_evidence():
+    """N(0,1) 先验、方差 1 的 y=2；第二行错误重复使用同一观测。"""
+    return [dict(likelihood_copies=copies, posterior_mean=2 * copies / (1 + copies),
+                 posterior_variance=1 / (1 + copies)) for copies in (1, 2)]
+
+
 if __name__ == '__main__':
     examples = dict(shrinkage=normal_shrinkage([1, 9, 81]),
                     beta_binomial=beta_binomial([(0, 0), (5, 3), (100, 60)]),
                     mixture=compare_densities([0, 3]),
-                    hmm=two_state_predictions())
+                    hmm=two_state_predictions(),
+                    static_vs_dynamic=static_vs_dynamic(),
+                    competing_waiting=competing_waiting(),
+                    posterior_nonlinearity=posterior_nonlinearity(),
+                    repeated_evidence=repeated_evidence())
     print(json.dumps(examples, indent=2, ensure_ascii=False))

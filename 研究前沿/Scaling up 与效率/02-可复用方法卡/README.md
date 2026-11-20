@@ -10,6 +10,7 @@
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/Axia/精读#可复用机制|Axia｜扩模型时，怎样用有限训练次数选出更好的质量成本前沿？]]
 - [[研究前沿/Scaling up 与效率/02-可复用方法卡/CascadeRec-核心机制与验证|CascadeRec｜把更多推理预算给难样本，一定提高排序吗？]]
 - [[研究前沿/动态等待与匹配决策/02-可复用方法卡/IntelligentDelivery-resource-value|Intelligent Delivery｜多一点算力应分给哪个请求？]]
+- [[研究前沿/Scaling up 与效率/02-可复用方法卡/Reliable-TFM-Scaling-核心机制与验证|Reliable-TFM-Scaling｜小算力实验挑出的容量分配能指导大算力吗？]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->

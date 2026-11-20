@@ -21,6 +21,9 @@
 - [[研究前沿/模型自进化/01-论文原文与精读/HeldOutActionPlans/精读|HeldOutActionPlans｜预测变准了，没见过的策略动作也能排对吗？]]
 - [[研究前沿/模型自进化/01-论文原文与精读/AnytimeSurvival/精读|AnytimeSurvival｜持续盯指标时，怎么控制错误晋级？]]
 - [[研究前沿/模型自进化/01-论文原文与精读/BetweenRoundController/精读|BetweenRoundController｜历史该给提议器，还是也给定下一轮方向的控制器？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/MLE-Agents/精读|MLE-Agents｜离线选模指标怎样先验证能否解释线上结果？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/HydroMind/精读|HydroMind｜有哪些最小记录能减少自动实验结论不能复核？]]
+- [[研究前沿/模型自进化/01-论文原文与精读/GeoReplay/精读|GeoReplay｜给新城市适配时，能否不忘旧城市？]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->

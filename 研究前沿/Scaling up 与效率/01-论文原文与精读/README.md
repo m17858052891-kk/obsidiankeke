@@ -21,6 +21,9 @@
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/LoRM/精读|LoRM｜如何拆开独特数据量、复用次数与计算的影响？]]
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/MXFP6/精读|MXFP6｜排序模型哪些层可以降精度以腾出候选预算？]]
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/KVUse/精读|KVUse｜候选评分能否复用用户记忆缓存而不丢排序质量？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/Reliable-TFM-Scaling/精读|Reliable-TFM-Scaling｜小算力实验挑出的容量分配能指导大算力吗？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/OptimizeTheCob/精读|OptimizeTheCob｜beam 解码的瓶颈在注意力还是缓存搬运？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/CapAndTrack/精读|CapAndTrack｜等待容忍度不同的异步推理能否错峰共用算力？]]
 <!-- 自动索引结束 -->
 
 ## 复用库内精读
