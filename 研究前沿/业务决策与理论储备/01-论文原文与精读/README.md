@@ -19,4 +19,8 @@
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/MultiObjectiveCausalBandits/精读|MultiObjectiveCausalBandits｜预算约束下随机混合策略能否补齐纯策略前沿？]]
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/ImpatienceMatching/精读|ImpatienceMatching｜等待结束与资源消失会怎样改变匹配可解性？]]
 - [[研究前沿/业务决策与理论储备/01-论文原文与精读/CounterfactualWorldModels/精读|CounterfactualWorldModels｜上一次已观测结果能否提高同环境重试的预测？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/ReserveReassign/精读|ReserveReassign｜分批放出预约资源，先发出承诺后还能公平重配吗？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/ThriftyGreedy/精读|ThriftyGreedy｜到截止才合批时，装载效率的保证在哪些条件成立？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/PreferenceConsistentPareto/精读|PreferenceConsistentPareto｜先按单调前沿删候选，会不会误删真正偏好的折中？]]
+- [[研究前沿/业务决策与理论储备/01-论文原文与精读/RegionalDispatchDFL/精读|RegionalDispatchDFL｜有区域容量约束时，训练软罚怎样搭配硬可行化？]]
 <!-- 自动索引结束 -->

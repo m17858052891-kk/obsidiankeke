@@ -11,6 +11,8 @@
 - [[研究前沿/Scaling up 与效率/03-实验假设与结果/CascadeRec-首个验证|CascadeRec｜把更多推理预算给难样本，一定提高排序吗？]]
 - [[研究前沿/动态等待与匹配决策/03-实验假设与结果/IntelligentDelivery-fixed-budget|Intelligent Delivery｜多一点算力应分给哪个请求？]]
 - [[研究前沿/Scaling up 与效率/03-实验假设与结果/Reliable-TFM-Scaling-首个验证|Reliable-TFM-Scaling｜首个验证]]
+- [[研究前沿/Scaling up 与效率/03-实验假设与结果/DNA-首个验证|DNA｜首个验证]]
+- [[研究前沿/Scaling up 与效率/03-实验假设与结果/AdaptiveBeamDiskANN-首个验证|AdaptiveBeamDiskANN｜首个验证]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->

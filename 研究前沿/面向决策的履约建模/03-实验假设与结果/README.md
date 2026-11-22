@@ -112,6 +112,8 @@ created: "2026-11-04"
 - [[研究前沿/面向决策的履约建模/03-实验假设与结果/SurvCancel-首个验证|SurvCancel｜首个验证]]
 - [[研究前沿/面向决策的履约建模/03-实验假设与结果/SurvivalBenchSelection-首个验证|SurvivalBenchSelection｜首个验证]]
 - [[研究前沿/面向决策的履约建模/03-实验假设与结果/SelectiveEscalation-首个验证|SelectiveEscalation｜首个验证]]
+- [[研究前沿/面向决策的履约建模/03-实验假设与结果/MCO-Repositioning-首个验证|MCO-Repositioning｜首个验证]]
+- [[研究前沿/面向决策的履约建模/03-实验假设与结果/FLVM-首个验证|FLVM｜首个验证]]
 <!-- 自动索引结束 -->
 
 [[研究前沿/_运行记录/README|历史批次与核验记录]]

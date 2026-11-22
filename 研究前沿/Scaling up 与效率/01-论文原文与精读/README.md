@@ -24,6 +24,10 @@
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/Reliable-TFM-Scaling/精读|Reliable-TFM-Scaling｜小算力实验挑出的容量分配能指导大算力吗？]]
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/OptimizeTheCob/精读|OptimizeTheCob｜beam 解码的瓶颈在注意力还是缓存搬运？]]
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/CapAndTrack/精读|CapAndTrack｜等待容忍度不同的异步推理能否错峰共用算力？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/DNA/精读|DNA｜每层都更新用户长历史，怎样跟多候选共享算力？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/LQRec/精读|LQRec｜量化候选表后能否按成本选择前缀长度？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/FI-ITEP/精读|FI-ITEP｜稀疏表压内存，是按表尺寸平摊还是按重要度分配？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/AdaptiveBeamDiskANN/精读|AdaptiveBeamDiskANN｜ANN 动态省平均时间，会不会把尾延迟拉长？]]
 <!-- 自动索引结束 -->
 
 ## 复用库内精读
