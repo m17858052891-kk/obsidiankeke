@@ -28,6 +28,7 @@
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/LQRec/精读|LQRec｜量化候选表后能否按成本选择前缀长度？]]
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/FI-ITEP/精读|FI-ITEP｜稀疏表压内存，是按表尺寸平摊还是按重要度分配？]]
 - [[研究前沿/Scaling up 与效率/01-论文原文与精读/AdaptiveBeamDiskANN/精读|AdaptiveBeamDiskANN｜ANN 动态省平均时间，会不会把尾延迟拉长？]]
+- [[研究前沿/Scaling up 与效率/01-论文原文与精读/GBLA/精读|GBLA｜历史变长时，哪些层可以换成线性注意力？]]
 <!-- 自动索引结束 -->
 
 ## 复用库内精读

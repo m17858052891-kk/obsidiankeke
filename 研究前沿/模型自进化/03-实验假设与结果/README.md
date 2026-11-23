@@ -17,6 +17,8 @@
 - [[研究前沿/模型自进化/03-实验假设与结果/Ladder-首个验证|Ladder｜首个验证]]
 - [[研究前沿/模型自进化/03-实验假设与结果/CostAwareFeatureOptimization-首个验证|CostAwareFeatureOptimization｜首个验证]]
 - [[研究前沿/模型自进化/03-实验假设与结果/Pro2Agent-首个验证|Pro2Agent｜首个验证]]
+- [[研究前沿/模型自进化/03-实验假设与结果/NetflixCumulativeHoldback-首个验证|NetflixCumulativeHoldback｜首个验证]]
+- [[研究前沿/模型自进化/03-实验假设与结果/GradSim-首个验证|GradSim｜首个验证]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->

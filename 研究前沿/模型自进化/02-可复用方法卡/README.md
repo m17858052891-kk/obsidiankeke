@@ -17,6 +17,8 @@
 - [[研究前沿/模型自进化/02-可复用方法卡/Ladder-核心机制与验证|Ladder｜自动晋级时要给代理看每次终审的精确分数吗？]]
 - [[研究前沿/模型自进化/02-可复用方法卡/CostAwareFeatureOptimization-核心机制与验证|CostAwareFeatureOptimization｜自动特征迭代怎样把单模型损失和全链路成本一起管？]]
 - [[研究前沿/模型自进化/02-可复用方法卡/Pro2Agent-核心机制与验证|Pro2Agent｜自动研究怎样避免沿着同一模型思路不停碰运气？]]
+- [[研究前沿/模型自进化/02-可复用方法卡/NetflixCumulativeHoldback-核心机制与验证|NetflixCumulativeHoldback｜怎样衡量连续多轮推荐更新的累计收益？]]
+- [[研究前沿/模型自进化/02-可复用方法卡/GradSim-核心机制与验证|GradSim｜新样本只训练一部分时，怎样减少持续更新退化？]]
 <!-- 自动索引结束 -->
 
 <!-- 全库方法索引开始 -->
